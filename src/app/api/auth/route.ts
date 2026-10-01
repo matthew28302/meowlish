@@ -203,21 +203,38 @@ export async function POST(request: Request) {
       }
 
       const user = db.prepare('SELECT id, username, email, display_name FROM users WHERE id = ?').get(userId) as any;
-      if (!user || !user.email) {
-        return NextResponse.json({ error: 'Tài khoản chưa cập nhật email để gửi mã.' }, { status: 400 });
+      if (!user) {
+        return NextResponse.json({ error: 'Không tìm thấy người dùng.' }, { status: 404 });
+      }
+
+      let targetEmail = user.email;
+      if ((!targetEmail || targetEmail.trim() === '') && body.email) {
+        const cleanEmail = String(body.email).trim().toLowerCase();
+        if (cleanEmail.includes('@') && cleanEmail.includes('.')) {
+          const existing = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(cleanEmail, userId);
+          if (existing) {
+            return NextResponse.json({ error: 'Email này đã được sử dụng bởi một tài khoản khác.' }, { status: 400 });
+          }
+          db.prepare('UPDATE users SET email = ? WHERE id = ?').run(cleanEmail, userId);
+          targetEmail = cleanEmail;
+        }
+      }
+
+      if (!targetEmail) {
+        return NextResponse.json({ error: 'Tài khoản chưa có email. Vui lòng nhập địa chỉ email để nhận mã.' }, { status: 400 });
       }
 
       const newOtp = generateUserOTP();
       const newSessionId = createUserOtpSession({
         userId: user.id,
-        email: user.email,
+        email: targetEmail,
         purpose: 'verify_email',
         otp: newOtp,
       });
 
       // Gửi email
       const emailRes = await sendUserOtpEmail({
-        email: user.email,
+        email: targetEmail,
         otp: newOtp,
         purpose: 'verify_email',
         displayName: user.display_name,
