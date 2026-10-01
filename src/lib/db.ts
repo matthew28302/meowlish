@@ -142,6 +142,13 @@ function createDb(): Database.Database {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS ai_translation_cache (
+      query_key TEXT PRIMARY KEY,
+      query_type TEXT NOT NULL,
+      result_json TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_coin_tx_user_id ON coin_transactions(user_id);
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_date);
@@ -238,7 +245,7 @@ function createDb(): Database.Database {
 
     db.prepare(`
       INSERT INTO users (id, username, email, password_hash, display_name, avatar, streak, last_active_date, exp, level, coins)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1000)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(demoId, 'demo', 'demo@meowlish.com', pwdHash, 'Nguyễn Văn Minh (IT Dev)', '👨‍💻', 4, today, 340, 2, 1000);
 
     // Seed starter bookmarks for demo account
