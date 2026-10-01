@@ -143,6 +143,7 @@ export async function POST(request: Request) {
       }
 
       logger.info(`Admin toggled status for user ${targetUser.username} to ${nextStatus}`);
+      uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
       return NextResponse.json({
         success: true,
         message: nextStatus === 'active' ? `Đã kích hoạt lại tài khoản ${targetUser.username} thành công!` : `Đã vô hiệu hóa tài khoản ${targetUser.username}. Tài khoản này sẽ bị đăng xuất ngay lập tức khỏi ứng dụng.`,
@@ -156,6 +157,7 @@ export async function POST(request: Request) {
       db.prepare('UPDATE users SET coins = ? WHERE id = ?').run(parsedCoins, targetUserId);
 
       logger.info(`Admin set coins for user ${targetUser.username} to ${parsedCoins}`);
+      uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
       return NextResponse.json({
         success: true,
         message: `Đã cập nhật số xu cho tài khoản ${targetUser.username} thành ${parsedCoins.toLocaleString()} Coins! 🪙`,
@@ -170,6 +172,7 @@ export async function POST(request: Request) {
       db.prepare('UPDATE users SET level = ?, exp = ? WHERE id = ?').run(parsedLevel, parsedExp, targetUserId);
 
       logger.info(`Admin set level for user ${targetUser.username} to Lv.${parsedLevel} (${parsedExp} EXP)`);
+      uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
       return NextResponse.json({
         success: true,
         message: `Đã cập nhật cấp độ cho tài khoản ${targetUser.username} thành Lv.${parsedLevel} (${parsedExp} EXP)! ⭐`,
@@ -187,19 +190,42 @@ export async function POST(request: Request) {
       db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, targetUserId);
 
       logger.info(`Admin reset password for user ${targetUser.username}`);
+      uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
       return NextResponse.json({
         success: true,
         message: `Đã đổi mật khẩu mới cho tài khoản ${targetUser.username} thành công!`,
       });
     }
 
-    // 6. ACTION: XÓA TÀI KHOẢN (DELETE USER)
+    // 6. ACTION: XÓA VĨNH VIỄN TÀI KHOẢN (DELETE USER & CASCADE CLEANUP)
     if (action === 'delete_user') {
-      db.prepare('DELETE FROM users WHERE id = ?').run(targetUserId);
-      logger.info(`Admin deleted user ${targetUser.username}`);
+      if (targetUser.username === 'admin' || targetUser.role === 'admin') {
+        return NextResponse.json({ error: 'Không thể xóa tài khoản Quản Trị Viên!' }, { status: 403 });
+      }
+
+      // Xóa toàn bộ dữ liệu phụ thuộc trong Transaction an toàn
+      const deleteUserTransaction = db.transaction((uid: string) => {
+        try { db.prepare('DELETE FROM user_otp_sessions WHERE user_id = ?').run(uid); } catch {}
+        try { db.prepare('DELETE FROM pet_inventory WHERE user_id = ?').run(uid); } catch {}
+        try { db.prepare('DELETE FROM pet_garden_decor WHERE user_id = ?').run(uid); } catch {}
+        try { db.prepare('DELETE FROM user_pets WHERE user_id = ?').run(uid); } catch {}
+        try { db.prepare('DELETE FROM coin_transactions WHERE user_id = ?').run(uid); } catch {}
+        try { db.prepare('DELETE FROM bookmarks WHERE user_id = ?').run(uid); } catch {}
+        try { db.prepare('DELETE FROM progress WHERE user_id = ?').run(uid); } catch {}
+        try { db.prepare('DELETE FROM test_results WHERE user_id = ?').run(uid); } catch {}
+        db.prepare('DELETE FROM users WHERE id = ?').run(uid);
+      });
+
+      deleteUserTransaction(targetUserId);
+
+      logger.info(`Admin deleted user ${targetUser.username} (ID: ${targetUserId})`);
+
+      // Đồng bộ ngay lập tức lên Filebase S3
+      uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync after delete error:', { error: err }));
+
       return NextResponse.json({
         success: true,
-        message: `Đã xóa tài khoản ${targetUser.username} khỏi hệ thống.`,
+        message: `Đã xóa vĩnh viễn tài khoản @${targetUser.username} (${targetUser.id}) cùng toàn bộ dữ liệu liên quan và đồng bộ lên Filebase S3!`,
       });
     }
 

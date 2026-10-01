@@ -100,7 +100,7 @@ export default function DuaHauAdminPage() {
 
   // Edit Modals
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
-  const [modalType, setModalType] = useState<'coins' | 'level' | 'password' | null>(null);
+  const [modalType, setModalType] = useState<'coins' | 'level' | 'password' | 'delete' | null>(null);
   const [editCoinsInput, setEditCoinsInput] = useState<number>(0);
   const [editLevelInput, setEditLevelInput] = useState<number>(1);
   const [editExpInput, setEditExpInput] = useState<number>(0);
@@ -986,6 +986,20 @@ export default function DuaHauAdminPage() {
                             >
                               <KeyRound className="w-4 h-4" />
                             </button>
+
+                            {/* Delete User */}
+                            {!isRootAdmin && (
+                              <button
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setModalType('delete');
+                                }}
+                                className="p-1.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-600 hover:text-white transition cursor-pointer"
+                                title="Xóa tài khoản vĩnh viễn"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -1144,6 +1158,54 @@ export default function DuaHauAdminPage() {
                 className="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs cursor-pointer disabled:opacity-50"
               >
                 Xác Nhận Đổi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: DELETE USER ================= */}
+      {modalType === 'delete' && selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
+          <div className="w-full max-w-sm bg-slate-900 border-2 border-rose-500/80 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-2 text-rose-400 font-black text-base">
+              <Trash2 className="w-5 h-5" />
+              <span>Xác Nhận Xóa Tài Khoản</span>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản <strong className="text-white font-bold">{selectedUser.display_name}</strong> (@{selectedUser.username})?
+            </p>
+
+            <div className="bg-rose-950/50 border border-rose-800/80 p-3 rounded-2xl text-[11px] text-rose-200 space-y-1">
+              <div className="font-bold flex items-center gap-1.5 text-rose-300">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <span>Cảnh báo hệ thống:</span>
+              </div>
+              <p>
+                Toàn bộ thú cưng, từ vựng bookmark, lịch sử thi và tiến độ học tập sẽ bị xóa vĩnh viễn và không thể khôi phục. Cơ sở dữ liệu sẽ tự động đồng bộ lên Filebase S3 ngay lập tức.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                onClick={() => setModalType(null)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer transition"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                onClick={() =>
+                  executeAdminAction({
+                    action: 'delete_user',
+                    targetUserId: selectedUser.id,
+                  })
+                }
+                disabled={isSubmittingAction}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs cursor-pointer transition flex items-center justify-center gap-1.5 shadow-lg shadow-rose-950 disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Xóa vĩnh viễn</span>
               </button>
             </div>
           </div>
