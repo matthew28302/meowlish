@@ -1,6 +1,5 @@
 'use client';
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface Particle {
   x: number;
@@ -42,8 +41,21 @@ export default function ClickEffect() {
   const particlesRef = useRef<Particle[]>([]);
   const ripplesRef = useRef<Ripple[]>([]);
   const animIdRef = useRef<number | null>(null);
+  const [isTouchDevice, setIsTouchDevice] = useState<boolean | null>(null);
 
   useEffect(() => {
+    // Mobile Touch Detection: Pure touch handheld devices (phones, small tablets)
+    // should NOT run 100vw x 100vh canvas particle loops during finger scrolls.
+    const isTouchOnly =
+      window.matchMedia('(pointer: coarse) and not (pointer: fine)').matches ||
+      ('ontouchstart' in window && window.innerWidth < 1024);
+
+    if (isTouchOnly) {
+      setIsTouchDevice(true);
+      return;
+    }
+    setIsTouchDevice(false);
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -292,6 +304,7 @@ export default function ClickEffect() {
     let startY = 0;
 
     const handlePointerDown = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') return;
       isPointerDown = true;
       isDragging = false;
       startX = e.clientX;
@@ -302,6 +315,7 @@ export default function ClickEffect() {
     };
 
     const handlePointerMove = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') return;
       if (!isPointerDown) return;
 
       const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
@@ -325,6 +339,7 @@ export default function ClickEffect() {
     };
 
     const handlePointerUp = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') return;
       if (isDragging) {
         spawnDropEffect(e.clientX, e.clientY);
       }
@@ -381,6 +396,10 @@ export default function ClickEffect() {
       }
     };
   }, []);
+
+  if (isTouchDevice) {
+    return null;
+  }
 
   return (
     <canvas

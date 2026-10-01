@@ -442,61 +442,90 @@ aside::-webkit-scrollbar-thumb:hover {
 }
 
 /* ========================================================================= */
-/* Custom Cat Pointer (Reaching Paw & Click Impact Sparks)                   */
+/* Custom Cat Pointer (Reaching Paw & Click Impact Sparks) - DESKTOP ONLY   */
 /* ========================================================================= */
-*, *::before, *::after {
-  cursor: url('/cursor-mouse.png') 5 7, auto;
-}
+@media (hover: hover) and (pointer: fine) {
+  *, *::before, *::after {
+    cursor: url('/cursor-mouse.png') 5 7, auto;
+  }
 
-.cursor-pointer,
-a,
-button,
-[role="button"],
-select,
-summary {
-  cursor: url('/cursor-mouse.png') 5 7, pointer !important;
-}
+  .cursor-pointer,
+  a,
+  button,
+  [role="button"],
+  select,
+  summary {
+    cursor: url('/cursor-mouse.png') 5 7, pointer !important;
+  }
 
-.cursor-text,
-input,
-textarea {
-  cursor: url('/cursor-mouse.png') 5 7, text !important;
-}
+  .cursor-text,
+  input,
+  textarea {
+    cursor: url('/cursor-mouse.png') 5 7, text !important;
+  }
 
-/* Instant hardware active state & mouse-down class state */
-html:active,
-body:active,
-*:active,
-*::before:active,
-*::after:active,
-a:active,
-button:active,
-input:active,
-textarea:active,
-select:active,
-[role="button"]:active,
-html.mouse-down,
-html.mouse-down *,
-html.mouse-down *::before,
-html.mouse-down *::after {
-  cursor: url('/cursor-click.png') 5 7, auto !important;
+  /* Instant hardware active state & mouse-down class state */
+  html:active,
+  body:active,
+  *:active,
+  *::before:active,
+  *::after:active,
+  a:active,
+  button:active,
+  input:active,
+  textarea:active,
+  select:active,
+  [role="button"]:active,
+  html.mouse-down,
+  html.mouse-down *,
+  html.mouse-down *::before,
+  html.mouse-down *::after {
+    cursor: url('/cursor-click.png') 5 7, auto !important;
+  }
+
+  /* Drag & Drop / Grabbing State (Hugging Cat from om.png) */
+  .cursor-grab,
+  [draggable="true"] {
+    cursor: url('/cursor-drag.png') 3 4, grab !important;
+  }
+
+  .cursor-grabbing,
+  [draggable="true"]:active,
+  html.mouse-dragging,
+  html.mouse-dragging *,
+  html.mouse-dragging *::before,
+  html.mouse-dragging *::after {
+    cursor: url('/cursor-drag.png') 3 4, grabbing !important;
+  }
 }
 
 /* ========================================================================= */
-/* Drag & Drop / Grabbing State (Hugging Cat from om.png)                    */
+/* Mobile Native Smooth Momentum Scrolling & Hardware Acceleration           */
 /* ========================================================================= */
-.cursor-grab,
-[draggable="true"] {
-  cursor: url('/cursor-drag.png') 3 4, grab !important;
-}
+@media (pointer: coarse) {
+  html,
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+    touch-action: pan-x pan-y;
+  }
 
-.cursor-grabbing,
-[draggable="true"]:active,
-html.mouse-dragging,
-html.mouse-dragging *,
-html.mouse-dragging *::before,
-html.mouse-dragging *::after {
-  cursor: url('/cursor-drag.png') 3 4, grabbing !important;
+  main,
+  .custom-scrollbar {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    transform: translateZ(0);
+    will-change: scroll-position;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role="button"] {
+    touch-action: manipulation;
+  }
 }
 
 /* ========================================================================= */

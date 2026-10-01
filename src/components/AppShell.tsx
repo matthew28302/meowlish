@@ -181,8 +181,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       } catch {}
     };
 
-    // Kiểm tra định kỳ mỗi 15 giây và khi người dùng quay lại tab trình duyệt
-    const interval = setInterval(checkSession, 15000);
+    // Kiểm tra định kỳ mỗi 60 giây và ngay lập tức khi người dùng quay lại tab trình duyệt
+    const interval = setInterval(checkSession, 60000);
     const onFocus = () => checkSession();
     const onVisibility = () => {
       if (document.visibilityState === 'visible') checkSession();
@@ -401,7 +401,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* 2. MAIN CONTENT STAGE (Offset on desktop for the sidebar) */}
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64 min-h-dvh lg:h-dvh lg:overflow-hidden">
         {/* Top Status Header (Single Minimal Row with Zero Clutter) */}
-        <header className="shrink-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-xs">
+        <header className="shrink-0 z-30 bg-white lg:bg-white/90 lg:backdrop-blur-md border-b border-slate-100 shadow-xs">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16 gap-4">
               {/* Left: Mobile hamburger & Page Title */}
@@ -537,14 +537,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         )}
 
         <main
-          className="flex-1 min-h-0 flex flex-col w-full overflow-y-auto custom-scrollbar pb-24 lg:pb-0"
+          className="flex-1 min-h-0 flex flex-col w-full overflow-y-auto overscroll-y-contain custom-scrollbar pb-24 lg:pb-0"
         >
           {children}
         </main>
       </div>
 
       {/* 3. MOBILE BOTTOM NAVIGATION (Native App Feel on Handheld Devices) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 h-16 pb-[calc(env(safe-area-inset-bottom,0px))] flex items-center justify-around px-2 shadow-lg">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/90 h-16 pb-[calc(env(safe-area-inset-bottom,0px))] flex items-center justify-around px-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
         {mobilePrimaryLinks.map((link) => {
           const Icon = link.icon;
           const isActive = pathname === link.href;
