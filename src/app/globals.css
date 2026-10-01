@@ -38,6 +38,24 @@ body {
   min-height: 100vh;
 }
 
+/* Global input text contrast & selectable text */
+input,
+textarea,
+select {
+  color: #0f172a;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.dark input,
+.dark textarea,
+.dark select {
+  color: #f8fafc;
+}
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8;
+}
+
 /* Gamified 3D Playful Buttons (Duolingo & Animal Crossing inspired) */
 .btn-3d {
   transition: all 0.12s ease-in-out;

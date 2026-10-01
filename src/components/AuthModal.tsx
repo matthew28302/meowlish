@@ -419,7 +419,7 @@ export default function AuthModal({
         {/* ========================================================================= */}
         {/* 30% FORM CONTAINER (FIXED ON LEFT) */}
         {/* ========================================================================= */}
-        <div className="w-full md:w-[35%] lg:w-[30%] h-full flex flex-col justify-between py-6 sm:py-8 lg:py-10 pr-6 sm:pr-8 lg:pr-10 pl-14 sm:pl-16 lg:pl-16 overflow-y-auto overflow-x-hidden bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-20 shadow-2xl shrink-0">
+        <div className="w-full md:w-[35%] lg:w-[30%] h-full flex flex-col justify-between py-6 sm:py-8 lg:py-10 pr-6 sm:pr-8 lg:pr-10 pl-14 sm:pl-16 lg:pl-16 overflow-y-auto overflow-x-hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-r border-slate-200 dark:border-slate-800 z-20 shadow-2xl shrink-0">
           {/* Top Header & Branding */}
           <div>
             <div className="flex items-center justify-between mb-5">
@@ -803,7 +803,7 @@ export default function AuthModal({
                             onBlur={() => setActiveInput((cur) => cur === 'login-username' ? null : cur)}
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="Nhập tên đăng nhập của bạn..."
-                            className={`w-full pl-10 pr-3.5 py-3 bg-slate-50 dark:bg-slate-800 border rounded-2xl text-xs font-medium focus:outline-none transition-all ${
+                            className={`w-full pl-10 pr-3.5 py-3 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border rounded-2xl text-xs font-medium focus:outline-none transition-all select-text ${
                               activeInput === 'login-username'
                                 ? 'border-emerald-500 ring-2 ring-emerald-500/20 translate-x-1'
                                 : 'border-slate-200 dark:border-slate-700'
@@ -831,7 +831,7 @@ export default function AuthModal({
                             onBlur={() => setActiveInput((cur) => cur === 'login-password' ? null : cur)}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Nhập mật khẩu..."
-                            className={`w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-slate-800 border rounded-2xl text-xs font-medium focus:outline-none transition-all ${
+                            className={`w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border rounded-2xl text-xs font-medium focus:outline-none transition-all select-text ${
                               activeInput === 'login-password'
                                 ? 'border-emerald-500 ring-2 ring-emerald-500/20 translate-x-1'
                                 : 'border-slate-200 dark:border-slate-700'
@@ -870,7 +870,7 @@ export default function AuthModal({
                             onBlur={() => setActiveInput((cur) => cur === 'register-displayName' ? null : cur)}
                             onChange={(e) => setDisplayName(e.target.value)}
                             placeholder="VD: Tuấn Anh (IT Dev)"
-                            className={`w-full pl-10 pr-3.5 py-3 bg-slate-50 dark:bg-slate-800 border rounded-2xl text-xs font-medium focus:outline-none transition-all ${
+                            className={`w-full pl-10 pr-3.5 py-3 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border rounded-2xl text-xs font-medium focus:outline-none transition-all select-text ${
                               activeInput === 'register-displayName'
                                 ? 'border-emerald-500 ring-2 ring-emerald-500/20 translate-x-1'
                                 : 'border-slate-200 dark:border-slate-700'
@@ -898,7 +898,7 @@ export default function AuthModal({
                             onBlur={() => setActiveInput((cur) => cur === 'register-email' ? null : cur)}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="VD: tuananh@example.com"
-                            className={`w-full pl-10 pr-3.5 py-3 bg-slate-50 dark:bg-slate-800 border rounded-2xl text-xs font-medium focus:outline-none transition-all ${
+                            className={`w-full pl-10 pr-3.5 py-3 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border rounded-2xl text-xs font-medium focus:outline-none transition-all select-text ${
                               activeInput === 'register-email'
                                 ? 'border-emerald-500 ring-2 ring-emerald-500/20 translate-x-1'
                                 : 'border-slate-200 dark:border-slate-700'
@@ -926,7 +926,7 @@ export default function AuthModal({
                             onBlur={() => setActiveInput((cur) => cur === 'register-username' ? null : cur)}
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="VD: tuananh2026"
-                            className={`w-full pl-10 pr-3.5 py-3 bg-slate-50 dark:bg-slate-800 border rounded-2xl text-xs font-mono focus:outline-none transition-all ${
+                            className={`w-full pl-10 pr-3.5 py-3 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border rounded-2xl text-xs font-mono focus:outline-none transition-all select-text ${
                               activeInput === 'register-username'
                                 ? 'border-emerald-500 ring-2 ring-emerald-500/20 translate-x-1'
                                 : 'border-slate-200 dark:border-slate-700'
@@ -954,7 +954,7 @@ export default function AuthModal({
                             onBlur={() => setActiveInput((cur) => cur === 'register-password' ? null : cur)}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Tạo mật khẩu an toàn..."
-                            className={`w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-slate-800 border rounded-2xl text-xs font-medium focus:outline-none transition-all ${
+                            className={`w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border rounded-2xl text-xs font-medium focus:outline-none transition-all select-text ${
                               activeInput === 'register-password'
                                 ? 'border-emerald-500 ring-2 ring-emerald-500/20 translate-x-1'
                                 : 'border-slate-200 dark:border-slate-700'
@@ -1000,7 +1000,7 @@ export default function AuthModal({
                             onBlur={() => setActiveInput((cur) => cur === 'forgot-input' ? null : cur)}
                             onChange={(e) => setForgotInput(e.target.value)}
                             placeholder="Nhập email hoặc username đã đăng ký..."
-                            className={`w-full pl-10 pr-3.5 py-3 bg-slate-50 dark:bg-slate-800 border rounded-2xl text-xs font-medium focus:outline-none transition-all ${
+                            className={`w-full pl-10 pr-3.5 py-3 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border rounded-2xl text-xs font-medium focus:outline-none transition-all select-text ${
                               activeInput === 'forgot-input'
                                 ? 'border-emerald-500 ring-2 ring-emerald-500/20 translate-x-1'
                                 : 'border-slate-200 dark:border-slate-700'
