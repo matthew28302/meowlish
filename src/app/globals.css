@@ -1,8 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Charis+SIL:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --primary-emerald: #10b981;
+  --primary-emerald-dark: #059669;
+  --accent-amber: #f59e0b;
+  --accent-coral: #f97316;
 }
 
 @theme inline {
@@ -12,15 +19,740 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Dedicated International Phonetic Alphabet (IPA) Font Stack */
+.font-ipa, .font-phonetic {
+  font-family: 'Charis SIL', 'Doulos SIL', 'Gentium Plus', 'Lucida Sans Unicode', 'Segoe UI', 'DejaVu Sans', Arial, sans-serif !important;
+  font-feature-settings: 'liga' 1;
+  letter-spacing: 0.03em;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(at 15% 15%, rgba(16, 185, 129, 0.04) 0px, transparent 40%),
+    radial-gradient(at 85% 25%, rgba(245, 158, 11, 0.04) 0px, transparent 40%),
+    radial-gradient(at 50% 80%, rgba(56, 189, 248, 0.03) 0px, transparent 50%);
+  color: #0f172a;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Gamified 3D Playful Buttons (Duolingo & Animal Crossing inspired) */
+.btn-3d {
+  transition: all 0.12s ease-in-out;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 800;
+  border-radius: 1rem;
+}
+
+.btn-3d-emerald {
+  background-color: #10b981;
+  color: #ffffff;
+  border-bottom: 4px solid #059669;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+}
+.btn-3d-emerald:hover {
+  background-color: #059669;
+}
+.btn-3d-emerald:active {
+  border-bottom-width: 0px;
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+.btn-3d-amber {
+  background-color: #f59e0b;
+  color: #ffffff;
+  border-bottom: 4px solid #d97706;
+  box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.2);
+}
+.btn-3d-amber:hover {
+  background-color: #d97706;
+}
+.btn-3d-amber:active {
+  border-bottom-width: 0px;
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+.btn-3d-white {
+  background-color: #ffffff;
+  color: #1e293b;
+  border: 2px solid #e2e8f0;
+  border-bottom: 4px solid #cbd5e1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.btn-3d-white:hover {
+  border-color: #94a3b8;
+  background-color: #f8fafc;
+}
+.btn-3d-white:active {
+  border-bottom-width: 2px;
+  transform: translateY(2px);
+}
+
+.btn-3d-slate {
+  background-color: #0f172a;
+  color: #ffffff;
+  border-bottom: 4px solid #020617;
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.3);
+}
+.btn-3d-slate:hover {
+  background-color: #1e293b;
+}
+.btn-3d-slate:active {
+  border-bottom-width: 0px;
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+/* Playful Card Containers */
+.card-playful {
+  background-color: #ffffff;
+  border-radius: 1.5rem;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 8px 10px -6px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-playful:hover {
+  border-color: #a7f3d0;
+  box-shadow: 0 14px 30px -4px rgba(16, 185, 129, 0.08);
+}
+
+/* Word Token / Scrambled Lego Chip */
+.lego-chip {
+  background-color: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-bottom: 4px solid #cbd5e1;
+  border-radius: 0.875rem;
+  font-weight: 700;
+  padding: 0.5rem 0.875rem;
+  color: #1e293b;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.1s ease;
+}
+.lego-chip:hover {
+  border-color: #10b981;
+  background-color: #ecfdf5;
+  color: #047857;
+}
+.lego-chip:active {
+  border-bottom-width: 2px;
+  transform: translateY(2px);
+}
+
+/* Floating animation for Mascot and playful elements */
+@keyframes float-soft {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-float-soft {
+  animation: float-soft 3.5s ease-in-out infinite;
+}
+
+/* Mobile Drawer Slide-in Animation */
+@keyframes drawer-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0%);
+  }
+}
+
+.animate-drawer-slide {
+  animation: drawer-slide 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Flame glow pulse */
+@keyframes flame-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(249, 115, 22, 0.4));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.8));
+    transform: scale(1.06);
+  }
+}
+
+.animate-flame {
+  animation: flame-glow 1.8s ease-in-out infinite;
+}
+
+/* 3D Flashcard flip classes */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Sidebar subtle scrollbar */
+aside::-webkit-scrollbar {
+  width: 4px;
+}
+aside::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 9999px;
+}
+aside::-webkit-scrollbar-thumb:hover {
+  background: #10b981;
+}
+
+/* 2D Pixel Farm Game Animations (Avatar Teamobi / 16-bit retro style) */
+@keyframes pixel-idle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes pixel-walk {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-3px) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-3px) rotate(3deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+@keyframes pixel-run {
+  0% {
+    transform: translateY(0px) skewX(2deg);
+  }
+  25% {
+    transform: translateY(-6px) skewX(-4deg);
+  }
+  50% {
+    transform: translateY(0px) skewX(2deg);
+  }
+  75% {
+    transform: translateY(-6px) skewX(4deg);
+  }
+  100% {
+    transform: translateY(0px) skewX(2deg);
+  }
+}
+
+@keyframes pixel-sleep {
+  0%, 100% {
+    transform: translateY(1px) scale(0.97);
+  }
+  50% {
+    transform: translateY(3px) scale(1.02);
+  }
+}
+
+@keyframes pixel-eat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08) translateY(-2px);
+  }
+}
+
+@keyframes pixel-happy {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  30% {
+    transform: translateY(-10px) scale(1.1);
+  }
+  60% {
+    transform: translateY(-4px) scale(1.05);
+  }
+}
+
+@keyframes pixel-zzz {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(4px, -6px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(8px, -14px) scale(1.2);
+  }
+}
+
+@keyframes pixel-crumbs {
+  0% {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.animate-pixel-idle {
+  animation: pixel-idle 1.4s ease-in-out infinite;
+}
+
+.animate-pixel-walk {
+  animation: pixel-walk 0.4s steps(4) infinite;
+}
+
+.animate-pixel-run {
+  animation: pixel-run 0.25s steps(4) infinite;
+}
+
+.animate-pixel-sleep {
+  animation: pixel-sleep 2s ease-in-out infinite;
+}
+
+.animate-pixel-eat {
+  animation: pixel-eat 0.4s ease-in-out infinite;
+}
+
+.animate-pixel-happy {
+  animation: pixel-happy 0.8s ease-in-out infinite;
+}
+
+.animate-pixel-zzz {
+  animation: pixel-zzz 2s ease-in-out infinite;
+}
+
+.animate-pixel-crumbs {
+  animation: pixel-crumbs 0.6s ease-out infinite;
+}
+
+@keyframes pixel-climb {
+  0%, 100% {
+    transform: translateY(0px) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(4deg);
+  }
+}
+
+@keyframes pixel-swim {
+  0%, 100% {
+    transform: translateY(2px) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(6px) rotate(3deg);
+  }
+}
+
+@keyframes pixel-jump {
+  0%, 100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  20% {
+    transform: translateY(2px) scale(1.15, 0.85);
+  }
+  50% {
+    transform: translateY(-22px) scale(0.9, 1.15);
+  }
+  75% {
+    transform: translateY(-8px) scale(0.95, 1.05);
+  }
+  90% {
+    transform: translateY(2px) scale(1.1, 0.9);
+  }
+}
+
+.animate-pixel-climb {
+  animation: pixel-climb 0.35s steps(3) infinite;
+}
+
+.animate-pixel-swim {
+  animation: pixel-swim 0.7s ease-in-out infinite;
+}
+
+.animate-pixel-jump {
+  animation: pixel-jump 0.85s cubic-bezier(0.2, 0.8, 0.3, 1) infinite;
+}
+
+@keyframes light-sweep {
+  0% {
+    transform: translateX(-120%) skewX(-20deg);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(280%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+.animate-light-sweep {
+  animation: light-sweep 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ========================================================================= */
+/* Custom Cat Pointer (Reaching Paw & Click Impact Sparks)                   */
+/* ========================================================================= */
+*, *::before, *::after {
+  cursor: url('/cursor-mouse.png') 5 7, auto;
+}
+
+.cursor-pointer,
+a,
+button,
+[role="button"],
+select,
+summary {
+  cursor: url('/cursor-mouse.png') 5 7, pointer !important;
+}
+
+.cursor-text,
+input,
+textarea {
+  cursor: url('/cursor-mouse.png') 5 7, text !important;
+}
+
+/* Instant hardware active state & mouse-down class state */
+html:active,
+body:active,
+*:active,
+*::before:active,
+*::after:active,
+a:active,
+button:active,
+input:active,
+textarea:active,
+select:active,
+[role="button"]:active,
+html.mouse-down,
+html.mouse-down *,
+html.mouse-down *::before,
+html.mouse-down *::after {
+  cursor: url('/cursor-click.png') 5 7, auto !important;
+}
+
+/* ========================================================================= */
+/* Drag & Drop / Grabbing State (Hugging Cat from om.png)                    */
+/* ========================================================================= */
+.cursor-grab,
+[draggable="true"] {
+  cursor: url('/cursor-drag.png') 3 4, grab !important;
+}
+
+.cursor-grabbing,
+[draggable="true"]:active,
+html.mouse-dragging,
+html.mouse-dragging *,
+html.mouse-dragging *::before,
+html.mouse-dragging *::after {
+  cursor: url('/cursor-drag.png') 3 4, grabbing !important;
+}
+
+/* ========================================================================= */
+/* 3D PET-SPECIFIC UNIQUE MOVEMENT & LIFE ANIMATIONS                         */
+/* ========================================================================= */
+
+/* 1. Bipedal Waddlers (Doraemon, Dorami, Hello Kitty, Kuromi, My Melody) */
+@keyframes pet-waddle-walk {
+  0% { transform: translateY(0px) rotate(-4deg) scale(1, 1); }
+  25% { transform: translateY(-4px) rotate(0deg) scale(0.96, 1.05); }
+  50% { transform: translateY(0px) rotate(4deg) scale(1.04, 0.96); }
+  75% { transform: translateY(-4px) rotate(0deg) scale(0.96, 1.05); }
+  100% { transform: translateY(0px) rotate(-4deg) scale(1, 1); }
+}
+
+@keyframes pet-waddle-run {
+  0% { transform: translateY(0px) rotate(-7deg) skewX(3deg); }
+  25% { transform: translateY(-6px) rotate(0deg) skewX(0deg) scale(0.94, 1.07); }
+  50% { transform: translateY(0px) rotate(7deg) skewX(-3deg); }
+  75% { transform: translateY(-6px) rotate(0deg) skewX(0deg) scale(0.94, 1.07); }
+  100% { transform: translateY(0px) rotate(-7deg) skewX(3deg); }
+}
+
+.animate-pet-waddle-walk {
+  animation: pet-waddle-walk 0.45s ease-in-out infinite;
+}
+.animate-pet-waddle-run {
+  animation: pet-waddle-run 0.28s ease-in-out infinite;
+}
+
+/* 2. Floating Cloud & Flying (Cinnamoroll, Hedwig, Fawkes) */
+@keyframes pet-float-walk {
+  0% { transform: translateY(-2px) rotate(-2deg); }
+  50% { transform: translateY(-9px) rotate(2deg); }
+  100% { transform: translateY(-2px) rotate(-2deg); }
+}
+
+@keyframes pet-float-run {
+  0% { transform: translateY(-4px) rotate(-4deg); }
+  50% { transform: translateY(-14px) rotate(4deg); }
+  100% { transform: translateY(-4px) rotate(-4deg); }
+}
+
+@keyframes pet-float-idle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-pet-float-walk {
+  animation: pet-float-walk 0.7s ease-in-out infinite;
+}
+.animate-pet-float-run {
+  animation: pet-float-run 0.4s ease-in-out infinite;
+}
+.animate-pet-float-idle {
+  animation: pet-float-idle 1.6s ease-in-out infinite;
+}
+
+/* Cinnamoroll Wing-Ear Flap during motion */
+@keyframes cinna-ear-flap-l {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-16deg) translateY(-2px); }
+}
+@keyframes cinna-ear-flap-r {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(16deg) translateY(-2px); }
+}
+.animate-cinna-ear-l {
+  transform-origin: 18px 22px;
+  animation: cinna-ear-flap-l 0.45s ease-in-out infinite;
+}
+.animate-cinna-ear-r {
+  transform-origin: 46px 22px;
+  animation: cinna-ear-flap-r 0.45s ease-in-out infinite;
+}
+
+/* 3. Elastic Rolling Bouncing (Kirby) */
+@keyframes pet-bounce-walk {
+  0%, 100% { transform: translateY(0px) scale(1.12, 0.88); }
+  25% { transform: translateY(-5px) scale(0.92, 1.1) rotate(6deg); }
+  50% { transform: translateY(-10px) scale(1, 1) rotate(0deg); }
+  75% { transform: translateY(-4px) scale(0.95, 1.05) rotate(-6deg); }
+}
+
+@keyframes pet-bounce-run {
+  0%, 100% { transform: translateY(0px) scale(1.22, 0.78); }
+  35% { transform: translateY(-16px) scale(0.85, 1.18) rotate(12deg); }
+  70% { transform: translateY(-6px) scale(0.95, 1.05) rotate(-8deg); }
+}
+
+@keyframes pet-bounce-idle {
+  0%, 100% { transform: translateY(0px) scale(1, 1); }
+  50% { transform: translateY(-2px) scale(1.04, 0.96); }
+}
+
+.animate-pet-bounce-walk {
+  animation: pet-bounce-walk 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+.animate-pet-bounce-run {
+  animation: pet-bounce-run 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+.animate-pet-bounce-idle {
+  animation: pet-bounce-idle 1.3s ease-in-out infinite;
+}
+
+/* 4. Quadruped Agile Trot / Gallop (Fox, Kurama, Dog, Cat, Pakkun, Rocket, Goose) */
+@keyframes pet-trot-walk {
+  0% { transform: translateY(0px) rotate(2deg) skewX(2deg); }
+  25% { transform: translateY(-4px) rotate(-1deg) skewX(-1deg); }
+  50% { transform: translateY(0px) rotate(-2deg) skewX(-2deg); }
+  75% { transform: translateY(-4px) rotate(1deg) skewX(1deg); }
+  100% { transform: translateY(0px) rotate(2deg) skewX(2deg); }
+}
+
+@keyframes pet-trot-run {
+  0% { transform: translateY(0px) rotate(4deg) scale(1.05, 0.95); }
+  30% { transform: translateY(-8px) rotate(-3deg) scale(0.95, 1.08); }
+  60% { transform: translateY(1px) rotate(3deg) scale(1.08, 0.92); }
+  100% { transform: translateY(0px) rotate(4deg) scale(1.05, 0.95); }
+}
+
+@keyframes pet-tail-idle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-1.5px) rotate(0.8deg); }
+}
+
+.animate-pet-trot-walk {
+  animation: pet-trot-walk 0.38s ease-in-out infinite;
+}
+.animate-pet-trot-run {
+  animation: pet-trot-run 0.24s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.animate-pet-tail-idle {
+  animation: pet-tail-idle 1.4s ease-in-out infinite;
+}
+
+/* 5. Springy Hopping (Bunny, Gamakichi, Karoo) */
+@keyframes pet-hop-walk {
+  0%, 100% { transform: translateY(0px) scale(1.1, 0.9); }
+  20% { transform: translateY(1px) scale(1.18, 0.82); }
+  50% { transform: translateY(-12px) scale(0.9, 1.15) rotate(-3deg); }
+  80% { transform: translateY(-3px) scale(0.98, 1.02); }
+}
+
+@keyframes pet-hop-run {
+  0%, 100% { transform: translateY(0px) scale(1.2, 0.8); }
+  25% { transform: translateY(-18px) scale(0.85, 1.2) rotate(-5deg); }
+  70% { transform: translateY(-4px) scale(1.05, 0.95); }
+}
+
+.animate-pet-hop-walk {
+  animation: pet-hop-walk 0.5s ease-out infinite;
+}
+.animate-pet-hop-run {
+  animation: pet-hop-run 0.34s ease-out infinite;
+}
+
+/* 6. Heavy Plump Waddle (Pompompurin, Panda, Bepo, Chopper) */
+@keyframes pet-pudgy-walk {
+  0% { transform: translateY(0px) rotate(-6deg) translateX(-2px); }
+  25% { transform: translateY(-3px) rotate(-2deg); }
+  50% { transform: translateY(0px) rotate(6deg) translateX(2px); }
+  75% { transform: translateY(-3px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(-6deg) translateX(-2px); }
+}
+
+@keyframes pet-pudgy-run {
+  0% { transform: translateY(0px) rotate(-9deg) translateX(-3px) scale(1.05, 0.95); }
+  25% { transform: translateY(-5px) rotate(0deg) scale(0.95, 1.05); }
+  50% { transform: translateY(0px) rotate(9deg) translateX(3px) scale(1.05, 0.95); }
+  75% { transform: translateY(-5px) rotate(0deg) scale(0.95, 1.05); }
+  100% { transform: translateY(0px) rotate(-9deg) translateX(-3px) scale(1.05, 0.95); }
+}
+
+.animate-pet-pudgy-walk {
+  animation: pet-pudgy-walk 0.52s ease-in-out infinite;
+}
+.animate-pet-pudgy-run {
+  animation: pet-pudgy-run 0.32s ease-in-out infinite;
+}
+
+/* 7. Low Reptilian Crawl (Alligator Loki) */
+@keyframes pet-crawl-walk {
+  0% { transform: translateY(0px) skewX(-4deg) translateX(-2px); }
+  50% { transform: translateY(1px) skewX(4deg) translateX(2px); }
+  100% { transform: translateY(0px) skewX(-4deg) translateX(-2px); }
+}
+
+@keyframes pet-crawl-run {
+  0% { transform: translateY(0px) skewX(-8deg) translateX(-4px); }
+  50% { transform: translateY(1px) skewX(8deg) translateX(4px); }
+  100% { transform: translateY(0px) skewX(-8deg) translateX(-4px); }
+}
+
+.animate-pet-crawl-walk {
+  animation: pet-crawl-walk 0.45s ease-in-out infinite;
+}
+.animate-pet-crawl-run {
+  animation: pet-crawl-run 0.28s ease-in-out infinite;
+}
+
+/* 8. Owl Mascot Flutter (Owl) */
+@keyframes pet-flutter-walk {
+  0%, 100% { transform: translateY(0px) rotate(-2deg); }
+  30% { transform: translateY(-7px) rotate(2deg) scale(1.05, 0.95); }
+  60% { transform: translateY(-2px) rotate(-1deg); }
+}
+
+@keyframes pet-flutter-run {
+  0%, 100% { transform: translateY(0px) rotate(-4deg); }
+  35% { transform: translateY(-12px) rotate(4deg) scale(1.08, 0.92); }
+  70% { transform: translateY(-4px) rotate(-2deg); }
+}
+
+.animate-pet-flutter-walk {
+  animation: pet-flutter-walk 0.4s ease-in-out infinite;
+}
+.animate-pet-flutter-run {
+  animation: pet-flutter-run 0.26s ease-in-out infinite;
+}
+
+/* Ball Toss 3D Parabolic Arc Animation */
+@keyframes ball-arc-flight {
+  0% {
+    transform: translateY(0px) scale(2.2) rotate(0deg);
+  }
+  35% {
+    transform: translateY(-110px) scale(1.5) rotate(360deg);
+  }
+  75% {
+    transform: translateY(-25px) scale(1.15) rotate(600deg);
+  }
+  100% {
+    transform: translateY(0px) scale(1) rotate(720deg);
+  }
+}
+
+.animate-ball-arc {
+  animation: ball-arc-flight 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes ball-landing-shadow {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(0.6);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0.6;
+  }
+}
+
+.animate-ball-shadow {
+  animation: ball-landing-shadow 0.65s ease-out forwards;
 }

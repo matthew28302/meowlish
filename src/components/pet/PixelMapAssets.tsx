@@ -1,0 +1,3366 @@
+'use client';
+
+import React from 'react';
+
+// =========================================================================
+// 1. CỐI XAY GIÓ HÀ LAN THẬT (DUTCH WINDMILL WITH WOODEN LATTICE BLADES)
+// =========================================================================
+export function DutchWindmillSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 180 * scale }}>
+      <svg viewBox="0 0 140 180" width={140 * scale} height={180 * scale} className="overflow-visible drop-shadow-xl">
+        <defs>
+          <linearGradient id="millBaseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#475569" />
+            <stop offset="50%" stopColor="#64748b" />
+            <stop offset="100%" stopColor="#334155" />
+          </linearGradient>
+          <linearGradient id="millBodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#b45309" />
+            <stop offset="50%" stopColor="#d97706" />
+            <stop offset="100%" stopColor="#92400e" />
+          </linearGradient>
+          <linearGradient id="millRoofGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#92400e" />
+            <stop offset="50%" stopColor="#78350f" />
+            <stop offset="100%" stopColor="#451a03" />
+          </linearGradient>
+        </defs>
+        {/* Shadow */}
+        <ellipse cx="70" cy="172" rx="65" ry="12" fill="rgba(0,0,0,0.3)" />
+
+        {/* Stone Base / Bệ đá xếp lớp */}
+        <path d="M 32 170 L 40 100 L 100 100 L 108 170 Z" fill="url(#millBaseGrad)" stroke="#1e293b" strokeWidth="2" />
+        {/* Stone Brick Lines with better detailing */}
+        <path d="M36 150 L104 150 M38 130 L102 130 M39 115 L101 115" stroke="#334155" strokeWidth="1.5" />
+        <path d="M55 150 L55 170 M85 150 L85 170 M70 130 L70 150 M45 130 L45 150 M95 130 L95 150 M50 115 L50 130 M90 115 L90 130 M70 100 L70 115" stroke="#334155" strokeWidth="1.5" />
+        
+        {/* Vines growing on base */}
+        <path d="M 34 165 Q 40 145 38 135 Q 42 125 45 110" fill="none" stroke="#15803d" strokeWidth="2" strokeLinecap="round" />
+        <path d="M 106 160 Q 95 140 100 120" fill="none" stroke="#15803d" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="38" cy="145" r="1.5" fill="#22c55e" />
+        <circle cx="41" cy="130" r="1.5" fill="#22c55e" />
+        <circle cx="98" cy="130" r="1.5" fill="#22c55e" />
+
+        {/* Wooden Double Door at Base */}
+        <path d="M 60 170 L 60 142 Q 70 138 80 142 L 80 170 Z" fill="#451a03" stroke="#1c1917" strokeWidth="2" />
+        <line x1="70" y1="140" x2="70" y2="170" stroke="#1c1917" strokeWidth="1.5" />
+        <circle cx="67" cy="156" r="1.5" fill="#facc15" />
+        <circle cx="73" cy="156" r="1.5" fill="#facc15" />
+        {/* Door glowing light spill */}
+        <path d="M 60 170 L 80 170 L 85 175 L 55 175 Z" fill="#fef08a" opacity="0.3" />
+
+        {/* Middle Observation Balcony / Lan can gỗ bao quanh */}
+        <rect x="30" y="96" width="80" height="6" fill="#78350f" stroke="#451a03" strokeWidth="2" rx="2" />
+        {/* Balcony Railings */}
+        {Array.from({ length: 11 }).map((_, i) => (
+          <line key={i} x1={34 + i * 7.2} y1="88" x2={34 + i * 7.2} y2="96" stroke="#b45309" strokeWidth="2" />
+        ))}
+        <line x1="32" y1="88" x2="108" y2="88" stroke="#78350f" strokeWidth="2" strokeLinecap="round" />
+
+        {/* Upper Tower Timber Body */}
+        <path d="M 44 96 L 50 45 L 90 45 L 96 96 Z" fill="url(#millBodyGrad)" stroke="#78350f" strokeWidth="2" />
+        {/* Timber Texture Planks */}
+        <path d="M 54 45 L 50 96 M 65 45 L 64 96 M 76 45 L 76 96 M 86 45 L 90 96" stroke="#92400e" strokeWidth="1.5" />
+
+        {/* Arched Window with Glowing Amber Light */}
+        <path d="M 62 76 L 62 60 Q 70 54 78 60 L 78 76 Z" fill="#fef08a" stroke="#451a03" strokeWidth="2" />
+        <line x1="70" y1="58" x2="70" y2="76" stroke="#451a03" strokeWidth="1.5" />
+        <line x1="62" y1="67" x2="78" y2="67" stroke="#451a03" strokeWidth="1.5" />
+        {/* Glowing window effect */}
+        <circle cx="70" cy="67" r="10" fill="#fef08a" opacity="0.4" className="animate-pulse" style={{ animationDuration: '4s' }} />
+
+        {/* Wooden Domed Cap / Mái vòm gỗ cối xay */}
+        <path d="M 44 45 Q 70 15 96 45 Z" fill="url(#millRoofGrad)" stroke="#451a03" strokeWidth="2.5" />
+        <circle cx="70" cy="24" r="3.5" fill="#fbbf24" stroke="#b45309" strokeWidth="1" />
+
+        {/* Center Rotor Hub */}
+        <circle cx="70" cy="46" r="8" fill="#451a03" stroke="#facc15" strokeWidth="2" />
+        <circle cx="70" cy="46" r="3" fill="#facc15" />
+
+        {/* 4 AUTHENTIC WOODEN LATTICE SAILS (Cánh quạt nan gỗ chữ X xoay tròn) */}
+        <g
+          className="origin-[70px_46px] animate-spin"
+          style={{ animationDuration: '8s', animationTimingFunction: 'linear' }}
+        >
+          {/* Sail 1: Top (Up) */}
+          <g>
+            <line x1="70" y1="46" x2="70" y2="-16" stroke="#451a03" strokeWidth="4" strokeLinecap="round" />
+            <rect x="72" y="-12" width="18" height="54" fill="#fef3c7" stroke="#b45309" strokeWidth="1.5" rx="1.5" opacity="0.95" />
+            {/* Cross-hatch lattice */}
+            {[0, 10, 20, 30].map(y => (
+              <line key={y} x1="72" y1={-2 + y} x2="90" y2={-2 + y} stroke="#b45309" strokeWidth="1" />
+            ))}
+            <line x1="81" y1="-12" x2="81" y2="42" stroke="#b45309" strokeWidth="1" />
+          </g>
+
+          {/* Sail 2: Right */}
+          <g>
+            <line x1="70" y1="46" x2="132" y2="46" stroke="#451a03" strokeWidth="4" strokeLinecap="round" />
+            <rect x="74" y="48" width="54" height="18" fill="#fef3c7" stroke="#b45309" strokeWidth="1.5" rx="1.5" opacity="0.95" />
+            {[84, 94, 104, 114].map(x => (
+              <line key={x} x1={x} y1="48" x2={x} y2="66" stroke="#b45309" strokeWidth="1" />
+            ))}
+            <line x1="74" y1="57" x2="128" y2="57" stroke="#b45309" strokeWidth="1" />
+          </g>
+
+          {/* Sail 3: Bottom (Down) */}
+          <g>
+            <line x1="70" y1="46" x2="70" y2="108" stroke="#451a03" strokeWidth="4" strokeLinecap="round" />
+            <rect x="50" y="50" width="18" height="54" fill="#fef3c7" stroke="#b45309" strokeWidth="1.5" rx="1.5" opacity="0.95" />
+            {[60, 70, 80, 90].map(y => (
+              <line key={y} x1="50" y1={y} x2="68" y2={y} stroke="#b45309" strokeWidth="1" />
+            ))}
+            <line x1="59" y1="50" x2="59" y2="104" stroke="#b45309" strokeWidth="1" />
+          </g>
+
+          {/* Sail 4: Left */}
+          <g>
+            <line x1="70" y1="46" x2="8" y2="46" stroke="#451a03" strokeWidth="4" strokeLinecap="round" />
+            <rect x="12" y="26" width="54" height="18" fill="#fef3c7" stroke="#b45309" strokeWidth="1.5" rx="1.5" opacity="0.95" />
+            {[22, 32, 42, 52].map(x => (
+              <line key={x} x1={x} y1="26" x2={x} y2="44" stroke="#b45309" strokeWidth="1" />
+            ))}
+            <line x1="12" y1="35" x2="66" y2="35" stroke="#b45309" strokeWidth="1" />
+          </g>
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 2. CÂY ĐẠI THỤ CỔ THỤ & THANG TRÈO (GRAND OAK TREE WITH CLIMBING LADDER)
+// =========================================================================
+export function GrandOakTreeSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 160 * scale, height: 180 * scale }}>
+      <svg viewBox="0 0 160 180" width={160 * scale} height={180 * scale} className="overflow-visible drop-shadow-lg">
+        <defs>
+          <radialGradient id="leavesBackGrad" cx="50%" cy="30%" r="50%">
+            <stop offset="0%" stopColor="#15803d" />
+            <stop offset="100%" stopColor="#14532d" />
+          </radialGradient>
+          <radialGradient id="leavesFrontGrad" cx="40%" cy="30%" r="50%">
+            <stop offset="0%" stopColor="#22c55e" />
+            <stop offset="100%" stopColor="#16a34a" />
+          </radialGradient>
+          <linearGradient id="trunkGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#451a03" />
+            <stop offset="50%" stopColor="#78350f" />
+            <stop offset="100%" stopColor="#451a03" />
+          </linearGradient>
+        </defs>
+
+        {/* Tree Shadow */}
+        <ellipse cx="80" cy="172" rx="75" ry="12" fill="rgba(0,0,0,0.3)" />
+
+        {/* Tree Trunk with Root Flares */}
+        <path
+          d="M 60 174 C 55 145, 66 115, 64 85 C 64 75, 96 75, 96 85 C 94 115, 105 145, 100 174 C 88 176, 72 176, 60 174 Z"
+          fill="url(#trunkGrad)"
+          stroke="#1c1917"
+          strokeWidth="2.5"
+        />
+        {/* Bark Textures (Curved lines) */}
+        <path d="M 68 172 Q 74 130 70 100" stroke="#1c1917" strokeWidth="1.5" fill="none" opacity="0.6" />
+        <path d="M 82 170 Q 78 135 84 105" stroke="#1c1917" strokeWidth="1.5" fill="none" opacity="0.6" />
+        <path d="M 92 170 Q 94 140 90 110" stroke="#1c1917" strokeWidth="1.5" fill="none" opacity="0.4" />
+        {/* Tree Knot */}
+        <ellipse cx="84" cy="120" rx="3" ry="5" fill="#451a03" stroke="#1c1917" strokeWidth="1" />
+        <ellipse cx="84" cy="120" rx="1.5" ry="3" fill="#1c1917" />
+
+        {/* Sturdy Wooden Climbing Ladder rungs on trunk */}
+        {Array.from({ length: 7 }).map((_, i) => (
+          <g key={i}>
+            <rect x="68" y={95 + i * 11} width="24" height="4" rx="2" fill="#facc15" stroke="#78350f" strokeWidth="1.5" />
+            <circle cx="70" cy={97 + i * 11} r="1" fill="#451a03" />
+            <circle cx="90" cy={97 + i * 11} r="1" fill="#451a03" />
+          </g>
+        ))}
+
+        {/* Treehouse Observation Platform on Lower Canopy */}
+        <rect x="48" y="80" width="64" height="8" fill="#92400e" stroke="#451a03" strokeWidth="2" rx="2" />
+        <rect x="52" y="70" width="56" height="10" fill="none" stroke="#b45309" strokeWidth="2" />
+        {[56, 68, 80, 92, 104].map(x => (
+          <line key={x} x1={x} y1="70" x2={x} y2="80" stroke="#b45309" strokeWidth="2" />
+        ))}
+
+        {/* Rope Swing Hanging from Left Branch */}
+        <path d="M 40 65 Q 40 90 36 125" stroke="#b45309" strokeWidth="1.5" strokeDasharray="3 1.5" fill="none" />
+        <path d="M 50 65 Q 48 90 46 125" stroke="#b45309" strokeWidth="1.5" strokeDasharray="3 1.5" fill="none" />
+        <rect x="32" y="125" width="20" height="4" rx="2" fill="#78350f" stroke="#451a03" strokeWidth="1" />
+
+        {/* Lush Layered Green Foliage (Tán cây nhiều lớp) */}
+        {/* Back layer deep green */}
+        <ellipse cx="38" cy="55" rx="36" ry="30" fill="url(#leavesBackGrad)" />
+        <ellipse cx="122" cy="55" rx="36" ry="30" fill="url(#leavesBackGrad)" />
+        <ellipse cx="80" cy="38" rx="46" ry="36" fill="url(#leavesBackGrad)" />
+        
+        {/* Extra small back leaves */}
+        <ellipse cx="20" cy="65" rx="20" ry="16" fill="url(#leavesBackGrad)" />
+        <ellipse cx="140" cy="65" rx="20" ry="16" fill="url(#leavesBackGrad)" />
+        <ellipse cx="80" cy="15" rx="30" ry="20" fill="url(#leavesBackGrad)" />
+
+        {/* Middle layer emerald */}
+        <ellipse cx="46" cy="48" rx="32" ry="26" fill="url(#leavesFrontGrad)" />
+        <ellipse cx="114" cy="48" rx="32" ry="26" fill="url(#leavesFrontGrad)" />
+        <ellipse cx="80" cy="32" rx="40" ry="30" fill="url(#leavesFrontGrad)" />
+
+        {/* Highlights */}
+        <ellipse cx="40" cy="38" rx="16" ry="10" fill="#4ade80" opacity="0.6" />
+        <ellipse cx="76" cy="22" rx="20" ry="12" fill="#4ade80" opacity="0.7" />
+        <ellipse cx="112" cy="38" rx="16" ry="10" fill="#4ade80" opacity="0.6" />
+
+        {/* Ripe Red Apples with Leaves */}
+        {[
+          { x: 30, y: 50 },
+          { x: 56, y: 32 },
+          { x: 74, y: 46 },
+          { x: 94, y: 28 },
+          { x: 108, y: 52 },
+          { x: 130, y: 40 },
+          { x: 46, y: 64 },
+          { x: 118, y: 66 },
+          { x: 80, y: 20 },
+          { x: 20, y: 62 },
+          { x: 136, y: 62 },
+        ].map((apple, i) => (
+          <g key={i} className="animate-bounce" style={{ animationDuration: `${2.2 + (i % 4) * 0.4}s` }}>
+            <circle cx={apple.x} cy={apple.y} r="4.5" fill="#ef4444" stroke="#991b1b" strokeWidth="1" />
+            <circle cx={apple.x - 1.5} cy={apple.y - 1.5} r="1.5" fill="#fca5a5" />
+            <path d={`M ${apple.x} ${apple.y - 4} Q ${apple.x + 3} ${apple.y - 8} ${apple.x + 5} ${apple.y - 6}`} stroke="#15803d" strokeWidth="1.5" fill="none" />
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 3. BIỆT THỰ NÔNG TRẠI MÁI NGÓI ĐỎ (FARMHOUSE VILLA WITH SMOKING CHIMNEY)
+// =========================================================================
+export function FarmhouseVillaSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 170 * scale, height: 130 * scale }}>
+      <svg viewBox="0 0 170 130" width={170 * scale} height={130 * scale} className="overflow-visible drop-shadow-xl">
+        <defs>
+          <linearGradient id="wallGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#fef3c7" />
+            <stop offset="100%" stopColor="#fde68a" />
+          </linearGradient>
+          <linearGradient id="roofGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#ef4444" />
+            <stop offset="100%" stopColor="#b91c1c" />
+          </linearGradient>
+        </defs>
+
+        {/* Shadow */}
+        <ellipse cx="85" cy="126" rx="80" ry="8" fill="rgba(0,0,0,0.3)" />
+
+        {/* Cobblestone Chimney with Animated Smoke */}
+        <g>
+          {/* Animated smoke puffs */}
+          <circle cx="132" cy="-2" r="6" fill="#ffffff" opacity="0.6" className="animate-ping" style={{ animationDuration: '3s' }} />
+          <circle cx="135" cy="8" r="5" fill="#f8fafc" opacity="0.75" className="animate-bounce" style={{ animationDuration: '2s' }} />
+          <circle cx="128" cy="12" r="4" fill="#e2e8f0" opacity="0.8" className="animate-pulse" style={{ animationDuration: '2.5s' }} />
+          
+          <rect x="124" y="16" width="18" height="28" fill="#64748b" stroke="#1e293b" strokeWidth="2" />
+          <path d="M 124 22 L 142 22 M 124 30 L 142 30 M 124 38 L 142 38" stroke="#334155" strokeWidth="1.5" />
+          {/* Chimney stones detailing */}
+          <path d="M 130 22 L 130 30 M 136 30 L 136 38 M 128 16 L 128 22 M 138 16 L 138 22" stroke="#334155" strokeWidth="1.5" />
+        </g>
+
+        {/* Main Walls (Timber / Sandstone) */}
+        <rect x="25" y="55" width="120" height="68" fill="url(#wallGrad)" stroke="#78350f" strokeWidth="2.5" rx="2" />
+        {/* Timber Beam Framing */}
+        <line x1="25" y1="88" x2="145" y2="88" stroke="#92400e" strokeWidth="2.5" />
+        <line x1="60" y1="55" x2="60" y2="123" stroke="#92400e" strokeWidth="2.5" />
+        <line x1="110" y1="55" x2="110" y2="123" stroke="#92400e" strokeWidth="2.5" />
+        {/* Additional Timber braces */}
+        <line x1="25" y1="55" x2="60" y2="88" stroke="#92400e" strokeWidth="1.5" />
+        <line x1="110" y1="88" x2="145" y2="55" stroke="#92400e" strokeWidth="1.5" />
+
+        {/* Red Terracotta Shingled Roof (Mái ngói đất nung xếp tầng) */}
+        <polygon points="12,58 85,16 158,58" fill="#7f1d1d" stroke="#450a0a" strokeWidth="2" strokeLinejoin="round" />
+        <polygon points="20,56 85,20 150,56" fill="url(#roofGrad)" />
+        {/* Shingle lines */}
+        {[50, 42, 34, 26].map((y, i) => (
+          <line key={y} x1={32 + i * 14} y1={y} x2={138 - i * 14} y2={y} stroke="#991b1b" strokeWidth="2" strokeLinecap="round" />
+        ))}
+        {/* Vertical shingle details */}
+        <path d="M 85 20 L 85 56 M 75 25 L 75 56 M 95 25 L 95 56 M 65 30 L 65 56 M 105 30 L 105 56 M 55 35 L 55 56 M 115 35 L 115 56" stroke="#991b1b" strokeWidth="1.5" />
+        {/* Roof ridge cap */}
+        <line x1="10" y1="58" x2="160" y2="58" stroke="#7f1d1d" strokeWidth="4" strokeLinecap="round" />
+        
+        {/* Attic Round Window */}
+        <circle cx="85" cy="38" r="8" fill="#fef08a" stroke="#451a03" strokeWidth="2" />
+        <line x1="85" y1="30" x2="85" y2="46" stroke="#451a03" strokeWidth="1.5" />
+        <line x1="77" y1="38" x2="93" y2="38" stroke="#451a03" strokeWidth="1.5" />
+        <circle cx="85" cy="38" r="8" fill="#fef08a" opacity="0.5" className="animate-pulse" style={{ animationDuration: '4s' }} />
+
+        {/* 2 Lower Story Paned Windows with Warm Light */}
+        <g>
+          <rect x="32" y="64" width="22" height="20" fill="#fef08a" stroke="#451a03" strokeWidth="2" rx="1" />
+          <line x1="43" y1="64" x2="43" y2="84" stroke="#451a03" strokeWidth="1.5" />
+          <line x1="32" y1="74" x2="54" y2="74" stroke="#451a03" strokeWidth="1.5" />
+          <rect x="32" y="64" width="22" height="20" fill="#fef08a" opacity="0.4" className="animate-pulse" style={{ animationDuration: '3s' }} />
+        </g>
+
+        <g>
+          <rect x="116" y="64" width="22" height="20" fill="#fef08a" stroke="#451a03" strokeWidth="2" rx="1" />
+          <line x1="127" y1="64" x2="127" y2="84" stroke="#451a03" strokeWidth="1.5" />
+          <line x1="116" y1="74" x2="138" y2="74" stroke="#451a03" strokeWidth="1.5" />
+          <rect x="116" y="64" width="22" height="20" fill="#fef08a" opacity="0.4" className="animate-pulse" style={{ animationDuration: '3.5s' }} />
+        </g>
+
+        {/* Front Porch Awning & Wooden Front Door */}
+        <rect x="68" y="86" width="34" height="37" fill="#78350f" stroke="#290f04" strokeWidth="2" />
+        {/* Door details */}
+        <rect x="72" y="90" width="26" height="33" fill="#92400e" stroke="#290f04" strokeWidth="1.5" />
+        <line x1="85" y1="90" x2="85" y2="123" stroke="#290f04" strokeWidth="1.5" />
+        <rect x="74" y="92" width="10" height="12" fill="#78350f" stroke="#290f04" strokeWidth="1" />
+        <rect x="87" y="92" width="10" height="12" fill="#78350f" stroke="#290f04" strokeWidth="1" />
+        <circle cx="94" cy="108" r="1.5" fill="#facc15" />
+        <circle cx="76" cy="108" r="1.5" fill="#facc15" />
+
+        {/* Porch Columns & Awning Roof */}
+        <polygon points="60,86 85,74 110,86" fill="url(#roofGrad)" stroke="#7f1d1d" strokeWidth="2" strokeLinejoin="round" />
+        <rect x="62" y="86" width="6" height="37" fill="#92400e" stroke="#451a03" strokeWidth="1" />
+        <rect x="102" y="86" width="6" height="37" fill="#92400e" stroke="#451a03" strokeWidth="1" />
+        
+        {/* Porch steps */}
+        <rect x="60" y="123" width="50" height="3" fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
+        <rect x="64" y="126" width="42" height="3" fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
+
+        {/* Flower Boxes with Blossoms */}
+        <g>
+          <rect x="28" y="84" width="30" height="6" fill="#78350f" stroke="#451a03" strokeWidth="1" rx="1.5" />
+          <circle cx="33" cy="83" r="3" fill="#ef4444" />
+          <circle cx="39" cy="82" r="3.5" fill="#f43f5e" />
+          <circle cx="45" cy="83" r="3" fill="#fbbf24" />
+          <circle cx="51" cy="82" r="3.5" fill="#ec4899" />
+          <circle cx="36" cy="85" r="2" fill="#15803d" />
+          <circle cx="42" cy="85" r="2" fill="#15803d" />
+          <circle cx="48" cy="85" r="2" fill="#15803d" />
+        </g>
+
+        <g>
+          <rect x="112" y="84" width="30" height="6" fill="#78350f" stroke="#451a03" strokeWidth="1" rx="1.5" />
+          <circle cx="117" cy="83" r="3" fill="#ec4899" />
+          <circle cx="123" cy="82" r="3.5" fill="#ef4444" />
+          <circle cx="129" cy="83" r="3" fill="#fbbf24" />
+          <circle cx="135" cy="82" r="3.5" fill="#f43f5e" />
+          <circle cx="120" cy="85" r="2" fill="#15803d" />
+          <circle cx="126" cy="85" r="2" fill="#15803d" />
+          <circle cx="132" cy="85" r="2" fill="#15803d" />
+        </g>
+
+        {/* Porch Rocking Chair & Mailbox */}
+        <path d="M 148 110 L 158 110 L 158 122 L 146 122" stroke="#451a03" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <path d="M 148 110 L 148 120" stroke="#451a03" strokeWidth="2" fill="none" strokeLinecap="round" />
+        
+        <line x1="16" y1="100" x2="16" y2="124" stroke="#451a03" strokeWidth="2" strokeLinecap="round" />
+        <rect x="10" y="95" width="12" height="8" fill="#dc2626" stroke="#991b1b" strokeWidth="1.5" rx="3" />
+        {/* Mailbox flag */}
+        <line x1="14" y1="95" x2="14" y2="88" stroke="#ef4444" strokeWidth="1.5" />
+        <polygon points="14,88 18,88 14,92" fill="#ef4444" />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 4. HỒ SEN SINH THÁI & BẾN GỖ (LOTUS POND WITH WOODEN PIER & KOI FISH)
+// =========================================================================
+export function LotusPondSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 220 * scale, height: 110 * scale }}>
+      <svg viewBox="0 0 220 110" width={220 * scale} height={110 * scale} className="overflow-visible drop-shadow-lg">
+        <defs>
+          <linearGradient id="waterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#38bdf8" />
+            <stop offset="40%" stopColor="#0ea5e9" />
+            <stop offset="100%" stopColor="#0369a1" />
+          </linearGradient>
+          <radialGradient id="lilyGrad1" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stopColor="#4ade80" />
+            <stop offset="100%" stopColor="#15803d" />
+          </radialGradient>
+          <radialGradient id="lilyGrad2" cx="70%" cy="30%" r="70%">
+            <stop offset="0%" stopColor="#22c55e" />
+            <stop offset="100%" stopColor="#166534" />
+          </radialGradient>
+        </defs>
+
+        {/* Shoreline Stones / Bờ sỏi đá uốn lượn (Thicker and more detailed) */}
+        <path
+          d="M 10 50 C 15 15, 70 8, 120 10 C 170 12, 210 25, 215 60 C 220 95, 160 108, 110 106 C 50 104, 5 85, 10 50 Z"
+          fill="#a8a29e"
+          stroke="#57534e"
+          strokeWidth="4"
+        />
+        {/* Inner sand edge */}
+        <path
+          d="M 13 50 C 18 18, 70 11, 119 13 C 168 15, 207 27, 212 60 C 216 92, 158 105, 109 103 C 52 101, 9 83, 13 50 Z"
+          fill="#d6d3d1"
+        />
+
+        {/* Pond Water Basin Gradient */}
+        <path
+          d="M 16 50 C 20 20, 72 14, 118 16 C 165 18, 204 28, 208 60 C 212 90, 155 102, 108 100 C 54 98, 12 80, 16 50 Z"
+          fill="url(#waterGrad)"
+          stroke="#0284c7"
+          strokeWidth="2"
+        />
+
+        {/* Animated Water Ripples */}
+        <ellipse cx="90" cy="45" rx="35" ry="12" fill="none" stroke="#bae6fd" strokeWidth="1" opacity="0.6" className="animate-pulse" style={{ animationDuration: '3s' }} />
+        <ellipse cx="150" cy="70" rx="30" ry="10" fill="none" stroke="#bae6fd" strokeWidth="1" opacity="0.6" className="animate-pulse" style={{ animationDuration: '4s' }} />
+        <ellipse cx="60" cy="75" rx="20" ry="8" fill="none" stroke="#bae6fd" strokeWidth="1" opacity="0.5" className="animate-pulse" style={{ animationDuration: '3.5s' }} />
+
+        {/* Swimming Koi Fish (Cá koi bơi) */}
+        <g className="animate-bounce" style={{ animationDuration: '2.5s' }}>
+          <path d="M 80 50 Q 86 44 96 50 Q 86 56 80 50 Z" fill="#f97316" stroke="#c2410c" strokeWidth="1" />
+          <polygon points="96,50 102,45 102,55" fill="#ffffff" stroke="#c2410c" strokeWidth="0.5" />
+          <circle cx="83" cy="48" r="1" fill="#0f172a" />
+          <path d="M 86 47 Q 90 47 92 49" stroke="#ffffff" strokeWidth="1.5" fill="none" />
+        </g>
+        <g className="animate-bounce" style={{ animationDuration: '3.2s' }}>
+          <path d="M 130 65 Q 138 59 148 65 Q 138 71 130 65 Z" fill="#ef4444" stroke="#b91c1c" strokeWidth="1" />
+          <polygon points="148,65 155,60 155,70" fill="#facc15" stroke="#b91c1c" strokeWidth="0.5" />
+          <circle cx="133" cy="63" r="1" fill="#0f172a" />
+          <path d="M 136 62 Q 140 62 142 64" stroke="#ffffff" strokeWidth="1.5" fill="none" />
+        </g>
+        {/* Extra small fish */}
+        <g className="animate-pulse" style={{ animationDuration: '2.8s' }}>
+          <path d="M 170 35 Q 175 32 180 35 Q 175 38 170 35 Z" fill="#fcd34d" />
+        </g>
+
+        {/* Floating Green Water Lilies & Pink Lotus Flowers */}
+        <g className="hover:-translate-y-1 transition-transform">
+          {/* Lily Pad 1 */}
+          <circle cx="50" cy="40" r="12" fill="url(#lilyGrad1)" stroke="#14532d" strokeWidth="1.5" />
+          <polygon points="50,40 58,32 63,40" fill="#0ea5e9" />
+          <path d="M 50 40 L 40 38 M 50 40 L 45 48 M 50 40 L 58 45" stroke="#166534" strokeWidth="1" />
+          {/* Pink Lotus Flower */}
+          <circle cx="47" cy="37" r="5" fill="#f43f5e" />
+          <circle cx="47" cy="37" r="3" fill="#fda4af" />
+          <circle cx="47" cy="37" r="1.5" fill="#fef08a" />
+        </g>
+        
+        <g className="hover:-translate-y-1 transition-transform">
+          {/* Lily Pad 2 */}
+          <circle cx="165" cy="48" r="14" fill="url(#lilyGrad2)" stroke="#14532d" strokeWidth="1.5" />
+          <polygon points="165,48 176,42 180,50" fill="#0ea5e9" />
+          <path d="M 165 48 L 155 45 M 165 48 L 160 58 M 165 48 L 175 56" stroke="#166534" strokeWidth="1" />
+          {/* White Water Lily */}
+          <circle cx="162" cy="45" r="6" fill="#ffffff" />
+          <circle cx="162" cy="45" r="3" fill="#fef08a" />
+        </g>
+        
+        <g className="hover:-translate-y-1 transition-transform">
+          {/* Lily Pad 3 */}
+          <circle cx="115" cy="80" r="10" fill="url(#lilyGrad1)" stroke="#14532d" strokeWidth="1.5" />
+          <polygon points="115,80 110,72 120,72" fill="#0ea5e9" />
+          <circle cx="114" cy="78" r="4" fill="#ec4899" />
+          <circle cx="114" cy="78" r="2" fill="#fbcfe8" />
+        </g>
+
+        {/* Wooden Pier Dock (Cầu cảng vươn dài ra hồ) */}
+        <g>
+          {/* Pilings under water (shadowed) */}
+          <rect x="48" y="76" width="6" height="16" fill="#290f04" />
+          <rect x="24" y="76" width="6" height="12" fill="#290f04" />
+          
+          {/* Pier Decking */}
+          <rect x="0" y="56" width="58" height="20" fill="#92400e" stroke="#451a03" strokeWidth="2" rx="1" />
+          {/* Wood Planks */}
+          {[6, 18, 30, 42, 54].map(x => (
+            <line key={x} x1={x} y1="56" x2={x} y2="76" stroke="#78350f" strokeWidth="2" />
+          ))}
+          {/* Nails */}
+          {[12, 24, 36, 48].map(x => (
+            <g key={x}>
+              <circle cx={x} cy="59" r="1" fill="#451a03" />
+              <circle cx={x} cy="73" r="1" fill="#451a03" />
+            </g>
+          ))}
+          
+          {/* Fishing Rod & Lantern on Pier */}
+          <line x1="40" y1="62" x2="75" y2="35" stroke="#b45309" strokeWidth="2" strokeLinecap="round" />
+          <line x1="75" y1="35" x2="77" y2="58" stroke="#ffffff" strokeWidth="1" strokeDasharray="3 2" />
+          {/* Bobber */}
+          <circle cx="77" cy="59" r="2.5" fill="#ef4444" />
+          <circle cx="77" cy="57" r="2.5" fill="#ffffff" />
+          
+          {/* Lantern */}
+          <rect x="16" y="48" width="8" height="12" fill="#fef08a" stroke="#451a03" strokeWidth="1.5" rx="2" />
+          <line x1="20" y1="48" x2="20" y2="60" stroke="#451a03" strokeWidth="1" />
+          <circle cx="20" cy="54" r="3" fill="#fef08a" className="animate-pulse" style={{ animationDuration: '2s' }} />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 5. NẤM LÒ XO BẬT NHẢY (BOUNCY TRAMPOLINE MUSHROOM)
+// =========================================================================
+export function BouncyMushroomSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 70 * scale, height: 75 * scale }}>
+      <svg viewBox="0 0 70 75" width={70 * scale} height={75 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="35" cy="72" rx="26" ry="4" fill="rgba(0,0,0,0.22)" />
+
+        {/* Coiled Steel Spring / Lò xo thép nảy */}
+        <path
+          d="M 28 68 C 22 66, 22 62, 35 62 C 48 62, 48 58, 35 58 C 22 58, 22 54, 35 54 C 48 54, 48 50, 35 50"
+          stroke="#64748b"
+          strokeWidth="3.5"
+          fill="none"
+          strokeLinecap="round"
+        />
+        {/* Metallic Base Plate */}
+        <rect x="22" y="68" width="26" height="4" fill="#334155" rx="1" />
+
+        {/* Fleshy Mushroom Stem */}
+        <path d="M 28 50 L 30 36 L 40 36 L 42 50 Z" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1.5" />
+
+        {/* Vibrant Fly Agaric Red Cap with White Dots */}
+        <path
+          d="M 8 36 C 8 10, 62 10, 62 36 C 55 40, 15 40, 8 36 Z"
+          fill="#dc2626"
+          stroke="#991b1b"
+          strokeWidth="2"
+        />
+        {/* Cap Highlight */}
+        <path d="M 16 28 C 20 16, 50 16, 54 28" fill="none" stroke="#ef4444" strokeWidth="2" />
+
+        {/* White Circular Spots */}
+        <circle cx="20" cy="24" r="3.5" fill="#ffffff" />
+        <circle cx="35" cy="18" r="4.5" fill="#ffffff" />
+        <circle cx="50" cy="24" r="3.5" fill="#ffffff" />
+        <circle cx="26" cy="33" r="2.5" fill="#ffffff" />
+        <circle cx="44" cy="33" r="2.5" fill="#ffffff" />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 6. CHUỒNG GÀ & RƠM VÀNG (CHICKEN COOP & BARNYARD)
+// =========================================================================
+export function ChickenCoopSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 110 * scale, height: 85 * scale }}>
+      <svg viewBox="0 0 110 85" width={110 * scale} height={85 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="55" cy="82" rx="48" ry="4" fill="rgba(0,0,0,0.22)" />
+
+        {/* Golden Haystack / Đụn rơm vàng bên cạnh */}
+        <ellipse cx="20" cy="74" rx="16" ry="9" fill="#eab308" stroke="#ca8a04" strokeWidth="1.5" />
+        <ellipse cx="20" cy="68" rx="12" ry="7" fill="#facc15" />
+        <ellipse cx="20" cy="62" rx="8" ry="5" fill="#fde047" />
+
+        {/* Wooden Coop House */}
+        <rect x="42" y="38" width="60" height="42" fill="#854d0e" stroke="#451a03" strokeWidth="2" rx="1" />
+        {/* Timber slats */}
+        <line x1="42" y1="52" x2="102" y2="52" stroke="#713f12" strokeWidth="1" />
+        <line x1="42" y1="66" x2="102" y2="66" stroke="#713f12" strokeWidth="1" />
+
+        {/* Straw Thatched Roof */}
+        <polygon points="36,40 72,16 108,40" fill="#ca8a04" stroke="#854d0e" strokeWidth="2" />
+        <polygon points="40,38 72,20 104,38" fill="#eab308" />
+
+        {/* Coop Doorway & Ramp */}
+        <rect x="52" y="54" width="16" height="26" fill="#451a03" rx="1" />
+        {/* Wooden Chicken Ramp */}
+        <polygon points="45,80 54,64 58,64 49,80" fill="#a16207" stroke="#713f12" strokeWidth="1" />
+
+        {/* Hen on Nest & Chick */}
+        <g className="animate-bounce" style={{ animationDuration: '2s' }}>
+          {/* Hen */}
+          <ellipse cx="84" cy="62" rx="8" ry="6" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1" />
+          <circle cx="89" cy="57" r="4" fill="#ffffff" />
+          <polygon points="93,57 97,59 93,60" fill="#f97316" />
+          <polygon points="88,53 91,51 90,55" fill="#ef4444" />
+          <circle cx="89.5" cy="56" r="0.8" fill="#0f172a" />
+        </g>
+        {/* Baby Chick */}
+        <g className="animate-bounce" style={{ animationDuration: '1.4s' }}>
+          <circle cx="36" cy="74" r="3.5" fill="#fef08a" stroke="#facc15" strokeWidth="0.8" />
+          <polygon points="39,74 42,75 39,76" fill="#f97316" />
+          <circle cx="37" cy="73" r="0.6" fill="#0f172a" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 7. VƯỜN RAU CỦ 4 LUỐNG (RAISED VEGGIE GARDEN BEDS)
+// =========================================================================
+export function VeggiePatchSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 80 * scale }}>
+      <svg viewBox="0 0 140 80" width={140 * scale} height={80 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="70" cy="76" rx="64" ry="4" fill="rgba(0,0,0,0.2)" />
+
+        {/* 2 Raised Wooden Garden Beds with Rich Dark Soil */}
+        {/* Bed 1 (Top) */}
+        <rect x="10" y="10" width="120" height="28" fill="#5c2c0e" stroke="#381a07" strokeWidth="2" rx="3" />
+        <rect x="14" y="13" width="112" height="22" fill="#381a07" rx="2" />
+
+        {/* Carrots in Bed 1 */}
+        {[24, 44, 64].map((x, i) => (
+          <g key={i} className="animate-bounce" style={{ animationDuration: `${1.8 + i * 0.3}s` }}>
+            <polygon points={`${x},26 ${x - 3},18 ${x + 3},18`} fill="#f97316" stroke="#c2410c" strokeWidth="0.6" />
+            <path d={`M ${x} 18 Q ${x - 4} 12 ${x - 2} 8`} stroke="#22c55e" strokeWidth="1.5" fill="none" />
+            <path d={`M ${x} 18 Q ${x + 4} 12 ${x + 2} 8`} stroke="#22c55e" strokeWidth="1.5" fill="none" />
+          </g>
+        ))}
+
+        {/* Strawberries in Bed 1 */}
+        {[84, 104].map((x, i) => (
+          <g key={i} className="animate-pulse" style={{ animationDuration: `${2.2 + i * 0.4}s` }}>
+            <circle cx={x} cy="24" r="4" fill="#ef4444" />
+            <polygon points={`${x - 2},20 ${x + 2},20 ${x},17`} fill="#16a34a" />
+            <circle cx={x - 1} cy="23" r="0.5" fill="#fde047" />
+            <circle cx={x + 1} cy="25" r="0.5" fill="#fde047" />
+          </g>
+        ))}
+
+        {/* Bed 2 (Bottom) */}
+        <rect x="10" y="44" width="120" height="28" fill="#5c2c0e" stroke="#381a07" strokeWidth="2" rx="3" />
+        <rect x="14" y="47" width="112" height="22" fill="#381a07" rx="2" />
+
+        {/* Corns & Pumpkins in Bed 2 */}
+        {[26, 52].map((x, i) => (
+          <g key={i}>
+            <ellipse cx={x} cy="58" rx="4" ry="7" fill="#facc15" stroke="#ca8a04" strokeWidth="0.8" />
+            <line x1={x} y1="52" x2={x} y2="64" stroke="#ca8a04" strokeWidth="0.8" />
+            <path d={`M ${x - 4} 62 Q ${x - 8} 54 ${x - 4} 50`} stroke="#16a34a" strokeWidth="1.2" fill="none" />
+          </g>
+        ))}
+        {[78, 106].map((x, i) => (
+          <g key={i}>
+            <ellipse cx={x} cy="60" rx="7" ry="5.5" fill="#ea580c" stroke="#9a3412" strokeWidth="1" />
+            <line x1={x} y1="55" x2={x} y2="65" stroke="#9a3412" strokeWidth="0.8" />
+            <rect x={x - 1} y="52" width="2" height="3" fill="#166534" />
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 8. NGỌN HẢI ĐĂNG BÃI BIỂN (COASTAL LIGHTHOUSE FOR SUNSET BEACH)
+// =========================================================================
+export function LighthouseSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 80 * scale, height: 160 * scale }}>
+      <svg viewBox="0 0 80 160" width={80 * scale} height={160 * scale} className="overflow-visible">
+        {/* Coastal Rock Base */}
+        <polygon points="12,155 24,130 56,130 68,155" fill="#475569" stroke="#1e293b" strokeWidth="2" />
+
+        {/* Red & White Striped Tapered Tower */}
+        <polygon points="26,130 32,50 48,50 54,130" fill="#ffffff" stroke="#991b1b" strokeWidth="2" />
+        {/* Red Stripes */}
+        <polygon points="28,110 30,90 50,90 52,110" fill="#dc2626" />
+        <polygon points="31,70 33,52 47,52 49,70" fill="#dc2626" />
+
+        {/* Gallery Balcony */}
+        <rect x="26" y="46" width="28" height="4" fill="#1e293b" rx="1" />
+
+        {/* Lantern Room with Revolving Light Beam */}
+        <rect x="30" y="28" width="20" height="18" fill="#fef08a" stroke="#1e293b" strokeWidth="1.5" />
+        <polygon points="30,28 40,12 50,28" fill="#dc2626" stroke="#991b1b" strokeWidth="1.5" />
+        <circle cx="40" cy="11" r="2" fill="#ca8a04" />
+
+        {/* Revolving Golden Beacon Light Beam */}
+        <polygon
+          points="40,36 -20,-10 -15,75"
+          fill="rgba(254, 240, 138, 0.35)"
+          className="animate-pulse"
+          style={{ animationDuration: '3s' }}
+        />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 9. CÂY DỪA NHIỆT ĐỚI (TROPICAL COCONUT PALM TREE)
+// =========================================================================
+export function PalmTreeSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 130 * scale, height: 160 * scale }}>
+      <svg viewBox="0 0 130 160" width={130 * scale} height={160 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="40" cy="154" rx="35" ry="6" fill="rgba(0,0,0,0.22)" />
+
+        {/* Curved Palm Trunk with Segment Rings */}
+        <path
+          d="M 38 152 C 45 110, 68 80, 85 45 L 94 48 C 76 84, 52 112, 46 152 Z"
+          fill="#92400e"
+          stroke="#451a03"
+          strokeWidth="2"
+        />
+        {/* Trunk Segment Lines */}
+        {[60, 80, 100, 120, 138].map((y, i) => (
+          <line key={i} x1={36 + (152 - y) * 0.35} y1={y} x2={44 + (152 - y) * 0.35} y2={y + 3} stroke="#78350f" strokeWidth="1.5" />
+        ))}
+
+        {/* Brown Coconuts */}
+        <circle cx="85" cy="48" r="4.5" fill="#78350f" stroke="#451a03" strokeWidth="1" />
+        <circle cx="92" cy="49" r="4.5" fill="#78350f" stroke="#451a03" strokeWidth="1" />
+        <circle cx="89" cy="54" r="4" fill="#78350f" stroke="#451a03" strokeWidth="1" />
+
+        {/* Arching Palm Fronds (Tán lá dừa cong vút) */}
+        {/* Frond 1 (Left) */}
+        <path d="M 88 45 C 50 35, 10 50, 0 75 C 20 60, 55 52, 88 45 Z" fill="#15803d" stroke="#14532d" strokeWidth="1.5" />
+        {/* Frond 2 (Up-Left) */}
+        <path d="M 88 45 C 60 15, 30 15, 20 30 C 40 25, 68 28, 88 45 Z" fill="#16a34a" stroke="#14532d" strokeWidth="1.5" />
+        {/* Frond 3 (Up-Right) */}
+        <path d="M 88 45 C 100 10, 125 12, 130 35 C 118 24, 100 28, 88 45 Z" fill="#16a34a" stroke="#14532d" strokeWidth="1.5" />
+        {/* Frond 4 (Right) */}
+        <path d="M 88 45 C 115 45, 135 65, 128 85 C 120 65, 105 55, 88 45 Z" fill="#15803d" stroke="#14532d" strokeWidth="1.5" />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 10. TỦ SERVER RACK ĐÈN LED (ENTERPRISE 42U SERVER RACK FOR DEV DEN)
+// =========================================================================
+export function ServerRackSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 75 * scale, height: 130 * scale }}>
+      <svg viewBox="0 0 75 130" width={75 * scale} height={130 * scale} className="overflow-visible">
+        {/* Metal Cabinet Outer Frame */}
+        <rect x="5" y="5" width="65" height="120" fill="#0f172a" stroke="#334155" strokeWidth="2.5" rx="3" />
+        <rect x="8" y="8" width="59" height="114" fill="#020617" />
+
+        {/* 6 Server Blades */}
+        {Array.from({ length: 6 }).map((_, i) => (
+          <g key={i}>
+            <rect x="11" y={14 + i * 18} width="53" height="15" fill="#1e293b" stroke="#334155" strokeWidth="1" rx="1" />
+            {/* Ventilation slits */}
+            <line x1="28" y1={18 + i * 18} x2="48" y2={18 + i * 18} stroke="#0f172a" strokeWidth="1.5" />
+            <line x1="28" y1={23 + i * 18} x2="48" y2={23 + i * 18} stroke="#0f172a" strokeWidth="1.5" />
+            {/* Blinking LEDs */}
+            <circle cx="16" cy={21 + i * 18} r="1.5" fill="#22c55e" className="animate-ping" style={{ animationDuration: `${1.5 + (i % 3) * 0.5}s` }} />
+            <circle cx="21" cy={21 + i * 18} r="1.5" fill={i % 2 === 0 ? '#38bdf8' : '#facc15'} />
+            <circle cx="56" cy={21 + i * 18} r="1.2" fill="#22c55e" />
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 11. BÀN LÀM VIỆC DUAL MONITOR (DEVELOPER WORKSTATION FOR DEV DEN)
+// =========================================================================
+export function DevWorkstationSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 100 * scale }}>
+      <svg viewBox="0 0 140 100" width={140 * scale} height={100 * scale} className="overflow-visible">
+        {/* Desk Surface */}
+        <rect x="10" y="60" width="120" height="8" fill="#b45309" stroke="#78350f" strokeWidth="1.5" rx="1" />
+        {/* Metal Legs */}
+        <rect x="16" y="68" width="6" height="28" fill="#334155" />
+        <rect x="118" y="68" width="6" height="28" fill="#334155" />
+
+        {/* Monitor 1 (Left - Code IDE with Syntax) */}
+        <g>
+          <rect x="22" y="18" width="44" height="32" fill="#0f172a" stroke="#64748b" strokeWidth="2" rx="2" />
+          {/* Code lines */}
+          <line x1="26" y1="24" x2="42" y2="24" stroke="#38bdf8" strokeWidth="1.5" />
+          <line x1="26" y1="29" x2="52" y2="29" stroke="#4ade80" strokeWidth="1.5" />
+          <line x1="30" y1="34" x2="60" y2="34" stroke="#facc15" strokeWidth="1.5" />
+          <line x1="30" y1="39" x2="48" y2="39" stroke="#f43f5e" strokeWidth="1.5" />
+          <line x1="26" y1="44" x2="38" y2="44" stroke="#a855f7" strokeWidth="1.5" />
+          {/* Monitor Stand */}
+          <rect x="41" y="50" width="6" height="10" fill="#475569" />
+          <rect x="35" y="58" width="18" height="2" fill="#475569" rx="1" />
+        </g>
+
+        {/* Monitor 2 (Right - Terminal / Status) */}
+        <g>
+          <rect x="74" y="18" width="44" height="32" fill="#020617" stroke="#64748b" strokeWidth="2" rx="2" />
+          <line x1="78" y1="24" x2="96" y2="24" stroke="#22c55e" strokeWidth="1.5" />
+          <line x1="78" y1="30" x2="110" y2="30" stroke="#38bdf8" strokeWidth="1.5" />
+          <line x1="78" y1="36" x2="102" y2="36" stroke="#e2e8f0" strokeWidth="1.5" />
+          <circle cx="82" cy="42" r="1.5" fill="#22c55e" className="animate-ping" />
+          {/* Monitor Stand */}
+          <rect x="93" y="50" width="6" height="10" fill="#475569" />
+          <rect x="87" y="58" width="18" height="2" fill="#475569" rx="1" />
+        </g>
+
+        {/* Mechanical RGB Keyboard & Mouse */}
+        <rect x="52" y="62" width="28" height="5" fill="#0f172a" stroke="#38bdf8" strokeWidth="0.8" rx="1" />
+        <rect x="84" y="63" width="6" height="4" fill="#0f172a" rx="1" />
+      </svg>
+    </div>
+  );
+}
+
+export function CrystalCastleSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 150 * scale, height: 160 * scale }}>
+      <svg viewBox="0 0 150 160" width={150 * scale} height={160 * scale} className="overflow-visible drop-shadow-2xl">
+        <defs>
+          <linearGradient id="crystalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#a5b4fc" />
+            <stop offset="50%" stopColor="#818cf8" />
+            <stop offset="100%" stopColor="#4f46e5" />
+          </linearGradient>
+          <linearGradient id="spireGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#6366f1" />
+            <stop offset="50%" stopColor="#4338ca" />
+            <stop offset="100%" stopColor="#312e81" />
+          </linearGradient>
+          <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fef08a" />
+            <stop offset="100%" stopColor="#ca8a04" />
+          </linearGradient>
+        </defs>
+
+        {/* Floating Cloud Base */}
+        <g className="animate-pulse" style={{ animationDuration: '4s' }}>
+          <ellipse cx="75" cy="148" rx="75" ry="16" fill="#ffffff" opacity="0.95" />
+          <ellipse cx="35" cy="142" rx="32" ry="14" fill="#e0e7ff" opacity="0.9" />
+          <ellipse cx="115" cy="142" rx="32" ry="14" fill="#e0e7ff" opacity="0.9" />
+          <ellipse cx="75" cy="154" rx="40" ry="10" fill="#c7d2fe" opacity="0.7" />
+        </g>
+
+        {/* Castle Walls with Crystal Gradient */}
+        <rect x="42" y="65" width="66" height="79" fill="url(#crystalGrad)" stroke="#3730a3" strokeWidth="2" rx="2" />
+        {/* Wall segments / battlements */}
+        <path d="M 42 65 L 48 55 L 54 65 L 60 55 L 66 65 L 72 55 L 78 65 L 84 55 L 90 65 L 96 55 L 102 65 L 108 55" fill="none" stroke="#3730a3" strokeWidth="2" />
+        <polygon points="42,65 48,55 54,65 60,55 66,65 72,55 78,65 84,55 90,65 96,55 102,65 108,55 108,65" fill="#c7d2fe" />
+        
+        {/* Crystal Facets */}
+        <line x1="64" y1="65" x2="64" y2="144" stroke="#6366f1" strokeWidth="1.5" />
+        <line x1="86" y1="65" x2="86" y2="144" stroke="#6366f1" strokeWidth="1.5" />
+        <path d="M 42 100 L 108 100" stroke="#6366f1" strokeWidth="1.5" opacity="0.5" />
+
+        {/* Central Tall Spire with Golden Peak */}
+        <polygon points="62,65 75,12 88,65" fill="url(#spireGrad)" stroke="#312e81" strokeWidth="2" strokeLinejoin="round" />
+        <line x1="75" y1="12" x2="75" y2="65" stroke="#4f46e5" strokeWidth="1.5" />
+        {/* Golden top */}
+        <polygon points="71,20 75,6 79,20" fill="url(#goldGrad)" stroke="#a16207" strokeWidth="1" />
+        <circle cx="75" cy="6" r="3" fill="#facc15" className="animate-ping" style={{ animationDuration: '2s' }} />
+        <circle cx="75" cy="6" r="1.5" fill="#ffffff" />
+
+        {/* Left Turret Tower */}
+        <rect x="20" y="75" width="26" height="69" fill="url(#spireGrad)" stroke="#312e81" strokeWidth="2" />
+        <line x1="33" y1="75" x2="33" y2="144" stroke="#4f46e5" strokeWidth="1.5" />
+        <polygon points="18,75 33,30 48,75" fill="#a5b4fc" stroke="#4f46e5" strokeWidth="1.5" strokeLinejoin="round" />
+        <polygon points="30,40 33,30 36,40" fill="url(#goldGrad)" />
+
+        {/* Right Turret Tower */}
+        <rect x="104" y="75" width="26" height="69" fill="url(#spireGrad)" stroke="#312e81" strokeWidth="2" />
+        <line x1="117" y1="75" x2="117" y2="144" stroke="#4f46e5" strokeWidth="1.5" />
+        <polygon points="102,75 117,30 132,75" fill="#a5b4fc" stroke="#4f46e5" strokeWidth="1.5" strokeLinejoin="round" />
+        <polygon points="114,40 117,30 120,40" fill="url(#goldGrad)" />
+
+        {/* Floating Crystals */}
+        <g className="animate-bounce" style={{ animationDuration: '3.5s' }}>
+          <polygon points="15,60 18,50 21,60 18,70" fill="#c7d2fe" />
+          <polygon points="135,50 140,35 145,50 140,65" fill="#e0e7ff" />
+        </g>
+
+        {/* Grand Gold Arch Gate */}
+        <path d="M 60 144 L 60 105 Q 75 90 90 105 L 90 144 Z" fill="url(#goldGrad)" stroke="#854d0e" strokeWidth="2.5" />
+        {/* Gate Bars */}
+        <line x1="68" y1="100" x2="68" y2="144" stroke="#a16207" strokeWidth="2" />
+        <line x1="75" y1="97" x2="75" y2="144" stroke="#a16207" strokeWidth="2" />
+        <line x1="82" y1="100" x2="82" y2="144" stroke="#a16207" strokeWidth="2" />
+        {/* Glowing portal effect */}
+        <path d="M 64 144 L 64 105 Q 75 95 86 105 L 86 144 Z" fill="#ffffff" opacity="0.4" className="animate-pulse" />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 13. SÂN BÓNG CHUYỀN BÃI BIỂN (BEACH VOLLEYBALL COURT WITH NET & BALL)
+// =========================================================================
+export function BeachVolleyballSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 90 * scale }}>
+      <svg viewBox="0 0 140 90" width={140 * scale} height={90 * scale} className="overflow-visible">
+        {/* Ground shadow on sand */}
+        <ellipse cx="70" cy="85" rx="62" ry="5" fill="rgba(180, 83, 9, 0.25)" />
+
+        {/* Sand Boundary Lines */}
+        <polygon points="12,82 128,82 122,86 18,86" fill="#f59e0b" opacity="0.6" />
+
+        {/* Left Wooden Net Post */}
+        <rect x="14" y="16" width="5" height="68" fill="#78350f" stroke="#451a03" strokeWidth="1.2" rx="1" />
+        <rect x="13" y="14" width="7" height="3" fill="#ca8a04" rx="1" />
+        {/* Tension Guy Wire Left */}
+        <line x1="16" y1="20" x2="4" y2="82" stroke="#64748b" strokeWidth="1" strokeDasharray="2 1" />
+
+        {/* Right Wooden Net Post */}
+        <rect x="121" y="16" width="5" height="68" fill="#78350f" stroke="#451a03" strokeWidth="1.2" rx="1" />
+        <rect x="120" y="14" width="7" height="3" fill="#ca8a04" rx="1" />
+        {/* Tension Guy Wire Right */}
+        <line x1="123" y1="20" x2="135" y2="82" stroke="#64748b" strokeWidth="1" strokeDasharray="2 1" />
+
+        {/* Volleyball Net Texture */}
+        {/* Top White Canvas Band */}
+        <rect x="19" y="24" width="102" height="4" fill="#ffffff" stroke="#cbd5e1" strokeWidth="0.8" />
+        <line x1="19" y1="26" x2="121" y2="26" stroke="#ef4444" strokeWidth="1" />
+
+        {/* Semi-transparent Net Grid */}
+        <rect x="19" y="28" width="102" height="26" fill="rgba(255,255,255,0.15)" stroke="#94a3b8" strokeWidth="0.8" />
+        {/* Horizontal Net Strings */}
+        {[34, 40, 46, 52].map((y) => (
+          <line key={y} x1="19" y1={y} x2="121" y2={y} stroke="rgba(255,255,255,0.85)" strokeWidth="0.8" />
+        ))}
+        {/* Vertical Net Strings */}
+        {Array.from({ length: 12 }).map((_, i) => (
+          <line key={i} x1={27 + i * 8} y1="28" x2={27 + i * 8} y2="54" stroke="rgba(255,255,255,0.75)" strokeWidth="0.8" />
+        ))}
+        {/* Bottom Black Net Band */}
+        <line x1="19" y1="54" x2="121" y2="54" stroke="#475569" strokeWidth="1.2" />
+
+        {/* 3-Stripe Beach Volleyball (Bouncing high over net) */}
+        <g className="animate-bounce" style={{ animationDuration: '1.4s' }}>
+          <ellipse cx="70" cy="14" rx="8" ry="8" fill="#ffffff" stroke="#0f172a" strokeWidth="1.2" />
+          <path d="M 64 10 Q 70 14 68 21" stroke="#3b82f6" strokeWidth="2.5" fill="none" />
+          <path d="M 72 7 Q 72 15 76 19" stroke="#eab308" strokeWidth="2.5" fill="none" />
+          <circle cx="68" cy="11" r="1.5" fill="#ffffff" opacity="0.8" />
+        </g>
+
+        {/* Beach Accessories: Striped Towel & Cold Drink */}
+        <rect x="96" y="78" width="22" height="7" fill="#0284c7" stroke="#0369a1" strokeWidth="0.8" rx="1" />
+        <line x1="102" y1="78" x2="102" y2="85" stroke="#ffffff" strokeWidth="1.5" />
+        <line x1="110" y1="78" x2="110" y2="85" stroke="#ffffff" strokeWidth="1.5" />
+        {/* Lemonade bottle */}
+        <rect x="90" y="74" width="3.5" height="8" fill="#facc15" stroke="#ca8a04" strokeWidth="0.6" rx="0.5" />
+        <line x1="91" y1="72" x2="91" y2="74" stroke="#ef4444" strokeWidth="1" />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 14. QUẦY TIKI BAR MÁI LÁ CỌ NHIỆT ĐỚI (TROPICAL TIKI BAR & SURFBOARD)
+// =========================================================================
+export function TikiBarCabanaSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 145 * scale, height: 115 * scale }}>
+      <svg viewBox="0 0 145 115" width={145 * scale} height={115 * scale} className="overflow-visible">
+        {/* Ground shadow on sand */}
+        <ellipse cx="72" cy="108" rx="66" ry="6" fill="rgba(180, 83, 9, 0.28)" />
+
+        {/* Leaning Tropical Surfboard (Left side) */}
+        <g transform="rotate(-14 22 90)">
+          <ellipse cx="22" cy="62" rx="7" ry="32" fill="#06b6d4" stroke="#0891b2" strokeWidth="1.5" />
+          <path d="M 22 30 L 22 94" stroke="#facc15" strokeWidth="2.5" />
+          {/* Hibiscus flower print */}
+          <circle cx="22" cy="55" r="3" fill="#f43f5e" />
+          <circle cx="22" cy="55" r="1" fill="#fef08a" />
+        </g>
+
+        {/* 2 Bamboo Bar Stools */}
+        {/* Left Stool */}
+        <ellipse cx="46" cy="98" rx="10" ry="3.5" fill="#ca8a04" stroke="#854d0e" strokeWidth="1" />
+        <line x1="40" y1="98" x2="38" y2="108" stroke="#854d0e" strokeWidth="2" />
+        <line x1="52" y1="98" x2="54" y2="108" stroke="#854d0e" strokeWidth="2" />
+        <ellipse cx="46" cy="92" rx="9" ry="3.5" fill="#f43f5e" stroke="#be123c" strokeWidth="1.2" />
+
+        {/* Right Stool */}
+        <ellipse cx="102" cy="98" rx="10" ry="3.5" fill="#ca8a04" stroke="#854d0e" strokeWidth="1" />
+        <line x1="96" y1="98" x2="94" y2="108" stroke="#854d0e" strokeWidth="2" />
+        <line x1="108" y1="98" x2="110" y2="108" stroke="#854d0e" strokeWidth="2" />
+        <ellipse cx="102" cy="92" rx="9" ry="3.5" fill="#0284c7" stroke="#0369a1" strokeWidth="1.2" />
+
+        {/* Bamboo Bar Counter Legs & Front Panel */}
+        <rect x="36" y="62" width="76" height="42" fill="#d97706" stroke="#78350f" strokeWidth="2" rx="2" />
+        {/* Vertical Bamboo Canes */}
+        {Array.from({ length: 9 }).map((_, i) => (
+          <g key={i}>
+            <rect x={39 + i * 8} y="64" width="6" height="38" fill="#f59e0b" stroke="#b45309" strokeWidth="0.8" rx="1" />
+            <line x1={39 + i * 8} y1="74" x2={45 + i * 8} y2="74" stroke="#78350f" strokeWidth="1" />
+            <line x1={39 + i * 8} y1="88" x2={45 + i * 8} y2="88" stroke="#78350f" strokeWidth="1" />
+          </g>
+        ))}
+
+        {/* Polished Hardwood Countertop */}
+        <rect x="30" y="56" width="88" height="8" fill="#78350f" stroke="#451a03" strokeWidth="1.5" rx="2" />
+        <rect x="32" y="57" width="84" height="2.5" fill="#92400e" />
+
+        {/* Counter Drinks: Fresh Coconut & Tropical Cocktail */}
+        {/* Green Coconut with Straw */}
+        <circle cx="48" cy="52" r="5" fill="#15803d" stroke="#166534" strokeWidth="1" />
+        <ellipse cx="48" cy="49" rx="3.5" ry="1.5" fill="#fef08a" />
+        <line x1="48" y1="49" x2="52" y2="42" stroke="#ef4444" strokeWidth="1.2" strokeLinecap="round" />
+        {/* Cocktail Glass with Umbrella */}
+        <polygon points="98,55 104,55 102,48 100,48" fill="#f97316" stroke="#c2410c" strokeWidth="0.8" />
+        <line x1="101" y1="48" x2="105" y2="40" stroke="#facc15" strokeWidth="1" />
+        <polygon points="102,42 108,38 106,44" fill="#ec4899" />
+
+        {/* 2 Heavy Timber Roof Poles */}
+        <rect x="36" y="16" width="5" height="42" fill="#78350f" stroke="#451a03" strokeWidth="1.2" />
+        <rect x="107" y="16" width="5" height="42" fill="#78350f" stroke="#451a03" strokeWidth="1.2" />
+
+        {/* Straw Thatched Roof (Mái lá cọ xếp lớp) */}
+        <polygon points="18,34 74,4 130,34" fill="#ca8a04" stroke="#854d0e" strokeWidth="2" />
+        <polygon points="24,32 74,8 124,32" fill="#eab308" />
+        {/* Straw fringe serrations */}
+        <path
+          d="M 16 34 Q 24 38 32 34 Q 40 38 48 34 Q 56 38 64 34 Q 74 38 84 34 Q 94 38 104 34 Q 114 38 124 34 Q 132 38 134 34"
+          fill="none"
+          stroke="#854d0e"
+          strokeWidth="2"
+        />
+
+        {/* Hanging Wooden Sign: TIKI BAR */}
+        <rect x="52" y="24" width="44" height="11" fill="#78350f" stroke="#ca8a04" strokeWidth="1" rx="1.5" />
+        <text x="74" y="32.5" textAnchor="middle" fill="#fef08a" fontSize="7" fontWeight="bold" fontFamily="sans-serif">
+          TIKI BAR
+        </text>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 15. LÂU ĐÀI CÁT & ĐỐNG LỬA TRẠI (SANDCASTLE & BONFIRE CAMPING)
+// =========================================================================
+export function SandcastleBonfireSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 135 * scale, height: 90 * scale }}>
+      <svg viewBox="0 0 130 85" width={130 * scale} height={85 * scale} className="overflow-visible">
+        {/* Ground shadow on sand */}
+        <ellipse cx="65" cy="80" rx="60" ry="5" fill="rgba(180, 83, 9, 0.28)" />
+
+        {/* ================= LEFT: CAMPFIRE / LỬA TRẠI ================= */}
+        {/* Stone Fire Ring */}
+        <g>
+          {/* Circular stones */}
+          {[
+            { cx: 18, cy: 74 },
+            { cx: 28, cy: 76 },
+            { cx: 38, cy: 75 },
+            { cx: 44, cy: 71 },
+            { cx: 38, cy: 67 },
+            { cx: 26, cy: 66 },
+            { cx: 16, cy: 69 },
+          ].map((st, i) => (
+            <ellipse key={i} cx={st.cx} cy={st.cy} rx="5" ry="3.5" fill="#475569" stroke="#1e293b" strokeWidth="1" />
+          ))}
+          {/* Hot Glowing Embers */}
+          <ellipse cx="28" cy="71" rx="11" ry="4" fill="#ea580c" />
+
+          {/* Wooden Logs criss-crossed */}
+          <line x1="18" y1="74" x2="38" y2="67" stroke="#78350f" strokeWidth="3.5" strokeLinecap="round" />
+          <line x1="38" y1="74" x2="18" y2="67" stroke="#92400e" strokeWidth="3.5" strokeLinecap="round" />
+
+          {/* Dynamic Animated Pixel Fire Flames */}
+          <g className="animate-pulse" style={{ animationDuration: '1s' }}>
+            {/* Outer flame (Red-Orange) */}
+            <path d="M 22 71 Q 20 54 28 42 Q 36 54 34 71 Z" fill="#f97316" />
+            {/* Mid flame (Yellow) */}
+            <path d="M 24 71 Q 23 58 28 48 Q 33 58 32 71 Z" fill="#facc15" />
+            {/* Core hot flame (White-Yellow) */}
+            <path d="M 26 71 Q 25 64 28 56 Q 31 64 30 71 Z" fill="#fef08a" />
+          </g>
+
+          {/* Drifting Spark Embers */}
+          <circle cx="27" cy="38" r="1.5" fill="#facc15" className="animate-ping" style={{ animationDuration: '1.8s' }} />
+          <circle cx="33" cy="32" r="1" fill="#ea580c" className="animate-ping" style={{ animationDuration: '2.3s' }} />
+        </g>
+
+        {/* ================= RIGHT: MULTI-TOWER SANDCASTLE ================= */}
+        <g>
+          {/* Main Castle Keep Tower */}
+          <rect x="74" y="44" width="30" height="34" fill="#eab308" stroke="#ca8a04" strokeWidth="1.5" rx="1" />
+          {/* Crenellated battlements */}
+          <rect x="73" y="38" width="6" height="7" fill="#facc15" stroke="#ca8a04" strokeWidth="1" />
+          <rect x="83" y="38" width="6" height="7" fill="#facc15" stroke="#ca8a04" strokeWidth="1" />
+          <rect x="93" y="38" width="6" height="7" fill="#facc15" stroke="#ca8a04" strokeWidth="1" />
+          <rect x="103" y="38" width="4" height="7" fill="#facc15" stroke="#ca8a04" strokeWidth="1" />
+
+          {/* Arched Gate */}
+          <path d="M 84 78 L 84 62 Q 89 57 94 62 L 94 78 Z" fill="#a16207" stroke="#713f12" strokeWidth="1.2" />
+
+          {/* Left Flanking Spire */}
+          <rect x="62" y="52" width="14" height="26" fill="#eab308" stroke="#ca8a04" strokeWidth="1.2" rx="1" />
+          <polygon points="60,52 69,32 78,52" fill="#fde047" stroke="#ca8a04" strokeWidth="1.2" />
+
+          {/* Right Flanking Spire with Red Pirate Flag */}
+          <rect x="102" y="52" width="14" height="26" fill="#eab308" stroke="#ca8a04" strokeWidth="1.2" rx="1" />
+          <polygon points="100,52 109,32 118,52" fill="#fde047" stroke="#ca8a04" strokeWidth="1.2" />
+          {/* Flagpole & Red Pennant */}
+          <line x1="109" y1="32" x2="109" y2="18" stroke="#78350f" strokeWidth="1.2" />
+          <polygon points="109,19 123,24 109,29" fill="#ef4444" />
+
+          {/* Starfish and Spiral Conch Shell in the Sand */}
+          {/* Pink Starfish */}
+          <polygon
+            points="58,74 59,71 61,71 60,73 61,75 58,74"
+            fill="#f43f5e"
+            stroke="#e11d48"
+            strokeWidth="0.6"
+            transform="scale(1.8) translate(-22 -31)"
+          />
+          {/* Conch Shell */}
+          <ellipse cx="118" cy="76" rx="4" ry="3" fill="#ffffff" stroke="#cbd5e1" strokeWidth="0.8" />
+          <circle cx="119" cy="76" r="1.5" fill="#fed7aa" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 16A. ĐẠI DƯƠNG TRÀN HÀNG NGANG & SÓNG BIỂN NHIỆT ĐỚI (FULL-WIDTH COASTAL OCEAN)
+// =========================================================================
+export function FullWidthOceanWavesSVG({ className = '', height = 120 }: { className?: string; height?: number }) {
+  return (
+    <div className={`relative w-full overflow-hidden select-none ${className}`} style={{ height }}>
+      {/* Background deep ocean gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0369a1] via-[#0284c7] to-[#38bdf8]" />
+
+      {/* SVG Waves and Ocean Elements spanning 100% width */}
+      <svg
+        viewBox="0 0 800 110"
+        preserveAspectRatio="none"
+        className="absolute inset-0 w-full h-full pointer-events-none"
+      >
+        {/* Layer 1: Distant Deep Blue Swell */}
+        <path
+          d="M 0 42 Q 100 32 200 42 Q 300 52 400 42 Q 500 32 600 42 Q 700 52 800 42 L 800 110 L 0 110 Z"
+          fill="#0284c7"
+          opacity="0.8"
+        />
+
+        {/* Layer 2: Mid-ocean Turquoise Wave */}
+        <path
+          d="M 0 58 Q 100 70 200 58 Q 300 46 400 58 Q 500 70 600 58 Q 700 46 800 58 L 800 110 L 0 110 Z"
+          fill="#0ea5e9"
+          opacity="0.9"
+        />
+        <path
+          d="M 0 58 Q 100 70 200 58 Q 300 46 400 58 Q 500 70 600 58 Q 700 46 800 58"
+          fill="none"
+          stroke="#e0f2fe"
+          strokeWidth="2"
+          opacity="0.8"
+        />
+
+        {/* Layer 3: Shorebreak Wave with White Seafoam */}
+        <path
+          d="M 0 78 Q 100 66 200 78 Q 300 90 400 78 Q 500 66 600 78 Q 700 90 800 78 L 800 110 L 0 110 Z"
+          fill="#38bdf8"
+        />
+        {/* Foamy wave crest */}
+        <path
+          d="M 0 78 Q 100 66 200 78 Q 300 90 400 78 Q 500 66 600 78 Q 700 90 800 78"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+        />
+
+        {/* Lăn tăn bọt sóng mép bờ biển (Water shoreline wash) */}
+        <path
+          d="M 0 96 Q 80 88 160 96 Q 240 104 320 96 Q 400 88 480 96 Q 560 104 640 96 Q 720 88 800 96 L 800 110 L 0 110 Z"
+          fill="#7dd3fc"
+          opacity="0.75"
+        />
+        <path
+          d="M 0 96 Q 80 88 160 96 Q 240 104 320 96 Q 400 88 480 96 Q 560 104 640 96 Q 720 88 800 96"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth="2"
+          strokeDasharray="6 3"
+        />
+      </svg>
+
+      {/* Floating Interactive Elements: Sailboat, Dolphins, Seagulls positioned across width */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Cruising Sailboat (Gentle Rocking) */}
+        <div className="absolute left-[50%] top-[12%] transform -translate-x-1/2 animate-bounce" style={{ animationDuration: '4s' }}>
+          <svg width="68" height="52" viewBox="0 0 68 52">
+            <polygon points="8,38 58,38 52,48 16,48" fill="#78350f" stroke="#451a03" strokeWidth="1.2" />
+            <line x1="12" y1="41" x2="54" y2="41" stroke="#ca8a04" strokeWidth="1" />
+            <line x1="36" y1="38" x2="36" y2="6" stroke="#451a03" strokeWidth="1.8" />
+            <polygon points="36,10 56,35 36,35" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1" />
+            <line x1="36" y1="22" x2="50" y2="35" stroke="#0284c7" strokeWidth="2.5" />
+            <polygon points="34,12 12,35 34,35" fill="#fef08a" stroke="#ca8a04" strokeWidth="0.8" />
+            <polygon points="36,6 26,8 36,11" fill="#ef4444" />
+          </svg>
+        </div>
+
+        {/* Leaping Dolphin 1 */}
+        <div className="absolute left-[24%] top-[34%] animate-pulse" style={{ animationDuration: '3s' }}>
+          <svg width="42" height="28" viewBox="0 0 42 28">
+            <path d="M 6 22 Q 18 4 34 16 Q 22 18 14 26 Z" fill="#38bdf8" stroke="#0284c7" strokeWidth="1" />
+            <polygon points="10,22 4,18 6,24" fill="#38bdf8" />
+            <circle cx="28" cy="14" r="1.2" fill="#0f172a" />
+          </svg>
+        </div>
+
+        {/* Leaping Dolphin 2 (Baby Dolphin) */}
+        <div className="absolute left-[78%] top-[26%] animate-pulse" style={{ animationDuration: '3.6s' }}>
+          <svg width="28" height="20" viewBox="0 0 42 28">
+            <path d="M 6 22 Q 18 4 34 16 Q 22 18 14 26 Z" fill="#bae6fd" stroke="#0284c7" strokeWidth="1" />
+            <polygon points="10,22 4,18 6,24" fill="#bae6fd" />
+            <circle cx="28" cy="14" r="1.2" fill="#0f172a" />
+          </svg>
+        </div>
+
+        {/* Soaring Seagulls */}
+        <div className="absolute left-[36%] top-[10%]">
+          <svg width="32" height="14" viewBox="0 0 32 14">
+            <path d="M 2 8 Q 8 2 14 8 Q 20 2 26 8" fill="none" stroke="#ffffff" strokeWidth="1.8" />
+          </svg>
+        </div>
+        <div className="absolute left-[68%] top-[14%] opacity-85">
+          <svg width="24" height="10" viewBox="0 0 32 14">
+            <path d="M 2 8 Q 8 2 14 8 Q 20 2 26 8" fill="none" stroke="#ffffff" strokeWidth="1.5" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =========================================================================
+// 16. THUYỀN BUỒM & SÓNG BIỂN LƯỚT SÓNG (SAILBOAT & TROPICAL OCEAN WAVES)
+// =========================================================================
+export function SailboatWavesSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 175 * scale, height: 75 * scale }}>
+      <svg viewBox="0 0 175 75" width={175 * scale} height={75 * scale} className="overflow-visible">
+        {/* Layer 1: Back Deep Ocean Wave */}
+        <path
+          d="M 0 45 Q 30 36 60 45 Q 90 54 120 45 Q 150 36 175 45 L 175 75 L 0 75 Z"
+          fill="#0284c7"
+          opacity="0.85"
+        />
+
+        {/* Leaping Dolphin */}
+        <g className="animate-pulse" style={{ animationDuration: '3s' }}>
+          <path d="M 28 36 Q 38 22 52 32 Q 42 34 36 44 Z" fill="#38bdf8" stroke="#0284c7" strokeWidth="1" />
+          <polygon points="30,36 24,32 26,38" fill="#38bdf8" />
+          <circle cx="48" cy="30" r="1" fill="#0f172a" />
+        </g>
+
+        {/* Cruising Sailboat (Gentle Rocking) */}
+        <g className="animate-bounce" style={{ animationDuration: '3.5s' }}>
+          {/* Wooden Boat Hull */}
+          <polygon points="105,42 145,42 140,52 112,52" fill="#78350f" stroke="#451a03" strokeWidth="1.2" />
+          <line x1="108" y1="45" x2="142" y2="45" stroke="#ca8a04" strokeWidth="1.2" />
+
+          {/* Wooden Mast */}
+          <line x1="126" y1="42" x2="126" y2="12" stroke="#451a03" strokeWidth="1.8" />
+
+          {/* Main White Canvas Sail with Blue Stripe */}
+          <polygon points="126,16 142,39 126,39" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1" />
+          <line x1="126" y1="28" x2="137" y2="39" stroke="#0284c7" strokeWidth="2.5" />
+
+          {/* Jib Front Sail */}
+          <polygon points="124,18 106,39 124,39" fill="#fef08a" stroke="#ca8a04" strokeWidth="0.8" />
+
+          {/* Masthead Red Pennant Flag */}
+          <polygon points="126,12 118,14 126,16" fill="#ef4444" />
+        </g>
+
+        {/* Layer 2: Front Cresting Ocean Wave with White Foam */}
+        <path
+          d="M 0 54 Q 35 44 70 54 Q 105 64 140 54 Q 160 48 175 54 L 175 75 L 0 75 Z"
+          fill="#38bdf8"
+        />
+        {/* Seafoam Crests */}
+        <path
+          d="M 0 54 Q 35 44 70 54 Q 105 64 140 54 Q 160 48 175 54"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        />
+
+        {/* 2 Soaring White Seagulls */}
+        <path d="M 68 18 Q 72 14 76 18 Q 80 14 84 18" fill="none" stroke="#ffffff" strokeWidth="1.5" />
+        <path d="M 88 12 Q 91 9 94 12 Q 97 9 100 12" fill="none" stroke="#ffffff" strokeWidth="1.2" />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 17. KỆ SÁCH THƯ VIỆN & THANG TRƯỢT (LIBRARY BOOKSHELF & ROLLING LADDER)
+// =========================================================================
+export function LibraryBookshelfSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 130 * scale, height: 145 * scale }}>
+      <svg viewBox="0 0 130 145" width={130 * scale} height={145 * scale} className="overflow-visible">
+        {/* Ground shadow */}
+        <ellipse cx="65" cy="140" rx="55" ry="4.5" fill="rgba(0,0,0,0.25)" />
+
+        {/* Dark Oak Bookshelf Cabinet Outer Frame */}
+        <rect x="15" y="10" width="95" height="128" fill="#451a03" stroke="#291002" strokeWidth="2.5" rx="3" />
+        {/* Shelves backing */}
+        <rect x="18" y="14" width="89" height="120" fill="#78350f" />
+
+        {/* Classical Crown Molding on top */}
+        <polygon points="12,12 18,6 107,6 113,12" fill="#5c2c0e" stroke="#291002" strokeWidth="1.5" />
+
+        {/* 4 Sturdy Horizontal Wooden Shelves */}
+        {[42, 72, 102, 132].map((y) => (
+          <rect key={y} x="16" y={y} width="93" height="5" fill="#92400e" stroke="#451a03" strokeWidth="1" />
+        ))}
+
+        {/* ================= SHELF 1 (TOP) ================= */}
+        {/* Colorful Tech Books: Python, React, AI */}
+        {[
+          { x: 22, h: 22, c: '#0284c7', t: 'PY' },
+          { x: 30, h: 25, c: '#22c55e', t: 'TS' },
+          { x: 38, h: 20, c: '#e11d48', t: 'ENG' },
+          { x: 45, h: 24, c: '#a855f7', t: 'AI' },
+          { x: 53, h: 21, c: '#f59e0b', t: 'JS' },
+        ].map((bk, i) => (
+          <rect key={i} x={bk.x} y={42 - bk.h} width="7" height={bk.h} fill={bk.c} stroke="#1e293b" strokeWidth="0.8" rx="0.5" />
+        ))}
+        {/* Trailing Potted Ivy Plant on top-right */}
+        <rect x="84" y="32" width="14" height="10" fill="#ea580c" stroke="#9a3412" strokeWidth="1" rx="1" />
+        <circle cx="88" cy="28" r="4" fill="#16a34a" />
+        <circle cx="94" cy="26" r="4.5" fill="#22c55e" />
+        <path d="M 94 36 Q 98 44 96 50" stroke="#15803d" strokeWidth="1.2" fill="none" />
+
+        {/* ================= SHELF 2 (MID-TOP) ================= */}
+        {/* Stack of books leaning sideways */}
+        {[
+          { x: 22, h: 24, c: '#3b82f6' },
+          { x: 29, h: 23, c: '#f97316' },
+          { x: 36, h: 22, c: '#10b981' },
+          { x: 43, h: 25, c: '#ec4899' },
+          { x: 50, h: 20, c: '#6366f1' },
+        ].map((bk, i) => (
+          <rect key={i} x={bk.x} y={72 - bk.h} width="6.5" height={bk.h} fill={bk.c} stroke="#1e293b" strokeWidth="0.8" rx="0.5" />
+        ))}
+        {/* Vintage Desk Lamp casting warm light */}
+        <polygon points="86,72 88,58 96,58 98,72" fill="#ca8a04" stroke="#78350f" strokeWidth="1" />
+        <ellipse cx="92" cy="58" rx="6" ry="2" fill="#fde047" />
+
+        {/* ================= SHELF 3 (MID-BOTTOM) ================= */}
+        {Array.from({ length: 9 }).map((_, i) => (
+          <rect
+            key={i}
+            x={22 + i * 8}
+            y={102 - 18 - (i % 3) * 3}
+            width="6.5"
+            height={18 + (i % 3) * 3}
+            fill={['#dc2626', '#2563eb', '#16a34a', '#d97706', '#9333ea'][i % 5]}
+            stroke="#0f172a"
+            strokeWidth="0.8"
+            rx="0.5"
+          />
+        ))}
+
+        {/* ================= SHELF 4 (BOTTOM) ================= */}
+        {/* Thick Manuals & Rolled Scrolls */}
+        <rect x="24" y="112" width="22" height="20" fill="#0f172a" stroke="#334155" strokeWidth="1" rx="1" />
+        <rect x="50" y="116" width="18" height="16" fill="#854d0e" stroke="#451a03" strokeWidth="1" rx="1" />
+        <ellipse cx="80" cy="124" rx="4" ry="8" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" />
+
+        {/* ================= POLISHED BRASS ROLLING LADDER ================= */}
+        {/* Brass Rail across top */}
+        <line x1="16" y1="22" x2="108" y2="22" stroke="#facc15" strokeWidth="2.5" />
+        <circle cx="17" cy="22" r="2.5" fill="#ca8a04" />
+        <circle cx="107" cy="22" r="2.5" fill="#ca8a04" />
+
+        {/* Wooden Ladder angled on the right side */}
+        <g>
+          {/* Top Hooks on Rail */}
+          <circle cx="68" cy="22" r="3" fill="#ca8a04" />
+          <circle cx="82" cy="22" r="3" fill="#ca8a04" />
+
+          {/* Left Ladder Stringer */}
+          <line x1="68" y1="22" x2="60" y2="138" stroke="#ca8a04" strokeWidth="3" strokeLinecap="round" />
+          {/* Right Ladder Stringer */}
+          <line x1="82" y1="22" x2="74" y2="138" stroke="#ca8a04" strokeWidth="3" strokeLinecap="round" />
+
+          {/* Ladder Rungs for Pet to climb */}
+          {Array.from({ length: 6 }).map((_, i) => {
+            const y = 38 + i * 17;
+            const xL = 68 - (i + 1) * 1.3;
+            const xR = 82 - (i + 1) * 1.3;
+            return <line key={i} x1={xL} y1={y} x2={xR} y2={y} stroke="#fde047" strokeWidth="2" strokeLinecap="round" />;
+          })}
+
+          {/* Bottom Caster Wheels */}
+          <circle cx="60" cy="138" r="2.5" fill="#475569" stroke="#1e293b" strokeWidth="1" />
+          <circle cx="74" cy="138" r="2.5" fill="#475569" stroke="#1e293b" strokeWidth="1" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 18. GHẾ LƯỜI BEANBAG & THẢM NORDIC (PLUSH BEANBAG & WOVEN NORDIC RUG)
+// =========================================================================
+export function BeanbagLoungeSVG({
+  className = '',
+  scale = 1,
+  isBouncing = false,
+}: {
+  className?: string;
+  scale?: number;
+  isBouncing?: boolean;
+}) {
+  return (
+    <div
+      className={`relative inline-block select-none transition-transform duration-300 ${
+        isBouncing ? 'scale-y-75 scale-x-125' : 'hover:scale-105'
+      } ${className}`}
+      style={{ width: 130 * scale, height: 95 * scale }}
+    >
+      <svg viewBox="0 0 130 95" width={130 * scale} height={95 * scale} className="overflow-visible">
+        {/* Woven Nordic Rug Underneath */}
+        <ellipse cx="65" cy="74" rx="60" ry="18" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="2" />
+        <ellipse cx="65" cy="74" rx="52" ry="15" fill="#0284c7" opacity="0.2" />
+        {/* Geometric Rug Fringe */}
+        <ellipse cx="65" cy="74" rx="44" ry="12" fill="none" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3 2" />
+
+        {/* Soft Shadow of Beanbag */}
+        <ellipse cx="65" cy="78" rx="46" ry="12" fill="rgba(190, 18, 60, 0.3)" />
+
+        {/* Plush Crimson / Rose Beanbag Main Body */}
+        <path
+          d="M 24 72 C 16 52, 28 26, 65 24 C 102 26, 114 52, 106 72 C 98 84, 32 84, 24 72 Z"
+          fill="#f43f5e"
+          stroke="#be123c"
+          strokeWidth="2.5"
+        />
+
+        {/* Natural Sitting Depression & Cushion Wrinkles */}
+        <path d="M 38 64 C 50 72, 80 72, 92 64" fill="none" stroke="#e11d48" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M 44 56 C 54 62, 76 62, 86 56" fill="none" stroke="#fb7185" strokeWidth="2" strokeLinecap="round" />
+
+        {/* Cozy Cat Plushie / Gấu bông mèo trên ghế */}
+        <g>
+          {/* Head & Ears */}
+          <circle cx="50" cy="42" r="7" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1" />
+          <polygon points="44,38 46,31 49,37" fill="#fb7185" stroke="#e11d48" strokeWidth="0.8" />
+          <polygon points="51,37 54,31 56,38" fill="#fb7185" stroke="#e11d48" strokeWidth="0.8" />
+          {/* Sleeping Eyes */}
+          <path d="M 46 42 Q 48 44 50 42" stroke="#475569" strokeWidth="0.8" fill="none" />
+          <path d="M 50 42 Q 52 44 54 42" stroke="#475569" strokeWidth="0.8" fill="none" />
+          <circle cx="50" cy="44" r="0.8" fill="#f43f5e" />
+        </g>
+
+        {/* Developer Over-Ear Headphones Draped on Side */}
+        <g>
+          <path d="M 72 36 Q 84 28 94 40" stroke="#0f172a" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <rect x="70" y="36" width="5" height="10" fill="#38bdf8" stroke="#0284c7" strokeWidth="1" rx="2" />
+          <rect x="91" y="40" width="5" height="10" fill="#38bdf8" stroke="#0284c7" strokeWidth="1" rx="2" />
+        </g>
+
+        {/* Match Cup on wooden coaster */}
+        <ellipse cx="112" cy="74" rx="8" ry="4" fill="#78350f" />
+        <rect x="109" y="66" width="6" height="7" fill="#ffffff" stroke="#16a34a" strokeWidth="0.8" rx="1" />
+        <ellipse cx="112" cy="67" rx="2.5" ry="1" fill="#22c55e" />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 19. QUẦY CAFE ESPRESSO & PIZZA (ESPRESSO BAR & CHEESY PIZZA CORNER)
+// =========================================================================
+export function EspressoBarKitchenetteSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 135 * scale, height: 105 * scale }}>
+      <svg viewBox="0 0 135 105" width={135 * scale} height={105 * scale} className="overflow-visible">
+        {/* Ground shadow */}
+        <ellipse cx="68" cy="100" rx="60" ry="4.5" fill="rgba(0,0,0,0.22)" />
+
+        {/* Kitchenette Cabinet Base */}
+        <rect x="18" y="56" width="100" height="42" fill="#334155" stroke="#1e293b" strokeWidth="2" rx="2" />
+        {/* Cabinet Doors */}
+        <rect x="22" y="60" width="45" height="34" fill="#475569" stroke="#1e293b" strokeWidth="1" rx="1" />
+        <rect x="71" y="60" width="43" height="34" fill="#475569" stroke="#1e293b" strokeWidth="1" rx="1" />
+        <circle cx="62" cy="76" r="1.5" fill="#facc15" />
+        <circle cx="76" cy="76" r="1.5" fill="#facc15" />
+
+        {/* Polished White Marble Countertop */}
+        <rect x="14" y="50" width="108" height="8" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1.5" rx="2" />
+
+        {/* ================= LEFT: ITALIAN ESPRESSO MACHINE ================= */}
+        {/* Machine Body */}
+        <rect x="22" y="18" width="44" height="32" fill="#cbd5e1" stroke="#475569" strokeWidth="1.8" rx="2" />
+        <rect x="26" y="22" width="36" height="12" fill="#94a3b8" rx="1" />
+
+        {/* Circular Pressure Gauge */}
+        <circle cx="44" cy="28" r="4" fill="#ffffff" stroke="#334155" strokeWidth="1" />
+        <line x1="44" y1="28" x2="46" y2="26" stroke="#dc2626" strokeWidth="1" />
+
+        {/* Portafilter Grouphead & Spout */}
+        <rect x="36" y="34" width="16" height="4" fill="#334155" />
+        <line x1="44" y1="38" x2="44" y2="44" stroke="#78350f" strokeWidth="1.5" />
+
+        {/* Ceramic Espresso Cup Catching Coffee */}
+        <rect x="40" y="42" width="8" height="8" fill="#ffffff" stroke="#94a3b8" strokeWidth="1" rx="1" />
+        <path d="M 48 44 Q 51 46 48 48" stroke="#94a3b8" strokeWidth="0.8" fill="none" />
+
+        {/* Rising Animated Steam Puffs */}
+        <circle cx="43" cy="38" r="2.5" fill="#ffffff" opacity="0.8" className="animate-ping" style={{ animationDuration: '2s' }} />
+        <circle cx="45" cy="34" r="2" fill="#e2e8f0" opacity="0.7" className="animate-ping" style={{ animationDuration: '2.5s' }} />
+
+        {/* Top Bean Hopper (Glass dome with coffee beans) */}
+        <path d="M 30 18 Q 44 8 58 18 Z" fill="#64748b" stroke="#334155" strokeWidth="1" />
+        <circle cx="38" cy="15" r="1.5" fill="#451a03" />
+        <circle cx="44" cy="14" r="1.5" fill="#78350f" />
+        <circle cx="50" cy="15" r="1.5" fill="#451a03" />
+
+        {/* ================= RIGHT: FRESH HOT PIZZA ================= */}
+        {/* Open Checkered Pizza Box */}
+        <polygon points="74,50 114,50 118,42 78,42" fill="#ef4444" stroke="#b91c1c" strokeWidth="1" />
+        <rect x="74" y="46" width="40" height="4" fill="#ffffff" stroke="#cbd5e1" strokeWidth="0.8" />
+
+        {/* Delicious Pepperoni Pizza */}
+        <ellipse cx="94" cy="46" rx="16" ry="7" fill="#facc15" stroke="#ca8a04" strokeWidth="1" />
+        {/* Red Pepperoni Slices */}
+        <ellipse cx="86" cy="46" rx="2.5" ry="1.5" fill="#dc2626" />
+        <ellipse cx="94" cy="44" rx="3" ry="1.5" fill="#dc2626" />
+        <ellipse cx="102" cy="46" rx="2.5" ry="1.5" fill="#dc2626" />
+        <ellipse cx="94" cy="48" rx="2.5" ry="1.2" fill="#dc2626" />
+        {/* Basil Leaves */}
+        <circle cx="90" cy="48" r="1" fill="#16a34a" />
+        <circle cx="98" cy="44" r="1" fill="#16a34a" />
+
+        {/* Potted Monstera Deliciosa Plant on side */}
+        <rect x="114" y="38" width="10" height="12" fill="#ea580c" stroke="#9a3412" strokeWidth="1" rx="1" />
+        <ellipse cx="119" cy="30" rx="6" ry="8" fill="#16a34a" />
+        <line x1="119" y1="38" x2="119" y2="24" stroke="#14532d" strokeWidth="1" />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 20. BẢNG SPRINT KANBAN DI ĐỘNG (MOBILE AGILE KANBAN WHITEBOARD)
+// =========================================================================
+export function ScrumKanbanWhiteboardSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 135 * scale, height: 95 * scale }}>
+      <svg viewBox="0 0 135 95" width={135 * scale} height={95 * scale} className="overflow-visible">
+        {/* Ground shadow */}
+        <ellipse cx="68" cy="90" rx="55" ry="4" fill="rgba(0,0,0,0.22)" />
+
+        {/* Twin Aluminum Stand Legs & Wheels */}
+        <line x1="26" y1="15" x2="26" y2="88" stroke="#64748b" strokeWidth="3" />
+        <line x1="108" y1="15" x2="108" y2="88" stroke="#64748b" strokeWidth="3" />
+        {/* Base feet & caster wheels */}
+        <line x1="18" y1="88" x2="34" y2="88" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
+        <line x1="100" y1="88" x2="116" y2="88" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
+        <circle cx="20" cy="91" r="2" fill="#0f172a" />
+        <circle cx="32" cy="91" r="2" fill="#0f172a" />
+        <circle cx="102" cy="91" r="2" fill="#0f172a" />
+        <circle cx="114" cy="91" r="2" fill="#0f172a" />
+
+        {/* Magnetic Whiteboard Frame */}
+        <rect x="20" y="8" width="94" height="66" fill="#f8fafc" stroke="#94a3b8" strokeWidth="2.5" rx="3" />
+        {/* Shiny Whiteboard surface */}
+        <rect x="23" y="11" width="88" height="60" fill="#ffffff" />
+
+        {/* Board Header Banner: SPRINT #42 */}
+        <rect x="23" y="11" width="88" height="12" fill="#0284c7" />
+        <text x="67" y="19.5" textAnchor="middle" fill="#ffffff" fontSize="6.5" fontWeight="bold" fontFamily="sans-serif">
+          🚀 SPRINT #42: 100% DONE
+        </text>
+
+        {/* 4 Vertical Columns Dividers */}
+        <line x1="45" y1="23" x2="45" y2="71" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2 1" />
+        <line x1="67" y1="23" x2="67" y2="71" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2 1" />
+        <line x1="89" y1="23" x2="89" y2="71" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2 1" />
+
+        {/* Column Headers */}
+        <text x="34" y="29" textAnchor="middle" fill="#64748b" fontSize="5" fontWeight="bold">TODO</text>
+        <text x="56" y="29" textAnchor="middle" fill="#0284c7" fontSize="5" fontWeight="bold">DEV</text>
+        <text x="78" y="29" textAnchor="middle" fill="#d97706" fontSize="5" fontWeight="bold">TEST</text>
+        <text x="100" y="29" textAnchor="middle" fill="#16a34a" fontSize="5" fontWeight="bold">DONE</text>
+
+        {/* Sticky Notes (Post-its) */}
+        {/* TODO column */}
+        <rect x="28" y="33" width="12" height="10" fill="#fef08a" stroke="#ca8a04" strokeWidth="0.6" rx="0.5" />
+        {/* DEV column */}
+        <rect x="50" y="33" width="12" height="10" fill="#bae6fd" stroke="#0284c7" strokeWidth="0.6" rx="0.5" />
+        <rect x="50" y="46" width="12" height="10" fill="#fed7aa" stroke="#ea580c" strokeWidth="0.6" rx="0.5" />
+        {/* TEST column */}
+        <rect x="72" y="33" width="12" height="10" fill="#fbcfe8" stroke="#db2777" strokeWidth="0.6" rx="0.5" />
+        {/* DONE column (With big checkmarks!) */}
+        <rect x="94" y="33" width="12" height="10" fill="#bbf7d0" stroke="#16a34a" strokeWidth="0.6" rx="0.5" />
+        <text x="100" y="41" textAnchor="middle" fill="#15803d" fontSize="7" fontWeight="bold">✓</text>
+
+        <rect x="94" y="46" width="12" height="10" fill="#bbf7d0" stroke="#16a34a" strokeWidth="0.6" rx="0.5" />
+        <text x="100" y="54" textAnchor="middle" fill="#15803d" fontSize="7" fontWeight="bold">✓</text>
+
+        <rect x="94" y="59" width="12" height="10" fill="#bbf7d0" stroke="#16a34a" strokeWidth="0.6" rx="0.5" />
+        <text x="100" y="67" textAnchor="middle" fill="#15803d" fontSize="7" fontWeight="bold">✓</text>
+
+        {/* Bottom Marker Tray with Pens */}
+        <rect x="22" y="74" width="90" height="3" fill="#64748b" rx="1" />
+        <line x1="30" y1="74.5" x2="38" y2="74.5" stroke="#ef4444" strokeWidth="1.5" />
+        <line x1="42" y1="74.5" x2="50" y2="74.5" stroke="#3b82f6" strokeWidth="1.5" />
+        <line x1="54" y1="74.5" x2="62" y2="74.5" stroke="#0f172a" strokeWidth="1.5" />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 21. ĐÀI PHUN SAO THIÊN THẦN (CELESTIAL MARBLE ANGEL FOUNTAIN)
+// =========================================================================
+export function CelestialAngelFountainSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 120 * scale }}>
+      <svg viewBox="0 0 140 120" width={140 * scale} height={120 * scale} className="overflow-visible">
+        {/* Soft magical glow under fountain */}
+        <ellipse cx="70" cy="112" rx="64" ry="7" fill="rgba(129, 140, 248, 0.35)" />
+
+        {/* Carrara White Marble Hexagonal Lower Pool Basin */}
+        <path
+          d="M 12 110 L 26 90 L 114 90 L 128 110 L 114 116 L 26 116 Z"
+          fill="#f8fafc"
+          stroke="#c7d2fe"
+          strokeWidth="2.5"
+        />
+        {/* Inner Starry Turquoise Water Pool */}
+        <ellipse cx="70" cy="100" rx="46" ry="12" fill="#38bdf8" />
+        <ellipse cx="70" cy="100" rx="40" ry="9" fill="#0284c7" />
+
+        {/* Floating Star Blossoms on Water */}
+        <circle cx="50" cy="98" r="2.5" fill="#facc15" />
+        <circle cx="88" cy="102" r="3" fill="#f43f5e" />
+        <circle cx="68" cy="105" r="2.5" fill="#ffffff" />
+
+        {/* Central Fluted Marble Pedestal */}
+        <rect x="62" y="64" width="16" height="32" fill="#f8fafc" stroke="#c7d2fe" strokeWidth="1.8" />
+        <line x1="66" y1="64" x2="66" y2="96" stroke="#e2e8f0" strokeWidth="1" />
+        <line x1="74" y1="64" x2="74" y2="96" stroke="#e2e8f0" strokeWidth="1" />
+
+        {/* Middle Scallop Shell Basin */}
+        <path
+          d="M 38 64 Q 70 76 102 64 Q 70 56 38 64 Z"
+          fill="#ffffff"
+          stroke="#818cf8"
+          strokeWidth="2"
+        />
+        <ellipse cx="70" cy="64" rx="28" ry="5" fill="#38bdf8" />
+
+        {/* Cascading Water Streams from Middle Shell Basin */}
+        <path d="M 44 65 Q 40 82 36 96" stroke="#e0f2fe" strokeWidth="1.8" fill="none" opacity="0.8" />
+        <path d="M 96 65 Q 100 82 104 96" stroke="#e0f2fe" strokeWidth="1.8" fill="none" opacity="0.8" />
+
+        {/* Top Marble Pedestal & Sculpted Celestial Swan */}
+        <rect x="65" y="44" width="10" height="20" fill="#f8fafc" stroke="#c7d2fe" strokeWidth="1.2" />
+
+        {/* Elegant Angel Swan */}
+        <g>
+          {/* Swan Body */}
+          <ellipse cx="70" cy="38" rx="8" ry="6" fill="#ffffff" stroke="#c7d2fe" strokeWidth="1.2" />
+          {/* Graceful Arching Neck */}
+          <path d="M 74 38 Q 80 26 76 20" stroke="#ffffff" strokeWidth="3" fill="none" strokeLinecap="round" />
+          {/* Swan Head & Gold Beak */}
+          <circle cx="76" cy="20" r="3" fill="#ffffff" />
+          <polygon points="78,20 84,21 78,23" fill="#facc15" stroke="#ca8a04" strokeWidth="0.6" />
+          {/* Wings */}
+          <path d="M 64 36 Q 56 22 68 30 Z" fill="#ffffff" stroke="#c7d2fe" strokeWidth="1" />
+        </g>
+
+        {/* Arcing Water Fountain Jet from Swan Beak */}
+        <g className="animate-pulse" style={{ animationDuration: '1.2s' }}>
+          <path d="M 84 21 Q 96 26 94 62" stroke="#bae6fd" strokeWidth="2" fill="none" />
+          <path d="M 84 21 Q 60 14 46 62" stroke="#bae6fd" strokeWidth="2" fill="none" />
+        </g>
+
+        {/* Orbiting Magical Star Sparkles */}
+        <circle cx="70" cy="14" r="2.5" fill="#fef08a" className="animate-ping" style={{ animationDuration: '2s' }} />
+        <circle cx="48" cy="50" r="1.8" fill="#facc15" className="animate-ping" style={{ animationDuration: '2.5s' }} />
+        <circle cx="98" cy="50" r="1.8" fill="#facc15" className="animate-ping" style={{ animationDuration: '1.8s' }} />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 22. RƯƠNG BÁU KIM CƯƠNG TRI THỨC (GEMSTONE TREASURE CHEST OF WISDOM)
+// =========================================================================
+export function GemstoneTreasureChestSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 130 * scale, height: 95 * scale }}>
+      <svg viewBox="0 0 130 95" width={130 * scale} height={95 * scale} className="overflow-visible">
+        {/* Soft shadow on cloud */}
+        <ellipse cx="65" cy="88" rx="55" ry="5.5" fill="rgba(67, 56, 202, 0.35)" />
+
+        {/* Golden Aura / Light Rays radiating upward */}
+        <g className="animate-pulse" style={{ animationDuration: '2.2s' }}>
+          <polygon points="65,40 35,-5 50,-5" fill="rgba(254, 240, 138, 0.25)" />
+          <polygon points="65,40 60,-10 70,-10" fill="rgba(254, 240, 138, 0.35)" />
+          <polygon points="65,40 80,-5 95,-5" fill="rgba(254, 240, 138, 0.25)" />
+        </g>
+
+        {/* Chest Lower Tub (Polished Royal Cedar Wood) */}
+        <rect x="25" y="46" width="80" height="40" fill="#78350f" stroke="#451a03" strokeWidth="2.5" rx="2" />
+        {/* Wood grain slats */}
+        <line x1="25" y1="60" x2="105" y2="60" stroke="#92400e" strokeWidth="1.5" />
+        <line x1="25" y1="74" x2="105" y2="74" stroke="#92400e" strokeWidth="1.5" />
+
+        {/* Reinforced Heavy Brass Straps & Corner Rivets */}
+        <rect x="35" y="46" width="6" height="40" fill="#ca8a04" stroke="#854d0e" strokeWidth="1" />
+        <rect x="89" y="46" width="6" height="40" fill="#ca8a04" stroke="#854d0e" strokeWidth="1" />
+        <circle cx="38" cy="52" r="1.2" fill="#451a03" />
+        <circle cx="38" cy="80" r="1.2" fill="#451a03" />
+        <circle cx="92" cy="52" r="1.2" fill="#451a03" />
+        <circle cx="92" cy="80" r="1.2" fill="#451a03" />
+
+        {/* Front Golden Lock Plate & Keyhole */}
+        <polygon points="60,52 70,52 68,66 62,66" fill="#facc15" stroke="#ca8a04" strokeWidth="1.5" />
+        <circle cx="65" cy="57" r="1.5" fill="#451a03" />
+        <line x1="65" y1="57" x2="65" y2="62" stroke="#451a03" strokeWidth="1" />
+
+        {/* Open Arched Lid (Flung open at dramatic angle) */}
+        <path
+          d="M 23 46 L 35 14 Q 65 6 95 14 L 107 46 Z"
+          fill="#92400e"
+          stroke="#451a03"
+          strokeWidth="2.5"
+        />
+        <path d="M 37 15 Q 65 8 93 15" stroke="#facc15" strokeWidth="2.5" fill="none" />
+
+        {/* Overflowing Gemstones & Golden Doubloons */}
+        {/* Gold coins heap */}
+        {Array.from({ length: 9 }).map((_, i) => (
+          <ellipse key={i} cx={40 + i * 6} cy={44 + (i % 2) * 3} rx="4" ry="2.5" fill="#facc15" stroke="#ca8a04" strokeWidth="0.8" />
+        ))}
+
+        {/* Sparkling Diamonds & Sapphires */}
+        <g className="animate-bounce" style={{ animationDuration: '2.5s' }}>
+          {/* Big Center Diamond */}
+          <polygon points="65,30 72,37 65,44 58,37" fill="#ffffff" stroke="#38bdf8" strokeWidth="1.2" />
+          <polygon points="65,30 68,37 65,44" fill="#bae6fd" />
+          {/* Blue Sapphire */}
+          <polygon points="48,34 54,34 56,41 46,41" fill="#3b82f6" stroke="#1d4ed8" strokeWidth="1" />
+          {/* Red Ruby */}
+          <polygon points="80,33 86,33 88,40 78,40" fill="#ef4444" stroke="#b91c1c" strokeWidth="1" />
+          {/* Emerald */}
+          <polygon points="72,40 76,36 80,40 76,44" fill="#10b981" stroke="#047857" strokeWidth="1" />
+        </g>
+
+        {/* Ancient Glowing Tome / Book of English Knowledge */}
+        <rect x="52" y="36" width="22" height="6" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" rx="1" />
+        <line x1="63" y1="36" x2="63" y2="42" stroke="#ca8a04" strokeWidth="0.8" />
+
+        {/* Floating Magic Star Sparkles */}
+        <circle cx="52" cy="20" r="2.5" fill="#facc15" className="animate-ping" style={{ animationDuration: '1.5s' }} />
+        <circle cx="78" cy="16" r="2" fill="#38bdf8" className="animate-ping" style={{ animationDuration: '2s' }} />
+        <circle cx="94" cy="28" r="1.8" fill="#ec4899" className="animate-ping" style={{ animationDuration: '2.4s' }} />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 23. CẦU VỒNG 7 MÀU PHA LÊ (7-COLOR CRYSTAL RAINBOW BRIDGE)
+// =========================================================================
+export function RainbowBridgeArchSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 190 * scale, height: 100 * scale }}>
+      <svg viewBox="0 0 190 100" width={190 * scale} height={100 * scale} className="overflow-visible">
+        {/* 7-Color Curved Rainbow Bands */}
+        <g opacity="0.9">
+          {/* Red */}
+          <path d="M 20 85 C 20 15, 170 15, 170 85" stroke="#ef4444" strokeWidth="4" fill="none" />
+          {/* Orange */}
+          <path d="M 22 85 C 22 20, 168 20, 168 85" stroke="#f97316" strokeWidth="4" fill="none" />
+          {/* Yellow */}
+          <path d="M 24 85 C 24 25, 166 25, 166 85" stroke="#facc15" strokeWidth="4" fill="none" />
+          {/* Green */}
+          <path d="M 26 85 C 26 30, 164 30, 164 85" stroke="#22c55e" strokeWidth="4" fill="none" />
+          {/* Cyan */}
+          <path d="M 28 85 C 28 35, 162 35, 162 85" stroke="#06b6d4" strokeWidth="4" fill="none" />
+          {/* Blue */}
+          <path d="M 30 85 C 30 40, 160 40, 160 85" stroke="#3b82f6" strokeWidth="4" fill="none" />
+          {/* Purple */}
+          <path d="M 32 85 C 32 45, 158 45, 158 85" stroke="#a855f7" strokeWidth="4" fill="none" />
+        </g>
+
+        {/* Left Cloud Bank */}
+        <g>
+          <ellipse cx="22" cy="85" rx="20" ry="10" fill="#ffffff" />
+          <ellipse cx="32" cy="80" rx="14" ry="12" fill="#ffffff" />
+          <ellipse cx="14" cy="82" rx="12" ry="8" fill="#e0e7ff" />
+        </g>
+
+        {/* Right Cloud Bank */}
+        <g>
+          <ellipse cx="168" cy="85" rx="20" ry="10" fill="#ffffff" />
+          <ellipse cx="158" cy="80" rx="14" ry="12" fill="#ffffff" />
+          <ellipse cx="176" cy="82" rx="12" ry="8" fill="#e0e7ff" />
+        </g>
+
+        {/* 3 Suspended Star Lanterns under Arch */}
+        {[
+          { x: 65, y: 44, chain: 14 },
+          { x: 95, y: 36, chain: 16 },
+          { x: 125, y: 44, chain: 14 },
+        ].map((lt, i) => (
+          <g key={i} className="animate-pulse" style={{ animationDuration: `${1.8 + i * 0.4}s` }}>
+            <line x1={lt.x} y1={lt.y - lt.chain} x2={lt.x} y2={lt.y} stroke="#ca8a04" strokeWidth="1" strokeDasharray="1 1" />
+            <polygon points={`${lt.x},${lt.y - 4} ${lt.x + 3},${lt.y} ${lt.x + 5},${lt.y + 4} ${lt.x},${lt.y + 3} ${lt.x - 5},${lt.y + 4} ${lt.x - 3},${lt.y}`} fill="#facc15" stroke="#ca8a04" strokeWidth="0.8" />
+            <circle cx={lt.x} cy={lt.y} r="1.5" fill="#ffffff" />
+          </g>
+        ))}
+
+        {/* Glittering Stardust Trail over rainbow */}
+        <circle cx="95" cy="18" r="2.5" fill="#ffffff" className="animate-ping" style={{ animationDuration: '1.6s' }} />
+        <circle cx="70" cy="24" r="1.8" fill="#fef08a" className="animate-ping" style={{ animationDuration: '2.2s' }} />
+        <circle cx="120" cy="24" r="1.8" fill="#bae6fd" className="animate-ping" style={{ animationDuration: '1.9s' }} />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 24. BẬC THANG MÂY & ĐÈN LỒNG TRĂNG SAO (STARRY CLOUD STAIRWAY PLATFORM)
+// =========================================================================
+export function StarryCloudPlatformSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 130 * scale, height: 80 * scale }}>
+      <svg viewBox="0 0 130 80" width={130 * scale} height={80 * scale} className="overflow-visible">
+        {/* Tier 1: Lowest Cloud Step */}
+        <ellipse cx="65" cy="70" rx="55" ry="10" fill="#ffffff" opacity="0.9" />
+        <ellipse cx="40" cy="66" rx="24" ry="9" fill="#e0e7ff" opacity="0.9" />
+        <ellipse cx="90" cy="66" rx="24" ry="9" fill="#e0e7ff" opacity="0.9" />
+
+        {/* Tier 2: Middle Cloud Step */}
+        <ellipse cx="65" cy="50" rx="42" ry="9" fill="#ffffff" />
+        <ellipse cx="48" cy="46" rx="18" ry="8" fill="#c7d2fe" opacity="0.8" />
+        <ellipse cx="82" cy="46" rx="18" ry="8" fill="#c7d2fe" opacity="0.8" />
+
+        {/* Tier 3: Top Cloud Platform */}
+        <ellipse cx="65" cy="30" rx="30" ry="8" fill="#ffffff" />
+        <ellipse cx="65" cy="28" rx="22" ry="6" fill="#f8fafc" />
+
+        {/* Golden Crescent Moon Lantern on post */}
+        <g>
+          <line x1="22" y1="70" x2="22" y2="34" stroke="#ca8a04" strokeWidth="2" strokeLinecap="round" />
+          <path d="M 22 34 Q 28 30 28 36" stroke="#ca8a04" strokeWidth="1.5" fill="none" />
+          {/* Crescent Moon Lantern */}
+          <path
+            d="M 28 36 C 34 36, 34 44, 28 44 C 31 42, 31 38, 28 36 Z"
+            fill="#facc15"
+            stroke="#ca8a04"
+            strokeWidth="0.8"
+            className="animate-pulse"
+          />
+        </g>
+
+        {/* Floating Constellation Stars */}
+        <circle cx="106" cy="32" r="2.5" fill="#fef08a" className="animate-ping" style={{ animationDuration: '2s' }} />
+        <circle cx="114" cy="40" r="1.8" fill="#facc15" />
+        <line x1="106" y1="32" x2="114" y2="40" stroke="rgba(250, 204, 21, 0.4)" strokeWidth="0.8" strokeDasharray="1 1" />
+      </svg>
+    </div>
+  );
+}
+
+
+
+// =========================================================================
+// 25. THOUSAND SUNNY / ONE PIECE - ĐẦU SƯ TỬ SUNNY (LION FIGUREHEAD)
+// =========================================================================
+export function ThousandSunnyLionFigureheadSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 150 * scale, height: 140 * scale }}>
+      <svg viewBox="0 0 150 140" width={150 * scale} height={140 * scale} className="overflow-visible">
+        {/* Ocean Wave Splash at Bow */}
+        <ellipse cx="75" cy="130" rx="65" ry="8" fill="rgba(14, 165, 233, 0.3)" />
+        <path d="M 20 128 Q 40 120 60 128 T 100 128 T 135 126" stroke="#38bdf8" strokeWidth="2.5" fill="none" opacity="0.8" />
+        <path d="M 35 132 Q 55 125 75 132 T 115 132" stroke="#bae6fd" strokeWidth="1.5" fill="none" />
+
+        {/* Wooden Prow Platform / Sàn Mũi Tàu */}
+        <polygon points="35,125 75,135 115,125 105,95 45,95" fill="#92400e" stroke="#451a03" strokeWidth="2" />
+        <line x1="55" y1="95" x2="50" y2="128" stroke="#78350f" strokeWidth="1.5" />
+        <line x1="75" y1="95" x2="75" y2="135" stroke="#78350f" strokeWidth="1.5" />
+        <line x1="95" y1="95" x2="100" y2="128" stroke="#78350f" strokeWidth="1.5" />
+
+        {/* Heavy Iron Anchor with Chains on Starboard */}
+        <g>
+          <line x1="112" y1="100" x2="125" y2="125" stroke="#64748b" strokeWidth="2" strokeDasharray="3 2" />
+          <path d="M 120 120 C 120 135 135 135 135 120" stroke="#334155" strokeWidth="3" fill="none" />
+          <line x1="127" y1="115" x2="127" y2="132" stroke="#334155" strokeWidth="2" />
+          <line x1="123" y1="122" x2="131" y2="122" stroke="#334155" strokeWidth="2" />
+        </g>
+
+        {/* Crossed Bones behind Sunny Mane */}
+        <g stroke="#e2e8f0" strokeWidth="6" strokeLinecap="round">
+          <line x1="32" y1="28" x2="118" y2="92" />
+          <line x1="118" y1="28" x2="32" y2="92" />
+        </g>
+        <circle cx="30" cy="26" r="4.5" fill="#cbd5e1" />
+        <circle cx="34" cy="30" r="4" fill="#cbd5e1" />
+        <circle cx="120" cy="26" r="4.5" fill="#cbd5e1" />
+        <circle cx="116" cy="30" r="4" fill="#cbd5e1" />
+
+        {/* 16 Golden Sunflower Petals Mane (Bờm hoa hướng dương vàng óng) */}
+        {Array.from({ length: 16 }).map((_, i) => {
+          const angle = (i * 360) / 16;
+          const rad = (angle * Math.PI) / 180;
+          const cx = 75 + Math.cos(rad) * 36;
+          const cy = 60 + Math.sin(rad) * 36;
+          return (
+            <ellipse
+              key={i}
+              cx={cx}
+              cy={cy}
+              rx="9"
+              ry="5.5"
+              fill="#facc15"
+              stroke="#ca8a04"
+              strokeWidth="1.2"
+              transform={`rotate(${angle} ${cx} ${cy})`}
+            />
+          );
+        })}
+
+        {/* White Lion Face Head */}
+        <circle cx="75" cy="60" r="30" fill="#f8fafc" stroke="#ca8a04" strokeWidth="2.5" />
+
+        {/* Cute Lion Ears */}
+        <circle cx="54" cy="38" r="8" fill="#facc15" stroke="#ca8a04" strokeWidth="1.5" />
+        <circle cx="54" cy="38" r="4.5" fill="#fef08a" />
+        <circle cx="96" cy="38" r="8" fill="#facc15" stroke="#ca8a04" strokeWidth="1.5" />
+        <circle cx="96" cy="38" r="4.5" fill="#fef08a" />
+
+        {/* Rosy Cheeks */}
+        <circle cx="58" cy="68" r="5" fill="#fda4af" opacity="0.8" />
+        <circle cx="92" cy="68" r="5" fill="#fda4af" opacity="0.8" />
+
+        {/* Big Bright Anime Eyes */}
+        <ellipse cx="64" cy="56" rx="4.5" ry="6" fill="#0f172a" />
+        <circle cx="62.5" cy="53.5" r="2" fill="#ffffff" />
+        <circle cx="65" cy="57" r="1" fill="#ffffff" />
+
+        <ellipse cx="86" cy="56" rx="4.5" ry="6" fill="#0f172a" />
+        <circle cx="84.5" cy="53.5" r="2" fill="#ffffff" />
+        <circle cx="87" cy="57" r="1" fill="#ffffff" />
+
+        {/* Snout & Nose */}
+        <polygon points="72,61 78,61 75,65" fill="#ca8a04" />
+
+        {/* Big Open Cheerful Smile (Gaon Cannon Muzzle) */}
+        <path d="M 64 68 Q 75 84 86 68 Z" fill="#dc2626" stroke="#991b1b" strokeWidth="1.5" />
+        <ellipse cx="75" cy="74" rx="5" ry="3" fill="#f43f5e" />
+        {/* Cute teeth */}
+        <rect x="71" y="68" width="3.5" height="3" fill="#ffffff" rx="0.5" />
+        <rect x="75.5" y="68" width="3.5" height="3" fill="#ffffff" rx="0.5" />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 26. CỘT BUỒM HẢI TẶC MŨ RƠM & ĐÀI QUAN SÁT (PIRATE MAST & JOLLY ROGER)
+// =========================================================================
+export function PirateMastJollyRogerSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 170 * scale, height: 200 * scale }}>
+      <svg viewBox="0 0 170 200" width={170 * scale} height={200 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="85" cy="192" rx="45" ry="6" fill="rgba(0,0,0,0.25)" />
+
+        {/* Shrouds / Rope Rigging Ladders Left & Right for Pet Climbing */}
+        <g stroke="#92400e" strokeWidth="1.5">
+          {/* Left stays */}
+          <line x1="85" y1="50" x2="25" y2="190" strokeWidth="2" />
+          <line x1="85" y1="50" x2="40" y2="190" strokeWidth="2" />
+          {/* Left ladder rungs */}
+          {Array.from({ length: 8 }).map((_, i) => (
+            <line
+              key={i}
+              x1={25 + i * 7.5}
+              y1={190 - i * 16}
+              x2={40 + i * 5.5}
+              y2={190 - i * 16}
+              stroke="#ca8a04"
+              strokeWidth="1.5"
+            />
+          ))}
+
+          {/* Right stays */}
+          <line x1="85" y1="50" x2="145" y2="190" strokeWidth="2" />
+          <line x1="85" y1="50" x2="130" y2="190" strokeWidth="2" />
+          {/* Right ladder rungs */}
+          {Array.from({ length: 8 }).map((_, i) => (
+            <line
+              key={i}
+              x1={130 - i * 5.5}
+              y1={190 - i * 16}
+              x2={145 - i * 7.5}
+              y2={190 - i * 16}
+              stroke="#ca8a04"
+              strokeWidth="1.5"
+            />
+          ))}
+        </g>
+
+        {/* Solid Wooden Main Mast (Cột Buồm Gỗ) */}
+        <rect x="80" y="25" width="10" height="168" fill="#78350f" stroke="#451a03" strokeWidth="2" rx="1" />
+        <rect x="79" y="80" width="12" height="3" fill="#ca8a04" />
+        <rect x="79" y="140" width="12" height="3" fill="#ca8a04" />
+
+        {/* Billowing Cream Mainsail (Cánh buồm trắng no gió) */}
+        <path
+          d="M 35 75 Q 85 92 135 75 Q 130 145 85 140 Q 40 145 35 75 Z"
+          fill="#fef3c7"
+          stroke="#ca8a04"
+          strokeWidth="2"
+          opacity="0.95"
+        />
+        {/* Sail vertical seams */}
+        <path d="M 60 77 Q 60 110 58 141" stroke="#fde68a" strokeWidth="1.5" fill="none" />
+        <path d="M 85 82 Q 85 110 85 140" stroke="#fde68a" strokeWidth="1.5" fill="none" />
+        <path d="M 110 77 Q 110 110 112 141" stroke="#fde68a" strokeWidth="1.5" fill="none" />
+
+        {/* Straw Hat Jolly Roger Emblem painted on sail */}
+        <g transform="translate(85, 110) scale(0.65)">
+          {/* Crossbones */}
+          <line x1="-28" y1="-28" x2="28" y2="28" stroke="#0f172a" strokeWidth="6" strokeLinecap="round" />
+          <line x1="28" y1="-28" x2="-28" y2="28" stroke="#0f172a" strokeWidth="6" strokeLinecap="round" />
+          {/* White skull */}
+          <circle cx="0" cy="0" r="16" fill="#0f172a" />
+          {/* Eye sockets */}
+          <circle cx="-6" cy="-2" r="3.5" fill="#fef3c7" />
+          <circle cx="6" cy="-2" r="3.5" fill="#fef3c7" />
+          {/* Grinning teeth */}
+          <rect x="-7" y="6" width="14" height="6" fill="#fef3c7" rx="1" />
+          <line x1="-3" y1="6" x2="-3" y2="12" stroke="#0f172a" strokeWidth="1" />
+          <line x1="1" y1="6" x2="1" y2="12" stroke="#0f172a" strokeWidth="1" />
+          {/* Straw Hat over Skull */}
+          <ellipse cx="0" cy="-14" rx="22" ry="5" fill="#facc15" stroke="#ca8a04" strokeWidth="1.5" />
+          <path d="M -13 -14 Q 0 -26 13 -14 Z" fill="#facc15" stroke="#ca8a04" strokeWidth="1.5" />
+          <rect x="-13" y="-17" width="26" height="3" fill="#dc2626" />
+        </g>
+
+        {/* Wooden Crow's Nest (Đài quan sát trên đỉnh cột) */}
+        <polygon points="62,50 108,50 102,68 68,68" fill="#92400e" stroke="#451a03" strokeWidth="2" />
+        {/* Baluster slats */}
+        {Array.from({ length: 6 }).map((_, i) => (
+          <line key={i} x1={68 + i * 6.5} y1={50} x2={70 + i * 5.8} y2={68} stroke="#78350f" strokeWidth="1.5" />
+        ))}
+        {/* Pirate Brass Spyglass Telescope on Nest */}
+        <line x1="98" y1="46" x2="114" y2="38" stroke="#facc15" strokeWidth="2.5" strokeLinecap="round" />
+
+        {/* Waving Black Pirate Flag at Topmost Mast Tip */}
+        <g className="animate-pulse" style={{ animationDuration: '2.5s' }}>
+          <line x1="85" y1="25" x2="85" y2="2" stroke="#ca8a04" strokeWidth="2" />
+          <circle cx="85" cy="2" r="2.5" fill="#facc15" />
+          {/* Black waving Jolly Roger flag */}
+          <path d="M 85 4 Q 105 0 125 6 Q 115 18 128 26 Q 105 20 85 24 Z" fill="#0f172a" stroke="#334155" strokeWidth="1" />
+          <circle cx="104" cy="14" r="3.5" fill="#ffffff" />
+          <line x1="98" y1="10" x2="110" y2="18" stroke="#ffffff" strokeWidth="1" />
+          <line x1="110" y1="10" x2="98" y2="18" stroke="#ffffff" strokeWidth="1" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 27. RƯƠNG KHO BÁU HẢI TẶC TRÀN VÀNG (PIRATE TREASURE CHEST)
+// =========================================================================
+export function PirateTreasureChestSVG({ className = '', scale = 1, isOpen = false }: { className?: string; scale?: number; isOpen?: boolean }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 90 * scale, height: 75 * scale }}>
+      <svg viewBox="0 0 90 75" width={90 * scale} height={75 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="45" cy="70" rx="38" ry="5" fill="rgba(0,0,0,0.28)" />
+
+        {/* Main Chest Base (Thùng gỗ sồi viền đồng) */}
+        <rect x="14" y="34" width="62" height="34" fill="#78350f" stroke="#451a03" strokeWidth="2" rx="2" />
+        {/* Wood planks */}
+        <line x1="14" y1="46" x2="76" y2="46" stroke="#5c2605" strokeWidth="1.2" />
+        <line x1="14" y1="58" x2="76" y2="58" stroke="#5c2605" strokeWidth="1.2" />
+
+        {/* Brass corner brackets & vertical bands */}
+        <rect x="22" y="34" width="7" height="34" fill="#ca8a04" stroke="#854d0e" strokeWidth="1" />
+        <rect x="61" y="34" width="7" height="34" fill="#ca8a04" stroke="#854d0e" strokeWidth="1" />
+        <circle cx="25.5" cy="40" r="1" fill="#451a03" />
+        <circle cx="25.5" cy="62" r="1" fill="#451a03" />
+        <circle cx="64.5" cy="40" r="1" fill="#451a03" />
+        <circle cx="64.5" cy="62" r="1" fill="#451a03" />
+
+        {/* Spilling Gold Doubloons & Gems Heap */}
+        <g>
+          {/* Golden coins mound */}
+          <ellipse cx="45" cy="34" rx="24" ry="9" fill="#facc15" stroke="#ca8a04" strokeWidth="1.2" />
+          <circle cx="36" cy="32" r="3" fill="#fde047" stroke="#ca8a04" strokeWidth="0.8" />
+          <circle cx="44" cy="30" r="3.5" fill="#fde047" stroke="#ca8a04" strokeWidth="0.8" />
+          <circle cx="53" cy="33" r="3" fill="#fde047" stroke="#ca8a04" strokeWidth="0.8" />
+          <circle cx="48" cy="27" r="3" fill="#fde047" stroke="#ca8a04" strokeWidth="0.8" />
+
+          {/* Sparkling Ruby Gem */}
+          <polygon points="34,26 38,22 42,26 38,30" fill="#ef4444" stroke="#991b1b" strokeWidth="0.8" />
+          {/* Emerald Gem */}
+          <polygon points="52,24 56,20 60,24 56,28" fill="#10b981" stroke="#047857" strokeWidth="0.8" />
+          {/* Pearl Necklace draped over edge */}
+          <path d="M 28 36 Q 32 48 38 42" stroke="#ffffff" strokeWidth="2.5" strokeDasharray="3 3" fill="none" />
+        </g>
+
+        {/* Chest Arched Lid (Open or Closed) */}
+        {isOpen ? (
+          <g transform="translate(0, -18)">
+            <path d="M 12 30 Q 45 10 78 30 Z" fill="#92400e" stroke="#451a03" strokeWidth="2" />
+            <path d="M 14 30 Q 45 14 76 30" fill="none" stroke="#ca8a04" strokeWidth="3" />
+          </g>
+        ) : (
+          <g>
+            <path d="M 14 34 Q 45 14 76 34 Z" fill="#92400e" stroke="#451a03" strokeWidth="2" />
+            {/* Brass Bands on Lid */}
+            <path d="M 22 34 Q 25 18 29 34" fill="#ca8a04" stroke="#854d0e" strokeWidth="1" />
+            <path d="M 61 34 Q 65 18 68 34" fill="#ca8a04" stroke="#854d0e" strokeWidth="1" />
+            {/* Skull Lock in Center */}
+            <rect x="41" y="30" width="8" height="10" fill="#e2e8f0" stroke="#0f172a" strokeWidth="1" rx="1" />
+            <circle cx="43.5" cy="33" r="1" fill="#0f172a" />
+            <circle cx="46.5" cy="33" r="1" fill="#0f172a" />
+            <line x1="45" y1="36" x2="45" y2="38" stroke="#0f172a" strokeWidth="1" />
+          </g>
+        )}
+
+        {/* Animated Glittering Stardust */}
+        <circle cx="40" cy="18" r="2" fill="#ffffff" className="animate-ping" style={{ animationDuration: '1.4s' }} />
+        <circle cx="58" cy="16" r="1.8" fill="#fef08a" className="animate-ping" style={{ animationDuration: '2s' }} />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 28. BÁNH LÁI TÀU VÀ LAN CAN BOONG (PIRATE HELM & DECK RAILING)
+// =========================================================================
+export function PirateHelmAndDeckRailingSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 100 * scale, height: 100 * scale }}>
+      <svg viewBox="0 0 100 100" width={100 * scale} height={100 * scale} className="overflow-visible">
+        {/* Deck Railing Balusters */}
+        <rect x="5" y="72" width="90" height="5" fill="#78350f" stroke="#451a03" strokeWidth="1.5" rx="1" />
+        {Array.from({ length: 7 }).map((_, i) => (
+          <rect key={i} x={12 + i * 12} y="77" width="4" height="20" fill="#92400e" stroke="#451a03" strokeWidth="1" />
+        ))}
+        <rect x="5" y="96" width="90" height="4" fill="#5c2605" />
+
+        {/* Helm Stand / Bệ bánh lái */}
+        <polygon points="42,75 58,75 62,96 38,96" fill="#78350f" stroke="#451a03" strokeWidth="1.5" />
+        {/* Brass Compass Binnacle Dome */}
+        <circle cx="50" cy="74" r="4.5" fill="#ca8a04" stroke="#854d0e" strokeWidth="1" />
+
+        {/* 8-Spoke Rotating Pirate Ship Steering Wheel (Bánh Lái Hải Tặc 8 nan) */}
+        <g className="origin-[50px_42px] animate-spin" style={{ animationDuration: '24s', animationTimingFunction: 'linear' }}>
+          {/* Outer Rim */}
+          <circle cx="50" cy="42" r="22" fill="none" stroke="#78350f" strokeWidth="4.5" />
+          <circle cx="50" cy="42" r="19" fill="none" stroke="#ca8a04" strokeWidth="1.5" />
+          {/* 8 Spokes with Handles */}
+          {Array.from({ length: 8 }).map((_, i) => {
+            const angle = (i * 360) / 8;
+            return (
+              <g key={i} transform={`rotate(${angle} 50 42)`}>
+                <line x1="50" y1="42" x2="50" y2="14" stroke="#78350f" strokeWidth="3" />
+                {/* Turned handle grip */}
+                <circle cx="50" cy="14" r="3" fill="#ca8a04" stroke="#451a03" strokeWidth="1" />
+              </g>
+            );
+          })}
+          {/* Center Hub */}
+          <circle cx="50" cy="42" r="8" fill="#ca8a04" stroke="#451a03" strokeWidth="1.5" />
+          <circle cx="50" cy="42" r="4" fill="#facc15" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 29. ĐẠI BÁC HẢI TẶC & THÙNG RƯỢU GỖ (PIRATE CANNON & BARRELS)
+// =========================================================================
+export function PirateCannonAndRumBarrelsSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 110 * scale, height: 80 * scale }}>
+      <svg viewBox="0 0 110 80" width={110 * scale} height={80 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="55" cy="76" rx="48" ry="4" fill="rgba(0,0,0,0.22)" />
+
+        {/* Wooden Oak Barrels on Left */}
+        <g>
+          {/* Barrel 1 (Upright) */}
+          <path d="M 12 45 C 8 56 8 66 12 75 L 28 75 C 32 66 32 56 28 45 Z" fill="#92400e" stroke="#451a03" strokeWidth="1.5" />
+          <line x1="10" y1="52" x2="30" y2="52" stroke="#334155" strokeWidth="1.8" />
+          <line x1="10" y1="68" x2="30" y2="68" stroke="#334155" strokeWidth="1.8" />
+          {/* Spigot */}
+          <rect x="28" y="58" width="5" height="3" fill="#ca8a04" />
+
+          {/* Barrel 2 (Tilted) */}
+          <ellipse cx="36" cy="62" rx="9" ry="12" fill="#78350f" stroke="#451a03" strokeWidth="1.5" transform="rotate(35 36 62)" />
+        </g>
+
+        {/* Naval Cannon on Wheeled Carriage */}
+        <g>
+          {/* Wheeled Wooden Carriage */}
+          <polygon points="54,68 88,68 84,52 60,52" fill="#78350f" stroke="#451a03" strokeWidth="1.5" />
+          {/* Front & Back Wheels */}
+          <circle cx="58" cy="70" r="7" fill="#451a03" stroke="#ca8a04" strokeWidth="1.5" />
+          <circle cx="58" cy="70" r="2.5" fill="#ca8a04" />
+          <circle cx="84" cy="70" r="7" fill="#451a03" stroke="#ca8a04" strokeWidth="1.5" />
+          <circle cx="84" cy="70" r="2.5" fill="#ca8a04" />
+
+          {/* Heavy Bronze Cannon Barrel */}
+          <polygon points="50,56 102,40 100,32 46,50" fill="#ca8a04" stroke="#78350f" strokeWidth="2" />
+          <rect x="99" y="32" width="6" height="10" fill="#ca8a04" stroke="#78350f" strokeWidth="1.5" rx="1" transform="rotate(-18 102 36)" />
+          {/* Cannon Muzzle Hollow */}
+          <ellipse cx="104" cy="35" rx="2" ry="4.5" fill="#0f172a" />
+          {/* Fuse and Cascabel knob */}
+          <circle cx="46" cy="53" r="3.5" fill="#ca8a04" stroke="#78350f" strokeWidth="1" />
+          <path d="M 52 48 Q 50 42 54 38" stroke="#ffffff" strokeWidth="1.2" fill="none" />
+          <circle cx="54" cy="38" r="1.5" fill="#ef4444" className="animate-ping" />
+        </g>
+
+        {/* Stack of 3 Cannonballs */}
+        <g>
+          <circle cx="44" cy="72" r="5" fill="#334155" stroke="#0f172a" strokeWidth="1" />
+          <circle cx="51" cy="72" r="5" fill="#334155" stroke="#0f172a" strokeWidth="1" />
+          <circle cx="47.5" cy="63.5" r="5" fill="#334155" stroke="#0f172a" strokeWidth="1" />
+          <circle cx="46" cy="62" r="1.2" fill="#94a3b8" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 30. VƯỜN CAM NAMI TRÊN BOONG TÀU (NAMI'S TANGERINE TREES)
+// =========================================================================
+export function NamiTangerineTreesSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 110 * scale, height: 110 * scale }}>
+      <svg viewBox="0 0 110 110" width={110 * scale} height={110 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="55" cy="104" rx="46" ry="5" fill="rgba(0,0,0,0.22)" />
+
+        {/* Wooden Planting Tubs (Chậu gỗ trồng cam) */}
+        <polygon points="20,82 48,82 45,102 23,102" fill="#92400e" stroke="#451a03" strokeWidth="1.5" />
+        <line x1="21" y1="92" x2="46" y2="92" stroke="#334155" strokeWidth="1.5" />
+
+        <polygon points="62,82 90,82 87,102 65,102" fill="#92400e" stroke="#451a03" strokeWidth="1.5" />
+        <line x1="63" y1="92" x2="88" y2="92" stroke="#334155" strokeWidth="1.5" />
+
+        {/* Left Tree Trunk & Canopy */}
+        <path d="M 34 82 L 34 50" stroke="#78350f" strokeWidth="4" strokeLinecap="round" />
+        <ellipse cx="34" cy="42" rx="22" ry="20" fill="#15803d" />
+        <ellipse cx="32" cy="38" rx="18" ry="16" fill="#22c55e" />
+
+        {/* Right Tree Trunk & Canopy */}
+        <path d="M 76 82 L 76 46" stroke="#78350f" strokeWidth="4" strokeLinecap="round" />
+        <ellipse cx="76" cy="38" rx="24" ry="22" fill="#15803d" />
+        <ellipse cx="74" cy="34" rx="20" ry="18" fill="#22c55e" />
+
+        {/* Ripe Orange Tangerines (Quả cam Mikan mọng nước) */}
+        {[
+          { x: 24, y: 44 },
+          { x: 38, y: 32 },
+          { x: 42, y: 48 },
+          { x: 28, y: 30 },
+          { x: 66, y: 38 },
+          { x: 82, y: 28 },
+          { x: 86, y: 44 },
+          { x: 74, y: 24 },
+          { x: 72, y: 48 },
+        ].map((tan, i) => (
+          <g key={i} className="animate-pulse" style={{ animationDuration: `${2 + (i % 3) * 0.5}s` }}>
+            <circle cx={tan.x} cy={tan.y} r="4" fill="#f97316" stroke="#ea580c" strokeWidth="0.8" />
+            <circle cx={tan.x - 1} cy={tan.y - 1} r="1" fill="#fed7aa" />
+            <path d={`M ${tan.x} ${tan.y - 4} Q ${tan.x + 2} ${tan.y - 6} ${tan.x + 3} ${tan.y - 5}`} stroke="#16a34a" strokeWidth="0.8" fill="none" />
+          </g>
+        ))}
+
+        {/* Gardening Watering Can in center */}
+        <rect x="48" y="90" width="12" height="10" fill="#38bdf8" stroke="#0284c7" strokeWidth="1" rx="1" />
+        <line x1="58" y1="92" x2="63" y2="86" stroke="#38bdf8" strokeWidth="1.5" />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 31. KONOHA - VÁCH ĐÁ TƯỢNG HOKAGE (HOKAGE ROCK MONUMENT)
+// =========================================================================
+export function HokageRockMonumentSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 220 * scale, height: 110 * scale }}>
+      <svg viewBox="0 0 220 110" width={220 * scale} height={110 * scale} className="overflow-visible">
+        {/* Mountain Rock Base / Vách đá hoa cương */}
+        <polygon points="5,108 15,28 60,18 110,14 165,18 208,28 215,108" fill="#78716c" stroke="#44403c" strokeWidth="2.5" />
+        <polygon points="12,108 22,34 62,24 110,20 160,24 200,34 208,108" fill="#a8a29e" />
+
+        {/* Bonsai Pine Trees on top edge */}
+        {[28, 75, 125, 178].map((px, i) => (
+          <g key={i}>
+            <line x1={px} y1={22} x2={px} y2={12} stroke="#451a03" strokeWidth="2" />
+            <ellipse cx={px} cy={10} rx="9" ry="5" fill="#15803d" />
+            <ellipse cx={px - 2} cy={8} rx="6" ry="4" fill="#22c55e" />
+          </g>
+        ))}
+
+        {/* Hokage 1: Hashirama Senju (Leftmost) */}
+        <g transform="translate(28, 38)">
+          <rect x="0" y="0" width="30" height="42" fill="#d6d3d1" stroke="#57534e" strokeWidth="1.5" rx="3" />
+          {/* Long hair strands */}
+          <path d="M -2 0 L -2 38" stroke="#57534e" strokeWidth="3" />
+          <path d="M 32 0 L 32 38" stroke="#57534e" strokeWidth="3" />
+          {/* Headband with Leaf crest */}
+          <rect x="2" y="4" width="26" height="7" fill="#57534e" rx="1" />
+          <circle cx="15" cy="7.5" r="1.8" fill="#facc15" />
+          {/* Eyes & stern mouth */}
+          <line x1="6" y1="18" x2="11" y2="18" stroke="#44403c" strokeWidth="1.5" />
+          <line x1="19" y1="18" x2="24" y2="18" stroke="#44403c" strokeWidth="1.5" />
+          <line x1="12" y1="30" x2="18" y2="30" stroke="#44403c" strokeWidth="1.5" />
+        </g>
+
+        {/* Hokage 2: Tobirama Senju */}
+        <g transform="translate(68, 36)">
+          <rect x="0" y="0" width="30" height="42" fill="#d6d3d1" stroke="#57534e" strokeWidth="1.5" rx="3" />
+          {/* Spiky white hair frame */}
+          <polygon points="-4,-4 5,2 15,-6 25,2 34,-4 30,12 0,12" fill="#f5f5f4" stroke="#57534e" strokeWidth="1" />
+          {/* Forehead & Chin iron protector (Happuri) */}
+          <path d="M 0 10 L 30 10 L 26 28 L 4 28 Z" fill="none" stroke="#57534e" strokeWidth="1.5" />
+          {/* 3 red facial markings */}
+          <line x1="4" y1="22" x2="10" y2="22" stroke="#dc2626" strokeWidth="1.5" />
+          <line x1="20" y1="22" x2="26" y2="22" stroke="#dc2626" strokeWidth="1.5" />
+          <line x1="15" y1="32" x2="15" y2="38" stroke="#dc2626" strokeWidth="1.5" />
+          <line x1="7" y1="18" x2="12" y2="18" stroke="#44403c" strokeWidth="1.5" />
+          <line x1="18" y1="18" x2="23" y2="18" stroke="#44403c" strokeWidth="1.5" />
+        </g>
+
+        {/* Hokage 3: Hiruzen Sarutobi */}
+        <g transform="translate(112, 38)">
+          <rect x="0" y="0" width="30" height="42" fill="#d6d3d1" stroke="#57534e" strokeWidth="1.5" rx="3" />
+          {/* Hokage Hat (Nón Hokage đỏ & trắng) */}
+          <polygon points="15,-8 -2,8 32,8" fill="#dc2626" stroke="#991b1b" strokeWidth="1.2" />
+          <circle cx="15" cy="2" r="3" fill="#ffffff" />
+          <text x="13.5" y="4" fontSize="4" fill="#dc2626" fontWeight="bold">火</text>
+          {/* Eyes with wrinkle marks & goat beard */}
+          <line x1="6" y1="18" x2="11" y2="19" stroke="#44403c" strokeWidth="1.2" />
+          <line x1="19" y1="19" x2="24" y2="18" stroke="#44403c" strokeWidth="1.2" />
+          <polygon points="13,38 17,38 15,44" fill="#a8a29e" stroke="#57534e" strokeWidth="1" />
+        </g>
+
+        {/* Hokage 4: Minato Namikaze (Tia chớp vàng) */}
+        <g transform="translate(156, 36)">
+          <rect x="0" y="0" width="30" height="42" fill="#d6d3d1" stroke="#57534e" strokeWidth="1.5" rx="3" />
+          {/* Spiky hair with famous long sideburn spikes */}
+          <polygon points="-6,2 -2,-8 8,-2 15,-10 22,-2 32,-8 36,2 30,12 0,12" fill="#d6d3d1" stroke="#57534e" strokeWidth="1.2" />
+          <polygon points="-5,14 -7,28 -1,22" fill="#d6d3d1" stroke="#57534e" strokeWidth="1" />
+          <polygon points="35,14 37,28 31,22" fill="#d6d3d1" stroke="#57534e" strokeWidth="1" />
+          {/* Leaf Headband */}
+          <rect x="2" y="4" width="26" height="7" fill="#57534e" rx="1" />
+          <circle cx="15" cy="7.5" r="1.8" fill="#facc15" />
+          {/* Sharp eyes & smile */}
+          <line x1="6" y1="18" x2="11" y2="17" stroke="#44403c" strokeWidth="1.5" />
+          <line x1="19" y1="17" x2="24" y2="18" stroke="#44403c" strokeWidth="1.5" />
+          <path d="M 11 28 Q 15 32 19 28" stroke="#44403c" strokeWidth="1.2" fill="none" />
+        </g>
+
+        {/* Carved Kanji "木ノ葉" (Konoha) on Mountain Foot */}
+        <rect x="85" y="92" width="50" height="14" fill="#44403c" rx="2" opacity="0.8" />
+        <text x="92" y="102" fontSize="9" fill="#fef08a" fontWeight="black" fontFamily="sans-serif">
+          🍃 KONOHA
+        </text>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 32. QUÁN MÌ ICHIRAKU RAMEN (ICHIRAKU RAMEN SHOP)
+// =========================================================================
+export function IchirakuRamenShopSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 150 * scale, height: 125 * scale }}>
+      <svg viewBox="0 0 150 125" width={150 * scale} height={125 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="75" cy="120" rx="68" ry="5" fill="rgba(0,0,0,0.25)" />
+
+        {/* Wooden Stall Frame (Quầy gỗ thông) */}
+        <rect x="18" y="48" width="114" height="68" fill="#92400e" stroke="#451a03" strokeWidth="2" rx="1" />
+        {/* Counter Top bar */}
+        <rect x="12" y="80" width="126" height="8" fill="#d97706" stroke="#78350f" strokeWidth="1.5" rx="1" />
+
+        {/* Traditional Dark Japanese Tile Roof (Mái ngói đen) */}
+        <polygon points="8,48 75,18 142,48" fill="#334155" stroke="#0f172a" strokeWidth="2.5" />
+        <polygon points="14,46 75,22 136,46" fill="#475569" />
+        <line x1="28" y1="40" x2="122" y2="40" stroke="#1e293b" strokeWidth="1.5" />
+        <line x1="48" y1="30" x2="102" y2="30" stroke="#1e293b" strokeWidth="1.5" />
+        {/* Roof ridge beam */}
+        <line x1="6" y1="48" x2="144" y2="48" stroke="#0f172a" strokeWidth="3" strokeLinecap="round" />
+
+        {/* 2 Hanging Glowing Red Paper Lanterns (Chochin) */}
+        {[
+          { x: 18, y: 55 },
+          { x: 132, y: 55 },
+        ].map((lt, i) => (
+          <g key={i} className="animate-pulse" style={{ animationDuration: `${1.8 + i * 0.4}s` }}>
+            <line x1={lt.x} y1={48} x2={lt.x} y2={lt.y} stroke="#0f172a" strokeWidth="1.5" />
+            <ellipse cx={lt.x} cy={lt.y + 10} rx="9" ry="12" fill="#dc2626" stroke="#991b1b" strokeWidth="1.5" />
+            <circle cx={lt.x} cy={lt.y + 10} r="4" fill="#fef08a" opacity="0.8" />
+            <text x={lt.x - 3.5} y={lt.y + 13} fontSize="7" fill="#ffffff" fontWeight="black">
+              拉
+            </text>
+            <rect x={lt.x - 4} y={lt.y + 22} width="8" height="2" fill="#ca8a04" />
+          </g>
+        ))}
+
+        {/* 3 Red Noren Curtains with Kanji "ラーメン" */}
+        {['ラ', 'ー', 'メ'].map((char, i) => (
+          <g key={i}>
+            <rect x={32 + i * 30} y="48" width="26" height="28" fill="#dc2626" stroke="#991b1b" strokeWidth="1.2" rx="1" />
+            <text x={40 + i * 30} y="68" fontSize="13" fill="#ffffff" fontWeight="black" fontFamily="sans-serif">
+              {char}
+            </text>
+          </g>
+        ))}
+
+        {/* Steaming Giant Ramen Bowl on Counter */}
+        <g>
+          {/* Rising Swirling Steam */}
+          <path d="M 68 70 Q 64 60 70 52 Q 76 44 72 36" stroke="#ffffff" strokeWidth="2" fill="none" opacity="0.8" className="animate-bounce" style={{ animationDuration: '2s' }} />
+          <path d="M 78 72 Q 84 62 78 54 Q 74 46 80 38" stroke="#ffffff" strokeWidth="2" fill="none" opacity="0.8" className="animate-bounce" style={{ animationDuration: '2.4s' }} />
+
+          {/* Porcelain Bowl */}
+          <path d="M 60 80 Q 75 96 90 80 Z" fill="#ffffff" stroke="#dc2626" strokeWidth="2" />
+          <path d="M 62 80 Q 75 92 88 80" fill="#f59e0b" />
+          {/* Swirl Narutomaki Fish Cake */}
+          <circle cx="70" cy="80" r="3.5" fill="#ffffff" stroke="#f43f5e" strokeWidth="1" />
+          <path d="M 69 80 Q 70 78 71 80" stroke="#f43f5e" strokeWidth="0.8" fill="none" />
+          {/* Boiled Egg Half */}
+          <ellipse cx="80" cy="80" rx="3.5" ry="3" fill="#ffffff" />
+          <circle cx="80" cy="80" r="2" fill="#f97316" />
+          {/* Chopsticks */}
+          <line x1="64" y1="74" x2="88" y2="76" stroke="#ca8a04" strokeWidth="1.5" strokeLinecap="round" />
+        </g>
+
+        {/* Stools for Ninjas */}
+        <ellipse cx="38" cy="112" rx="10" ry="4" fill="#ca8a04" stroke="#78350f" strokeWidth="1" />
+        <line x1="38" y1="112" x2="38" y2="120" stroke="#78350f" strokeWidth="2" />
+        <ellipse cx="112" cy="112" rx="10" ry="4" fill="#ca8a04" stroke="#78350f" strokeWidth="1" />
+        <line x1="112" y1="112" x2="112" y2="120" stroke="#78350f" strokeWidth="2" />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 33. HỒ SUỐI NƯỚC NÓNG ONSEN (ONSEN NATURAL HOT SPRING)
+// =========================================================================
+export function OnsenHotSpringSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 180 * scale, height: 105 * scale }}>
+      <svg viewBox="0 0 180 105" width={180 * scale} height={105 * scale} className="overflow-visible">
+        {/* Bamboo privacy partition in background */}
+        <g stroke="#65a30d" strokeWidth="2">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <line key={i} x1={30 + i * 10} y1={10} x2={30 + i * 10} y2={45} />
+          ))}
+          <line x1="28" y1="20" x2="142" y2="20" stroke="#4d7c0f" strokeWidth="2.5" />
+          <line x1="28" y1="36" x2="142" y2="36" stroke="#4d7c0f" strokeWidth="2.5" />
+        </g>
+
+        {/* Volcanic Rock Border (Bờ đá cuội núi lửa) */}
+        <path
+          d="M 15 50 C 20 22 75 16 115 18 C 155 20 170 35 168 65 C 165 92 125 102 85 100 C 35 98 12 78 15 50 Z"
+          fill="#57534e"
+          stroke="#292524"
+          strokeWidth="3"
+        />
+
+        {/* Thermal Hot Spring Teal Water Basin */}
+        <path
+          d="M 22 50 C 26 28 75 22 112 24 C 150 26 162 38 160 65 C 158 88 122 96 85 94 C 40 92 20 74 22 50 Z"
+          fill="url(#onsenWaterGrad)"
+          stroke="#2dd4bf"
+          strokeWidth="1.5"
+        />
+        <defs>
+          <linearGradient id="onsenWaterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#5eead4" />
+            <stop offset="50%" stopColor="#14b8a6" />
+            <stop offset="100%" stopColor="#0f766e" />
+          </linearGradient>
+        </defs>
+
+        {/* Gentle Thermal Ripples & Rising Steam */}
+        <ellipse cx="85" cy="58" rx="45" ry="16" fill="none" stroke="#ccfbf1" strokeWidth="1" opacity="0.6" />
+        <ellipse cx="105" cy="72" rx="30" ry="10" fill="none" stroke="#ccfbf1" strokeWidth="1" opacity="0.6" />
+
+        {/* Rising Steam Puffs */}
+        <circle cx="70" cy="35" r="5" fill="#ffffff" opacity="0.6" className="animate-bounce" style={{ animationDuration: '2s' }} />
+        <circle cx="95" cy="30" r="6" fill="#ffffff" opacity="0.65" className="animate-bounce" style={{ animationDuration: '2.5s' }} />
+        <circle cx="120" cy="38" r="4.5" fill="#ffffff" opacity="0.6" className="animate-bounce" style={{ animationDuration: '2.2s' }} />
+
+        {/* Floating Wooden Cedar Bucket (Oke) with white folded towel */}
+        <g>
+          <circle cx="56" cy="62" r="7.5" fill="#ca8a04" stroke="#78350f" strokeWidth="1.2" />
+          <circle cx="56" cy="62" r="5.5" fill="#eab308" />
+          {/* Folded white onsen towel */}
+          <rect x="52" y="59" width="8" height="5" fill="#ffffff" rx="1" />
+        </g>
+
+        {/* Floating Sakura Blossom Petals */}
+        <ellipse cx="95" cy="55" rx="3" ry="2" fill="#fda4af" transform="rotate(25 95 55)" />
+        <ellipse cx="125" cy="68" rx="3" ry="2" fill="#fda4af" transform="rotate(-35 125 68)" />
+        <ellipse cx="78" cy="76" rx="2.5" ry="1.8" fill="#fda4af" />
+
+        {/* Bamboo Water Spout trickling into pool */}
+        <g>
+          <line x1="140" y1="36" x2="128" y2="46" stroke="#4d7c0f" strokeWidth="4" strokeLinecap="round" />
+          {/* Trickling stream */}
+          <line x1="126" y1="46" x2="124" y2="58" stroke="#5eead4" strokeWidth="1.5" strokeDasharray="2 1" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 34. CỔNG TORII ĐỎ VÀ RỪNG TRÚC (BAMBOO TORII SHRINE)
+// =========================================================================
+export function BambooToriiShrineSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 110 * scale, height: 130 * scale }}>
+      <svg viewBox="0 0 110 130" width={110 * scale} height={130 * scale} className="overflow-visible">
+        {/* Lush Bamboo Stalks on flanks */}
+        <g stroke="#15803d" strokeWidth="3">
+          <line x1="12" y1="125" x2="12" y2="15" />
+          <line x1="22" y1="125" x2="22" y2="25" />
+          <line x1="88" y1="125" x2="88" y2="25" />
+          <line x1="98" y1="125" x2="98" y2="15" />
+        </g>
+        {/* Bamboo node segments */}
+        {[30, 50, 70, 90, 110].map((by) => (
+          <g key={by} stroke="#4ade80" strokeWidth="1">
+            <line x1="10" y1={by} x2="14" y2={by} />
+            <line x1="20" y1={by} x2="24" y2={by} />
+            <line x1="86" y1={by} x2="90" y2={by} />
+            <line x1="96" y1={by} x2="100" y2={by} />
+          </g>
+        ))}
+
+        {/* Vermilion Red Torii Gate (Cổng Torii Thần Đạo) */}
+        {/* Two Main Upright Pillars */}
+        <rect x="32" y="32" width="6" height="92" fill="#dc2626" stroke="#7f1d1d" strokeWidth="1.5" rx="1" />
+        <rect x="72" y="32" width="6" height="92" fill="#dc2626" stroke="#7f1d1d" strokeWidth="1.5" rx="1" />
+        {/* Black Stone Bases */}
+        <rect x="30" y="118" width="10" height="7" fill="#1e293b" rx="1" />
+        <rect x="70" y="118" width="10" height="7" fill="#1e293b" rx="1" />
+
+        {/* Lower Horizontal Tie Beam (Nuki) */}
+        <rect x="26" y="52" width="58" height="5" fill="#dc2626" stroke="#7f1d1d" strokeWidth="1" />
+
+        {/* Upper Curved Crossbar (Kasagi) with Black Roof Cap */}
+        <path d="M 18 32 Q 55 24 92 32 L 95 24 Q 55 16 15 24 Z" fill="#0f172a" stroke="#0f172a" strokeWidth="1" />
+        <rect x="22" y="30" width="66" height="6" fill="#dc2626" stroke="#7f1d1d" strokeWidth="1" />
+
+        {/* Shimenawa Sacred Straw Rope & Zigzag Shide */}
+        <path d="M 34 52 Q 55 58 76 52" stroke="#ca8a04" strokeWidth="2.5" fill="none" />
+        {/* White folded paper shide */}
+        <polygon points="46,55 50,55 48,64 45,62" fill="#ffffff" stroke="#94a3b8" strokeWidth="0.5" />
+        <polygon points="54,56 58,56 56,66 53,64" fill="#ffffff" stroke="#94a3b8" strokeWidth="0.5" />
+        <polygon points="62,55 66,55 64,64 61,62" fill="#ffffff" stroke="#94a3b8" strokeWidth="0.5" />
+
+        {/* Stone Pagoda Lantern in front */}
+        <g transform="translate(18, 92)">
+          <rect x="0" y="12" width="10" height="20" fill="#64748b" stroke="#334155" strokeWidth="1" />
+          <polygon points="-2,12 5,6 12,12" fill="#475569" stroke="#1e293b" strokeWidth="1" />
+          <circle cx="5" cy="18" r="2" fill="#fef08a" className="animate-pulse" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 35. BIA TẬP PHÓNG KUNAI & SHURIKEN (NINJA TRAINING POST)
+// =========================================================================
+export function NinjaTrainingPostSVG({ className = '', scale = 1, isHit = false }: { className?: string; scale?: number; isHit?: boolean }) {
+  return (
+    <div
+      className={`relative inline-block select-none transition-transform duration-150 ${isHit ? 'animate-wiggle scale-110' : ''} ${className}`}
+      style={{ width: 85 * scale, height: 100 * scale }}
+    >
+      <svg viewBox="0 0 85 100" width={85 * scale} height={100 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="42" cy="94" rx="28" ry="4" fill="rgba(0,0,0,0.22)" />
+
+        {/* Heavy Wooden Training Post Log */}
+        <rect x="32" y="18" width="22" height="76" fill="#78350f" stroke="#451a03" strokeWidth="2" rx="2" />
+        {/* Tree ring top cap */}
+        <ellipse cx="43" cy="18" rx="11" ry="4" fill="#a16207" stroke="#451a03" strokeWidth="1.5" />
+
+        {/* Target Bullseye Rings in center */}
+        <g>
+          <circle cx="43" cy="48" r="9" fill="#ffffff" stroke="#dc2626" strokeWidth="2.5" />
+          <circle cx="43" cy="48" r="4.5" fill="#dc2626" />
+          <circle cx="43" cy="48" r="1.5" fill="#ffffff" />
+        </g>
+
+        {/* Embedded Steel Kunai Knife */}
+        <g transform="translate(30, 42) rotate(-25)">
+          <polygon points="0,0 16,-4 16,4" fill="#94a3b8" stroke="#334155" strokeWidth="1" />
+          <line x1="16" y1="0" x2="28" y2="0" stroke="#ca8a04" strokeWidth="2" />
+          {/* Ring handle */}
+          <circle cx="31" cy="0" r="3" fill="none" stroke="#334155" strokeWidth="1.5" />
+        </g>
+
+        {/* Embedded 4-pointed Shuriken Ninja Star */}
+        <g transform="translate(48, 62) rotate(15)">
+          <polygon points="0,-7 3,-2 8,0 3,2 0,7 -3,2 -8,0 -3,-2" fill="#64748b" stroke="#0f172a" strokeWidth="0.8" />
+          <circle cx="0" cy="0" r="1.5" fill="#0f172a" />
+        </g>
+
+        {/* Unrolled Ninja Ninjutsu Scroll leaning on ground */}
+        <g>
+          <path d="M 12 88 Q 30 82 45 88" stroke="#ca8a04" strokeWidth="4" strokeLinecap="round" />
+          <rect x="14" y="80" width="28" height="12" fill="#fef3c7" stroke="#ca8a04" strokeWidth="1" rx="1" />
+          <line x1="18" y1="84" x2="38" y2="84" stroke="#0f172a" strokeWidth="0.8" />
+          <line x1="18" y1="88" x2="32" y2="88" stroke="#0f172a" strokeWidth="0.8" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 36. HOGWARTS - NẾN LƠ LỬNG VÀ CỬA SỔ GOTHIC (FLOATING CANDLES GOTHIC HALL)
+// =========================================================================
+export function FloatingCandlesGothicHallSVG({ className = '', scale = 1, isLit = false }: { className?: string; scale?: number; isLit?: boolean }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 190 * scale, height: 130 * scale }}>
+      <svg viewBox="0 0 190 130" width={190 * scale} height={130 * scale} className="overflow-visible">
+        {/* Gothic Stone Arches in Background */}
+        <path d="M 20 120 L 20 50 Q 55 10 95 10 Q 135 10 170 50 L 170 120" stroke="#334155" strokeWidth="4" fill="none" opacity="0.4" />
+        <path d="M 40 120 L 40 60 Q 95 24 150 60 L 150 120" stroke="#475569" strokeWidth="2.5" fill="none" opacity="0.35" />
+
+        {/* Stained Glass Rose Window Silhouette */}
+        <circle cx="95" cy="40" r="18" fill="none" stroke="#64748b" strokeWidth="1.5" opacity="0.5" />
+        <line x1="95" y1="22" x2="95" y2="58" stroke="#64748b" strokeWidth="1" opacity="0.4" />
+        <line x1="77" y1="40" x2="113" y2="40" stroke="#64748b" strokeWidth="1" opacity="0.4" />
+
+        {/* 10 Enchanted Floating Beeswax Taper Candles at Varied Altitudes */}
+        {[
+          { x: 30, y: 45, h: 22 },
+          { x: 55, y: 25, h: 26 },
+          { x: 80, y: 55, h: 20 },
+          { x: 95, y: 20, h: 28 },
+          { x: 115, y: 48, h: 24 },
+          { x: 140, y: 28, h: 22 },
+          { x: 165, y: 52, h: 25 },
+          { x: 42, y: 75, h: 18 },
+          { x: 128, y: 78, h: 20 },
+          { x: 85, y: 85, h: 18 },
+        ].map((c, i) => (
+          <g key={i} className="animate-pulse" style={{ animationDuration: `${1.5 + (i % 4) * 0.4}s` }}>
+            {/* Dripping Wax Cylinder */}
+            <rect x={c.x - 2.5} y={c.y} width="5" height={c.h} fill="#fef3c7" stroke="#ca8a04" strokeWidth="0.8" rx="1" />
+            {/* Wax drip tear */}
+            <circle cx={c.x + 2.5} cy={c.y + 6} r="1" fill="#fef3c7" />
+
+            {/* Glowing Golden Flame & Halo */}
+            <ellipse cx={c.x} cy={c.y - 7} rx={isLit ? "9" : "6"} ry={isLit ? "11" : "8"} fill="rgba(250, 204, 21, 0.35)" />
+            {/* Flame drop */}
+            <path
+              d={`M ${c.x - 2} ${c.y - 1} Q ${c.x} ${c.y - 10} ${c.x} ${c.y - 12} Q ${c.x} ${c.y - 10} ${c.x + 2} ${c.y - 1} Z`}
+              fill="#facc15"
+            />
+            <circle cx={c.x} cy={c.y - 4} r="1.5" fill="#ffffff" />
+          </g>
+        ))}
+
+        {/* Ambient Floating Magic Sparkles */}
+        <circle cx="65" cy="38" r="1.8" fill="#ffffff" className="animate-ping" style={{ animationDuration: '2.5s' }} />
+        <circle cx="108" cy="32" r="2" fill="#fef08a" className="animate-ping" style={{ animationDuration: '1.8s' }} />
+        <circle cx="150" cy="42" r="1.5" fill="#bae6fd" className="animate-ping" style={{ animationDuration: '2.2s' }} />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 37. LÒ SƯỞI ĐÁ ĐẠI SẢNH ĐƯỜNG & LỬA FLOO (HOGWARTS GREAT FIREPLACE)
+// =========================================================================
+export function HogwartsGreatFireplaceSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 130 * scale }}>
+      <svg viewBox="0 0 140 130" width={140 * scale} height={130 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="70" cy="126" rx="60" ry="5" fill="rgba(0,0,0,0.3)" />
+
+        {/* Carved Medieval Stone Chimney Breast */}
+        <rect x="25" y="10" width="90" height="50" fill="#64748b" stroke="#334155" strokeWidth="2.5" />
+        {/* Ashlar Stone lines */}
+        <line x1="25" y1="26" x2="115" y2="26" stroke="#475569" strokeWidth="1.5" />
+        <line x1="25" y1="42" x2="115" y2="42" stroke="#475569" strokeWidth="1.5" />
+        <line x1="60" y1="26" x2="60" y2="42" stroke="#475569" strokeWidth="1.2" />
+        <line x1="85" y1="10" x2="85" y2="26" stroke="#475569" strokeWidth="1.2" />
+
+        {/* Carved Hogwarts Heraldic Crest Shield on Mantel */}
+        <polygon points="62,20 78,20 75,34 70,38 65,34" fill="#b45309" stroke="#78350f" strokeWidth="1.2" />
+        <text x="67" y="30" fontSize="7" fill="#facc15" fontWeight="bold">H</text>
+
+        {/* Massive Fireplace Hearth Opening */}
+        <path d="M 20 60 L 120 60 L 120 124 L 20 124 Z" fill="#1e293b" stroke="#0f172a" strokeWidth="3" />
+        <path d="M 32 124 L 32 80 Q 70 65 108 80 L 108 124 Z" fill="#0f172a" />
+
+        {/* Burning Firewood Logs & Andirons */}
+        <g>
+          {/* Brass andirons */}
+          <line x1="42" y1="120" x2="42" y2="100" stroke="#ca8a04" strokeWidth="3" />
+          <circle cx="42" cy="98" r="3" fill="#facc15" />
+          <line x1="98" y1="120" x2="98" y2="100" stroke="#ca8a04" strokeWidth="3" />
+          <circle cx="98" cy="98" r="3" fill="#facc15" />
+          {/* Wood logs */}
+          <line x1="38" y1="118" x2="102" y2="118" stroke="#78350f" strokeWidth="7" strokeLinecap="round" />
+          <line x1="44" y1="112" x2="96" y2="112" stroke="#5c2605" strokeWidth="6" strokeLinecap="round" />
+        </g>
+
+        {/* Roaring Emerald-Green Floo Powder Flames (Ngọn lửa Floo xanh ngọc bập bùng) */}
+        <g className="animate-pulse" style={{ animationDuration: '1.2s' }}>
+          {/* Back green flame glow */}
+          <ellipse cx="70" cy="96" rx="28" ry="20" fill="rgba(16, 185, 129, 0.45)" />
+
+          {/* Tongue of green flame */}
+          <path d="M 52 112 Q 62 82 70 72 Q 78 82 88 112 Q 70 106 52 112 Z" fill="#10b981" />
+          {/* Inner core flame */}
+          <path d="M 58 112 Q 66 88 70 80 Q 74 88 82 112 Q 70 108 58 112 Z" fill="#6ee7b7" />
+          <path d="M 64 112 Q 70 94 70 88 Q 72 94 76 112 Z" fill="#ffffff" />
+
+          {/* Flying Floo Spark particles */}
+          <circle cx="62" cy="74" r="1.5" fill="#34d399" className="animate-ping" />
+          <circle cx="76" cy="68" r="1.8" fill="#a7f3d0" className="animate-ping" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 38. BÀN TIỆC PHÉP THUẬT HOGWARTS (MAGIC FEAST TABLE)
+// =========================================================================
+export function MagicFeastTableSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 180 * scale, height: 95 * scale }}>
+      <svg viewBox="0 0 180 95" width={180 * scale} height={95 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="90" cy="90" rx="82" ry="5" fill="rgba(0,0,0,0.25)" />
+
+        {/* Long Oak Banquet Table Top */}
+        <polygon points="10,50 170,50 162,64 18,64" fill="#92400e" stroke="#451a03" strokeWidth="2" />
+        {/* Table Legs with Braces */}
+        <rect x="25" y="64" width="8" height="26" fill="#78350f" stroke="#451a03" strokeWidth="1.5" />
+        <rect x="147" y="64" width="8" height="26" fill="#78350f" stroke="#451a03" strokeWidth="1.5" />
+        <line x1="29" y1="80" x2="151" y2="80" stroke="#78350f" strokeWidth="3" />
+
+        {/* White Linen Table Runner */}
+        <polygon points="35,50 145,50 141,64 39,64" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1" />
+
+        {/* Golden Roast Turkey Platter in Center */}
+        <g>
+          <ellipse cx="90" cy="48" rx="18" ry="7" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1" />
+          {/* Roasted golden turkey */}
+          <ellipse cx="90" cy="45" rx="13" ry="8" fill="#ca8a04" stroke="#854d0e" strokeWidth="1" />
+          <line x1="102" y1="42" x2="108" y2="38" stroke="#fde047" strokeWidth="2.5" strokeLinecap="round" />
+        </g>
+
+        {/* Tall Golden Goblets (Ly rượu vàng ròng) */}
+        {[30, 60, 120, 150].map((gx, i) => (
+          <g key={i}>
+            <polygon points={`${gx - 3},48 ${gx + 3},48 ${gx + 2},38 ${gx - 2},38`} fill="#facc15" stroke="#ca8a04" strokeWidth="0.8" />
+            <line x1={gx} y1={48} x2={gx} y2={51} stroke="#ca8a04" strokeWidth="1.5" />
+            <ellipse cx={gx} cy={51} rx="3" ry="1.2" fill="#ca8a04" />
+          </g>
+        ))}
+
+        {/* Frothy Butterbeer Glass Tankard */}
+        <g transform="translate(136, 38)">
+          <rect x="0" y="0" width="8" height="12" fill="#f59e0b" stroke="#b45309" strokeWidth="0.8" rx="1" />
+          <ellipse cx="4" cy="0" rx="4.5" ry="2" fill="#ffffff" />
+          <path d="M 8 3 Q 11 6 8 9" stroke="#b45309" strokeWidth="1.2" fill="none" />
+        </g>
+
+        {/* Hovering Silver Dessert Plate with Cupcake */}
+        <g className="animate-bounce" style={{ animationDuration: '2.5s' }}>
+          <ellipse cx="48" cy="34" rx="10" ry="3.5" fill="#e2e8f0" stroke="#cbd5e1" strokeWidth="0.8" />
+          <circle cx="48" cy="30" r="4.5" fill="#f43f5e" />
+          <circle cx="48" cy="27" r="1.5" fill="#ffffff" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 39. NÓN PHÂN LOẠI TRÊN GHẾ GỖ (SORTING HAT PEDESTAL)
+// =========================================================================
+export function SortingHatPedestalSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 85 * scale, height: 105 * scale }}>
+      <svg viewBox="0 0 85 105" width={85 * scale} height={105 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="42" cy="98" rx="28" ry="4" fill="rgba(0,0,0,0.22)" />
+
+        {/* Antique 3-Legged Wooden Stool */}
+        <ellipse cx="42" cy="72" rx="18" ry="6" fill="#92400e" stroke="#451a03" strokeWidth="1.5" />
+        <line x1="30" y1="74" x2="24" y2="98" stroke="#78350f" strokeWidth="2.5" />
+        <line x1="42" y1="76" x2="42" y2="98" stroke="#78350f" strokeWidth="2.5" />
+        <line x1="54" y1="74" x2="60" y2="98" stroke="#78350f" strokeWidth="2.5" />
+
+        {/* Stack of Antique Leatherbound Spellbooks beneath */}
+        <rect x="22" y="85" width="20" height="5" fill="#831843" stroke="#500724" strokeWidth="0.8" rx="1" />
+        <rect x="20" y="90" width="24" height="6" fill="#1e3a8a" stroke="#172554" strokeWidth="0.8" rx="1" />
+
+        {/* The Sentient Sorting Hat (Chiếc Nón Phân Loại) */}
+        <g>
+          {/* Wide floppy crumpled brim */}
+          <ellipse cx="42" cy="68" rx="26" ry="7" fill="#78350f" stroke="#451a03" strokeWidth="2" />
+          <path d="M 18 68 Q 42 75 66 68" stroke="#5c2605" strokeWidth="1.5" fill="none" />
+
+          {/* Pointed Wizard Cone with Characteristic Facial Folds */}
+          <path
+            d="M 26 67 Q 28 42 36 28 Q 44 14 54 18 Q 50 32 58 67 Z"
+            fill="#854d0e"
+            stroke="#451a03"
+            strokeWidth="2"
+          />
+
+          {/* Deep fold creases forming Eyes */}
+          <path d="M 33 46 Q 38 42 42 45" stroke="#451a03" strokeWidth="2" fill="none" />
+          <path d="M 45 45 Q 49 42 54 46" stroke="#451a03" strokeWidth="2" fill="none" />
+
+          {/* Wide Talking Mouth Crease */}
+          <path d="M 32 58 Q 43 65 54 57" stroke="#451a03" strokeWidth="2.5" fill="none" />
+
+          {/* Bent Tip with Stitch Patches */}
+          <polygon points="36,36 42,36 42,41 36,41" fill="#78350f" stroke="#451a03" strokeWidth="0.8" />
+          <line x1="37" y1="38" x2="41" y2="38" stroke="#ca8a04" strokeWidth="0.8" />
+        </g>
+
+        {/* Magical Sparkles swirling around hat */}
+        <circle cx="56" cy="24" r="2" fill="#fef08a" className="animate-ping" style={{ animationDuration: '2s' }} />
+        <circle cx="28" cy="40" r="1.5" fill="#ffffff" className="animate-ping" style={{ animationDuration: '1.6s' }} />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 40. CỜ HIỆU 4 NHÀ HOGWARTS (HOGWARTS HOUSE BANNERS)
+// =========================================================================
+export function HogwartsHouseBannersSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 160 * scale, height: 110 * scale }}>
+      <svg viewBox="0 0 160 110" width={160 * scale} height={110 * scale} className="overflow-visible">
+        {/* Horizontal Brass Hanging Rod */}
+        <line x1="6" y1="15" x2="154" y2="15" stroke="#ca8a04" strokeWidth="3" strokeLinecap="round" />
+        <circle cx="6" cy="15" r="3" fill="#facc15" />
+        <circle cx="154" cy="15" r="3" fill="#facc15" />
+
+        {/* Banner 1: Gryffindor (Scarlet & Gold) */}
+        <g transform="translate(14, 16)">
+          <polygon points="0,0 26,0 26,65 13,80 0,65" fill="#991b1b" stroke="#7f1d1d" strokeWidth="1.2" />
+          <polygon points="3,0 23,0 23,62 13,74 3,62" fill="#b91c1c" />
+          {/* Golden Lion Emblem */}
+          <circle cx="13" cy="30" r="6" fill="#facc15" />
+          <text x="10" y="33" fontSize="8" fill="#78350f" fontWeight="bold">🦁</text>
+          <text x="5" y="55" fontSize="5" fill="#facc15" fontWeight="bold">GRYFF</text>
+        </g>
+
+        {/* Banner 2: Ravenclaw (Navy & Bronze) */}
+        <g transform="translate(48, 16)">
+          <polygon points="0,0 26,0 26,65 13,80 0,65" fill="#1e3a8a" stroke="#172554" strokeWidth="1.2" />
+          <polygon points="3,0 23,0 23,62 13,74 3,62" fill="#1d4ed8" />
+          {/* Bronze Eagle Emblem */}
+          <circle cx="13" cy="30" r="6" fill="#ca8a04" />
+          <text x="10" y="33" fontSize="8" fill="#1e3a8a" fontWeight="bold">🦅</text>
+          <text x="6" y="55" fontSize="5" fill="#93c5fd" fontWeight="bold">RAVEN</text>
+        </g>
+
+        {/* Banner 3: Hufflepuff (Yellow & Black) */}
+        <g transform="translate(82, 16)">
+          <polygon points="0,0 26,0 26,65 13,80 0,65" fill="#ca8a04" stroke="#854d0e" strokeWidth="1.2" />
+          <polygon points="3,0 23,0 23,62 13,74 3,62" fill="#eab308" />
+          {/* Black Badger Emblem */}
+          <circle cx="13" cy="30" r="6" fill="#0f172a" />
+          <text x="10" y="33" fontSize="8" fill="#facc15" fontWeight="bold">🦡</text>
+          <text x="6" y="55" fontSize="5" fill="#0f172a" fontWeight="bold">HUFFL</text>
+        </g>
+
+        {/* Banner 4: Slytherin (Emerald & Silver) */}
+        <g transform="translate(116, 16)">
+          <polygon points="0,0 26,0 26,65 13,80 0,65" fill="#065f46" stroke="#064e3b" strokeWidth="1.2" />
+          <polygon points="3,0 23,0 23,62 13,74 3,62" fill="#047857" />
+          {/* Silver Serpent Emblem */}
+          <circle cx="13" cy="30" r="6" fill="#e2e8f0" />
+          <text x="10" y="33" fontSize="8" fill="#064e3b" fontWeight="bold">🐍</text>
+          <text x="6" y="55" fontSize="5" fill="#e2e8f0" fontWeight="bold">SLYTH</text>
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 41. DORAEMON - 3 ỐNG BÊ TÔNG TAM GIÁC (DORAEMON CONCRETE PIPES)
+// =========================================================================
+export function DoraemonConcretePipesSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 175 * scale, height: 115 * scale }}>
+      <svg viewBox="0 0 175 115" width={175 * scale} height={115 * scale} className="overflow-visible">
+        {/* Ground Dirt & Grass Shadow */}
+        <ellipse cx="88" cy="110" rx="80" ry="6" fill="rgba(0,0,0,0.25)" />
+
+        {/* Tuft of green dandelions and wild weeds at base */}
+        {[14, 45, 88, 130, 160].map((gx, i) => (
+          <g key={i}>
+            <path d={`M ${gx} 110 Q ${gx - 4} 102 ${gx - 6} 96`} stroke="#16a34a" strokeWidth="1.5" fill="none" />
+            <path d={`M ${gx} 110 Q ${gx + 4} 100 ${gx + 6} 95`} stroke="#15803d" strokeWidth="1.5" fill="none" />
+            <circle cx={gx - 6} cy={95} r="2" fill="#facc15" />
+          </g>
+        ))}
+
+        {/* ================= LOWER LEFT PIPE ================= */}
+        <g>
+          {/* Cylinder Body Outer Surface */}
+          <polygon points="26,62 100,62 95,108 21,108" fill="#94a3b8" stroke="#475569" strokeWidth="2" />
+          {/* Pipe Ring Bevel Edge */}
+          <ellipse cx="26" cy="85" rx="14" ry="23" fill="#cbd5e1" stroke="#475569" strokeWidth="2" />
+          {/* Deep Hollow Interior Hole */}
+          <ellipse cx="26" cy="85" rx="10" ry="18" fill="#1e293b" stroke="#0f172a" strokeWidth="2" />
+          <ellipse cx="28" cy="85" rx="7" ry="14" fill="#0f172a" />
+        </g>
+
+        {/* ================= LOWER RIGHT PIPE ================= */}
+        <g>
+          {/* Cylinder Body Outer Surface */}
+          <polygon points="90,62 164,62 159,108 85,108" fill="#94a3b8" stroke="#475569" strokeWidth="2" />
+          {/* Pipe Ring Bevel Edge */}
+          <ellipse cx="90" cy="85" rx="14" ry="23" fill="#cbd5e1" stroke="#475569" strokeWidth="2" />
+          {/* Deep Hollow Interior Hole */}
+          <ellipse cx="90" cy="85" rx="10" ry="18" fill="#1e293b" stroke="#0f172a" strokeWidth="2" />
+          <ellipse cx="92" cy="85" rx="7" ry="14" fill="#0f172a" />
+        </g>
+
+        {/* ================= TOP PIPE (RESTING ON TOP OF LOWER TWO) ================= */}
+        <g>
+          {/* Cylinder Body Outer Surface */}
+          <polygon points="58,18 132,18 127,64 53,64" fill="#94a3b8" stroke="#334155" strokeWidth="2" />
+          {/* Flat Sitting/Standing Area for Pet on Top */}
+          <rect x="68" y="16" width="55" height="4" fill="#cbd5e1" rx="1" />
+          {/* Concrete Texture details */}
+          <line x1="65" y1="36" x2="128" y2="36" stroke="#64748b" strokeWidth="1" strokeDasharray="4 2" />
+
+          {/* Pipe Ring Bevel Edge */}
+          <ellipse cx="58" cy="41" rx="14" ry="23" fill="#e2e8f0" stroke="#334155" strokeWidth="2" />
+          {/* Deep Hollow Interior Hole */}
+          <ellipse cx="58" cy="41" rx="10" ry="18" fill="#1e293b" stroke="#0f172a" strokeWidth="2" />
+          <ellipse cx="60" cy="41" rx="7" ry="14" fill="#0f172a" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 42. CỬA THẦN KỲ DORAEMON (ANYWHERE DOOR DOKODEMO)
+// =========================================================================
+export function AnywhereDoorPropSVG({ className = '', scale = 1, isOpen = false }: { className?: string; scale?: number; isOpen?: boolean }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 95 * scale, height: 135 * scale }}>
+      <svg viewBox="0 0 95 135" width={95 * scale} height={135 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="48" cy="130" rx="42" ry="5" fill="rgba(0,0,0,0.24)" />
+
+        {/* Outer Architectural White Casement Frame */}
+        <rect x="15" y="15" width="65" height="114" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="3" rx="3" />
+
+        {/* Swirling Cosmic Portal Glow Inside Frame */}
+        <rect x="20" y="20" width="55" height="104" fill="url(#portalRainbowGrad)" rx="2" />
+        <defs>
+          <linearGradient id="portalRainbowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f472b6" />
+            <stop offset="35%" stopColor="#c084fc" />
+            <stop offset="70%" stopColor="#60a5fa" />
+            <stop offset="100%" stopColor="#34d399" />
+          </linearGradient>
+        </defs>
+
+        {/* Iconic Pink Door Slab (Cánh Cửa Màu Hồng) */}
+        {isOpen ? (
+          <polygon
+            points="20,20 60,30 60,118 20,124"
+            fill="#ec4899"
+            stroke="#be185d"
+            strokeWidth="2.5"
+          />
+        ) : (
+          <g>
+            <rect x="20" y="20" width="55" height="104" fill="#ec4899" stroke="#be185d" strokeWidth="2.5" rx="2" />
+            {/* Door Panel Insets */}
+            <rect x="26" y="28" width="43" height="40" fill="#f472b6" stroke="#db2777" strokeWidth="1.5" rx="2" />
+            <rect x="26" y="76" width="43" height="40" fill="#f472b6" stroke="#db2777" strokeWidth="1.5" rx="2" />
+
+            {/* Shiny Brass Doorknob & Keyhole */}
+            <circle cx="68" cy="74" r="4.5" fill="#facc15" stroke="#ca8a04" strokeWidth="1.5" />
+            <circle cx="67" cy="72.5" r="1.5" fill="#ffffff" />
+            <circle cx="68" cy="80" r="1" fill="#451a03" />
+          </g>
+        )}
+
+        {/* Floating Magic Sparks around door */}
+        <circle cx="28" cy="22" r="2" fill="#fef08a" className="animate-ping" style={{ animationDuration: '2s' }} />
+        <circle cx="78" cy="45" r="1.5" fill="#ffffff" className="animate-ping" style={{ animationDuration: '1.5s' }} />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 43. HÀNG RÀO GỖ TUỔI THƠ & BÃI CỎ (NOSTALGIC WOODEN FENCE FIELD)
+// =========================================================================
+export function NostalgicWoodenFenceFieldSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 180 * scale, height: 75 * scale }}>
+      <svg viewBox="0 0 180 75" width={180 * scale} height={75 * scale} className="overflow-visible">
+        {/* Horizontal Supporting Rails */}
+        <line x1="5" y1="30" x2="175" y2="30" stroke="#78350f" strokeWidth="3" />
+        <line x1="5" y1="52" x2="175" y2="52" stroke="#78350f" strokeWidth="3" />
+
+        {/* Varied Wooden Pickets (Hàng rào nan gỗ) */}
+        {Array.from({ length: 14 }).map((_, i) => {
+          const h = 42 + ((i * 7) % 10);
+          const px = 10 + i * 12;
+          return (
+            <g key={i}>
+              <polygon
+                points={`${px},18 ${px + 4},12 ${px + 8},18 ${px + 8},${18 + h} ${px},${18 + h}`}
+                fill="#ca8a04"
+                stroke="#854d0e"
+                strokeWidth="1.2"
+              />
+              <circle cx={px + 4} cy={30} r="0.8" fill="#451a03" />
+              <circle cx={px + 4} cy={52} r="0.8" fill="#451a03" />
+            </g>
+          );
+        })}
+
+        {/* Grassy Mounds with blooming dandelion flowers */}
+        <path d="M 0 68 Q 45 58 90 68 Q 135 60 180 68 L 180 75 L 0 75 Z" fill="#22c55e" />
+        {[20, 60, 105, 150].map((dx, i) => (
+          <circle key={i} cx={dx} cy={64} r="3" fill="#facc15" stroke="#eab308" strokeWidth="0.8" />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 44. GẬY BÓNG CHÀY & BÁNH RÁN DORAYAKI (NOBITA BASEBALL GEAR & DORAYAKI)
+// =========================================================================
+export function NobitaBaseballGearSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 100 * scale, height: 75 * scale }}>
+      <svg viewBox="0 0 100 75" width={100 * scale} height={75 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="50" cy="70" rx="42" ry="4" fill="rgba(0,0,0,0.22)" />
+
+        {/* Brown Leather Baseball Mitt Glove */}
+        <path
+          d="M 15 50 C 12 36 28 32 38 42 C 45 48 42 66 32 68 C 22 70 15 62 15 50 Z"
+          fill="#92400e"
+          stroke="#451a03"
+          strokeWidth="1.5"
+        />
+        {/* White Baseball with Red Seams inside Mitt */}
+        <circle cx="28" cy="52" r="7" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1" />
+        <path d="M 24 48 Q 28 52 24 56" stroke="#ef4444" strokeWidth="0.8" fill="none" />
+        <path d="M 32 48 Q 28 52 32 56" stroke="#ef4444" strokeWidth="0.8" fill="none" />
+
+        {/* Wooden Baseball Bat Leaning */}
+        <polygon points="32,68 84,20 88,24 38,72" fill="#ca8a04" stroke="#854d0e" strokeWidth="1.5" />
+        {/* Bat handle tape */}
+        <polygon points="32,68 44,57 46,59 34,70" fill="#f8fafc" stroke="#94a3b8" strokeWidth="0.8" />
+
+        {/* Plate of Golden Dorayaki Pancakes (Đĩa bánh rán Doraemon) */}
+        <g>
+          <ellipse cx="74" cy="62" rx="14" ry="5" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1" />
+          {/* Dorayaki pancake 1 */}
+          <ellipse cx="74" cy="58" rx="10" ry="4" fill="#a16207" stroke="#713f12" strokeWidth="1" />
+          <ellipse cx="74" cy="56" rx="9" ry="3" fill="#ca8a04" />
+          {/* Red bean paste filling edge */}
+          <ellipse cx="74" cy="57" rx="8" ry="1.5" fill="#451a03" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 45. CỘT ĐIỆN VÀ GƯƠNG CẦU LỒI KHU PHỐ (JAPANESE NEIGHBORHOOD POLE)
+// =========================================================================
+export function JapaneseNeighborhoodPoleSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 80 * scale, height: 160 * scale }}>
+      <svg viewBox="0 0 80 160" width={80 * scale} height={160 * scale} className="overflow-visible">
+        {/* Concrete Utility Pole Base to Top */}
+        <rect x="36" y="10" width="8" height="148" fill="#94a3b8" stroke="#475569" strokeWidth="1.5" />
+
+        {/* Overhead Crossarms (Xà ngang đỡ dây điện) */}
+        <rect x="15" y="24" width="50" height="4" fill="#334155" rx="1" />
+        <rect x="22" y="44" width="36" height="3" fill="#334155" rx="1" />
+
+        {/* Porcelain Insulators & Electric Cables */}
+        {[20, 32, 48, 60].map((ix, i) => (
+          <g key={i}>
+            <circle cx={ix} cy={22} r="2" fill="#ffffff" stroke="#64748b" strokeWidth="0.8" />
+            <line x1={ix} y1={22} x2={ix > 40 ? 80 : 0} y2={ix > 40 ? 15 : 15} stroke="#0f172a" strokeWidth="1" />
+          </g>
+        ))}
+
+        {/* Cylindrical Transformer Drum */}
+        <rect x="42" y="32" width="16" height="24" fill="#475569" stroke="#1e293b" strokeWidth="1.2" rx="2" />
+        <line x1="42" y1="40" x2="58" y2="40" stroke="#334155" strokeWidth="1" />
+
+        {/* Orange Convex Safety Mirror (Gương cầu lồi ngã ba) */}
+        <g>
+          <line x1="36" y1="85" x2="20" y2="80" stroke="#475569" strokeWidth="2" />
+          <circle cx="18" cy="80" r="9" fill="#f97316" stroke="#c2410c" strokeWidth="1.5" />
+          <circle cx="18" cy="80" r="7" fill="#e0f2fe" stroke="#94a3b8" strokeWidth="0.8" />
+          <circle cx="16" cy="78" r="2.5" fill="#ffffff" opacity="0.8" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 46. CÂY KẸO MÚT KHỔNG LỒ KIRBY (GIANT LOLLIPOP TREE)
+// =========================================================================
+export function GiantLollipopTreeSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 170 * scale }}>
+      <svg viewBox="0 0 140 170" width={140 * scale} height={170 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="70" cy="164" rx="55" ry="6" fill="rgba(244, 114, 182, 0.25)" />
+
+        {/* Candy Cane Striped Pretzel Trunk */}
+        <path d="M 64 164 L 66 85 L 74 85 L 76 164 Z" fill="#fef3c7" stroke="#ca8a04" strokeWidth="2" />
+        {/* Red swirl candy stripes on trunk */}
+        {[100, 120, 140].map((sy, i) => (
+          <polygon key={i} points={`65,${sy} 75,${sy - 8} 75,${sy - 4} 65,${sy + 4}`} fill="#f43f5e" />
+        ))}
+
+        {/* Giant Swirling Rainbow Lollipop Canopy (Tán kẹo mút xoắn ngũ sắc khổng lồ) */}
+        <circle cx="70" cy="52" r="45" fill="#ec4899" stroke="#be185d" strokeWidth="2.5" />
+        <circle cx="70" cy="52" r="37" fill="#06b6d4" stroke="#0891b2" strokeWidth="2" />
+        <circle cx="70" cy="52" r="29" fill="#facc15" stroke="#ca8a04" strokeWidth="2" />
+        <circle cx="70" cy="52" r="21" fill="#a855f7" stroke="#7e22ce" strokeWidth="2" />
+        <circle cx="70" cy="52" r="13" fill="#ffffff" />
+        <circle cx="70" cy="52" r="6" fill="#f43f5e" />
+
+        {/* Sugar Glaze Highlights */}
+        <ellipse cx="52" cy="32" rx="10" ry="6" fill="#ffffff" opacity="0.6" transform="rotate(-30 52 32)" />
+
+        {/* Colorful Gumdrop Shrubs at base */}
+        <g>
+          <ellipse cx="44" cy="160" rx="12" ry="8" fill="#10b981" />
+          <ellipse cx="94" cy="160" rx="12" ry="8" fill="#a855f7" />
+          <ellipse cx="70" cy="162" rx="10" ry="6" fill="#f43f5e" />
+        </g>
+
+        {/* Twinkling Star Candies falling */}
+        <circle cx="34" cy="65" r="2.5" fill="#ffffff" className="animate-ping" style={{ animationDuration: '1.8s' }} />
+        <circle cx="106" cy="40" r="2" fill="#fef08a" className="animate-ping" style={{ animationDuration: '2.2s' }} />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 47. NGÔI SAO VÀNG WARP STAR (KIRBY WARP STAR LAUNCHPAD)
+// =========================================================================
+export function KirbyWarpStarSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 120 * scale, height: 110 * scale }}>
+      <svg viewBox="0 0 120 110" width={120 * scale} height={110 * scale} className="overflow-visible">
+        {/* Soft Fluffy Cloud Base */}
+        <g>
+          <ellipse cx="60" cy="92" rx="48" ry="12" fill="#ffffff" opacity="0.9" />
+          <ellipse cx="38" cy="88" rx="22" ry="10" fill="#fce7f3" />
+          <ellipse cx="82" cy="88" rx="22" ry="10" fill="#fce7f3" />
+        </g>
+
+        {/* Golden Warp Star (Floating & Glowing) */}
+        <g className="animate-bounce" style={{ animationDuration: '2.2s' }}>
+          {/* Outer Star Glow */}
+          <polygon
+            points="60,14 73,42 104,42 79,62 88,92 60,74 32,92 41,62 16,42 47,42"
+            fill="rgba(250, 204, 21, 0.4)"
+          />
+
+          {/* Golden 5-Pointed Warp Star */}
+          <polygon
+            points="60,20 71,44 98,44 76,62 84,88 60,72 36,88 44,62 22,44 49,44"
+            fill="#facc15"
+            stroke="#ca8a04"
+            strokeWidth="2.5"
+          />
+
+          {/* Star Face / Gloss Highlight */}
+          <ellipse cx="50" cy="46" rx="5" ry="8" fill="#fef08a" opacity="0.8" />
+          {/* Trailing sparkle dust */}
+          <circle cx="82" cy="74" r="2" fill="#ffffff" className="animate-ping" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 48. SUỐI THÁC CẦU VỒNG PASTEL (PASTEL RAINBOW RIVER WATERFALL)
+// =========================================================================
+export function RainbowRiverWaterfallSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 180 * scale, height: 105 * scale }}>
+      <svg viewBox="0 0 180 105" width={180 * scale} height={105 * scale} className="overflow-visible">
+        {/* Soft Pastel Flowing Water Ribbon bands */}
+        <g opacity="0.95">
+          <path d="M 10 20 Q 55 45 90 25 Q 135 15 170 35 L 170 55 Q 135 35 90 45 Q 55 65 10 40 Z" fill="#f472b6" />
+          <path d="M 10 32 Q 55 57 90 37 Q 135 27 170 47 L 170 67 Q 135 47 90 57 Q 55 77 10 52 Z" fill="#facc15" />
+          <path d="M 10 44 Q 55 69 90 49 Q 135 39 170 59 L 170 79 Q 135 59 90 69 Q 55 89 10 64 Z" fill="#34d399" />
+          <path d="M 10 56 Q 55 81 90 61 Q 135 51 170 71 L 170 91 Q 135 71 90 81 Q 55 101 10 76 Z" fill="#38bdf8" />
+          <path d="M 10 68 Q 55 93 90 73 Q 135 63 170 83 L 170 103 Q 135 83 90 93 Q 55 113 10 88 Z" fill="#c084fc" />
+        </g>
+
+        {/* Marshmallow Cloud Foam Crests */}
+        {[
+          { x: 35, y: 55 },
+          { x: 90, y: 65 },
+          { x: 145, y: 75 },
+        ].map((c, i) => (
+          <ellipse key={i} cx={c.x} cy={c.y} rx="16" ry="6" fill="#ffffff" opacity="0.9" />
+        ))}
+
+        {/* Floating Star Water Lilies */}
+        <polygon points="55,68 58,62 64,65 60,70 62,76 56,72 50,75 52,69 48,64 54,64" fill="#fef08a" stroke="#ca8a04" strokeWidth="0.8" />
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 49. CÂY TÁO THẦN WHISPY WOODS (WHISPY WOODS APPLE TREE)
+// =========================================================================
+export function WhispyWoodsAppleTreeSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 150 * scale, height: 160 * scale }}>
+      <svg viewBox="0 0 150 160" width={150 * scale} height={160 * scale} className="overflow-visible">
+        {/* Shadow */}
+        <ellipse cx="75" cy="154" rx="60" ry="6" fill="rgba(0,0,0,0.22)" />
+
+        {/* Wide Tree Trunk */}
+        <path d="M 52 154 C 48 110, 52 80, 50 65 L 100 65 C 98 80, 102 110, 98 154 Z" fill="#a16207" stroke="#713f12" strokeWidth="2.5" />
+
+        {/* Whispy Woods Kind Cartoon Wooden Face */}
+        <ellipse cx="64" cy="98" rx="4" ry="6" fill="#451a03" />
+        <circle cx="63" cy="96" r="1.5" fill="#ffffff" />
+        <ellipse cx="86" cy="98" rx="4" ry="6" fill="#451a03" />
+        <circle cx="85" cy="96" r="1.5" fill="#ffffff" />
+
+        {/* Long Cartoon Wooden Nose */}
+        <polygon points="72,98 78,98 75,114" fill="#854d0e" stroke="#451a03" strokeWidth="1.2" />
+
+        {/* Gentle Smiling Mouth */}
+        <path d="M 68 122 Q 75 128 82 122" stroke="#451a03" strokeWidth="2" fill="none" strokeLinecap="round" />
+
+        {/* Fluffy Green Cloud-Shaped Canopy */}
+        <circle cx="45" cy="50" r="28" fill="#15803d" />
+        <circle cx="105" cy="50" r="28" fill="#15803d" />
+        <circle cx="75" cy="35" r="35" fill="#22c55e" />
+
+        {/* Shimmering Star Apples (Quả táo ngôi sao) */}
+        {[
+          { x: 44, y: 46 },
+          { x: 65, y: 30 },
+          { x: 88, y: 36 },
+          { x: 104, y: 52 },
+        ].map((ap, i) => (
+          <g key={i} className="animate-bounce" style={{ animationDuration: `${2 + i * 0.4}s` }}>
+            <circle cx={ap.x} cy={ap.y} r="5" fill="#ef4444" stroke="#991b1b" strokeWidth="1" />
+            <circle cx={ap.x - 1.5} cy={ap.y - 1.5} r="1.5" fill="#ffffff" />
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+// =========================================================================
+// 50. TRƯỢNG SAO STAR ROD & BỆ PHÉP THUẬT (STAR ROD MONUMENT)
+// =========================================================================
+export function StarRodMonumentSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+  return (
+    <div className={`relative inline-block select-none ${className}`} style={{ width: 100 * scale, height: 130 * scale }}>
+      <svg viewBox="0 0 100 130" width={100 * scale} height={130 * scale} className="overflow-visible">
+        {/* Cloud Pedestal Base */}
+        <ellipse cx="50" cy="120" rx="42" ry="10" fill="#ffffff" stroke="#e0e7ff" strokeWidth="1.5" />
+        <ellipse cx="50" cy="112" rx="28" ry="8" fill="#ffffff" />
+
+        {/* Star Rod Wand Shaft (Thân gậy sọc kẹo) */}
+        <g>
+          <rect x="47" y="38" width="6" height="74" fill="#ffffff" stroke="#ca8a04" strokeWidth="1.5" rx="1" />
+          {/* Red spiral ribbons */}
+          <polygon points="47,48 53,44 53,48 47,52" fill="#ef4444" />
+          <polygon points="47,62 53,58 53,62 47,66" fill="#ef4444" />
+          <polygon points="47,76 53,72 53,76 47,80" fill="#ef4444" />
+          <polygon points="47,90 53,86 53,90 47,94" fill="#ef4444" />
+        </g>
+
+        {/* Spinning Golden Star Tip */}
+        <g className="origin-[50px_32px] animate-pulse">
+          <polygon
+            points="50,14 55,26 68,26 57,35 61,48 50,40 39,48 43,35 32,26 45,26"
+            fill="#facc15"
+            stroke="#ca8a04"
+            strokeWidth="2"
+          />
+          <circle cx="50" cy="32" r="3" fill="#ffffff" />
+        </g>
+
+        {/* Orbiting Stardust Sparkles */}
+        <circle cx="68" cy="20" r="2" fill="#ffffff" className="animate-ping" style={{ animationDuration: '1.5s' }} />
+        <circle cx="32" cy="36" r="1.5" fill="#fef08a" className="animate-ping" style={{ animationDuration: '2.1s' }} />
+      </svg>
+    </div>
+  );
+}

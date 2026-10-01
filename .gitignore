@@ -39,3 +39,26 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# database and logs
+/data/
+/logs/
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+
+# scratch & temp debug files
+scratch/
+*.py
+*.html
+/click.png
+/forgot.png
+/home.png
+/login.png
+/meo.jpg
+/meo.png
+/mouse.png
+/om.png
+/register.png
+

@@ -1,0 +1,10 @@
+{
+  "mcp": {
+    "servers": {
+      "tinyfish": {
+        "type": "remote",
+        "url": "https://agent.tinyfish.ai/mcp"
+      }
+    }
+  }
+}
