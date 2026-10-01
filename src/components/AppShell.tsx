@@ -26,6 +26,7 @@ import {
   Heart,
   CloudUpload,
   Check,
+  ArrowRight,
 } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
 import { AuthUser, getCurrentUser, setStoredUser, clearStoredUser, removeSavedAccount } from '@/lib/auth';
@@ -207,16 +208,84 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('account-disabled', onAccountDisabled);
   }, []);
 
-  // Show AuthModal if user lands on a protected page
-  useEffect(() => {
-    if (isAuthChecked && !currentUser && pathname !== '/encyclopedia' && !isAdminRoute) {
-      setShowAuth(true);
-    }
-  }, [isAuthChecked, currentUser, pathname, isAdminRoute]);
-
-  // ISOLATION: On Admin Route (/duahau), render purely the admin console without any learning layout
+  // 1. ISOLATION: On Admin Route (/duahau), render purely the admin console without any learning layout
   if (isAdminRoute) {
     return <>{children}</>;
+  }
+
+  // 2. PREVENT FLASH OF CONTENT: During initial hydration / session check, show minimal smooth splash
+  if (!isAuthChecked) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#0f172a] flex flex-col items-center justify-center p-4 select-none">
+        <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center text-3xl animate-bounce mb-3 shadow-xl shadow-emerald-500/10">
+          🐱
+        </div>
+        <div className="text-white font-black text-lg tracking-wide flex items-center gap-2">
+          <span>Meowlish</span>
+          <span className="text-emerald-400 text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 font-bold">English</span>
+        </div>
+        <div className="text-xs text-slate-400 mt-2 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <span>Đang tải không gian học tập...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. UNAUTHENTICATED USERS: On protected routes, display the Welcome & Login interface directly
+  // This completely eliminates flashing the dashboard before jumping to login!
+  if (!currentUser && pathname !== '/encyclopedia') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden select-none">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl text-center relative z-10 space-y-5">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center text-4xl shadow-xl">
+            🐱
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-white tracking-tight">Meowlish English</h1>
+            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              Nền tảng luyện giao tiếp tiếng Anh phản xạ, luyện thi TOEIC/IELTS & tiếng Anh chuyên ngành IT cùng linh vật thú cưng.
+            </p>
+          </div>
+
+          <div className="space-y-2.5 pt-2">
+            <button
+              onClick={() => {
+                sound.playClick();
+                setShowAuth(true);
+              }}
+              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-black text-sm shadow-lg shadow-emerald-500/25 transition cursor-pointer active:scale-98 flex items-center justify-center gap-2"
+            >
+              <span>Đăng Nhập / Đăng Ký Học Ngay</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+            <Link
+              href="/encyclopedia"
+              onClick={() => sound.playClick()}
+              className="w-full py-3 px-4 rounded-2xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs border border-slate-700/80 transition cursor-pointer flex items-center justify-center gap-2"
+            >
+              <Library className="w-4 h-4 text-emerald-400" />
+              <span>Tra cứu Bách Khoa Từ Điển (Miễn Phí)</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* AuthModal is open directly */}
+        <AuthModal
+          isOpen={true}
+          onClose={() => {}}
+          currentUser={currentUser}
+          onAuthChange={(user) => {
+            setCurrentUser(user);
+            setShowAuth(false);
+          }}
+        />
+      </div>
+    );
   }
 
   const navGroups: NavGroup[] = [
