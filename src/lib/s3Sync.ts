@@ -4,7 +4,9 @@ import path from 'path';
 import logger from './logger';
 
 const DB_FILENAME = 'english_learning.db';
-const dbPath = path.join(process.cwd(), 'data', DB_FILENAME);
+const isVercel = process.env.VERCEL === '1';
+const dbDir = isVercel ? path.join('/tmp', 'data') : path.join(process.cwd(), 'data');
+const dbPath = path.join(dbDir, DB_FILENAME);
 
 export interface SyncStatus {
   configured: boolean;

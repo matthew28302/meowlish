@@ -3,7 +3,8 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 
-const dbDir = path.join(process.cwd(), 'data');
+const isVercel = process.env.VERCEL === '1';
+const dbDir = isVercel ? path.join('/tmp', 'data') : path.join(process.cwd(), 'data');
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }

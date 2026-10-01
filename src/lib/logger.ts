@@ -20,10 +20,18 @@ const fileFormat = combine(
   json()
 );
 
-const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  format: fileFormat,
-  transports: [
+const isVercel = process.env.VERCEL === '1';
+
+const transports: winston.transport[] = [];
+
+if (isVercel) {
+  transports.push(
+    new winston.transports.Console({
+      format: consoleFormat,
+    })
+  );
+} else {
+  transports.push(
     // Write all logs with level `error` and below to `error-%DATE%.log`
     new winston.transports.DailyRotateFile({
       dirname: 'logs',
@@ -38,17 +46,22 @@ const logger = winston.createLogger({
       filename: 'combined-%DATE%.log',
       datePattern: 'YYYY-MM-DD',
       maxFiles: '14d',
-    }),
-  ],
-});
-
-// If we're not in production, log to the console as well
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(
-    new winston.transports.Console({
-      format: consoleFormat,
     })
   );
+
+  if (process.env.NODE_ENV !== 'production') {
+    transports.push(
+      new winston.transports.Console({
+        format: consoleFormat,
+      })
+    );
+  }
 }
+
+const logger = winston.createLogger({
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  format: isVercel ? consoleFormat : fileFormat,
+  transports,
+});
 
 export default logger;
