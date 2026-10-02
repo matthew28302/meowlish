@@ -368,6 +368,40 @@ class SoundFX {
       // Ignore audio failure gracefully
     }
   }
+
+  // Tiếng bóng nảy / pop vui nhộn
+  playPop() {
+    try {
+      const ctx = this.getContext();
+      if (!ctx || ctx.state === 'closed') return;
+      const now = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400, now);
+      osc.frequency.exponentialRampToValueAtTime(800, now + 0.06);
+
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.onended = () => {
+        try {
+          osc.disconnect();
+          gain.disconnect();
+        } catch {}
+      };
+
+      osc.start(now);
+      osc.stop(now + 0.07);
+    } catch {
+      // Ignore audio failure gracefully
+    }
+  }
 }
 
 export const sound = new SoundFX();

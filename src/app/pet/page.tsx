@@ -32,9 +32,9 @@ import { PETS_CATALOG, SHOP_ITEMS, ShopItem, getPetTitle, checkCinnamorollAccess
 import confetti from '@/lib/confetti';
 import PixelFarmGame, { PixelFarmHandle } from '@/components/pet/PixelFarmGame';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
-import PixelFarmPlots from '@/components/pet/PixelFarmPlots';
-import PetPvPArena from '@/components/pet/PetPvPArena';
-import PetRacingDerby from '@/components/pet/PetRacingDerby';
+import PixelFarmCanvas from '@/components/pet/PixelFarmCanvas';
+import PetPvPArenaCanvas from '@/components/pet/PetPvPArenaCanvas';
+import PetRacingCanvas from '@/components/pet/PetRacingCanvas';
 import PetSocialHub from '@/components/pet/PetSocialHub';
 import { SocialFriend } from '@/lib/petSocialData';
 
@@ -49,13 +49,14 @@ export default function PetPage() {
   const [gardenDecor, setGardenDecor] = useState<any[]>([]);
   const [userCoins, setUserCoins] = useState<number>(0);
 
-  // Game Hub Tab Mode: sanctuary | farm | pvp | racing | social
-  const [gameTab, setGameTab] = useState<'sanctuary' | 'farm' | 'pvp' | 'racing' | 'social'>('sanctuary');
+  // Game Hub Tab Mode: farm | pvp | racing | sanctuary | social
+  const [gameTab, setGameTab] = useState<'farm' | 'pvp' | 'racing' | 'sanctuary' | 'social'>('farm');
   const [farmPlots, setFarmPlots] = useState<any[]>([]);
   const [livestock, setLivestock] = useState<any[]>([]);
   const [friendIds, setFriendIds] = useState<string[]>([]);
   const [coupleData, setCoupleData] = useState<any>(null);
   const [recentChat, setRecentChat] = useState<any[]>([]);
+  const [realOpponents, setRealOpponents] = useState<any[]>([]);
 
   // Modals
   const [showShopModal, setShowShopModal] = useState<boolean>(false);
@@ -200,6 +201,7 @@ export default function PetPage() {
         if (data.friendIds) setFriendIds(data.friendIds);
         if (data.couple) setCoupleData(data.couple);
         if (data.recentChat) setRecentChat(data.recentChat);
+        if (data.realOpponents) setRealOpponents(data.realOpponents);
         if (data.user?.coins !== undefined) {
           setUserCoins(data.user.coins);
           const stored = getStoredUser();
@@ -810,21 +812,6 @@ export default function PetPage() {
           <button
             onClick={() => {
               sound.playClick();
-              setGameTab('sanctuary');
-            }}
-            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
-              gameTab === 'sanctuary'
-                ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
-                : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
-            }`}
-          >
-            <span>🏡</span>
-            <span>Khu Vườn</span>
-          </button>
-
-          <button
-            onClick={() => {
-              sound.playClick();
               setGameTab('farm');
             }}
             className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
@@ -834,7 +821,7 @@ export default function PetPage() {
             }`}
           >
             <span>🌾</span>
-            <span>Nông Trại (8 Luống)</span>
+            <span>Nông Trại 2D (Gà & Bò)</span>
           </button>
 
           <button
@@ -849,7 +836,7 @@ export default function PetPage() {
             }`}
           >
             <span>⚔️</span>
-            <span>Đấu Trường PvP</span>
+            <span>Đấu Trường PvP (Tiếng Anh)</span>
           </button>
 
           <button
@@ -864,7 +851,22 @@ export default function PetPage() {
             }`}
           >
             <span>🏁</span>
-            <span>Đua Thú Cưng</span>
+            <span>Đua Thú Cưng (Tiếng Anh)</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sound.playClick();
+              setGameTab('sanctuary');
+            }}
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+              gameTab === 'sanctuary'
+                ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
+                : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
+            }`}
+          >
+            <span>🏡</span>
+            <span>Sân Vườn Linh Vật</span>
           </button>
 
           <button
@@ -1064,10 +1066,10 @@ export default function PetPage() {
         </div>
       )}
 
-      {/* ================= TAB 2: FARM & LIVESTOCK ================= */}
+      {/* ================= TAB 2: FARM & LIVESTOCK (CANVAS 2D) ================= */}
       {gameTab === 'farm' && (
         <div className="w-full flex-1 min-h-0">
-          <PixelFarmPlots
+          <PixelFarmCanvas
             userCoins={userCoins}
             onUpdateCoins={(c) => {
               setUserCoins(c);
@@ -1087,16 +1089,16 @@ export default function PetPage() {
               );
             }}
             userId={currentUser?.id}
-            initialPlots={farmPlots}
-            initialLivestock={livestock}
+            playerSpecies={petData?.pet_type || 'owl'}
+            playerPetName={petData?.pet_name || currentPetMeta.name}
           />
         </div>
       )}
 
-      {/* ================= TAB 3: PVP COMBAT ARENA ================= */}
+      {/* ================= TAB 3: PVP COMBAT ARENA (CANVAS 2D) ================= */}
       {gameTab === 'pvp' && (
         <div className="w-full flex-1 min-h-0">
-          <PetPvPArena
+          <PetPvPArenaCanvas
             playerSpecies={petData?.pet_type || 'owl'}
             playerPetName={petData?.pet_name || currentPetMeta.name}
             playerLevel={petData?.level || 1}
@@ -1119,16 +1121,18 @@ export default function PetPage() {
               );
             }}
             userId={currentUser?.id}
+            realOpponents={realOpponents}
           />
         </div>
       )}
 
-      {/* ================= TAB 4: PET RACING DERBY ================= */}
+      {/* ================= TAB 4: PET RACING DERBY (CANVAS 2D) ================= */}
       {gameTab === 'racing' && (
         <div className="w-full flex-1 min-h-0">
-          <PetRacingDerby
+          <PetRacingCanvas
             playerSpecies={petData?.pet_type || 'owl'}
             playerPetName={petData?.pet_name || currentPetMeta.name}
+            playerLevel={petData?.level || 1}
             userCoins={userCoins}
             onUpdateCoins={(c) => {
               setUserCoins(c);
@@ -1148,6 +1152,7 @@ export default function PetPage() {
               );
             }}
             userId={currentUser?.id}
+            realOpponents={realOpponents}
           />
         </div>
       )}

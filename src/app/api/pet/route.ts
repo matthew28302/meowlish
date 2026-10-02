@@ -105,6 +105,28 @@ export async function GET(request: Request) {
       SELECT * FROM pet_chat_messages ORDER BY created_at DESC LIMIT 20
     `).all().reverse();
 
+    // Real Opponents from SQLite Database
+    const realOpponents = db.prepare(`
+      SELECT 
+        u.id, 
+        u.username, 
+        u.display_name, 
+        u.avatar, 
+        u.coins, 
+        u.exp, 
+        u.level as user_level, 
+        COALESCE(p.pet_type, 'owl') as pet_type, 
+        COALESCE(p.pet_name, 'Lexi Trí Tuệ') as pet_name, 
+        COALESCE(p.level, 1) as pet_level,
+        COALESCE(p.equipped_hat, 'none') as equipped_hat,
+        COALESCE(p.equipped_outfit, 'none') as equipped_outfit
+      FROM users u 
+      LEFT JOIN user_pets p ON u.id = p.user_id 
+      WHERE u.status != 'disabled'
+      ORDER BY u.exp DESC
+      LIMIT 20
+    `).all();
+
     const petMeta = PETS_CATALOG[pet.pet_type] || PETS_CATALOG.owl;
 
     return NextResponse.json({
@@ -121,6 +143,7 @@ export async function GET(request: Request) {
       friendIds: Array.from(friendIdSet),
       couple: coupleRow || null,
       recentChat,
+      realOpponents,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Pet API error';
