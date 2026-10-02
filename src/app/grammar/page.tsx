@@ -23,6 +23,8 @@ import {
   Zap,
   Info,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   ExternalLink,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -37,6 +39,9 @@ export default function GrammarPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [levelFilter, setLevelFilter] = useState<'All' | 'Beginner' | 'Intermediate' | 'Advanced'>('All');
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'prepositions' | 'tenses' | 'other'>('all');
+
+  // Mobile lesson list dropdown toggle
+  const [isMobileListOpen, setIsMobileListOpen] = useState(false);
 
   // Interactive Preposition Master Cheatsheet Modal State
   const [showPrepositionGuide, setShowPrepositionGuide] = useState(false);
@@ -67,6 +72,7 @@ export default function GrammarPage() {
     setSelectedBlockIdx(null);
     setQuizAnswers({});
     setQuizSubmitted({});
+    setIsMobileListOpen(false);
   };
 
   const handleSelectPrepositionLessonById = (lessonId: string) => {
@@ -171,8 +177,55 @@ export default function GrammarPage() {
 
       {/* Main layout: Sidebar Lesson Selector + Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:flex-1 lg:min-h-0 lg:overflow-y-auto pb-6">
-        {/* Lesson List Sidebar */}
-        <div className="lg:col-span-4 flex flex-col lg:h-full lg:min-h-0 space-y-3">
+        {/* Mobile Active Lesson Bar & Dropdown Toggle */}
+        <div className="lg:hidden bg-white dark:bg-slate-900 border-2 border-emerald-500/40 rounded-2xl p-3.5 shadow-sm space-y-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="text-2xl shrink-0">{selectedLesson.icon}</span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                    Đang học
+                  </span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded-md">
+                    {selectedLesson.level}
+                  </span>
+                </div>
+                <div className="text-xs font-black text-slate-900 dark:text-white truncate">
+                  {selectedLesson.vietnameseTitle}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                sound.playClick();
+                setIsMobileListOpen(!isMobileListOpen);
+              }}
+              className="shrink-0 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs active:scale-95 transition cursor-pointer"
+            >
+              <span>{isMobileListOpen ? 'Thu gọn' : 'Đổi bài'}</span>
+              {isMobileListOpen ? (
+                <ChevronUp className="w-3.5 h-3.5" />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5" />
+              )}
+            </button>
+          </div>
+          {isMobileListOpen && (
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium border-t border-slate-100 dark:border-slate-800 pt-2">
+              💡 Bấm vào một bài học bất kỳ bên dưới để chuyển bài và làm bài tập ngay.
+            </p>
+          )}
+        </div>
+
+        {/* Lesson List Sidebar (Hidden by default on mobile unless toggled open) */}
+        <div
+          className={`lg:col-span-4 flex-col lg:h-full lg:min-h-0 space-y-3 ${
+            isMobileListOpen ? 'flex' : 'hidden lg:flex'
+          }`}
+        >
           <div className="shrink-0 space-y-2.5">
             <div className="flex items-center justify-between px-1">
               <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">

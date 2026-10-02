@@ -35,20 +35,20 @@ export default function MascotCompanion({
 
   const sizeClasses = {
     sm: 'w-12 h-12',
-    md: 'w-16 h-16 sm:w-20 sm:h-20',
-    lg: 'w-20 h-20 sm:w-24 sm:h-24',
+    md: 'w-14 h-14 sm:w-20 sm:h-20',
+    lg: 'w-16 h-16 sm:w-24 sm:h-24',
   }[size];
 
   return (
-    <div className="relative inline-flex items-center gap-3 select-none">
+    <div className="relative inline-flex items-center gap-2.5 sm:gap-3 select-none max-w-full">
       {/* Mascot Graphic (Lexi the Owl) */}
       <div
         onClick={handleMascotClick}
-        className="relative group cursor-pointer transform hover:scale-105 active:scale-95 transition-transform"
+        className="relative group cursor-pointer transform hover:scale-105 active:scale-95 transition-transform shrink-0"
         title="Bấm vào Lexi để nhận lời khuyên học tập!"
       >
         <div
-          className={`${sizeClasses} bg-gradient-to-b from-emerald-400 via-emerald-500 to-teal-600 rounded-3xl p-1.5 shadow-lg border-2 border-emerald-300 flex items-center justify-center relative overflow-hidden animate-float-soft`}
+          className={`${sizeClasses} bg-gradient-to-b from-emerald-400 via-emerald-500 to-teal-600 rounded-2xl sm:rounded-3xl p-1.5 shadow-lg border-2 border-emerald-300 flex items-center justify-center relative overflow-hidden animate-float-soft`}
         >
           {/* Eyes & Face SVG */}
           <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm">
@@ -105,17 +105,17 @@ export default function MascotCompanion({
       </div>
 
       {/* Speech Bubble */}
-      <div className="relative bg-white border-2 border-emerald-200 rounded-2xl px-4 py-2.5 shadow-sm max-w-sm sm:max-w-md text-xs sm:text-sm text-slate-700">
-        <div className="flex items-center gap-1.5 font-black text-emerald-700 text-xs mb-0.5">
-          <MessageCircleHeart className="w-3.5 h-3.5 text-rose-500" />
-          Cú Lexi đồng hành
+      <div className="relative bg-white border-2 border-emerald-200 rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm max-w-[calc(100vw-5.5rem)] sm:max-w-md min-w-0 flex-1 text-xs sm:text-sm text-slate-700">
+        <div className="flex items-center gap-1.5 font-black text-emerald-700 text-[11px] sm:text-xs mb-0.5">
+          <MessageCircleHeart className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+          <span>Cú Lexi đồng hành</span>
         </div>
-        <p className="leading-snug text-slate-700 font-medium">
+        <p className="leading-snug text-slate-700 font-medium break-words">
           {extraSpeech || message}
         </p>
 
         {/* Triangle arrow */}
-        <div className="absolute -left-2 top-5 w-3 h-3 bg-white border-l-2 border-b-2 border-emerald-200 transform rotate-45" />
+        <div className="absolute -left-2 top-4 sm:top-5 w-3 h-3 bg-white border-l-2 border-b-2 border-emerald-200 transform rotate-45" />
       </div>
     </div>
   );
