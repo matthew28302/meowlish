@@ -445,10 +445,11 @@ export default function DuaHauAdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast(data.message, 'success');
+        showToast(data.message || 'Đã sao lưu lên S3 Filebase thành công 100%! 🚀', 'success');
         fetchAdminData(token);
       } else {
-        showToast(data.error || 'Sao lưu thất bại', 'error');
+        const errMsg = data.message || data.error || (data.s3Status?.lastSyncMessage) || 'Sao lưu Filebase S3 thất bại';
+        showToast(errMsg, 'error');
       }
     } catch {
       showToast('Lỗi kết nối S3 Filebase', 'error');
@@ -969,7 +970,7 @@ export default function DuaHauAdminPage() {
           <button
             onClick={handleTriggerBackup}
             disabled={isBackingUp}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-sky-950 border border-sky-700/60 hover:bg-sky-900 text-sky-300 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-sky-950 border border-sky-700/60 hover:bg-sky-900 text-sky-300 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
             title="Thực hiện sao lưu thủ công SQLite lên Filebase S3"
           >
             {isBackingUp ? (
@@ -977,7 +978,8 @@ export default function DuaHauAdminPage() {
             ) : (
               <CloudUpload className="w-3.5 h-3.5" />
             )}
-            <span>{isBackingUp ? 'Đang sao lưu...' : 'Sao Lưu Filebase S3'}</span>
+            <span className="hidden sm:inline">{isBackingUp ? 'Đang sao lưu...' : 'Sao Lưu S3'}</span>
+            <span className="sm:hidden">{isBackingUp ? '...' : 'S3'}</span>
           </button>
 
           <Link

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db, sanitizeText } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import { syncDbToS3Now } from '@/lib/s3Sync';
 
 export async function GET(request: Request) {
   try {
@@ -151,6 +152,7 @@ export async function POST(request: Request) {
     }
 
     const updatedUser = db.prepare('SELECT id, username, display_name, avatar, streak, exp, level, coins, target_exam, created_at FROM users WHERE id = ?').get(userId);
+    syncDbToS3Now().catch(() => {});
 
     return NextResponse.json({
       success: true,

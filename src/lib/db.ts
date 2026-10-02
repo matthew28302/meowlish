@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
+import { execFileSync } from 'child_process';
 
 const isVercel = process.env.VERCEL === '1';
 const dbDir = isVercel ? path.join('/tmp', 'data') : path.join(process.cwd(), 'data');
@@ -22,17 +23,41 @@ export function hashPassword(password: string): string {
   return crypto.createHash('sha256').update(password + salt).digest('hex');
 }
 
-function getDatabase(): Database.Database {
-  if (process.env.NODE_ENV === 'production') {
-    return createDb();
+/**
+ * Khôi phục tệp CSDL SQLite từ Filebase S3 một cách đồng bộ TRƯỚC KHI mở kết nối CSDL
+ * Điều này đảm bảo trên Vercel Serverless không bao giờ sinh ra database rỗng làm mất tài khoản/tiến độ người dùng!
+ */
+function ensureDatabaseRestoredSync(): void {
+  try {
+    let localSize = 0;
+    try {
+      if (fs.existsSync(dbPath)) localSize = fs.statSync(dbPath).size;
+    } catch {}
+
+    const markerPath = path.join(dbDir, '.s3_restored');
+    const needsRestore = (isVercel && !fs.existsSync(markerPath)) || localSize < 1_000_000;
+
+    if (needsRestore) {
+      const scriptPath = path.join(process.cwd(), 'scripts', 'restore-s3.js');
+      if (fs.existsSync(scriptPath)) {
+        console.log('[SQLite DB] Cold-start / missing DB detected -> Synchronously restoring from Filebase S3...');
+        execFileSync(process.execPath, [scriptPath], { stdio: 'inherit', timeout: 35000 });
+      }
+    }
+  } catch (err: any) {
+    console.warn('[SQLite DB] Cold-start S3 restore notice:', err?.message || String(err));
   }
-  if (!global.__dbInstance) {
+}
+
+function getDatabase(): Database.Database {
+  if (!global.__dbInstance || !global.__dbInstance.open) {
     global.__dbInstance = createDb();
   }
   return global.__dbInstance;
 }
 
 function createDb(): Database.Database {
+  ensureDatabaseRestoredSync();
   const db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
@@ -399,7 +424,16 @@ function createDb(): Database.Database {
   return db;
 }
 
-export const db = getDatabase();
+export const db: Database.Database = new Proxy({} as Database.Database, {
+  get(_target, prop) {
+    const instance = getDatabase();
+    const val = (instance as any)[prop];
+    if (typeof val === 'function') {
+      return val.bind(instance);
+    }
+    return val;
+  },
+});
 
 /**
  * Verify SQLite database physical integrity

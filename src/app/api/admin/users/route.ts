@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db, hashPassword, verifyDbIntegrity } from '@/lib/db';
-import { getSyncStatus, uploadDbToS3 } from '@/lib/s3Sync';
+import { getSyncStatus, uploadDbToS3, syncDbToS3Now } from '@/lib/s3Sync';
 import { verifyAdminToken } from '@/lib/adminAuth';
 import { getClientIp } from '@/lib/rateLimit';
 import { logAccess, logError } from '@/lib/systemLogs';
@@ -119,7 +119,7 @@ export async function POST(request: Request) {
 
     // 1. ACTION: SAO LƯU THỦ CÔNG LÊN FILEBASE S3 TỪ TRANG QUẢN TRỊ
     if (action === 'trigger_backup') {
-      const ok = await uploadDbToS3();
+      const ok = await syncDbToS3Now();
       const s3Status = await getSyncStatus();
       logAccess({
         username: 'admin',
@@ -131,7 +131,7 @@ export async function POST(request: Request) {
       });
       return NextResponse.json({
         success: ok,
-        message: ok ? 'Đã sao lưu cơ sở dữ liệu lên Filebase S3 thành công 100%! 🚀' : 'Sao lưu lên Filebase S3 thất bại.',
+        message: ok ? 'Đã sao lưu cơ sở dữ liệu lên Filebase S3 thành công 100%! 🚀' : (s3Status.lastSyncMessage || 'Sao lưu lên Filebase S3 thất bại.'),
         s3Status,
       });
     }
@@ -171,7 +171,7 @@ export async function POST(request: Request) {
         status: 'success',
         details: `Đổi trạng thái tài khoản @${targetUser.username} (${targetUserId}) sang "${nextStatus}"`,
       });
-      uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
+      syncDbToS3Now().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
       return NextResponse.json({
         success: true,
         message: nextStatus === 'active' ? `Đã kích hoạt lại tài khoản ${targetUser.username} thành công!` : `Đã vô hiệu hóa tài khoản ${targetUser.username}. Tài khoản này sẽ bị đăng xuất ngay lập tức khỏi ứng dụng.`,
@@ -193,7 +193,7 @@ export async function POST(request: Request) {
         status: 'success',
         details: `Cập nhật số xu của @${targetUser.username} (${targetUserId}) thành ${parsedCoins.toLocaleString()} Coins`,
       });
-      uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
+      syncDbToS3Now().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
       return NextResponse.json({
         success: true,
         message: `Đã cập nhật số xu cho tài khoản ${targetUser.username} thành ${parsedCoins.toLocaleString()} Coins! 🪙`,
@@ -216,7 +216,7 @@ export async function POST(request: Request) {
         status: 'success',
         details: `Cập nhật cấp độ @${targetUser.username} (${targetUserId}) thành Lv.${parsedLevel} (${parsedExp} EXP)`,
       });
-      uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
+      syncDbToS3Now().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
       return NextResponse.json({
         success: true,
         message: `Đã cập nhật cấp độ cho tài khoản ${targetUser.username} thành Lv.${parsedLevel} (${parsedExp} EXP)! ⭐`,
@@ -242,7 +242,7 @@ export async function POST(request: Request) {
         status: 'success',
         details: `Đặt lại mật khẩu cho tài khoản @${targetUser.username} (${targetUserId})`,
       });
-      uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
+      syncDbToS3Now().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
       return NextResponse.json({
         success: true,
         message: `Đã đổi mật khẩu mới cho tài khoản ${targetUser.username} thành công!`,
@@ -281,7 +281,7 @@ export async function POST(request: Request) {
       });
 
       // Đồng bộ ngay lập tức lên Filebase S3
-      uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync after delete error:', { error: err }));
+      syncDbToS3Now().catch((err) => logger.warn('[Admin API] S3 auto-sync after delete error:', { error: err }));
 
       return NextResponse.json({
         success: true,

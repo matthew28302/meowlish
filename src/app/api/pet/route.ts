@@ -3,6 +3,7 @@ import { db, sanitizeText } from '@/lib/db';
 import { PETS_CATALOG, SHOP_ITEMS, checkCinnamorollAccess } from '@/lib/petData';
 import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import { syncDbToS3Now } from '@/lib/s3Sync';
 
 function ensurePet(userId: string) {
   let pet = db.prepare('SELECT * FROM user_pets WHERE user_id = ?').get(userId) as any;
@@ -136,6 +137,8 @@ export async function POST(request: Request) {
         VALUES (?, ?, ?, ?, ?)
       `).run(txId, userId, bonusCoins, freshUser?.coins || 0, 'Thưởng chuyên cần học tập');
 
+      void syncDbToS3Now();
+
       return NextResponse.json({
         success: true,
         message: 'Bạn đã nhận thành công 500 Coins thưởng! 🎉',
@@ -158,6 +161,7 @@ export async function POST(request: Request) {
       `).run(newHappiness, newExp, newLevel, userId);
 
       const updatedPet = ensurePet(userId);
+      void syncDbToS3Now();
       return NextResponse.json({
         success: true,
         message: 'Thú cưng cực kỳ vui vẻ khi được bạn vuốt ve!',
@@ -218,6 +222,7 @@ export async function POST(request: Request) {
 
       const updatedUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId);
       const updatedPet = ensurePet(userId);
+      void syncDbToS3Now();
 
       return NextResponse.json({
         success: true,
@@ -246,6 +251,7 @@ export async function POST(request: Request) {
           db.prepare('UPDATE user_pets SET equipped_accessory = ? WHERE user_id = ?').run('none', userId);
         }
         const updatedPet = ensurePet(userId);
+        void syncDbToS3Now();
         return NextResponse.json({
           success: true,
           message: 'Đã tháo trang bị khỏi thú cưng!',
@@ -276,6 +282,7 @@ export async function POST(request: Request) {
       }
 
       const updatedPet = ensurePet(userId);
+      void syncDbToS3Now();
       return NextResponse.json({
         success: true,
         message: 'Đã thay đổi trang phục cho thú cưng!',
@@ -304,6 +311,7 @@ export async function POST(request: Request) {
       `).run(petType, chosenMeta.name, userId);
 
       const updatedPet = ensurePet(userId);
+      void syncDbToS3Now();
       return NextResponse.json({
         success: true,
         message: `Đã đổi bạn đồng hành thành ${chosenMeta.species} ${chosenMeta.name}!`,
@@ -322,6 +330,7 @@ export async function POST(request: Request) {
 
       db.prepare('UPDATE user_pets SET selected_habitat = ? WHERE user_id = ?').run(habitatId, userId);
       const updatedPet = ensurePet(userId);
+      void syncDbToS3Now();
       return NextResponse.json({
         success: true,
         message: 'Đã chuyển cảnh quan khu vườn thành công!',
@@ -355,6 +364,7 @@ export async function POST(request: Request) {
       }
 
       const gardenDecor = db.prepare('SELECT * FROM pet_garden_decor WHERE user_id = ? ORDER BY slot_index ASC').all(userId);
+      void syncDbToS3Now();
       return NextResponse.json({
         success: true,
         message: 'Đã cập nhật trang trí khu vườn!',

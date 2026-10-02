@@ -232,9 +232,10 @@ export function startAutoSync(): void {
 
 export function getS3Client(): S3Client | null {
   const S3_ENDPOINT = process.env.FILEBASE_ENDPOINT || 'https://s3.filebase.io';
-  const S3_ACCESS_KEY = process.env.FILEBASE_ACCESS_KEY || '';
-  const S3_SECRET_KEY = process.env.FILEBASE_SECRET_KEY || '';
-  const S3_REGION = process.env.FILEBASE_REGION || 'auto';
+  const S3_ACCESS_KEY = process.env.FILEBASE_ACCESS_KEY || 'C4BA6129BC024529E82F';
+  const S3_SECRET_KEY = process.env.FILEBASE_SECRET_KEY || 'jdnwJ3jTFVCQQr4pnnc5HfZg4foktCgpImDiPtmW';
+  const rawRegion = process.env.FILEBASE_REGION;
+  const S3_REGION = (rawRegion && rawRegion !== 'auto') ? rawRegion : 'us-east-1';
 
   if (!S3_ACCESS_KEY || !S3_SECRET_KEY) {
     return null;
@@ -258,10 +259,22 @@ function getBucketName(): string {
 function checkpointLocalDb() {
   try {
     if (global.__dbInstance) {
-      global.__dbInstance.pragma('wal_checkpoint(PASSIVE)');
+      global.__dbInstance.pragma('wal_checkpoint(TRUNCATE)');
     }
   } catch (err) {
     logger.warn('[S3 Sync] WAL checkpoint warning:', { error: err });
+  }
+}
+
+/**
+ * Gọi đồng bộ ngay lập tức lên Filebase S3 sau khi có mutation quan trọng (Register, Password, Coins, Admin)
+ */
+export async function syncDbToS3Now(): Promise<boolean> {
+  try {
+    return await uploadDbToS3();
+  } catch (err) {
+    logger.warn('[S3 Sync] syncDbToS3Now warning:', { error: err });
+    return false;
   }
 }
 
@@ -488,8 +501,15 @@ export async function uploadDbToS3(): Promise<boolean> {
   }
 
   if (state.isSyncing) {
-    logger.warn('[S3 Sync] Another sync operation is currently running.');
-    return false;
+    let waits = 0;
+    while (state.isSyncing && waits < 10) {
+      await new Promise((r) => setTimeout(r, 400));
+      waits++;
+    }
+    if (state.isSyncing) {
+      logger.warn('[S3 Sync] Another sync operation is currently running.');
+      return false;
+    }
   }
 
   state.isSyncing = true;
@@ -510,7 +530,7 @@ export async function uploadDbToS3(): Promise<boolean> {
         localSize = fs.statSync(dbPath).size;
       } catch {}
 
-      if (remoteSize > 1_000_000 && localSize < 1_000_000) {
+      if (remoteSize > 5_000_000 && localSize < 500_000) {
         logger.warn(`[S3 Safety Guard] BẢO VỆ DỮ LIỆU: Huỷ upload vì file local (${localSize} bytes) nhỏ hơn nhiều so với bản sao lưu Filebase (${remoteSize} bytes)!`);
         state.isSyncing = false;
         state.lastSyncStatus = 'failed';

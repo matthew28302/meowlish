@@ -4,6 +4,7 @@ import './globals.css';
 import AppShell from '@/components/AppShell';
 import HighlightTooltip from '@/components/HighlightTooltip';
 import ClickEffect from '@/components/ClickEffect';
+import AccessTracker from '@/components/AccessTracker';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -45,6 +46,8 @@ export default function RootLayout({
         <HighlightTooltip />
         {/* Interactive Click Effect & Sparkles */}
         <ClickEffect />
+        {/* Global Access & Page Visit Tracker for Admin System Logs */}
+        <AccessTracker />
       </body>
     </html>
   );

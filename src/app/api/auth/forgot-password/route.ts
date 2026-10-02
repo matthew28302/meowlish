@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 import { db, hashPassword } from '@/lib/db';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { logAccess, logEmail, logError } from '@/lib/systemLogs';
+import { syncDbToS3Now } from '@/lib/s3Sync';
 import logger from '@/lib/logger';
 import dns from 'dns';
 import crypto from 'crypto';
@@ -149,6 +150,7 @@ export async function POST(request: Request) {
       await transporter.sendMail(mailOptions);
       // CHỈ cập nhật mật khẩu trong CSDL KHI email đã được gửi thành công đến người dùng!
       db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(pwdHash, user.id);
+      syncDbToS3Now().catch(() => {});
       logger.info(`Successfully sent password reset email to: ${recipientEmail}`);
 
       logEmail({

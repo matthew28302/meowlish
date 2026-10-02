@@ -11,6 +11,7 @@ import {
 } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { logAccess, logError } from '@/lib/systemLogs';
+import { syncDbToS3Now } from '@/lib/s3Sync';
 import logger from '@/lib/logger';
 
 function formatSafeUser(user: any) {
@@ -241,6 +242,7 @@ export async function POST(request: Request) {
 
       // Mark email as verified in database
       db.prepare('UPDATE users SET email_verified = 1 WHERE id = ?').run(userId);
+      syncDbToS3Now().catch(() => {});
 
       const updatedUser = db.prepare(`
         SELECT id, username, email, display_name, avatar, streak, exp, level, coins, target_exam, role, status, two_factor_enabled, email_verified, created_at
@@ -353,6 +355,7 @@ export async function POST(request: Request) {
       }
 
       db.prepare('UPDATE users SET two_factor_enabled = ? WHERE id = ?').run(wantEnable ? 1 : 0, userId);
+      syncDbToS3Now().catch(() => {});
 
       const updatedUser = db.prepare(`
         SELECT id, username, email, display_name, avatar, streak, exp, level, coins, target_exam, role, status, two_factor_enabled, email_verified, created_at
@@ -501,6 +504,9 @@ export async function POST(request: Request) {
         status: 'success',
         details: `Đăng ký tài khoản mới: @${cleanUsername}${cleanEmail ? ` (${cleanEmail})` : ''}`,
       });
+
+      // Bảo toàn dữ liệu người dùng mới lên Filebase S3 ngay lập tức
+      syncDbToS3Now().catch(() => {});
 
       const response = NextResponse.json({
         success: true,

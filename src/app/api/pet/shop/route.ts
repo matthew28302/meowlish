@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { SHOP_ITEMS } from '@/lib/petData';
 import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import { syncDbToS3Now } from '@/lib/s3Sync';
 
 export async function GET(request: Request) {
   try {
@@ -137,6 +138,8 @@ export async function POST(request: Request) {
       INSERT INTO coin_transactions (id, user_id, amount, balance_after, reason)
       VALUES (?, ?, ?, ?, ?)
     `).run(txId, userId, -item.price, newCoins, `Mua vật phẩm: ${item.name}`);
+
+    syncDbToS3Now().catch(() => {});
 
     return NextResponse.json({
       success: true,

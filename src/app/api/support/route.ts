@@ -3,6 +3,7 @@ import { db, sanitizeText } from '@/lib/db';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { sendSupportNotificationEmail } from '@/lib/supportEmail';
 import { logAccess, logError } from '@/lib/systemLogs';
+import { syncDbToS3Now } from '@/lib/s3Sync';
 
 export async function POST(request: Request) {
   const clientIp = getClientIp(request);
@@ -59,6 +60,8 @@ export async function POST(request: Request) {
       cleanMessage,
       numRating
     );
+
+    syncDbToS3Now().catch(() => {});
 
     // 2. Gửi email thông báo về email Ban Quản Trị & acknowledgement đến người dùng
     sendSupportNotificationEmail({

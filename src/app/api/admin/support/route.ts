@@ -6,6 +6,7 @@ import logger from '@/lib/logger';
 import nodemailer from 'nodemailer';
 import dns from 'dns';
 import { logEmail, logAccess, logError } from '@/lib/systemLogs';
+import { syncDbToS3Now } from '@/lib/s3Sync';
 
 async function resolveIpv4(host: string): Promise<string> {
   try {
@@ -144,6 +145,8 @@ export async function POST(request: Request) {
         details: `Cập nhật trạng thái thư góp ý #${ticketId} sang "${status}"`,
       });
 
+      void syncDbToS3Now();
+
       return NextResponse.json({
         success: true,
         message: `Đã cập nhật trạng thái sang "${status}".`,
@@ -233,6 +236,8 @@ ${replyContent.trim()}
         });
       }
 
+      void syncDbToS3Now();
+
       return NextResponse.json({
         success: true,
         message: 'Đã lưu phản hồi và gửi email thông báo cho học viên thành công!',
@@ -250,6 +255,9 @@ ${replyContent.trim()}
         status: 'success',
         details: `Đã xóa thư góp ý #${ticketId}`,
       });
+
+      void syncDbToS3Now();
+
       return NextResponse.json({
         success: true,
         message: 'Đã xóa thư góp ý thành công.',
