@@ -6,6 +6,7 @@ import { sound } from '@/lib/soundFx';
 import confetti from 'canvas-confetti';
 import { Trophy, Zap, Flag, RefreshCw, CheckCircle, XCircle, Award } from 'lucide-react';
 import { OpponentData } from './PetPvPArenaCanvas';
+import { drawChibiPet } from './drawChibiPet';
 
 export interface PetRacingCanvasProps {
   playerSpecies: string;
@@ -294,35 +295,61 @@ export default function PetRacingCanvas({
         }
       }
 
-      // --- RENDER 2D RACING TRACK CANVAS ---
-      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+      // --- RENDER 2D RACING TRACK CANVAS (RETINA HD) ---
+      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      canvas.width = Math.round(canvasWidth * dpr);
+      canvas.height = Math.round(canvasHeight * dpr);
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
 
       const camX = cameraXRef.current;
 
-      // 1. Sky & Crowd Grandstand (Khán đài cổ vũ TeaMobi Avatar)
+      // 1. Sky & Cheering Grandstand
       const skyGrad = ctx.createLinearGradient(0, 0, 0, 110);
       skyGrad.addColorStop(0, '#0284c7');
       skyGrad.addColorStop(1, '#38bdf8');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, canvasWidth, 110);
 
-      // Cheering Avatar Crowd on Grandstand
-      ctx.fillStyle = '#b45309';
-      ctx.fillRect(0, 70, canvasWidth, 40);
-      for (let cx = 10 - (camX % 30); cx < canvasWidth + 30; cx += 28) {
-        ctx.font = '16px sans-serif';
-        ctx.fillText('🐱', cx, 88);
-        ctx.fillText('🐶', cx + 14, 88);
+      // Colorful Stadium Bunting / Flags
+      for (let fx = 0; fx < canvasWidth; fx += 30) {
+        ctx.fillStyle = fx % 60 === 0 ? '#ef4444' : fx % 90 === 0 ? '#facc15' : '#3b82f6';
+        ctx.beginPath();
+        ctx.moveTo(fx, 65);
+        ctx.lineTo(fx + 15, 78);
+        ctx.lineTo(fx + 30, 65);
+        ctx.closePath();
+        ctx.fill();
       }
 
-      // 2. 4-Lane Racing Track (Đường đua cỏ & đất đỏ 4 làn)
+      // Cheering Crowd on Grandstand
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(0, 78, canvasWidth, 32);
+      ctx.strokeStyle = '#451a03';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(0, 78, canvasWidth, 32);
+
+      for (let cx = 10 - (camX % 30); cx < canvasWidth + 30; cx += 32) {
+        ctx.font = '14px sans-serif';
+        ctx.fillText('🐱', cx, 96);
+        ctx.fillText('🐶', cx + 16, 96);
+      }
+
+      // 2. 4-Lane Racing Track (Đường đua cỏ Meowlish)
       const trackStartY = 110;
       const laneHeight = 78;
 
       for (let l = 0; l < 4; l++) {
         const ly = trackStartY + l * laneHeight;
-        // Lane background
-        ctx.fillStyle = l % 2 === 0 ? '#15803d' : '#16a34a';
+        // Lane background (rich green turf gradient)
+        const laneGrad = ctx.createLinearGradient(0, ly, 0, ly + laneHeight);
+        laneGrad.addColorStop(0, l % 2 === 0 ? '#15803d' : '#16a34a');
+        laneGrad.addColorStop(1, l % 2 === 0 ? '#166534' : '#15803d');
+        ctx.fillStyle = laneGrad;
         ctx.fillRect(0, ly, canvasWidth, laneHeight);
 
         // White dashed lane boundary lines
@@ -336,13 +363,21 @@ export default function PetRacingCanvas({
         ctx.stroke();
         ctx.setLineDash([]); // reset
 
-        // Lane Number Label on track
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.font = 'bold 24px sans-serif';
-        ctx.fillText(`LÀN ${l + 1}`, 20, ly + 48);
+        // Lane Number Wooden Signboard
+        ctx.fillStyle = '#78350f';
+        ctx.beginPath();
+        ctx.roundRect(14, ly + 25, 60, 26, 6);
+        ctx.fill();
+        ctx.strokeStyle = '#fde047';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.fillStyle = '#fef08a';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`LÀN ${l + 1}`, 44, ly + 42);
       }
 
-      // 3. FINISH LINE (Kẻ ô caro trắng đen)
+      // 3. FINISH LINE (Kẻ ô caro trắng đen & Cổng chào)
       const finishScreenX = trackDistance - camX;
       if (finishScreenX >= -100 && finishScreenX <= canvasWidth + 100) {
         const checkerW = 16;
@@ -352,85 +387,102 @@ export default function PetRacingCanvas({
             ctx.fillRect(finishScreenX + col * checkerW, fy, checkerW, checkerW);
           }
         }
-        // Finish Line Ribbon Banner
+        // Finish Line Arch Banner
         ctx.fillStyle = '#dc2626';
-        ctx.fillRect(finishScreenX - 5, trackStartY - 25, 40, 25);
+        ctx.fillRect(finishScreenX - 10, trackStartY - 30, 52, 28);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(finishScreenX - 10, trackStartY - 30, 52, 28);
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 11px sans-serif';
-        ctx.fillText('ĐÍCH', finishScreenX + 3, trackStartY - 9);
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('VẠCH ĐÍCH', finishScreenX + 16, trackStartY - 12);
       }
 
-      // 4. RENDER RACERS (Thú cưng 2D trên 4 làn)
+      // 4. RENDER RACERS (Chibi Pets trên 4 làn)
       racersRef.current.forEach((racer) => {
         const rx = racer.x - camX;
         const ry = trackStartY + racer.lane * laneHeight + 42;
-        const runHop = racer.isStunned ? 0 : Math.sin(frame * 0.3 + racer.lane) * 3;
+        const runHop = racer.isStunned ? 0 : Math.sin(frame * 0.35 + racer.lane) * 3;
 
         ctx.save();
-        // Shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.beginPath();
-        ctx.ellipse(rx, ry + 16, 22, 6, 0, 0, Math.PI * 2);
-        ctx.fill();
 
-        // Nitro Boost Fire / Smoke
+        // Nitro Boost Fire / Smoke Exhaust
         if (racer.boostTimer > 0) {
-          ctx.fillStyle = '#f59e0b';
+          // Fire flare
+          const fireGrad = ctx.createRadialGradient(rx - 28, ry + 4, 2, rx - 28, ry + 4, 18);
+          fireGrad.addColorStop(0, '#fef08a');
+          fireGrad.addColorStop(0.4, '#f59e0b');
+          fireGrad.addColorStop(1, 'rgba(239, 68, 68, 0)');
+          ctx.fillStyle = fireGrad;
           ctx.beginPath();
-          ctx.arc(rx - 25, ry + 6, 10 + Math.sin(frame * 0.5) * 4, 0, Math.PI * 2);
+          ctx.arc(rx - 28, ry + 4, 18 + Math.sin(frame * 0.5) * 4, 0, Math.PI * 2);
           ctx.fill();
-          ctx.fillStyle = '#ef4444';
+        }
+
+        // Running Dust Puffs
+        if (!racer.isStunned && frame % 6 === 0) {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
           ctx.beginPath();
-          ctx.arc(rx - 32, ry + 6, 6, 0, Math.PI * 2);
+          ctx.arc(rx - 18, ry + 16, 5, 0, Math.PI * 2);
           ctx.fill();
         }
 
         // Stumble Effect
         if (racer.isStunned) {
           ctx.fillStyle = '#facc15';
-          ctx.font = 'bold 16px sans-serif';
-          ctx.fillText('❓', rx, ry - 32);
+          ctx.font = 'bold 18px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('❓', rx, ry - 36);
         }
 
-        // Pet Icon Body
-        ctx.fillStyle = racer.isPlayer ? '#4f46e5' : '#475569';
-        ctx.beginPath();
-        ctx.arc(rx, ry + runHop, 22, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = racer.isPlayer ? '#fbbf24' : '#94a3b8';
-        ctx.lineWidth = racer.isPlayer ? 3 : 1.5;
-        ctx.stroke();
+        // Render Vector Chibi Pet
+        drawChibiPet({
+          ctx,
+          x: rx,
+          y: ry + runHop + 2,
+          species: racer.species,
+          scale: 1.15,
+          state: racer.isStunned ? 'stunned' : 'run',
+          frame,
+          direction: 1,
+        });
 
-        // Pet Emoji
-        ctx.font = '22px sans-serif';
-        ctx.textAlign = 'center';
-        const emoji =
-          racer.species === 'cat'
-            ? '🐱'
-            : racer.species === 'corgi'
-            ? '🐶'
-            : racer.species === 'ice_dragon'
-            ? '🐉'
-            : racer.species === 'karoo'
-            ? '🦆'
-            : '🦉';
-        ctx.fillText(emoji, rx, ry + 8 + runHop);
+        // Player Indicator Arrow
+        if (racer.isPlayer) {
+          ctx.fillStyle = '#fbbf24';
+          ctx.beginPath();
+          ctx.moveTo(rx, ry - 38);
+          ctx.lineTo(rx - 5, ry - 46);
+          ctx.lineTo(rx + 5, ry - 46);
+          ctx.closePath();
+          ctx.fill();
+        }
 
         // Name & Owner Badge
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 10px sans-serif';
-        ctx.fillText(`${racer.name}`, rx, ry - 22 + runHop);
-        ctx.fillStyle = '#cbd5e1';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = '#000000';
+        ctx.shadowBlur = 4;
+        ctx.fillText(`${racer.name}`, rx, ry - 24 + runHop);
+        ctx.fillStyle = '#e2e8f0';
         ctx.font = '9px sans-serif';
-        ctx.fillText(`(${racer.ownerName})`, rx, ry - 11 + runHop);
+        ctx.fillText(`(${racer.ownerName})`, rx, ry - 12 + runHop);
 
         // Finish Tag if finished
         if (racer.isFinished && racer.finishRank) {
           ctx.fillStyle = racer.finishRank === 1 ? '#eab308' : '#64748b';
-          ctx.fillRect(rx - 22, ry + 20, 44, 15);
+          ctx.beginPath();
+          ctx.roundRect(rx - 25, ry + 18, 50, 16, 6);
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1;
+          ctx.stroke();
           ctx.fillStyle = '#ffffff';
           ctx.font = 'bold 10px sans-serif';
-          ctx.fillText(`HẠNG ${racer.finishRank}`, rx, ry + 31);
+          ctx.textAlign = 'center';
+          ctx.fillText(`HẠNG ${racer.finishRank}`, rx, ry + 30);
         }
 
         ctx.restore();
@@ -454,7 +506,7 @@ export default function PetRacingCanvas({
           <span className="text-xl">🏁</span>
           <div>
             <h3 className="text-sm font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
-              Trường Đua Thú Cưng Tiếng Anh TeaMobi
+              Trường Đua Thú Cưng Tiếng Anh Meowlish
               <span className="text-[10px] px-2 py-0.5 bg-blue-500/30 text-blue-200 rounded-full font-bold">
                 Tốc Độ Siêu Tốc
               </span>
@@ -490,10 +542,7 @@ export default function PetRacingCanvas({
       <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-800 bg-slate-950 flex justify-center items-center select-none">
         <canvas
           ref={canvasRef}
-          width={canvasWidth}
-          height={canvasHeight}
-          className="max-w-full h-auto object-contain block"
-          style={{ imageRendering: 'pixelated' }}
+          className="w-full max-w-[840px] h-auto object-contain block touch-none"
         />
 
         {/* LOBBY MODAL */}

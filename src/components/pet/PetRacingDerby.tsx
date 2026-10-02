@@ -249,7 +249,7 @@ export default function PetRacingDerby({
               </span>
             </h3>
             <p className="text-[11px] text-amber-100/80 font-medium">
-              So tài tốc độ kinh điển TeaMobi Avatar, nhấn Cổ Vũ Boost để về đích đầu tiên!
+              So tài tốc độ kinh điển Meowlish Derby, nhấn Cổ Vũ Boost để về đích đầu tiên!
             </p>
           </div>
         </div>

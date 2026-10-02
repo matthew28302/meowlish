@@ -455,7 +455,7 @@ export default function PetPvPArena({
                 <h3 className="text-base sm:text-lg font-black text-indigo-300 flex items-center gap-2">
                   <span>Đấu Trường Quyết Đấu Thú Cưng (PvP Arena)</span>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black">
-                    TeaMobi Avatar
+                    Đấu Trường Meowlish
                   </span>
                 </h3>
                 <p className="text-xs text-indigo-200/80 font-medium">

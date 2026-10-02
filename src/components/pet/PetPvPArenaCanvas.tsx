@@ -5,6 +5,7 @@ import { generatePvPQuestion, QuizQuestion } from '@/lib/petQuizData';
 import { sound } from '@/lib/soundFx';
 import confetti from 'canvas-confetti';
 import { Swords, Shield, Heart, Zap, Sparkles, Trophy, RotateCcw, Flame, CheckCircle, XCircle } from 'lucide-react';
+import { drawChibiPet } from './drawChibiPet';
 
 export interface OpponentData {
   id: string;
@@ -379,12 +380,16 @@ export default function PetPvPArenaCanvas({
     sound.playError();
   };
 
-  // 2D CANVAS DRAW LOOP
+  // 2D CANVAS DRAW LOOP (RETINA HD)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    canvas.width = Math.round(canvasWidth * dpr);
+    canvas.height = Math.round(canvasHeight * dpr);
 
     let animId: number;
 
@@ -409,192 +414,169 @@ export default function PetPvPArenaCanvas({
         }
       }
 
+      // Retina coordinate transform
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
       // Apply screen shake
       ctx.save();
       ctx.translate(screenShakeOffset.current.x, screenShakeOffset.current.y);
 
-      // --- 1. ARENA BACKGROUND (TeaMobi Avatar Colosseum / Thảo Nguyên Đấu Trường) ---
-      // Sky gradient (Sunset twilight arena)
+      // --- 1. ARENA BACKGROUND (Meowlish Colosseum / Thảo Nguyên Đấu Trường) ---
+      // Sunset Sky gradient
       const skyGrad = ctx.createLinearGradient(0, 0, 0, canvasHeight * 0.7);
       skyGrad.addColorStop(0, '#1e1b4b');
-      skyGrad.addColorStop(0.5, '#431407');
+      skyGrad.addColorStop(0.4, '#4c0519');
+      skyGrad.addColorStop(0.7, '#881337');
       skyGrad.addColorStop(1, '#78350f');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-      // Distant mountains / stone pillars
-      ctx.fillStyle = '#292524';
-      ctx.beginPath();
-      ctx.moveTo(0, 240);
-      ctx.lineTo(120, 160);
-      ctx.lineTo(240, 240);
-      ctx.lineTo(380, 180);
-      ctx.lineTo(540, 250);
-      ctx.lineTo(680, 150);
-      ctx.lineTo(canvasWidth, 240);
-      ctx.lineTo(canvasWidth, canvasHeight);
-      ctx.lineTo(0, canvasHeight);
-      ctx.fill();
-
-      // Stone Arena Floor (Đấu trường đá phong cách Avatar)
-      const floorGrad = ctx.createLinearGradient(0, 220, 0, canvasHeight);
-      floorGrad.addColorStop(0, '#78716c');
-      floorGrad.addColorStop(0.4, '#57534e');
-      floorGrad.addColorStop(1, '#292524');
-      ctx.fillStyle = floorGrad;
-      ctx.fillRect(0, 220, canvasWidth, canvasHeight - 220);
-
-      // Stone slab tiles
-      ctx.strokeStyle = '#44403c';
-      ctx.lineWidth = 2;
-      for (let tx = 0; tx < canvasWidth; tx += 60) {
+      // Distant stone pillars & Colosseum arches
+      ctx.fillStyle = '#1c1917';
+      for (let arch = 30; arch < canvasWidth; arch += 95) {
+        ctx.fillRect(arch, 110, 18, 120);
         ctx.beginPath();
-        ctx.moveTo(tx, 220);
-        ctx.lineTo(tx - 30, canvasHeight);
+        ctx.arc(arch + 9, 110, 9, Math.PI, 0);
+        ctx.fill();
+      }
+
+      // Stone Arena Floor (Đấu trường đá Meowlish)
+      const floorGrad = ctx.createLinearGradient(0, 210, 0, canvasHeight);
+      floorGrad.addColorStop(0, '#57534e');
+      floorGrad.addColorStop(0.5, '#44403c');
+      floorGrad.addColorStop(1, '#1c1917');
+      ctx.fillStyle = floorGrad;
+      ctx.fillRect(0, 210, canvasWidth, canvasHeight - 210);
+
+      // Floor stone tiles
+      ctx.strokeStyle = '#292524';
+      ctx.lineWidth = 1.5;
+      for (let tx = 0; tx < canvasWidth; tx += 65) {
+        ctx.beginPath();
+        ctx.moveTo(tx, 210);
+        ctx.lineTo(tx - 35, canvasHeight);
         ctx.stroke();
       }
-      for (let ty = 250; ty < canvasHeight; ty += 45) {
+      for (let ty = 240; ty < canvasHeight; ty += 45) {
         ctx.beginPath();
         ctx.moveTo(0, ty);
         ctx.lineTo(canvasWidth, ty);
         ctx.stroke();
       }
 
-      // Center Arena Crest (Vòng hoa văn quyết đấu trung tâm)
+      // Center Arena Magic Crest (Vòng ma pháp triệu hồi)
       ctx.strokeStyle = '#f59e0b';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.ellipse(canvasWidth * 0.5, 310, 100, 35, 0, 0, Math.PI * 2);
+      ctx.ellipse(canvasWidth * 0.5, 310, 110, 36, 0, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.12)';
       ctx.fill();
 
-      // --- 2. RENDER PLAYER PET (Left Fighter) ---
+      // Burning Torches on Left & Right Pillars
+      drawTorch(ctx, 65, 160, frame);
+      drawTorch(ctx, canvasWidth - 85, 160, frame);
+
+      // --- 2. RENDER PLAYER CHIBI PET (Left Fighter) ---
       const pBaseX = 220 + playerXOffset.current;
-      const pBaseY = 300;
-      const pHop = Math.sin(frame * 0.12) * 4;
+      const pBaseY = 305;
+      const pHop = Math.sin(frame * 0.12) * 3;
 
       ctx.save();
-      // Shadow
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.beginPath();
-      ctx.ellipse(pBaseX, pBaseY + 12, 32, 10, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Player Pet Aura / Sprite placeholder avatar
-      ctx.fillStyle = '#6366f1';
-      ctx.beginPath();
-      ctx.arc(pBaseX, pBaseY - 20 + pHop, 30, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#a5b4fc';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      // Pet Icon emoji
-      ctx.font = '28px sans-serif';
-      ctx.textAlign = 'center';
-      const pEmoji =
-        playerSpecies === 'cat'
-          ? '🐱'
-          : playerSpecies === 'corgi'
-          ? '🐶'
-          : playerSpecies === 'ice_dragon'
-          ? '🐉'
-          : playerSpecies === 'cinnamoroll'
-          ? '🐰'
-          : '🦉';
-      ctx.fillText(pEmoji, pBaseX, pBaseY - 10 + pHop);
+      // Render Player Chibi Vector Sprite
+      drawChibiPet({
+        ctx,
+        x: pBaseX,
+        y: pBaseY - 10 + pHop,
+        scale: 1.35,
+        species: playerSpecies,
+        state: playerStunned ? 'stunned' : playerXOffset.current > 10 ? 'attack' : 'idle',
+        frame,
+        direction: 1,
+      });
 
       // Player Name & Level Badge
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 12px sans-serif';
-      ctx.fillText(`${playerPetName} (Lv.${playerLevel})`, pBaseX, pBaseY - 58 + pHop);
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#000000';
+      ctx.shadowBlur = 4;
+      ctx.fillText(`${playerPetName} (Lv.${playerLevel})`, pBaseX, pBaseY - 60 + pHop);
 
       // Player HP Bar on Canvas
-      const pHpWidth = 90;
+      const pHpWidth = 96;
       const pCurHpWidth = Math.max(0, (playerHp / playerMaxHp) * pHpWidth);
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(pBaseX - 45, pBaseY - 74 + pHop, pHpWidth, 8);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(pBaseX - 48, pBaseY - 76 + pHop, pHpWidth, 8);
       ctx.fillStyle = playerHp / playerMaxHp > 0.4 ? '#22c55e' : '#ef4444';
-      ctx.fillRect(pBaseX - 45, pBaseY - 74 + pHop, pCurHpWidth, 8);
+      ctx.fillRect(pBaseX - 48, pBaseY - 76 + pHop, pCurHpWidth, 8);
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 1;
-      ctx.strokeRect(pBaseX - 45, pBaseY - 74 + pHop, pHpWidth, 8);
-
+      ctx.strokeRect(pBaseX - 48, pBaseY - 76 + pHop, pHpWidth, 8);
       ctx.restore();
 
-      // --- 3. RENDER RIVAL PET (Right Fighter) ---
+      // --- 3. RENDER RIVAL CHIBI PET (Right Fighter) ---
       const rBaseX = 580 + rivalXOffset.current;
-      const rBaseY = 300;
-      const rHop = Math.sin(frame * 0.12 + 1) * 4;
+      const rBaseY = 305;
+      const rHop = Math.sin(frame * 0.12 + 1) * 3;
 
       ctx.save();
-      // Shadow
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.beginPath();
-      ctx.ellipse(rBaseX, rBaseY + 12, 32, 10, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Rival Pet Body
-      ctx.fillStyle = '#dc2626';
-      ctx.beginPath();
-      ctx.arc(rBaseX, rBaseY - 20 + rHop, 30, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#fca5a5';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      // Rival Icon
-      ctx.font = '28px sans-serif';
-      ctx.textAlign = 'center';
-      const rEmoji =
-        selectedOpponent.pet_type === 'cat'
-          ? '🐱'
-          : selectedOpponent.pet_type === 'corgi'
-          ? '🐶'
-          : selectedOpponent.pet_type === 'ice_dragon'
-          ? '🐉'
-          : selectedOpponent.pet_type === 'karoo'
-          ? '🦆'
-          : '🦉';
-      ctx.fillText(rEmoji, rBaseX, rBaseY - 10 + rHop);
+      // Render Rival Chibi Vector Sprite
+      drawChibiPet({
+        ctx,
+        x: rBaseX,
+        y: rBaseY - 10 + rHop,
+        scale: 1.35,
+        species: selectedOpponent.pet_type,
+        state: rivalStunned ? 'stunned' : rivalXOffset.current < -10 ? 'attack' : 'idle',
+        frame,
+        direction: -1,
+      });
 
       // Rival Stunned Visual FX (Spinning Stars)
       if (rivalStunned) {
         const starRot = frame * 0.15;
         ctx.fillStyle = '#facc15';
-        ctx.font = '14px sans-serif';
-        ctx.fillText('💫', rBaseX + Math.cos(starRot) * 20, rBaseY - 50 + Math.sin(starRot) * 8);
-        ctx.fillText('⭐', rBaseX + Math.cos(starRot + Math.PI) * 20, rBaseY - 50 + Math.sin(starRot + Math.PI) * 8);
+        ctx.font = '16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('💫', rBaseX + Math.cos(starRot) * 22, rBaseY - 55 + Math.sin(starRot) * 8);
+        ctx.fillText('⭐', rBaseX + Math.cos(starRot + Math.PI) * 22, rBaseY - 55 + Math.sin(starRot + Math.PI) * 8);
       }
 
       // Rival Poison Visual FX (Bubbles)
       if (rivalPoisonStacks.stacks > 0) {
         ctx.fillStyle = '#c084fc';
         ctx.font = 'bold 11px sans-serif';
-        ctx.fillText(`☠️ Độc x${rivalPoisonStacks.stacks}`, rBaseX, rBaseY - 84 + rHop);
+        ctx.textAlign = 'center';
+        ctx.fillText(`☠️ Độc x${rivalPoisonStacks.stacks}`, rBaseX, rBaseY - 86 + rHop);
       }
 
       // Rival Name & Level Badge
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#000000';
+      ctx.shadowBlur = 4;
       ctx.fillText(
         `${selectedOpponent.pet_name} (Lv.${selectedOpponent.pet_level || 1})`,
         rBaseX,
-        rBaseY - 58 + rHop
+        rBaseY - 60 + rHop
       );
 
       // Rival HP Bar on Canvas
-      const rHpWidth = 90;
+      const rHpWidth = 96;
       const rCurHpWidth = Math.max(0, (rivalHp / rivalMaxHp) * rHpWidth);
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(rBaseX - 45, rBaseY - 74 + rHop, rHpWidth, 8);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(rBaseX - 48, rBaseY - 76 + rHop, rHpWidth, 8);
       ctx.fillStyle = rivalHp / rivalMaxHp > 0.4 ? '#ef4444' : '#b91c1c';
-      ctx.fillRect(rBaseX - 45, rBaseY - 74 + rHop, rCurHpWidth, 8);
+      ctx.fillRect(rBaseX - 48, rBaseY - 76 + rHop, rCurHpWidth, 8);
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 1;
-      ctx.strokeRect(rBaseX - 45, rBaseY - 74 + rHop, rHpWidth, 8);
-
+      ctx.strokeRect(rBaseX - 48, rBaseY - 76 + rHop, rHpWidth, 8);
       ctx.restore();
 
       // --- 4. RENDER PROJECTILE FX ---
@@ -643,7 +625,7 @@ export default function PetPvPArenaCanvas({
           <span className="text-xl">⚔️</span>
           <div>
             <h3 className="text-sm font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
-              Đấu Trường PvP Tiếng Anh TeaMobi
+              Đấu Trường PvP Tiếng Anh Meowlish
               <span className="text-[10px] px-2 py-0.5 bg-red-500/30 text-red-200 rounded-full font-bold">
                 Quyết Đấu Trí Tuệ
               </span>
@@ -680,10 +662,7 @@ export default function PetPvPArenaCanvas({
       <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-800 bg-slate-950 flex justify-center items-center select-none">
         <canvas
           ref={canvasRef}
-          width={canvasWidth}
-          height={canvasHeight}
-          className="max-w-full h-auto object-contain block"
-          style={{ imageRendering: 'pixelated' }}
+          className="w-full max-w-[800px] h-auto object-contain block touch-none"
         />
 
         {/* LOBBY OVERLAY */}
@@ -879,4 +858,35 @@ export default function PetPvPArenaCanvas({
       )}
     </div>
   );
+}
+
+/**
+ * Helper: Draw Flaming Colosseum Torch
+ */
+function drawTorch(ctx: CanvasRenderingContext2D, x: number, y: number, frame: number) {
+  // Wooden sconce bracket
+  ctx.fillStyle = '#78350f';
+  ctx.fillRect(x - 3, y, 6, 22);
+  ctx.fillStyle = '#ca8a04';
+  ctx.fillRect(x - 6, y - 4, 12, 6);
+
+  // Flame glow
+  const flicker = Math.sin(frame * 0.3) * 2;
+  const flameGrad = ctx.createRadialGradient(x, y - 10, 2, x, y - 10, 16);
+  flameGrad.addColorStop(0, '#fef08a');
+  flameGrad.addColorStop(0.4, '#f97316');
+  flameGrad.addColorStop(1, 'rgba(239, 68, 68, 0)');
+  ctx.fillStyle = flameGrad;
+  ctx.beginPath();
+  ctx.arc(x, y - 10, 16 + flicker, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Core fire tear
+  ctx.fillStyle = '#fef08a';
+  ctx.beginPath();
+  ctx.moveTo(x - 4, y - 6);
+  ctx.quadraticCurveTo(x - 6, y - 16 - flicker, x, y - 22 - flicker);
+  ctx.quadraticCurveTo(x + 6, y - 16 - flicker, x + 4, y - 6);
+  ctx.closePath();
+  ctx.fill();
 }

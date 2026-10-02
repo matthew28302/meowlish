@@ -922,12 +922,12 @@ export const SHOP_ITEMS: ShopItem[] = [
   },
   {
     id: 'farmer_straw_hat',
-    name: 'Nón Rơm Nông Dân Avatar',
+    name: 'Nón Rơm Nông Dân Cổ Điển',
     type: 'hat',
     categoryLabel: '🎓 Nón & Mũ',
     price: 50,
     emoji: '👒',
-    description: 'Chiếc nón rơm đồng quê huyền thoại trong các game nông trại Teamobi.',
+    description: 'Chiếc nón rơm đồng quê cổ điển che nắng che mưa khi chăm sóc nông trại.',
     benefit: 'Che nắng che mưa khi làm vườn',
   },
   {
@@ -1049,7 +1049,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     categoryLabel: '👕 Trang Phục',
     price: 120,
     emoji: '👖',
-    description: 'Quần yếm bò nông nghiệp chuyên dụng cuốc đất tưới rau Avatar Teamobi.',
+    description: 'Quần yếm bò nông nghiệp chuyên dụng cuốc đất tưới rau năng động.',
     benefit: '+10% Coins thưởng khi chăm sóc thú cưng',
   },
   {

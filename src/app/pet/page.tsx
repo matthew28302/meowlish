@@ -806,7 +806,7 @@ export default function PetPage() {
 
   return (
     <div className="w-full h-full flex-1 min-h-0 flex flex-col p-2 sm:p-3 gap-2 overflow-y-auto custom-scrollbar select-none pb-24 lg:pb-2 overflow-x-hidden">
-      {/* ================= TEAMOBI AVATAR 2D WORLD NAVIGATOR ================= */}
+      {/* ================= MEOWLISH 2D WORLD NAVIGATOR ================= */}
       <div className="w-full shrink-0 bg-gradient-to-r from-emerald-900 via-teal-950 to-amber-950 rounded-2xl p-1.5 sm:p-2 border-2 border-emerald-500/50 shadow-lg flex items-center justify-between gap-1.5 overflow-x-auto custom-scrollbar">
         <div className="flex items-center gap-1.5 min-w-max">
           <button

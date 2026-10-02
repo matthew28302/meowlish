@@ -1593,7 +1593,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           </div>
         )}
 
-        {/* Ambient Falling Sakura Petals (Nostalgic TeaMobi Aura) */}
+        {/* Ambient Falling Sakura Petals (Nostalgic Meadow Aura) */}
         <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
           <div className="absolute top-2 left-[12%] text-sm opacity-70 animate-bounce" style={{ animationDuration: '4s' }}>🌸</div>
           <div className="absolute top-8 left-[38%] text-xs opacity-60 animate-bounce" style={{ animationDuration: '5.5s' }}>🌸</div>

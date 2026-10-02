@@ -350,7 +350,7 @@ export default function PixelFarmPlots({
           </div>
           <div>
             <h3 className="text-sm sm:text-base font-black tracking-wide flex items-center gap-1.5 text-amber-300">
-              <span>Nông Trại TeaMobi Avatar</span>
+              <span>Nông Trại Meowlish</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-700/80 text-white font-bold">
                 8 Luống Đất
               </span>

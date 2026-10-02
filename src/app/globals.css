@@ -291,7 +291,7 @@ aside::-webkit-scrollbar-thumb:hover {
   background: #10b981;
 }
 
-/* 2D Pixel Farm Game Animations (Avatar Teamobi / 16-bit retro style) */
+/* 2D Pixel Farm Game Animations (Meowlish 16-bit retro style) */
 @keyframes pixel-idle {
   0%, 100% {
     transform: translateY(0px);
