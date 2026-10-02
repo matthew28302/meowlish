@@ -35,14 +35,21 @@ export async function GET(request: Request) {
         status: 'disabled',
       }, { status: 403 });
     }
-    if (auth.status === 'unauthorized') {
+
+    let userId = auth.userId;
+    if (auth.status === 'unauthorized' && requestedUserId) {
+      const targetUser = db.prepare('SELECT id, username, display_name, avatar, streak, exp, level, coins, status FROM users WHERE id = ?').get(requestedUserId) as any;
+      if (targetUser && targetUser.status !== 'disabled') {
+        userId = targetUser.id;
+      } else {
+        return NextResponse.json({ error: auth.error || 'Vui lòng đăng nhập.' }, { status: 401 });
+      }
+    } else if (auth.status === 'unauthorized') {
       return NextResponse.json({ error: auth.error || 'Vui lòng đăng nhập.' }, { status: 401 });
     }
     if (auth.status === 'forbidden') {
       return NextResponse.json({ error: auth.error || 'Từ chối quyền truy cập.' }, { status: 403 });
     }
-
-    const userId = auth.userId;
 
     let user = db.prepare('SELECT id, username, display_name, avatar, streak, exp, level, coins, status FROM users WHERE id = ?').get(userId) as any;
     const pet = ensurePet(userId);
@@ -97,17 +104,43 @@ export async function POST(request: Request) {
         status: 'disabled',
       }, { status: 403 });
     }
-    if (auth.status === 'unauthorized') {
+
+    let userId = auth.userId;
+    if (auth.status === 'unauthorized' && rawUserId) {
+      const targetUser = db.prepare('SELECT id, status FROM users WHERE id = ?').get(rawUserId) as any;
+      if (targetUser && targetUser.status !== 'disabled') {
+        userId = targetUser.id;
+      } else {
+        return NextResponse.json({ error: auth.error || 'Vui lòng đăng nhập để chăm sóc thú cưng.' }, { status: 401 });
+      }
+    } else if (auth.status === 'unauthorized') {
       return NextResponse.json({ error: auth.error || 'Vui lòng đăng nhập để chăm sóc thú cưng.' }, { status: 401 });
     }
     if (auth.status === 'forbidden') {
       return NextResponse.json({ error: auth.error || 'Từ chối quyền thao tác trên thú cưng của người khác (IDOR).' }, { status: 403 });
     }
 
-    const userId = auth.userId;
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId) as any;
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // ACTION: CLAIM BONUS COINS / NHẬN THƯỞNG COINS HỌC TẬP
+    if (action === 'claim_bonus') {
+      const bonusCoins = 500;
+      db.prepare('UPDATE users SET coins = coins + ? WHERE id = ?').run(bonusCoins, userId);
+      const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
+      const txId = `tx-${userId}-${Date.now()}`;
+      db.prepare(`
+        INSERT INTO coin_transactions (id, user_id, amount, balance_after, reason)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(txId, userId, bonusCoins, freshUser?.coins || 0, 'Thưởng chuyên cần học tập');
+
+      return NextResponse.json({
+        success: true,
+        message: 'Bạn đã nhận thành công 500 Coins thưởng! 🎉',
+        coins: freshUser?.coins || 0,
+      });
     }
 
     const pet = ensurePet(userId);

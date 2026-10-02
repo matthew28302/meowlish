@@ -84,6 +84,13 @@ export default function PetPage() {
   useEffect(() => {
     let hasCache = false;
     try {
+      const stored = getStoredUser();
+      if (stored) {
+        setCurrentUser(stored);
+        if (stored.coins !== undefined) {
+          setUserCoins(stored.coins);
+        }
+      }
       const cached = localStorage.getItem('meowlish_pet_cache');
       if (cached) {
         const parsed = JSON.parse(cached);
@@ -137,6 +144,9 @@ export default function PetPage() {
   const loadPetData = async () => {
     const user = getStoredUser();
     setCurrentUser(user);
+    if (user?.coins !== undefined) {
+      setUserCoins(user.coins);
+    }
 
     try {
       const res = await fetch(`/api/pet?userId=${user.id}`);
@@ -178,9 +188,16 @@ export default function PetPage() {
           const randGreeting = data.pet.meta.greetings[Math.floor(Math.random() * data.pet.meta.greetings.length)];
           setPetSpeech(randGreeting);
         }
+      } else {
+        if (user?.coins !== undefined) {
+          setUserCoins(user.coins);
+        }
       }
     } catch (err) {
       console.error('Error loading pet data:', err);
+      if (user?.coins !== undefined) {
+        setUserCoins(user.coins);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -188,6 +205,21 @@ export default function PetPage() {
 
   useEffect(() => {
     loadPetData();
+  }, []);
+
+  // Lắng nghe thay đổi auth/coins từ các trang khác (ví dụ: làm bài tập kiếm thêm xu)
+  useEffect(() => {
+    const handleAuthChange = () => {
+      const user = getStoredUser();
+      if (user) {
+        setCurrentUser(user);
+        if (user.coins !== undefined) {
+          setUserCoins(user.coins);
+        }
+      }
+    };
+    window.addEventListener('auth-state-changed', handleAuthChange);
+    return () => window.removeEventListener('auth-state-changed', handleAuthChange);
   }, []);
 
   // Action: Petting / Vuốt ve
@@ -215,6 +247,17 @@ export default function PetPage() {
 
   // Action: Feed / Cho ăn
   const handleFeed = async (foodItem: ShopItem) => {
+    const isOwned = inventory.some((i) => i.item_id === foodItem.id && (i.quantity === undefined || i.quantity > 0));
+    if (!isOwned && userCoins < foodItem.price) {
+      sound.playWrong();
+      const needed = foodItem.price - userCoins;
+      const willClaim = confirm(`🪙 Bạn đang có ${userCoins.toLocaleString()} Coins, cần thêm ${needed.toLocaleString()} Coins để mua ${foodItem.name}.\n\nBạn có muốn nhận ngay +500 Coins miễn phí từ Meowlish để cho thú cưng ăn không?`);
+      if (willClaim) {
+        await handleClaimBonus();
+      }
+      return;
+    }
+
     sound.playSuccess();
     try {
       const res = await fetch('/api/pet', {
@@ -231,8 +274,26 @@ export default function PetPage() {
         setPetData((prev: any) => ({ ...prev, ...data.pet }));
         if (data.user?.coins !== undefined) {
           setUserCoins(data.user.coins);
+          const stored = getStoredUser();
+          if (stored) {
+            setStoredUser({ ...stored, coins: data.user.coins });
+          }
+          window.dispatchEvent(new Event('auth-state-changed'));
         }
         setShowFeedModal(false);
+
+        // Giảm số lượng đồ ăn trong kho nếu dùng từ kho
+        setInventory((prev) => {
+          const itemIndex = prev.findIndex((i) => i.item_id === foodItem.id);
+          if (itemIndex === -1) return prev;
+          const currentQty = prev[itemIndex].quantity || 1;
+          if (currentQty > 1) {
+            const next = [...prev];
+            next[itemIndex] = { ...next[itemIndex], quantity: currentQty - 1 };
+            return next;
+          }
+          return prev.filter((i) => i.item_id !== foodItem.id);
+        });
 
         const eatSounds = petData?.meta?.eatSounds || ['Măm măm ngon quá! 😋'];
         setPetSpeech(eatSounds[Math.floor(Math.random() * eatSounds.length)]);
@@ -244,6 +305,7 @@ export default function PetPage() {
         });
       } else {
         const errData = await res.json();
+        sound.playError();
         alert(errData.error || 'Không thể cho ăn lúc này!');
       }
     } catch {}
@@ -479,9 +541,62 @@ export default function PetPage() {
     } catch {}
   };
 
+  // Action: Nhận 500 Coins thưởng học tập miễn phí
+  const handleClaimBonus = async () => {
+    sound.playCelebration();
+    try {
+      const res = await fetch('/api/pet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUser?.id,
+          action: 'claim_bonus',
+        }),
+      });
+      let newCoins = userCoins + 500;
+      if (res.ok) {
+        const data = await res.json();
+        if (data.coins !== undefined) {
+          newCoins = data.coins;
+        }
+      }
+      setUserCoins(newCoins);
+      const stored = getStoredUser();
+      if (stored) {
+        setStoredUser({ ...stored, coins: newCoins });
+      }
+      window.dispatchEvent(new Event('auth-state-changed'));
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.5 },
+      });
+      alert(`🎉 Chúc mừng bạn đã nhận +500 Coins thưởng! Số dư hiện tại: ${newCoins.toLocaleString()} Coins.`);
+    } catch {
+      const newCoins = userCoins + 500;
+      setUserCoins(newCoins);
+      const stored = getStoredUser();
+      if (stored) {
+        setStoredUser({ ...stored, coins: newCoins });
+      }
+      window.dispatchEvent(new Event('auth-state-changed'));
+    }
+  };
+
   // Action: Purchase from Shop
   const handlePurchase = async (item: ShopItem) => {
     sound.playClick();
+
+    if (userCoins < item.price) {
+      sound.playWrong();
+      const needed = item.price - userCoins;
+      const willClaim = confirm(`🪙 Bạn đang có ${userCoins.toLocaleString()} Coins, cần thêm ${needed.toLocaleString()} Coins để sở hữu "${item.name}".\n\nBạn có muốn nhận ngay +500 Coins miễn phí từ Meowlish để mua không?`);
+      if (willClaim) {
+        await handleClaimBonus();
+      }
+      return;
+    }
+
     try {
       const res = await fetch('/api/pet/shop', {
         method: 'POST',
@@ -499,6 +614,10 @@ export default function PetPage() {
         setInventory((prev) => [...prev, { item_id: item.id, item_type: item.type, quantity: 1 }]);
         
         // Cập nhật lại UI header coins
+        const stored = getStoredUser();
+        if (stored) {
+          setStoredUser({ ...stored, coins: data.remainingCoins });
+        }
         window.dispatchEvent(new Event('auth-state-changed'));
 
         confetti({
@@ -520,12 +639,22 @@ export default function PetPage() {
         sound.playError();
         alert(errData.error || 'Mua vật phẩm thất bại');
       }
-    } catch {}
+    } catch {
+      sound.playError();
+      alert('Không thể kết nối máy chủ để mua vật phẩm. Vui lòng thử lại!');
+    }
   };
 
   // Open Shop & Fitting Room Modal
   const handleOpenShop = (mode: 'shop' | 'wardrobe' = 'shop') => {
     sound.playClick();
+    const stored = getStoredUser();
+    if (stored) {
+      setCurrentUser(stored);
+      if (stored.coins !== undefined) {
+        setUserCoins(stored.coins);
+      }
+    }
     setShopMode(mode);
     setPreviewHat(petData?.equipped_hat || null);
     setPreviewOutfit(petData?.equipped_outfit || null);
@@ -877,15 +1006,23 @@ export default function PetPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <div className="flex items-center gap-1 sm:gap-1.5 bg-black/25 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-white/20 text-xs font-black text-amber-300">
                   <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 fill-amber-300" />
                   <span>{userCoins.toLocaleString()}</span>
                   <span className="hidden sm:inline">Coins</span>
                 </div>
                 <button
+                  onClick={handleClaimBonus}
+                  className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 text-[11px] sm:text-xs font-black shadow-xs flex items-center gap-1 transition cursor-pointer active:scale-95"
+                  title="Nhận thêm 500 Xu miễn phí"
+                >
+                  <span>🎁</span>
+                  <span>+500 Xu</span>
+                </button>
+                <button
                   onClick={() => setShowShopModal(false)}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer ml-1"
                   title="Đóng cửa sổ"
                 >
                   <X className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -1218,19 +1355,25 @@ export default function PetPage() {
                                   e.stopPropagation();
                                   handleFeed(item);
                                 }}
-                                disabled={!isOwned && userCoins < item.price}
-                                className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 ${
+                                className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 active:scale-95 ${
                                   isOwned
                                     ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500'
                                     : userCoins >= item.price
                                       ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-700'
-                                      : 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed'
+                                      : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
                                 }`}
                               >
                                 {isOwned ? (
                                   <span>🍽️ Cho Ăn (Kho: x{inventory.find(i => i.item_id === item.id)?.quantity || 1})</span>
                                 ) : (
-                                  <span>🪙 {item.price} xu (Ăn Ngay)</span>
+                                  <span>
+                                    🪙 {item.price} xu (Ăn Ngay)
+                                    {userCoins < item.price && (
+                                      <span className="text-[9px] font-bold text-amber-700 ml-1 opacity-80">
+                                        (Thiếu {item.price - userCoins})
+                                      </span>
+                                    )}
+                                  </span>
                                 )}
                               </button>
                             ) : item.type === 'decor' ? (
@@ -1244,14 +1387,18 @@ export default function PetPage() {
                                     e.stopPropagation();
                                     handlePurchase(item);
                                   }}
-                                  disabled={userCoins < item.price}
-                                  className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 ${
+                                  className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 active:scale-95 ${
                                     userCoins >= item.price
                                       ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500'
-                                      : 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed'
+                                      : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
                                   }`}
                                 >
                                   <span>🪙</span> {item.price} xu
+                                  {userCoins < item.price && (
+                                    <span className="text-[9px] font-bold text-amber-700 ml-0.5 opacity-85">
+                                      (Thiếu {item.price - userCoins})
+                                    </span>
+                                  )}
                                 </button>
                               )
                             ) : item.type === 'habitat' ? (
@@ -1261,7 +1408,7 @@ export default function PetPage() {
                                     e.stopPropagation();
                                     handleChangeHabitat(item.id);
                                   }}
-                                  className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs ${
+                                  className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs active:scale-95 ${
                                     petData?.selected_habitat === item.id
                                       ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                                       : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-700'
@@ -1275,14 +1422,18 @@ export default function PetPage() {
                                     e.stopPropagation();
                                     handlePurchase(item);
                                   }}
-                                  disabled={userCoins < item.price}
-                                  className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 ${
+                                  className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 active:scale-95 ${
                                     userCoins >= item.price
                                       ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500'
-                                      : 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed'
+                                      : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
                                   }`}
                                 >
                                   <span>🪙</span> {item.price} xu
+                                  {userCoins < item.price && (
+                                    <span className="text-[9px] font-bold text-amber-700 ml-0.5 opacity-85">
+                                      (Thiếu {item.price - userCoins})
+                                    </span>
+                                  )}
                                 </button>
                               )
                             ) : isOwned ? (
@@ -1291,7 +1442,7 @@ export default function PetPage() {
                                   e.stopPropagation();
                                   handleEquip(item);
                                 }}
-                                className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs ${
+                                className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs active:scale-95 ${
                                   isActuallyEquipped
                                     ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'
                                     : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-700'
@@ -1305,14 +1456,18 @@ export default function PetPage() {
                                   e.stopPropagation();
                                   handlePurchase(item);
                                 }}
-                                disabled={userCoins < item.price}
-                                className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 ${
+                                className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 active:scale-95 ${
                                   userCoins >= item.price
                                     ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500'
-                                    : 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed'
+                                    : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
                                 }`}
                               >
                                 <span>🪙</span> {item.price} xu
+                                {userCoins < item.price && (
+                                  <span className="text-[9px] font-bold text-amber-700 ml-0.5 opacity-85">
+                                    (Thiếu {item.price - userCoins})
+                                  </span>
+                                )}
                               </button>
                             )}
                           </div>
