@@ -194,20 +194,21 @@ textarea::placeholder {
   animation: drawer-slide 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Flame glow pulse */
+/* Flame glow pulse - Hardware accelerated without expensive software drop-shadow */
 @keyframes flame-glow {
   0%, 100% {
-    filter: drop-shadow(0 0 2px rgba(249, 115, 22, 0.4));
     transform: scale(1);
+    opacity: 0.92;
   }
   50% {
-    filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.8));
-    transform: scale(1.06);
+    transform: scale(1.1);
+    opacity: 1;
   }
 }
 
 .animate-flame {
   animation: flame-glow 1.8s ease-in-out infinite;
+  will-change: transform;
 }
 
 /* 3D Flashcard flip classes */
@@ -461,9 +462,10 @@ aside::-webkit-scrollbar-thumb:hover {
 
 /* ========================================================================= */
 /* Custom Cat Pointer (Reaching Paw & Click Impact Sparks) - DESKTOP ONLY   */
+/* Uses CSS inheritance to prevent expensive full-DOM style invalidations    */
 /* ========================================================================= */
 @media (hover: hover) and (pointer: fine) {
-  *, *::before, *::after {
+  body {
     cursor: url('/cursor-mouse.png') 5 7, auto;
   }
 
@@ -473,47 +475,38 @@ aside::-webkit-scrollbar-thumb:hover {
   [role="button"],
   select,
   summary {
-    cursor: url('/cursor-mouse.png') 5 7, pointer !important;
+    cursor: url('/cursor-mouse.png') 5 7, pointer;
   }
 
   .cursor-text,
   input,
   textarea {
-    cursor: url('/cursor-mouse.png') 5 7, text !important;
+    cursor: text;
   }
 
-  /* Instant hardware active state & mouse-down class state */
-  html:active,
+  /* Instant hardware active state & mouse-down class state without full DOM recalculation */
+  html.mouse-down body,
+  html.mouse-down a,
+  html.mouse-down button,
   body:active,
-  *:active,
-  *::before:active,
-  *::after:active,
   a:active,
   button:active,
-  input:active,
-  textarea:active,
-  select:active,
-  [role="button"]:active,
-  html.mouse-down,
-  html.mouse-down *,
-  html.mouse-down *::before,
-  html.mouse-down *::after {
-    cursor: url('/cursor-click.png') 5 7, auto !important;
+  [role="button"]:active {
+    cursor: url('/cursor-click.png') 5 7, auto;
   }
 
-  /* Drag & Drop / Grabbing State (Hugging Cat from om.png) */
+  /* Drag & Drop / Grabbing State */
   .cursor-grab,
   [draggable="true"] {
-    cursor: url('/cursor-drag.png') 3 4, grab !important;
+    cursor: url('/cursor-drag.png') 3 4, grab;
   }
 
   .cursor-grabbing,
   [draggable="true"]:active,
-  html.mouse-dragging,
-  html.mouse-dragging *,
-  html.mouse-dragging *::before,
-  html.mouse-dragging *::after {
-    cursor: url('/cursor-drag.png') 3 4, grabbing !important;
+  html.mouse-dragging body,
+  html.mouse-dragging a,
+  html.mouse-dragging button {
+    cursor: url('/cursor-drag.png') 3 4, grabbing;
   }
 }
 
@@ -529,6 +522,7 @@ main,
 .custom-scrollbar {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
+  touch-action: pan-y;
 }
 
 button,

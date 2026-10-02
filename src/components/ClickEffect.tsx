@@ -41,20 +41,16 @@ export default function ClickEffect() {
   const particlesRef = useRef<Particle[]>([]);
   const ripplesRef = useRef<Ripple[]>([]);
   const animIdRef = useRef<number | null>(null);
-  const [isTouchDevice, setIsTouchDevice] = useState<boolean | null>(null);
+  const [isTouchDevice] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return (
+      window.matchMedia('(pointer: coarse) and not (pointer: fine)').matches ||
+      ('ontouchstart' in window && window.innerWidth < 1024)
+    );
+  });
 
   useEffect(() => {
-    // Mobile Touch Detection: Pure touch handheld devices (phones, small tablets)
-    // should NOT run 100vw x 100vh canvas particle loops during finger scrolls.
-    const isTouchOnly =
-      window.matchMedia('(pointer: coarse) and not (pointer: fine)').matches ||
-      ('ontouchstart' in window && window.innerWidth < 1024);
-
-    if (isTouchOnly) {
-      setIsTouchDevice(true);
-      return;
-    }
-    setIsTouchDevice(false);
+    if (isTouchDevice) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -98,7 +94,7 @@ export default function ClickEffect() {
         lineWidth: 1.5,
       });
 
-      const count = 7 + Math.floor(Math.random() * 4);
+      const count = 4 + Math.floor(Math.random() * 3);
       for (let i = 0; i < count; i++) {
         const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
         const speed = 1.8 + Math.random() * 3.2;

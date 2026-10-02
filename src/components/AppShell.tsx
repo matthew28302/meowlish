@@ -71,27 +71,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     sound.playWrong();
   };
 
-  // Automated background backup to Filebase S3 silently every 15 minutes
-  useEffect(() => {
-    const autoBackup = async () => {
-      try {
-        await fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'upload' }),
-        });
-      } catch {}
-    };
-
-    // First backup 20s after app mount, then every 15 mins
-    const initTimer = setTimeout(autoBackup, 20000);
-    const interval = setInterval(autoBackup, 15 * 60 * 1000);
-    return () => {
-      clearTimeout(initTimer);
-      clearInterval(interval);
-    };
-  }, []);
-
   // Listen for open-email-verify-modal and open-auth-modal events
   useEffect(() => {
     const handleOpenVerify = (e: any) => {
@@ -163,7 +142,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!currentUser?.id || isAdminRoute) return;
 
+    let lastChecked = Date.now();
+
     const checkSession = async () => {
+      // Throttle: avoid redundant checks within 30 seconds
+      if (Date.now() - lastChecked < 30000) return;
+      lastChecked = Date.now();
       try {
         const res = await fetch(`/api/progress?userId=${currentUser.id}`);
         if (res.status === 403) {
@@ -180,19 +164,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       } catch {}
     };
 
-    // Kiểm tra định kỳ mỗi 60 giây và ngay lập tức khi người dùng quay lại tab trình duyệt
-    const interval = setInterval(checkSession, 60000);
-    const onFocus = () => checkSession();
+    const interval = setInterval(checkSession, 90000);
     const onVisibility = () => {
       if (document.visibilityState === 'visible') checkSession();
     };
 
-    window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [currentUser?.id, isAdminRoute]);
@@ -540,7 +520,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     title={`Số dư: ${currentUser.coins || 0} Coins. Bấm để ghé thăm Khu Vườn Thú Cưng!`}
                     className="flex items-center gap-1 sm:gap-1.5 bg-amber-100/70 hover:bg-amber-100 border border-amber-300 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full cursor-pointer transition select-none hover:scale-105 active:scale-95 shadow-xs"
                   >
-                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 fill-amber-400 animate-bounce" />
+                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 fill-amber-400 transition-transform hover:scale-110" />
                     <span className="text-[11px] sm:text-xs font-black text-amber-900">
                       {currentUser.coins || 0}
                     </span>

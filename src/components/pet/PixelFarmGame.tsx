@@ -2876,6 +2876,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           style={{
             left: `${petPos.x}%`,
             top: `${petPos.y}%`,
+            willChange: 'left, top',
             transition:
               isBouncingMushroom || isBouncingBeanbag || isBouncingPipes || isWarpStarActive
                 ? 'top 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.3s ease'

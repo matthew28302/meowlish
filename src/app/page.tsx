@@ -303,7 +303,7 @@ export default function HomePage() {
                   <span className="text-lg">{path.icon}</span>
                   <span>{path.title.split(' ')[2] || path.title}</span>
                   {isSelected && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
                   )}
                 </button>
               );
@@ -365,7 +365,7 @@ export default function HomePage() {
                       isCompleted
                         ? 'bg-emerald-500 text-white border-emerald-600 scale-105'
                         : isFirstUncompleted
-                        ? 'bg-gradient-to-tr from-amber-400 to-orange-400 text-slate-950 border-amber-500 animate-bounce'
+                        ? 'bg-gradient-to-tr from-amber-400 to-orange-400 text-slate-950 border-amber-500 ring-4 ring-amber-300/60 shadow-lg'
                         : 'bg-slate-100 text-slate-400 border-slate-200'
                     }`}
                   >
@@ -681,7 +681,7 @@ export default function HomePage() {
           <section className="card-playful p-5 border-2 border-slate-200 bg-white space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2 text-xs font-black text-emerald-700 uppercase tracking-wide">
-                <MousePointerClick className="w-4 h-4 text-emerald-500 animate-bounce" />
+                <MousePointerClick className="w-4 h-4 text-emerald-500" />
                 Tính Năng Bôi Đen Tra Từ & Lưu Bookmark Tức Thì
               </div>
               <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">

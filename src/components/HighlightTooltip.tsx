@@ -260,13 +260,17 @@ export default function HighlightTooltip() {
   // Listen to selectionchange (with 200ms debounce whenever selection stops), touchend and mouseup
   useEffect(() => {
     const onSelectionChange = () => {
+      // ON MOBILE: selectionchange fires repeatedly during every finger scroll/touch!
+      // Ignore during touch to prevent forced synchronous layout thrashing & scroll stutter.
+      if (typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+        return;
+      }
       if (selectionTimerRef.current) {
         clearTimeout(selectionTimerRef.current);
       }
-      // 200ms debounce: triggers immediately whenever user stops highlighting or expanding selection!
       selectionTimerRef.current = setTimeout(() => {
         handleSelection();
-      }, 200);
+      }, 250);
     };
 
     const onMouseUp = (e: MouseEvent) => {
@@ -287,7 +291,7 @@ export default function HighlightTooltip() {
         return;
       }
       if (selectionTimerRef.current) clearTimeout(selectionTimerRef.current);
-      setTimeout(handleSelection, 50);
+      setTimeout(handleSelection, 120);
     };
 
     document.addEventListener('selectionchange', onSelectionChange);
