@@ -30,22 +30,42 @@ export default function EmailVerifyModal({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Sync state whenever modal opens or initialSessionId changes
+  const lastAutoSentTimeRef = React.useRef<number>(0);
+
+  // Sync state whenever modal opens: Tự động gửi mã OTP ngay nếu tài khoản đã có email
   useEffect(() => {
-    if (initialSessionId) {
-      setSessionId(initialSessionId);
-      setStep('otp');
-    } else {
-      // Default to intermediate request step so opening modal NEVER triggers auto-email spam
-      setStep('request');
-    }
-    if (user?.email) {
-      setCustomEmail(user.email);
-    }
+    if (!isOpen || !user) return;
+
     setError(null);
     setSuccess(null);
     setOtp('');
-  }, [isOpen, initialSessionId, user?.email]);
+
+    if (user.email) {
+      setCustomEmail(user.email);
+    }
+
+    if (initialSessionId) {
+      setSessionId(initialSessionId);
+      setStep('otp');
+      setSuccess(`Mã xác thực OTP đã được gửi đến email ${user.email || ''}! Vui lòng kiểm tra hộp thư.`);
+      return;
+    }
+
+    // Nếu người dùng đã có email trong tài khoản: TỰ ĐỘNG GỬI MÃ OTP NGAY LẬP TỨC
+    const target = (user.email || customEmail).trim();
+    if (target && target.includes('@') && target.includes('.')) {
+      setStep('otp');
+      const now = Date.now();
+      // Chống gửi lặp lại trong vòng 20s
+      if (now - lastAutoSentTimeRef.current > 20000) {
+        lastAutoSentTimeRef.current = now;
+        handleRequestCode(undefined, target);
+      }
+    } else {
+      // Nếu chưa có email, hiển thị bước nhập email
+      setStep('request');
+    }
+  }, [isOpen, initialSessionId, user?.id, user?.email]);
 
   // Countdown timer for OTP
   useEffect(() => {
@@ -64,10 +84,11 @@ export default function EmailVerifyModal({
 
   const targetEmail = (user.email || customEmail).trim();
 
-  // BƯỚC 1: Người dùng CHỦ ĐỘNG ấn nút mới tiến hành gửi email xác thực
-  const handleRequestCode = async (e?: React.FormEvent) => {
+  // Gửi hoặc gửi lại mã OTP xác thực
+  const handleRequestCode = async (e?: React.FormEvent, forcedEmail?: string) => {
     if (e) e.preventDefault();
-    if (!targetEmail || !targetEmail.includes('@') || !targetEmail.includes('.')) {
+    const emailToSend = (forcedEmail || user.email || customEmail).trim();
+    if (!emailToSend || !emailToSend.includes('@') || !emailToSend.includes('.')) {
       setError('Vui lòng nhập đúng định dạng email hợp lệ (ví dụ: ten@gmail.com).');
       sound.playWrong();
       return;
@@ -85,7 +106,7 @@ export default function EmailVerifyModal({
         body: JSON.stringify({
           action: 'request_email_verification',
           userId: user.id,
-          email: targetEmail,
+          email: emailToSend,
         }),
       });
 
@@ -95,7 +116,7 @@ export default function EmailVerifyModal({
         setSessionId(data.sessionId);
         setCountdown(300);
         setOtp('');
-        setSuccess(`Đã gửi mã OTP 6 số đến ${targetEmail}! Vui lòng kiểm tra hộp thư.`);
+        setSuccess(`Đã gửi mã OTP 6 số đến ${emailToSend}! Vui lòng kiểm tra Hộp thư đến hoặc Thư rác.`);
         setStep('otp');
       } else {
         setError(data.error || 'Không thể gửi mã xác thực. Vui lòng thử lại sau.');
@@ -265,8 +286,15 @@ export default function EmailVerifyModal({
               <h2 className="text-xl font-black text-slate-900 dark:text-white">
                 Nhập Mã Xác Thực OTP
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed px-2">
-                Đã gửi mã OTP 6 số đến email:
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed px-2 flex items-center justify-center gap-1.5">
+                {resending ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-500 inline" />
+                    <span className="text-emerald-600 font-bold">Đang gửi mã xác thực tới email:</span>
+                  </>
+                ) : (
+                  <span>Đã gửi mã OTP 6 số đến email:</span>
+                )}
               </p>
               <div className="inline-block px-3 py-1 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-xl font-mono text-xs font-bold text-emerald-700 dark:text-emerald-300">
                 {targetEmail}
@@ -302,10 +330,14 @@ export default function EmailVerifyModal({
                 <button
                   type="button"
                   onClick={() => handleRequestCode()}
-                  disabled={resending || countdown > 270}
+                  disabled={resending || countdown > 285}
                   className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-bold cursor-pointer disabled:opacity-40 disabled:no-underline"
                 >
-                  {resending ? 'Đang gửi...' : 'Gửi lại mã'}
+                  {resending
+                    ? 'Đang gửi...'
+                    : countdown > 285
+                    ? `Gửi lại sau (${countdown - 285}s)`
+                    : 'Gửi lại mã'}
                 </button>
               </div>
 

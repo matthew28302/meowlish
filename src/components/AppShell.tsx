@@ -95,9 +95,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // Listen for open-email-verify-modal and open-auth-modal events
   useEffect(() => {
     const handleOpenVerify = (e: any) => {
-      if (e.detail?.sessionId) {
-        setEmailVerifySessionId(e.detail.sessionId);
-      }
+      setEmailVerifySessionId(e.detail?.sessionId || null);
       setIsEmailVerifyOpen(true);
     };
     const handleOpenAuth = () => {
@@ -788,7 +786,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* 6. EMAIL VERIFICATION MODAL */}
       <EmailVerifyModal
         isOpen={isEmailVerifyOpen}
-        onClose={() => setIsEmailVerifyOpen(false)}
+        onClose={() => {
+          setIsEmailVerifyOpen(false);
+          setEmailVerifySessionId(null);
+        }}
         user={currentUser}
         initialSessionId={emailVerifySessionId}
         onVerified={(updated) => {

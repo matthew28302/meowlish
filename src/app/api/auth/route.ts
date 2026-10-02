@@ -391,13 +391,16 @@ export async function POST(request: Request) {
           otp: otpCode,
         });
 
-        // Gửi email không block luồng
-        sendUserOtpEmail({
+        // Bắt buộc await để hoàn thành gửi SMTP trước khi kết thúc response
+        const emailSendRes = await sendUserOtpEmail({
           email: cleanEmail,
           otp: otpCode,
           purpose: 'verify_email',
           displayName: name,
-        }).catch((e) => logger.warn('[Register] Send verification email warning:', { error: e }));
+        });
+        if (!emailSendRes.success) {
+          logger.warn('[Register] Send verification email warning:', { error: emailSendRes.error });
+        }
       }
 
       logger.info(`User registered successfully: ${cleanUsername}`, { id });
