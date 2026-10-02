@@ -688,10 +688,13 @@ export default function DuaHauAdminPage() {
   // Tab switch effect
   useEffect(() => {
     if (isAuthenticated) {
+      setLogSearch('');
+      setLogFilter('all');
+      setLogPage(1);
       if (activeAdminTab === 'access_logs' || activeAdminTab === 'error_logs' || activeAdminTab === 'email_logs') {
         fetchLogs(activeAdminTab, 1, '', 'all');
       } else if (activeAdminTab === 'support') {
-        fetchSupport();
+        fetchSupport(undefined, 'all', 'all', '');
       }
     }
   }, [activeAdminTab, isAuthenticated]);
@@ -714,7 +717,7 @@ export default function DuaHauAdminPage() {
   // =========================================================================
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950 text-slate-100 flex items-center justify-center p-4 select-none">
+      <div className="min-h-full w-full bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950 text-slate-100 flex items-center justify-center p-4 py-8 select-none">
         <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl border-2 border-rose-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
           {/* Neon Glow Watermelon Accents */}
           <div className="absolute -top-16 -right-16 w-36 h-36 bg-rose-500/20 rounded-full blur-3xl pointer-events-none" />
@@ -916,7 +919,7 @@ export default function DuaHauAdminPage() {
   // VIEW 2: AUTHENTICATED ADMIN CONSOLE (DASHBOARD & USER CONTROLLER)
   // =========================================================================
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="min-h-full w-full bg-slate-950 text-slate-100 flex flex-col">
       {/* Toast Notification */}
       {notification && (
         <div
@@ -1060,13 +1063,13 @@ export default function DuaHauAdminPage() {
         </div>
 
         {/* ADMIN TAB NAVIGATION BAR */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-2 sm:p-2.5 flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none shadow-md">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-2 sm:p-2.5 flex items-center gap-1.5 sm:gap-2 overflow-x-auto overscroll-x-contain scrollbar-none shadow-md">
           <button
             onClick={() => {
               setActiveAdminTab('users');
               sound.playClick();
             }}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
+            className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
               activeAdminTab === 'users'
                 ? 'bg-rose-600 text-white shadow-lg shadow-rose-900/40'
                 : 'text-slate-400 hover:text-white hover:bg-slate-850'
@@ -1084,7 +1087,7 @@ export default function DuaHauAdminPage() {
               setActiveAdminTab('access_logs');
               sound.playClick();
             }}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
+            className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
               activeAdminTab === 'access_logs'
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/40'
                 : 'text-slate-400 hover:text-white hover:bg-slate-850'
@@ -1104,7 +1107,7 @@ export default function DuaHauAdminPage() {
               setActiveAdminTab('error_logs');
               sound.playClick();
             }}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
+            className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
               activeAdminTab === 'error_logs'
                 ? 'bg-rose-700 text-white shadow-lg shadow-rose-950'
                 : 'text-slate-400 hover:text-white hover:bg-slate-850'
@@ -1124,7 +1127,7 @@ export default function DuaHauAdminPage() {
               setActiveAdminTab('email_logs');
               sound.playClick();
             }}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
+            className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
               activeAdminTab === 'email_logs'
                 ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/40'
                 : 'text-slate-400 hover:text-white hover:bg-slate-850'
@@ -1144,7 +1147,7 @@ export default function DuaHauAdminPage() {
               setActiveAdminTab('support');
               sound.playClick();
             }}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
+            className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
               activeAdminTab === 'support'
                 ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/40'
                 : 'text-slate-400 hover:text-white hover:bg-slate-850'
@@ -1226,7 +1229,7 @@ export default function DuaHauAdminPage() {
         {/* USERS TABLE */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+            <table className="w-full text-left text-xs sm:text-sm min-w-[720px]">
               <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800 text-[11px] uppercase tracking-wider">
                 <tr>
                   <th className="py-3 px-4">Người Dùng</th>
@@ -1501,7 +1504,7 @@ export default function DuaHauAdminPage() {
             {/* Access Logs Table */}
             <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[680px]">
                   <thead>
                     <tr className="border-b border-slate-800 bg-slate-950/80 text-[11px] font-black uppercase text-slate-400">
                       <th className="py-3 px-4">Thời gian</th>
@@ -1672,7 +1675,7 @@ export default function DuaHauAdminPage() {
             {/* Error Logs Table */}
             <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[680px]">
                   <thead>
                     <tr className="border-b border-slate-800 bg-slate-950/80 text-[11px] font-black uppercase text-slate-400">
                       <th className="py-3 px-4">Thời gian</th>
@@ -1849,7 +1852,7 @@ export default function DuaHauAdminPage() {
             {/* Email Logs Table */}
             <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[640px]">
                   <thead>
                     <tr className="border-b border-slate-800 bg-slate-950/80 text-[11px] font-black uppercase text-slate-400">
                       <th className="py-3 px-4">Thời gian</th>
@@ -2010,13 +2013,13 @@ export default function DuaHauAdminPage() {
             </div>
 
             {/* Quick Status Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <div className="flex items-center gap-2 overflow-x-auto overscroll-x-contain pb-1 scrollbar-none">
               <button
                 onClick={() => {
                   setSupportFilterStatus('all');
                   fetchSupport(undefined, 'all', supportFilterCategory, supportSearch);
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   supportFilterStatus === 'all'
                     ? 'bg-amber-600 text-white shadow-md'
                     : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
@@ -2029,7 +2032,7 @@ export default function DuaHauAdminPage() {
                   setSupportFilterStatus('new');
                   fetchSupport(undefined, 'new', supportFilterCategory, supportSearch);
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   supportFilterStatus === 'new'
                     ? 'bg-amber-500 text-slate-950 font-black shadow-md'
                     : 'bg-slate-900 border border-slate-800 text-amber-400 hover:text-amber-300'
@@ -2042,7 +2045,7 @@ export default function DuaHauAdminPage() {
                   setSupportFilterStatus('processing');
                   fetchSupport(undefined, 'processing', supportFilterCategory, supportSearch);
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   supportFilterStatus === 'processing'
                     ? 'bg-sky-600 text-white shadow-md'
                     : 'bg-slate-900 border border-slate-800 text-sky-400 hover:text-sky-300'
@@ -2055,7 +2058,7 @@ export default function DuaHauAdminPage() {
                   setSupportFilterStatus('resolved');
                   fetchSupport(undefined, 'resolved', supportFilterCategory, supportSearch);
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   supportFilterStatus === 'resolved'
                     ? 'bg-emerald-600 text-white shadow-md'
                     : 'bg-slate-900 border border-slate-800 text-emerald-400 hover:text-emerald-300'
@@ -2246,7 +2249,7 @@ export default function DuaHauAdminPage() {
       {/* ================= MODAL: EDIT COINS ================= */}
       {modalType === 'coins' && selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-          <div className="w-full max-w-sm bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-5 shadow-2xl space-y-4">
+          <div className="w-full max-w-sm max-h-[90dvh] overflow-y-auto overscroll-y-contain custom-scrollbar bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-5 shadow-2xl space-y-4">
             <div className="flex items-center gap-2 text-amber-400 font-black text-base">
               <Coins className="w-5 h-5" />
               <span>Chỉnh Sửa Xu: {selectedUser.username}</span>
@@ -2292,7 +2295,7 @@ export default function DuaHauAdminPage() {
       {/* ================= MODAL: EDIT LEVEL & EXP ================= */}
       {modalType === 'level' && selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-          <div className="w-full max-w-sm bg-slate-900 border-2 border-sky-500/60 rounded-3xl p-5 shadow-2xl space-y-4">
+          <div className="w-full max-w-sm max-h-[90dvh] overflow-y-auto overscroll-y-contain custom-scrollbar bg-slate-900 border-2 border-sky-500/60 rounded-3xl p-5 shadow-2xl space-y-4">
             <div className="flex items-center gap-2 text-sky-400 font-black text-base">
               <Award className="w-5 h-5" />
               <span>Chỉnh Sửa Cấp Độ: {selectedUser.username}</span>
@@ -2352,7 +2355,7 @@ export default function DuaHauAdminPage() {
       {/* ================= MODAL: SET PASSWORD ================= */}
       {modalType === 'password' && selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-          <div className="w-full max-w-sm bg-slate-900 border-2 border-rose-500/60 rounded-3xl p-5 shadow-2xl space-y-4">
+          <div className="w-full max-w-sm max-h-[90dvh] overflow-y-auto overscroll-y-contain custom-scrollbar bg-slate-900 border-2 border-rose-500/60 rounded-3xl p-5 shadow-2xl space-y-4">
             <div className="flex items-center gap-2 text-rose-400 font-black text-base">
               <KeyRound className="w-5 h-5" />
               <span>Đổi Mật Khẩu: {selectedUser.username}</span>
@@ -2398,7 +2401,7 @@ export default function DuaHauAdminPage() {
       {/* ================= MODAL: DELETE USER ================= */}
       {modalType === 'delete' && selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
-          <div className="w-full max-w-sm bg-slate-900 border-2 border-rose-500/80 rounded-3xl p-6 shadow-2xl space-y-4">
+          <div className="w-full max-w-sm max-h-[90dvh] overflow-y-auto overscroll-y-contain custom-scrollbar bg-slate-900 border-2 border-rose-500/80 rounded-3xl p-6 shadow-2xl space-y-4">
             <div className="flex items-center gap-2 text-rose-400 font-black text-base">
               <Trash2 className="w-5 h-5" />
               <span>Xác Nhận Xóa Tài Khoản</span>
@@ -2446,7 +2449,7 @@ export default function DuaHauAdminPage() {
       {/* ================= MODAL: REPLY SUPPORT TICKET ================= */}
       {selectedTicket && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
-          <div className="w-full max-w-lg bg-slate-900 border-2 border-amber-500/80 rounded-3xl p-6 shadow-2xl space-y-4">
+          <div className="w-full max-w-lg max-h-[90dvh] overflow-y-auto overscroll-y-contain custom-scrollbar bg-slate-900 border-2 border-amber-500/80 rounded-3xl p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-amber-400 font-black text-base">
                 <Mail className="w-5 h-5" />

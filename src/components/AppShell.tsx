@@ -187,9 +187,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('account-disabled', onAccountDisabled);
   }, []);
 
-  // 1. ISOLATION: On Admin Route (/duahau), render purely the admin console without any learning layout
+  // 1. ISOLATION: On Admin Route (/duahau), render purely the admin console with full-viewport scrolling
   if (isAdminRoute) {
-    return <>{children}</>;
+    return (
+      <div className="h-dvh w-full overflow-y-auto overscroll-y-contain custom-scrollbar bg-slate-950 text-slate-100">
+        {children}
+      </div>
+    );
   }
 
   // 2. PREVENT FLASH OF CONTENT: During initial hydration / session check, show minimal smooth splash
