@@ -202,6 +202,73 @@ function createDb(): Database.Database {
       CREATE INDEX IF NOT EXISTS idx_user_otp_user_id ON user_otp_sessions(user_id);
     `);
 
+    // Bảng nhật ký truy cập (Log Access)
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS system_access_logs (
+        id TEXT PRIMARY KEY,
+        timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+        user_id TEXT,
+        username TEXT,
+        action TEXT NOT NULL,
+        ip TEXT,
+        user_agent TEXT,
+        status TEXT DEFAULT 'success',
+        details TEXT
+      );
+      CREATE INDEX IF NOT EXISTS idx_access_logs_time ON system_access_logs(timestamp);
+      CREATE INDEX IF NOT EXISTS idx_access_logs_action ON system_access_logs(action);
+    `);
+
+    // Bảng nhật ký lỗi hệ thống (Log Error)
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS system_error_logs (
+        id TEXT PRIMARY KEY,
+        timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+        endpoint TEXT,
+        error_message TEXT NOT NULL,
+        stack_trace TEXT,
+        ip TEXT,
+        user_id TEXT,
+        severity TEXT DEFAULT 'error'
+      );
+      CREATE INDEX IF NOT EXISTS idx_error_logs_time ON system_error_logs(timestamp);
+    `);
+
+    // Bảng nhật ký gửi email (Log Email)
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS system_email_logs (
+        id TEXT PRIMARY KEY,
+        timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+        recipient TEXT NOT NULL,
+        subject TEXT,
+        purpose TEXT NOT NULL,
+        status TEXT NOT NULL,
+        error_message TEXT,
+        ip TEXT
+      );
+      CREATE INDEX IF NOT EXISTS idx_email_logs_time ON system_email_logs(timestamp);
+    `);
+
+    // Bảng tin nhắn hỗ trợ & góp ý (Support messages)
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS support_messages (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        user_id TEXT,
+        category TEXT NOT NULL,
+        subject TEXT NOT NULL,
+        message TEXT NOT NULL,
+        rating INTEGER DEFAULT 5,
+        status TEXT DEFAULT 'new',
+        admin_reply TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        resolved_at TEXT
+      );
+      CREATE INDEX IF NOT EXISTS idx_support_status ON support_messages(status);
+      CREATE INDEX IF NOT EXISTS idx_support_time ON support_messages(created_at);
+    `);
+
     // Cập nhật tất cả tài khoản cũ chưa có giá trị coins mặc định
     db.exec("UPDATE users SET coins = 1000 WHERE coins IS NULL;");
     db.exec("UPDATE users SET role = 'user' WHERE role IS NULL;");

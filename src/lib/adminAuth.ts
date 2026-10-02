@@ -3,6 +3,7 @@ import dns from 'dns';
 import nodemailer from 'nodemailer';
 import { db, hashPassword } from './db';
 import logger from './logger';
+import { logEmail } from './systemLogs';
 
 async function resolveIpv4(host: string): Promise<string> {
   try {
@@ -177,9 +178,22 @@ export async function sendAdminOtpEmail(otp: string): Promise<{ success: boolean
 
     await transporter.sendMail(mailOptions);
     logger.info(`[Admin 2FA] OTP email successfully sent to ${ADMIN_EMAIL}`);
+    logEmail({
+      recipient: ADMIN_EMAIL,
+      subject: `[ADMIN 2FA CODE] ${otp} - Meowlish Dưa Hấu Console`,
+      purpose: 'admin_2fa',
+      status: 'sent',
+    });
     return { success: true };
   } catch (err: any) {
     logger.error('[Admin 2FA] Failed to send OTP email:', { error: err });
+    logEmail({
+      recipient: ADMIN_EMAIL,
+      subject: `[ADMIN 2FA CODE] OTP Email`,
+      purpose: 'admin_2fa',
+      status: 'failed',
+      error_message: err?.message || 'Lỗi gửi email máy chủ',
+    });
     return { success: false, error: err.message || 'Lỗi gửi email máy chủ' };
   }
 }

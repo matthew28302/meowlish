@@ -3,6 +3,7 @@ import dns from 'dns';
 import nodemailer from 'nodemailer';
 import { db } from './db';
 import logger from './logger';
+import { logEmail } from './systemLogs';
 
 // Helper to resolve IPv4
 async function resolveIpv4(host: string): Promise<string> {
@@ -148,9 +149,22 @@ export async function sendUserOtpEmail({
 
     await transporter.sendMail(mailOptions);
     logger.info(`[User 2FA] OTP email sent to ${email} for purpose: ${purpose}`);
+    logEmail({
+      recipient: email,
+      subject,
+      purpose,
+      status: 'sent',
+    });
     return { success: true };
   } catch (err: any) {
     logger.error('[User 2FA] Failed to send OTP email:', { error: err });
+    logEmail({
+      recipient: email,
+      subject: `OTP Email (${purpose})`,
+      purpose,
+      status: 'failed',
+      error_message: err?.message || 'Lỗi gửi email máy chủ',
+    });
     return { success: false, error: err.message || 'Lỗi gửi email máy chủ' };
   }
 }

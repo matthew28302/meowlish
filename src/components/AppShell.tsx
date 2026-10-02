@@ -27,6 +27,7 @@ import {
   CloudUpload,
   Check,
   ArrowRight,
+  HelpCircle,
 } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
 import { AuthUser, getCurrentUser, setStoredUser, clearStoredUser, removeSavedAccount } from '@/lib/auth';
@@ -298,6 +299,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         { href: '/bookmarks', label: 'Sổ Từ Bookmark', icon: Bookmark },
       ],
     },
+    {
+      title: 'HỖ TRỢ & HƯỚNG DẪN',
+      items: [
+        { href: '/support', label: 'Hướng Dẫn & Góp Ý', icon: HelpCircle, badge: 'Mới', badgeColor: 'bg-emerald-100 text-emerald-800' },
+      ],
+    },
   ];
 
   const mobilePrimaryLinks = [
@@ -320,6 +327,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     if (pathname === '/practice/roleplay') return 'Đóng Vai Daily Scrum';
     if (pathname === '/flashcards') return 'Flashcard 3D Spaced Repetition';
     if (pathname === '/bookmarks') return 'Sổ Từ Vựng Đã Lưu';
+    if (pathname === '/support') return 'Hỗ Trợ & Hướng Dẫn Sử Dụng';
     return 'Meowlish';
   };
 
@@ -380,10 +388,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       key={item.href}
                       href={item.href}
                       onClick={(e) => {
-                        if (!currentUser && item.href !== '/encyclopedia') {
+                        if (!currentUser && item.href !== '/encyclopedia' && item.href !== '/support') {
                           e.preventDefault();
                           setShowAuth(true);
-                        } else if (currentUser && currentUser.email && currentUser.email_verified === false && item.href !== '/encyclopedia') {
+                        } else if (currentUser && currentUser.email && currentUser.email_verified === false && item.href !== '/encyclopedia' && item.href !== '/support') {
                           e.preventDefault();
                           sound.playWrong();
                           setIsEmailVerifyOpen(true);
@@ -694,11 +702,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                             key={item.href}
                             href={item.href}
                             onClick={(e) => {
-                              if (!currentUser && item.href !== '/encyclopedia') {
+                              if (!currentUser && item.href !== '/encyclopedia' && item.href !== '/support') {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 setShowAuth(true);
-                              } else if (currentUser && currentUser.email && currentUser.email_verified === false && item.href !== '/encyclopedia') {
+                              } else if (currentUser && currentUser.email && currentUser.email_verified === false && item.href !== '/encyclopedia' && item.href !== '/support') {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 sound.playWrong();
