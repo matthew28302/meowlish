@@ -249,9 +249,70 @@ export default function PetPage() {
     } catch {}
   };
 
-  // Action: Equip or Unequip Item on Pet
+  // Action: Unequip Item explicitly
+  const handleUnequip = async (itemType: 'hat' | 'outfit' | 'accessory') => {
+    sound.playClick();
+    const field = itemType === 'hat' ? 'equipped_hat' : itemType === 'outfit' ? 'equipped_outfit' : 'equipped_accessory';
+
+    setPetData((prev: any) => {
+      const updated = { ...prev, [field]: 'none' };
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('meowlish_pet_cache', JSON.stringify(updated));
+        }
+      } catch {}
+      return updated;
+    });
+
+    if (itemType === 'hat') setPreviewHat(null);
+    if (itemType === 'outfit') setPreviewOutfit(null);
+    if (itemType === 'accessory') setPreviewAccessory(null);
+
+    window.dispatchEvent(new Event('auth-state-changed'));
+
+    try {
+      const res = await fetch('/api/pet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUser?.id,
+          action: 'equip',
+          itemId: 'none',
+          itemType,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPetData((prev: any) => ({ ...prev, ...data.pet }));
+      }
+    } catch {}
+  };
+
+  // Action: Equip or Unequip Item on Pet (Optimistic Update)
   const handleEquip = async (item: ShopItem) => {
     sound.playClick();
+
+    const field = item.type === 'hat' ? 'equipped_hat' : item.type === 'outfit' ? 'equipped_outfit' : 'equipped_accessory';
+    const isCurrentlyEquipped = petData?.[field] === item.id;
+    const nextVal = isCurrentlyEquipped ? 'none' : item.id;
+
+    // Optimistic Update immediately
+    setPetData((prev: any) => {
+      const updated = { ...prev, [field]: nextVal };
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('meowlish_pet_cache', JSON.stringify(updated));
+        }
+      } catch {}
+      return updated;
+    });
+
+    if (item.type === 'hat') setPreviewHat(nextVal === 'none' ? null : nextVal);
+    if (item.type === 'outfit') setPreviewOutfit(nextVal === 'none' ? null : nextVal);
+    if (item.type === 'accessory') setPreviewAccessory(nextVal === 'none' ? null : nextVal);
+
+    window.dispatchEvent(new Event('auth-state-changed'));
+
     try {
       const res = await fetch('/api/pet', {
         method: 'POST',
@@ -273,17 +334,12 @@ export default function PetPage() {
           } catch {}
           return updated;
         });
-        // Also sync preview if modal open
-        if (item.type === 'hat') setPreviewHat(data.pet.equipped_hat);
-        if (item.type === 'outfit') setPreviewOutfit(data.pet.equipped_outfit);
-        if (item.type === 'accessory') setPreviewAccessory(data.pet.equipped_accessory);
-
         window.dispatchEvent(new Event('auth-state-changed'));
       }
     } catch {}
   };
 
-  // Action: Switch Pet Species
+  // Action: Switch Pet Species (Optimistic Update)
   const handleSwitchPet = async (petId: string) => {
     if (petId === 'cinnamoroll') {
       const access = checkCinnamorollAccess(currentUser);
@@ -316,6 +372,34 @@ export default function PetPage() {
     }
 
     sound.playCelebration();
+    confetti({
+      particleCount: 45,
+      spread: 60,
+      origin: { y: 0.5 },
+    });
+
+    const chosenMeta = PETS_CATALOG[petId] || PETS_CATALOG.owl;
+
+    // Optimistic Update immediately
+    setPetData((prev: any) => {
+      const updated = {
+        ...prev,
+        pet_type: petId,
+        pet_name: chosenMeta.name,
+        meta: chosenMeta,
+      };
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('pet_selected_species', petId);
+          localStorage.setItem('meowlish_pet_cache', JSON.stringify(updated));
+        }
+      } catch {}
+      return updated;
+    });
+
+    setShowSwitchModal(false);
+    window.dispatchEvent(new Event('auth-state-changed'));
+
     try {
       const res = await fetch('/api/pet', {
         method: 'POST',
@@ -330,7 +414,7 @@ export default function PetPage() {
         const data = await res.json();
         const updated = {
           ...data.pet,
-          meta: PETS_CATALOG[petId] || data.pet.meta,
+          meta: chosenMeta,
         };
         try {
           if (typeof window !== 'undefined') {
@@ -339,7 +423,6 @@ export default function PetPage() {
           }
         } catch {}
         setPetData(updated);
-        setShowSwitchModal(false);
         window.dispatchEvent(new Event('auth-state-changed'));
       }
     } catch {}
@@ -474,18 +557,34 @@ export default function PetPage() {
   const handleApplyPreview = async () => {
     sound.playSuccess();
     try {
-      // Find what changed and call equip
-      if (previewHat !== petData?.equipped_hat && previewHat) {
-        const hatItem = SHOP_ITEMS.find((i) => i.id === previewHat);
-        if (hatItem) await handleEquip(hatItem);
+      // Find what changed and call equip or unequip
+      const targetHat = previewHat || 'none';
+      const targetOutfit = previewOutfit || 'none';
+      const targetAccessory = previewAccessory || 'none';
+
+      if (targetHat !== (petData?.equipped_hat || 'none')) {
+        if (targetHat === 'none') {
+          await handleUnequip('hat');
+        } else {
+          const hatItem = SHOP_ITEMS.find((i) => i.id === targetHat);
+          if (hatItem) await handleEquip(hatItem);
+        }
       }
-      if (previewOutfit !== petData?.equipped_outfit && previewOutfit) {
-        const outfitItem = SHOP_ITEMS.find((i) => i.id === previewOutfit);
-        if (outfitItem) await handleEquip(outfitItem);
+      if (targetOutfit !== (petData?.equipped_outfit || 'none')) {
+        if (targetOutfit === 'none') {
+          await handleUnequip('outfit');
+        } else {
+          const outfitItem = SHOP_ITEMS.find((i) => i.id === targetOutfit);
+          if (outfitItem) await handleEquip(outfitItem);
+        }
       }
-      if (previewAccessory !== petData?.equipped_accessory && previewAccessory) {
-        const accItem = SHOP_ITEMS.find((i) => i.id === previewAccessory);
-        if (accItem) await handleEquip(accItem);
+      if (targetAccessory !== (petData?.equipped_accessory || 'none')) {
+        if (targetAccessory === 'none') {
+          await handleUnequip('accessory');
+        } else {
+          const accItem = SHOP_ITEMS.find((i) => i.id === targetAccessory);
+          if (accItem) await handleEquip(accItem);
+        }
       }
       confetti({
         particleCount: 40,

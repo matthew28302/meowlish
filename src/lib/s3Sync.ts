@@ -82,7 +82,8 @@ function getDbFingerprint(): string {
   return ['', '-wal', '-shm']
     .map((suffix) => {
       try {
-        const st = fs.statSync(dbPath + suffix);
+        const targetFilePath = path.join(dbDir, `${DB_FILENAME}${suffix}`);
+        const st = fs.statSync(/*turbopackIgnore: true*/ targetFilePath);
         return `${st.size}:${st.mtimeMs}`;
       } catch {
         return 'missing';
@@ -171,8 +172,26 @@ export function startAutoSync(): void {
     autoSyncTick().catch(() => {});
   }, 5_000);
 
-  // Khởi động lại server: nếu DB local có thay đổi S kể từ lần upload cuối
-  // (vd: thao tác lúc server đang tắt) -> upload bù ngay, không cần chờ thay đổi mới.
+  // Khởi động server: nếu trên Vercel hoặc cold start, ưu tiên kéo DB mới nhất từ Filebase S3 về trước!
+  setTimeout(async () => {
+    try {
+      const isVercel = process.env.VERCEL === '1';
+      const needsRestore = isVercel && !fs.existsSync(path.join(dbDir, '.s3_restored'));
+      let localSize = 0;
+      try {
+        if (fs.existsSync(dbPath)) localSize = fs.statSync(dbPath).size;
+      } catch {}
+
+      if (needsRestore || localSize < 1_000_000) {
+        logger.info('[S3 AutoSync] Cold-start/Fresh instance detected -> restoring from Filebase S3...');
+        await downloadDbFromS3(true);
+      }
+    } catch (err: any) {
+      logger.warn('[S3 AutoSync] Cold-start restore check failed:', { error: err?.message || String(err) });
+    }
+  }, 1_000);
+
+  // Sau khi hệ thống đã ổn định, kiểm tra xem có thay đổi cục bộ nào cần upload bù không
   setTimeout(async () => {
     try {
       if (state.isSyncing) return;
@@ -181,10 +200,15 @@ export function startAutoSync(): void {
       const head = await s3.send(new HeadObjectCommand({ Bucket: getBucketName(), Key: DB_FILENAME }));
       const remoteMtime = head.LastModified?.getTime() || 0;
       let localMtime = 0;
+      let localSize = 0;
       try {
-        localMtime = fs.statSync(dbPath).mtimeMs;
+        const st = fs.statSync(dbPath);
+        localMtime = st.mtimeMs;
+        localSize = st.size;
       } catch {}
-      if (localMtime > remoteMtime + 10_000) {
+
+      // Chỉ upload bù khi local có dữ liệu hợp lệ và thực sự mới hơn
+      if (localSize > 1_000_000 && localMtime > remoteMtime + 10_000) {
         logger.info('[S3 AutoSync] Local DB newer than Filebase copy -> catching up.');
         await uploadDbToS3();
       } else {
@@ -314,7 +338,7 @@ export async function getSyncStatus(): Promise<SyncStatus> {
 /**
  * Tải database từ Filebase về máy nếu bản remote mới hơn hoặc chưa có bản local.
  */
-export async function downloadDbFromS3(): Promise<boolean> {
+export async function downloadDbFromS3(force: boolean = false): Promise<boolean> {
   const s3 = getS3Client();
   const bucket = getBucketName();
 
@@ -336,17 +360,27 @@ export async function downloadDbFromS3(): Promise<boolean> {
 
   try {
     let remoteLastModified = 0;
+    let remoteSize = 0;
     try {
       const headResponse = await s3.send(new HeadObjectCommand({ Bucket: bucket, Key: DB_FILENAME }));
       remoteLastModified = headResponse.LastModified?.getTime() || 0;
+      remoteSize = headResponse.ContentLength || 0;
 
       let localLastModified = 0;
+      let localSize = 0;
       if (fs.existsSync(dbPath)) {
-        localLastModified = fs.statSync(dbPath).mtimeMs;
+        const st = fs.statSync(dbPath);
+        localLastModified = st.mtimeMs;
+        localSize = st.size;
       }
 
-      // Nếu remote không mới hơn bản local (+ buffer 10s), giữ nguyên bản local
-      if (localLastModified > 0 && remoteLastModified <= localLastModified + 10000) {
+      // Kiểm tra xem local DB có phải chỉ là khung rỗng mới tạo (vd < 1MB trong khi remote > 1MB)
+      const isRemoteRich = remoteSize > 1_000_000;
+      const isLocalEmptyOrBare = isRemoteRich && localSize < 1_000_000;
+      const isVercelNeedsRestore = isVercel && !fs.existsSync(path.join(dbDir, '.s3_restored'));
+
+      // Nếu không ép buộc, và local đã có dữ liệu hợp lệ, và remote không mới hơn thì giữ nguyên
+      if (!force && !isLocalEmptyOrBare && !isVercelNeedsRestore && localLastModified > 0 && remoteLastModified <= localLastModified + 10000) {
         logger.info('[S3 Sync] Local database is up to date with Filebase.');
         state.isSyncing = false;
         state.lastSyncStatus = 'success';
@@ -383,6 +417,20 @@ export async function downloadDbFromS3(): Promise<boolean> {
         fs.mkdirSync(dbDir, { recursive: true });
       }
 
+      // Đóng kết nối SQLite hiện tại trước khi ghi đè file để tránh file-lock / corruption
+      if (global.__dbInstance) {
+        try {
+          global.__dbInstance.close();
+        } catch {}
+        global.__dbInstance = undefined;
+      }
+
+      // Xóa các file WAL và SHM cũ nếu có
+      try {
+        if (fs.existsSync(`${dbPath}-wal`)) fs.unlinkSync(`${dbPath}-wal`);
+        if (fs.existsSync(`${dbPath}-shm`)) fs.unlinkSync(`${dbPath}-shm`);
+      } catch {}
+
       // Tạo backup bản cũ trước khi thay thế nếu tệp đã tồn tại
       if (fs.existsSync(dbPath)) {
         try {
@@ -392,6 +440,11 @@ export async function downloadDbFromS3(): Promise<boolean> {
 
       fs.writeFileSync(dbPath, buffer);
       logger.info('[S3 Sync] Successfully downloaded and restored database from Filebase.');
+
+      // Đánh dấu marker khôi phục thành công cho instance này
+      try {
+        fs.writeFileSync(path.join(dbDir, '.s3_restored'), new Date().toISOString());
+      } catch {}
 
       state.isSyncing = false;
       state.lastSyncStatus = 'success';
@@ -448,6 +501,26 @@ export async function uploadDbToS3(): Promise<boolean> {
   let uploadedFingerprint = '';
 
   try {
+    // 0. Safety Guard: Ngăn chặn upload file SQLite rỗng đè lên bản sao lưu Filebase đang có dữ liệu
+    try {
+      const head = await s3.send(new HeadObjectCommand({ Bucket: bucket, Key: DB_FILENAME }));
+      const remoteSize = head.ContentLength || 0;
+      let localSize = 0;
+      try {
+        localSize = fs.statSync(dbPath).size;
+      } catch {}
+
+      if (remoteSize > 1_000_000 && localSize < 1_000_000) {
+        logger.warn(`[S3 Safety Guard] BẢO VỆ DỮ LIỆU: Huỷ upload vì file local (${localSize} bytes) nhỏ hơn nhiều so với bản sao lưu Filebase (${remoteSize} bytes)!`);
+        state.isSyncing = false;
+        state.lastSyncStatus = 'failed';
+        state.lastSyncMessage = 'Huỷ upload: Tệp cục bộ chưa nạp đủ dữ liệu, từ chối ghi đè lên bản sao lưu Filebase!';
+        return false;
+      }
+    } catch (headErr: any) {
+      // 404 là bình thường (chưa có file trên Filebase)
+    }
+
     // 1. Checkpoint WAL để đảm bảo mọi transaction SQLite mới nhất được ghi vào file chính
     checkpointLocalDb();
     uploadedFingerprint = getDbFingerprint();

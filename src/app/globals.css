@@ -518,32 +518,26 @@ aside::-webkit-scrollbar-thumb:hover {
 }
 
 /* ========================================================================= */
-/* Mobile Native Smooth Momentum Scrolling & Hardware Acceleration           */
+/* Mobile Native Smooth Momentum Scrolling                                   */
 /* ========================================================================= */
-@media (pointer: coarse) {
-  html,
-  body {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: none;
-    touch-action: pan-x pan-y;
-  }
+html,
+body {
+  -webkit-overflow-scrolling: touch;
+}
 
-  main,
-  .custom-scrollbar {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
-    transform: translateZ(0);
-    will-change: scroll-position;
-  }
+main,
+.custom-scrollbar {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
 
-  button,
-  a,
-  input,
-  select,
-  textarea,
-  [role="button"] {
-    touch-action: manipulation;
-  }
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+  touch-action: manipulation;
 }
 
 /* ========================================================================= */

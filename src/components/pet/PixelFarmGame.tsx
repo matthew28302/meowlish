@@ -168,6 +168,21 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
   const [isBouncingMushroom, setIsBouncingMushroom] = useState<boolean>(false);
   const [isBouncingBeanbag, setIsBouncingBeanbag] = useState<boolean>(false);
   const [isBouncingPipes, setIsBouncingPipes] = useState<boolean>(false);
+
+  // Responsive scale helper: Desktop keeps 100% original size, mobile scales objects down to 0.55x
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const scaleObj = (desktopScale: number) => {
+    return isMobile ? +(desktopScale * 0.55).toFixed(2) : desktopScale;
+  };
   const [isSunnyTreasureOpen, setIsSunnyTreasureOpen] = useState<boolean>(false);
   const [isAnywhereDoorOpen, setIsAnywhereDoorOpen] = useState<boolean>(false);
   const [isCandleLit, setIsCandleLit] = useState<boolean>(false);
@@ -1583,7 +1598,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
               title="Cối xay gió Hà Lan xoay cánh quạt nan gỗ"
             >
-              <DutchWindmillSVG scale={1.40} />
+              <DutchWindmillSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Grand Oak Tree with Climbing Ladder & Swing (Top-Right) */}
@@ -1596,7 +1611,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Cây đại thụ - Bấm để Bé leo thang hái táo!"
             >
-              <GrandOakTreeSVG scale={1.40} />
+              <GrandOakTreeSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Farmhouse Villa with Smoking Chimney (Center-Left) */}
@@ -1614,7 +1629,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Biệt thự nông trại mái ngói đỏ"
             >
-              <FarmhouseVillaSVG scale={1.40} />
+              <FarmhouseVillaSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Chicken Coop with Golden Haystack (Center) */}
@@ -1627,7 +1642,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
               title="Chuồng gà & Đụn rơm - Bấm để cho gà ăn!"
             >
-              <ChickenCoopSVG scale={1.40} />
+              <ChickenCoopSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Bouncy Mushroom Trampoline (Center-Right) */}
@@ -1644,7 +1659,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               }`}
               title="Nấm lò xo ma thuật - Bấm để Bé bật nhảy lên trời!"
             >
-              <BouncyMushroomSVG scale={1.40} />
+              <BouncyMushroomSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Veggie Garden Beds (Bottom-Left) */}
@@ -1657,7 +1672,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer transform hover:scale-105 transition-transform"
               title="Luống rau củ 4 mùa bội thu"
             >
-              <VeggiePatchSVG scale={1.40} />
+              <VeggiePatchSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Lotus Pond with Pier, Lily Pads & Koi (Bottom-Right) */}
@@ -1670,7 +1685,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Đầm hồ sen sinh thái - Bấm để Bé bơi lội mát rượi!"
             >
-              <LotusPondSVG scale={1.40} />
+              <LotusPondSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Fluttering Butterflies */}
@@ -1772,7 +1787,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Ngọn hải đăng xoay đèn rực rỡ"
             >
-              <LighthouseSVG scale={1.40} />
+              <LighthouseSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Tropical Coconut Palm Tree (Top-Right) */}
@@ -1785,7 +1800,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Cây dừa nhiệt đới - Bấm để Bé leo hái dừa xiêm!"
             >
-              <PalmTreeSVG scale={1.40} />
+              <PalmTreeSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Beach Volleyball Court (Center) */}
@@ -1798,7 +1813,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-108 transition-transform"
               title="Sân bóng chuyền bãi biển - Bấm để Bé đập bóng ăn điểm!"
             >
-              <BeachVolleyballSVG scale={1.40} />
+              <BeachVolleyballSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Bonfire, Campfire Pit & Sandcastle (Bottom-Left) */}
@@ -1811,7 +1826,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Lâu đài cát & Lửa trại bãi biển - Bấm để vui chơi!"
             >
-              <SandcastleBonfireSVG scale={1.40} />
+              <SandcastleBonfireSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Tropical Tiki Bar Cabana & Surfboard (Bottom-Right) */}
@@ -1824,7 +1839,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer transform hover:scale-105 transition-transform"
               title="Quầy Tiki Bar nhiệt đới - Bấm để uống nước dừa mát lạnh!"
             >
-              <TikiBarCabanaSVG scale={1.40} />
+              <TikiBarCabanaSVG scale={scaleObj(1.40)} />
             </div>
           </div>
         )}
@@ -1896,7 +1911,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
               title="Kệ sách thuật toán & thang lăn - Bấm để trèo thang đọc sách!"
             >
-              <LibraryBookshelfSVG scale={1.37} />
+              <LibraryBookshelfSVG scale={scaleObj(1.37)} />
             </div>
 
             {/* Dual-Monitor Developer Workstation (Top-Center) */}
@@ -1909,7 +1924,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Dàn máy dual monitor - Bấm để Bé gõ code fix bug!"
             >
-              <DevWorkstationSVG scale={1.40} />
+              <DevWorkstationSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Enterprise 42U Server Rack (Top-Right) */}
@@ -1922,7 +1937,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
               title="Tủ server rack 42U đèn LED nhấp nháy - Bấm để kiểm tra hạ tầng và uptime!"
             >
-              <ServerRackSVG scale={1.35} />
+              <ServerRackSVG scale={scaleObj(1.35)} />
             </div>
 
             {/* Mobile Scrum Kanban Whiteboard (Center) */}
@@ -1935,7 +1950,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Bảng Scrum Kanban tiến độ dự án - Bấm để Bé kiểm tra sprint!"
             >
-              <ScrumKanbanWhiteboardSVG scale={1.30} />
+              <ScrumKanbanWhiteboardSVG scale={scaleObj(1.30)} />
             </div>
 
             {/* Giant Plush Velvet Beanbag Couch (Bottom-Left) */}
@@ -1948,7 +1963,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Đệm lười Beanbag êm ái - Bấm để Bé nhún nhảy cực vui!"
             >
-              <BeanbagLoungeSVG scale={1.12} isBouncing={isBouncingBeanbag} />
+              <BeanbagLoungeSVG scale={scaleObj(1.12)} isBouncing={isBouncingBeanbag} />
             </div>
 
             {/* Espresso Bar Machine & Pizza Kitchenette (Bottom-Right) */}
@@ -1961,7 +1976,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Quầy pha cafe Espresso & Pizza - Bấm để nạp năng lượng!"
             >
-              <EspressoBarKitchenetteSVG scale={1.35} />
+              <EspressoBarKitchenetteSVG scale={scaleObj(1.35)} />
             </div>
           </div>
         )}
@@ -2018,7 +2033,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Lâu đài pha lê trên mây - Bấm để Bé bay lên cổng thành!"
             >
-              <CrystalCastleSVG scale={1.40} />
+              <CrystalCastleSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Rainbow Crystal Arch (Upper-Right) */}
@@ -2031,7 +2046,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
               title="Cầu vồng pha lê 7 màu - Bấm để Bé bật nhảy hái sao!"
             >
-              <RainbowBridgeArchSVG scale={1.40} />
+              <RainbowBridgeArchSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Ascending Starry Cloud Stepping Stones (Upper-Left) */}
@@ -2044,7 +2059,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
               title="Bậc thang mây bồng bềnh đưa lên cung điện - Bấm để dạo chơi nhún nhảy!"
             >
-              <StarryCloudPlatformSVG scale={1.37} />
+              <StarryCloudPlatformSVG scale={scaleObj(1.37)} />
             </div>
 
             {/* Celestial Marble Angel Fountain (Bottom-Left) */}
@@ -2057,7 +2072,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer transform hover:scale-105 transition-transform"
               title="Đài phun nước thiên thần sao - Bấm để tắm mát lấp lánh!"
             >
-              <CelestialAngelFountainSVG scale={1.37} />
+              <CelestialAngelFountainSVG scale={scaleObj(1.37)} />
             </div>
 
             {/* Gemstone Treasure Chest (Bottom-Right) */}
@@ -2070,7 +2085,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Rương ngọc báu tri thức - Bấm để Bé mở rương nhận báu vật!"
             >
-              <GemstoneTreasureChestSVG scale={1.37} />
+              <GemstoneTreasureChestSVG scale={scaleObj(1.37)} />
             </div>
           </div>
         )}
@@ -2166,7 +2181,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Cột buồm Mũ Rơm & Đài quan sát - Bấm để Bé trèo lên hóng gió biển!"
             >
-              <PirateMastJollyRogerSVG scale={1.37} />
+              <PirateMastJollyRogerSVG scale={scaleObj(1.37)} />
             </div>
 
             {/* Naval Cannon & Cola Barrels (Top-Left) */}
@@ -2179,7 +2194,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Khẩu đại bác mạ đồng & Thùng Cola sồi - Bấm để nạp năng lượng!"
             >
-              <PirateCannonAndRumBarrelsSVG scale={1.35} />
+              <PirateCannonAndRumBarrelsSVG scale={scaleObj(1.35)} />
             </div>
 
             {/* Nami's Mikan Tangerine Trees (Top-Right) */}
@@ -2192,7 +2207,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Vườn cam Mikan của hoa tiêu Nami - Bấm để ăn cam ngọt lịm!"
             >
-              <NamiTangerineTreesSVG scale={1.35} />
+              <NamiTangerineTreesSVG scale={scaleObj(1.35)} />
             </div>
 
             {/* Ship Steering Helm Wheel & Balusters (Center-Bottom) */}
@@ -2205,7 +2220,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-108 transition-transform"
               title="Bánh lái tàu Thousand Sunny - Bấm để Bé bẻ lái hướng tới Grand Line!"
             >
-              <PirateHelmAndDeckRailingSVG scale={1.40} />
+              <PirateHelmAndDeckRailingSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Sunny Lion Figurehead on Bow Prow (Bottom-Right) */}
@@ -2218,7 +2233,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer transform hover:scale-108 transition-transform"
               title="Đầu sư tử Sunny vàng óng - Bấm để Bé nhảy lên bờm hoa hướng dương!"
             >
-              <ThousandSunnyLionFigureheadSVG scale={1.40} />
+              <ThousandSunnyLionFigureheadSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Pirate Spilling Treasure Chest (Bottom-Left) */}
@@ -2231,7 +2246,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer transform hover:scale-110 transition-transform"
               title="Rương vàng kho báu hải tặc - Bấm để mở nắp tung vàng!"
             >
-              <PirateTreasureChestSVG scale={1.18} isOpen={isSunnyTreasureOpen} />
+              <PirateTreasureChestSVG scale={scaleObj(1.18)} isOpen={isSunnyTreasureOpen} />
             </div>
           </div>
         )}
@@ -2323,7 +2338,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Vách đá chạm khắc 4 tượng Hokage - Bấm để Bé leo lên đỉnh núi!"
             >
-              <HokageRockMonumentSVG scale={1.37} />
+              <HokageRockMonumentSVG scale={scaleObj(1.37)} />
             </div>
 
             {/* Ichiraku Ramen Shop Stall (Top-Left) */}
@@ -2336,7 +2351,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-108 transition-transform"
               title="Tiệm mì Ichiraku Ramen - Bấm để thưởng thức bát ramen nóng hổi!"
             >
-              <IchirakuRamenShopSVG scale={1.40} />
+              <IchirakuRamenShopSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Red Torii Gate & Bamboo Grove (Top-Right) */}
@@ -2349,7 +2364,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Cổng Torii đỏ rực & Rừng trúc - Bấm để thắp sáng Ý chí của Lửa!"
             >
-              <BambooToriiShrineSVG scale={1.37} />
+              <BambooToriiShrineSVG scale={scaleObj(1.37)} />
             </div>
 
             {/* Ninja Training Target Post & Kunai (Bottom-Left) */}
@@ -2362,7 +2377,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-108 transition-transform"
               title="Bia gỗ tập luyện phóng Kunai & Shuriken - Bấm để phóng phi tiêu!"
             >
-              <NinjaTrainingPostSVG scale={1.40} isHit={isNinjaTargetHit} />
+              <NinjaTrainingPostSVG scale={scaleObj(1.40)} isHit={isNinjaTargetHit} />
             </div>
 
             {/* Onsen Natural Hot Spring Pool (Bottom-Right) */}
@@ -2375,7 +2390,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-108 transition-transform"
               title="Suối nước nóng Onsen bốc khói - Bấm để Bé nhảy vào ngâm mình thư giãn!"
             >
-              <OnsenHotSpringSVG scale={1.40} />
+              <OnsenHotSpringSVG scale={scaleObj(1.40)} />
             </div>
           </div>
         )}
@@ -2452,7 +2467,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Nến phép thuật bay lơ lửng - Bấm để niệm thần chú Lumos Maxima!"
             >
-              <FloatingCandlesGothicHallSVG scale={1.15} isLit={isCandleLit} />
+              <FloatingCandlesGothicHallSVG scale={scaleObj(1.15)} isLit={isCandleLit} />
             </div>
 
             {/* 4 Hogwarts House Heraldic Banners (Top-Right) */}
@@ -2465,7 +2480,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Cờ hiệu 4 Nhà: Gryffindor, Ravenclaw, Hufflepuff, Slytherin - Bấm để vinh danh thành tích!"
             >
-              <HogwartsHouseBannersSVG scale={1.30} />
+              <HogwartsHouseBannersSVG scale={scaleObj(1.30)} />
             </div>
 
             {/* Grand Banquet Feast Table (Center) */}
@@ -2478,7 +2493,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-108 transition-transform"
               title="Bàn tiệc phép thuật thịnh soạn - Bấm để chén gà quay và uống Bia Bơ!"
             >
-              <MagicFeastTableSVG scale={1.37} />
+              <MagicFeastTableSVG scale={scaleObj(1.37)} />
             </div>
 
             {/* The Sentient Sorting Hat on Stool (Bottom-Left) */}
@@ -2491,7 +2506,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-110 transition-transform"
               title="Chiếc Nón Phân Loại cổ kính - Bấm để Nón phán xét Nhà cho bạn!"
             >
-              <SortingHatPedestalSVG scale={1.40} />
+              <SortingHatPedestalSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Massive Stone Fireplace with Emerald Floo Fire (Bottom-Right) */}
@@ -2504,7 +2519,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Lò sưởi đá khổng lồ & Ngọn lửa Floo - Bấm để sưởi ấm bập bùng!"
             >
-              <HogwartsGreatFireplaceSVG scale={1.40} />
+              <HogwartsGreatFireplaceSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Flickering Fireplace Glow */}
@@ -2578,7 +2593,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer"
               title="Hàng rào gỗ nhà hàng xóm & Bãi hoa bồ công anh"
             >
-              <NostalgicWoodenFenceFieldSVG scale={1.33} />
+              <NostalgicWoodenFenceFieldSVG scale={scaleObj(1.33)} />
             </div>
 
             {/* Concrete Utility Pole & Safety Convex Mirror (Top-Right) */}
@@ -2591,7 +2606,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
               title="Cột điện khu phố & Gương cầu lồi ngã ba - Bấm để ngắm hoàng hôn tuổi thơ!"
             >
-              <JapaneseNeighborhoodPoleSVG scale={1.30} />
+              <JapaneseNeighborhoodPoleSVG scale={scaleObj(1.30)} />
             </div>
 
             {/* The Legendary 3 Concrete Pipes (Center - Main Attraction) */}
@@ -2607,7 +2622,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               title="3 ống cống bê tông tròn kinh điển - Bấm để Bé nhảy lên đỉnh ngồi hát liveshow!"
             >
               <div className="relative">
-                <DoraemonConcretePipesSVG scale={1.40} />
+                <DoraemonConcretePipesSVG scale={scaleObj(1.40)} />
                 {/* Grass growing around pipes */}
                 <div className="absolute bottom-[-10px] left-[-10px] text-xl z-30 pointer-events-none">🌿</div>
                 <div className="absolute bottom-[-5px] right-[10px] text-lg z-30 pointer-events-none">🌱</div>
@@ -2624,7 +2639,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-110 transition-transform"
               title="Cánh Cửa Thần Kỳ màu hồng - Bấm để mở cửa bay xuyên không gian!"
             >
-              <AnywhereDoorPropSVG scale={1.15} isOpen={isAnywhereDoorOpen} />
+              <AnywhereDoorPropSVG scale={scaleObj(1.15)} isOpen={isAnywhereDoorOpen} />
             </div>
 
             {/* Nobita's Baseball Mitt & Dorayaki Bean Pancakes (Bottom-Left) */}
@@ -2637,7 +2652,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-108 transition-transform"
               title="Găng bóng chày & Bánh rán Dorayaki - Bấm để thưởng thức bánh ngọt lịm!"
             >
-              <NobitaBaseballGearSVG scale={1.37} />
+              <NobitaBaseballGearSVG scale={scaleObj(1.37)} />
             </div>
           </div>
         )}
@@ -2691,7 +2706,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               }`}
               title="Ngôi Sao Vàng Warp Star - Bấm để Bé cưỡi sao phóng vút lên dải ngân hà!"
             >
-              <KirbyWarpStarSVG scale={1.40} />
+              <KirbyWarpStarSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Giant Swirling Rainbow Lollipop Tree (Upper-Right) */}
@@ -2704,7 +2719,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Cây kẹo mút khổng lồ bảy sắc - Bấm để thưởng thức kẹo bông gòn ngọt ngào!"
             >
-              <GiantLollipopTreeSVG scale={1.40} />
+              <GiantLollipopTreeSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Cascading Pastel Rainbow River Waterfall (Center) */}
@@ -2717,7 +2732,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
               title="Suối thác cầu vồng kẹo dẻo - Bấm để Bé bơi lội mát rượi!"
             >
-              <RainbowRiverWaterfallSVG scale={1.40} />
+              <RainbowRiverWaterfallSVG scale={scaleObj(1.40)} />
             </div>
 
             {/* Whispy Woods Apple Tree (Bottom-Left) */}
@@ -2730,7 +2745,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
               title="Cây táo thần Whispy Woods - Bấm để hái táo ngôi sao may mắn!"
             >
-              <WhispyWoodsAppleTreeSVG scale={1.37} />
+              <WhispyWoodsAppleTreeSVG scale={scaleObj(1.37)} />
             </div>
 
             {/* Star Rod Monument Fountain (Bottom-Right) */}
@@ -2743,7 +2758,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-110 transition-transform"
               title="Bệ đài Trượng Sao Star Rod - Bấm để ước nguyện học tiếng Anh thành tài!"
             >
-              <StarRodMonumentSVG scale={1.40} />
+              <StarRodMonumentSVG scale={scaleObj(1.40)} />
             </div>
           </div>
         )}
@@ -2853,7 +2868,11 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         {/* THE LIVING PIXEL PET (Scale 1.15x for balanced game proportion) */}
         <div
           onClick={handlePetClick}
-          className="absolute z-30 cursor-pointer -translate-x-1/2 -translate-y-1/2 group"
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            handlePetClick(e as any);
+          }}
+          className="absolute z-40 cursor-pointer -translate-x-1/2 -translate-y-1/2 group touch-manipulation p-2"
           style={{
             left: `${petPos.x}%`,
             top: `${petPos.y}%`,
@@ -2891,7 +2910,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               species={species}
               animationState={animState}
               facing={facing}
-              scale={1.35}
+              scale={isMobile ? 1.05 : 1.35}
               equippedHat={equippedHat}
               equippedOutfit={equippedOutfit}
               equippedAccessory={equippedAccessory}

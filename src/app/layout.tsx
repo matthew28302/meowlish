@@ -28,9 +28,10 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${geistSans.variable} ${geistMono.variable} min-h-dvh lg:h-dvh antialiased lg:overflow-hidden`}
+      className={`${geistSans.variable} ${geistMono.variable} h-dvh antialiased overflow-hidden`}
     >
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -38,7 +39,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-dvh lg:h-dvh lg:overflow-hidden bg-[#f8fafc] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900">
+      <body className="h-dvh overflow-hidden bg-[#f8fafc] text-slate-900 font-sans selection:bg-emerald-100 selection:text-emerald-900">
         <AppShell>{children}</AppShell>
         {/* Global floating highlight & quick translate tooltip */}
         <HighlightTooltip />

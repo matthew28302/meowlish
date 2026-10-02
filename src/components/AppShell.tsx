@@ -346,7 +346,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-dvh lg:h-dvh w-full bg-[#f8fafc] text-slate-900 flex lg:overflow-hidden relative">
+    <div className="h-dvh w-full bg-[#f8fafc] text-slate-900 flex overflow-hidden relative">
       {/* Thông báo bảo mật khi tài khoản bị vô hiệu hóa */}
       {disabledNotice && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] max-w-md w-[calc(100%-32px)] bg-rose-600 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -468,7 +468,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* 2. MAIN CONTENT STAGE (Offset on desktop for the sidebar) */}
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-64 min-h-dvh lg:h-dvh lg:overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-64 h-dvh overflow-hidden">
         {/* Top Status Header (Single Minimal Row with Zero Clutter) */}
         <header className="shrink-0 z-30 bg-white lg:bg-white/90 lg:backdrop-blur-md border-b border-slate-100 shadow-xs">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
