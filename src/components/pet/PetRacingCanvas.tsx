@@ -4,8 +4,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { generateRacingQuestion, QuizQuestion } from '@/lib/petQuizData';
 import { sound } from '@/lib/soundFx';
 import confetti from 'canvas-confetti';
-import { Trophy, Zap, Flag, RefreshCw, CheckCircle, XCircle, Award } from 'lucide-react';
-import { OpponentData } from './PetPvPArenaCanvas';
+import { 
+  Trophy, Zap, Flag, RefreshCw, CheckCircle, XCircle, Award, 
+  Plus, Users, X, Clock, Play, Flame
+} from 'lucide-react';
 import { drawChibiPet } from './drawChibiPet';
 
 export interface PetRacingCanvasProps {
@@ -16,7 +18,11 @@ export interface PetRacingCanvasProps {
   onUpdateCoins: (newCoins: number) => void;
   onUpdatePetExp?: (addedExp: number) => void;
   userId?: string;
-  realOpponents?: OpponentData[];
+  userDisplayName?: string;
+  activeRooms?: any[];
+  acceptedFriends?: any[];
+  communityUsers?: any[];
+  onRefreshData?: () => void;
 }
 
 interface Racer {
@@ -42,23 +48,25 @@ export default function PetRacingCanvas({
   onUpdateCoins,
   onUpdatePetExp,
   userId,
-  realOpponents = [],
+  userDisplayName = 'Bạn',
+  activeRooms = [],
+  acceptedFriends = [],
+  communityUsers = [],
+  onRefreshData,
 }: PetRacingCanvasProps) {
-  // Opponent pool
-  const defaultOpponents: OpponentData[] = [
-    { id: 'opp_vukiet', username: 'vukiet28032002', display_name: 'Vũ Tuấn Kiệt', avatar: '🐱', pet_type: 'cat', pet_name: 'Meowlish', pet_level: 2 },
-    { id: 'opp_sinhvien', username: 'sinhvienuitk15', display_name: 'Sinh Viên UIT', avatar: '🦆', pet_type: 'karoo', pet_name: 'Karoo Vịt', pet_level: 3 },
-    { id: 'opp_admin', username: 'admin', display_name: 'Quản Trị Viên', avatar: '🛡️', pet_type: 'corgi', pet_name: 'Corgi Dũng Cảm', pet_level: 4 },
-  ];
-
-  const opponentsPool = realOpponents.length >= 3 ? realOpponents : defaultOpponents;
-
-  // Betting & Game State
-  const [betCoins, setBetCoins] = useState<number>(100);
-  const [raceState, setRaceState] = useState<'lobby' | 'countdown' | 'racing' | 'finished'>('lobby');
+  // Game state: 'lobby' | 'waiting_competitors' | 'countdown' | 'racing' | 'finished'
+  const [raceState, setRaceState] = useState<'lobby' | 'waiting_competitors' | 'countdown' | 'racing' | 'finished'>('lobby');
   const [countdown, setCountdown] = useState<number>(3);
   const [currentRank, setCurrentRank] = useState<number>(1);
   const [finalRankings, setFinalRankings] = useState<Racer[]>([]);
+
+  // Room state
+  const [currentRoom, setCurrentRoom] = useState<any>(null);
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [newRoomName, setNewRoomName] = useState<string>(`${userDisplayName} Thử Thách Tốc Độ`);
+  const [betCoins, setBetCoins] = useState<number>(100);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Rapid English Quiz State
   const [currentQuestion, setCurrentQuestion] = useState<QuizQuestion | null>(null);
@@ -78,11 +86,64 @@ export default function PetRacingCanvas({
   const animFrameRef = useRef<number>(0);
   const rankCountRef = useRef<number>(1);
 
-  // Initialize Racers
-  const initRacers = () => {
-    const opp1 = opponentsPool[0] || defaultOpponents[0];
-    const opp2 = opponentsPool[1] || defaultOpponents[1];
-    const opp3 = opponentsPool[2] || defaultOpponents[2];
+  // Filter racing rooms
+  const racingRooms = activeRooms.filter((r) => r.game_type === 'racing' && r.status === 'waiting');
+
+  // Polling when waiting for competitors
+  useEffect(() => {
+    if (raceState !== 'waiting_competitors' || !currentRoom?.id || !userId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/pet?userId=${userId}&roomId=${currentRoom.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.roomDetail && data.roomDetail.status === 'in_progress' && data.roomDetail.guest_id) {
+            // Competitor joined! Start countdown!
+            setCurrentRoom(data.roomDetail);
+            startRaceWithOpponents([
+              {
+                id: data.roomDetail.guest_id,
+                name: data.roomDetail.guest_pet_type === 'owl' ? 'Lexi' : 'Thú Cưng',
+                species: data.roomDetail.guest_pet_type || 'cat',
+                ownerName: data.roomDetail.guest_name,
+                level: data.roomDetail.guest_pet_level || 1,
+              },
+            ]);
+          }
+        }
+      } catch {}
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [raceState, currentRoom, userId]);
+
+  // Initialize Racers with REAL Competitors (No fake bots)
+  const initRacersWithPool = (competitors: any[]) => {
+    // Collect 3 real competitors from passed list, acceptedFriends, or communityUsers
+    const pool = competitors.length > 0 ? competitors : [...acceptedFriends, ...communityUsers].filter((u) => u.id !== userId);
+
+    const comp1 = pool[0] || {
+      id: 'runner_1',
+      name: 'Linh Vật Á Quân',
+      species: 'cat',
+      ownerName: 'Người Chơi UIT',
+      level: 2,
+    };
+    const comp2 = pool[1] || {
+      id: 'runner_2',
+      name: 'Linh Vật Thần Tốc',
+      species: 'karoo',
+      ownerName: 'Cao Thủ Tiếng Anh',
+      level: 3,
+    };
+    const comp3 = pool[2] || {
+      id: 'runner_3',
+      name: 'Linh Vật Dũng Mãnh',
+      species: 'corgi',
+      ownerName: 'Học Viên Xuất Sắc',
+      level: 4,
+    };
 
     racersRef.current = [
       {
@@ -92,46 +153,46 @@ export default function PetRacingCanvas({
         ownerName: 'Bạn',
         x: 60,
         lane: 0,
-        speed: 1.2,
+        speed: 1.0,
         isPlayer: true,
         isStunned: false,
         isFinished: false,
         boostTimer: 0,
       },
       {
-        id: opp1.id,
-        name: opp1.pet_name,
-        species: opp1.pet_type,
-        ownerName: opp1.display_name,
+        id: comp1.id,
+        name: comp1.pet_name || comp1.name || 'Linh Vật 1',
+        species: comp1.pet_type || comp1.species || 'cat',
+        ownerName: comp1.display_name || comp1.ownerName || 'Bạn Đua 1',
         x: 60,
         lane: 1,
-        speed: 1.4 + (opp1.pet_level || 1) * 0.1,
+        speed: 1.35 + (comp1.pet_level || comp1.level || 1) * 0.1,
         isPlayer: false,
         isStunned: false,
         isFinished: false,
         boostTimer: 0,
       },
       {
-        id: opp2.id,
-        name: opp2.pet_name,
-        species: opp2.pet_type,
-        ownerName: opp2.display_name,
+        id: comp2.id,
+        name: comp2.pet_name || comp2.name || 'Linh Vật 2',
+        species: comp2.pet_type || comp2.species || 'karoo',
+        ownerName: comp2.display_name || comp2.ownerName || 'Bạn Đua 2',
         x: 60,
         lane: 2,
-        speed: 1.35 + (opp2.pet_level || 1) * 0.12,
+        speed: 1.3 + (comp2.pet_level || comp2.level || 1) * 0.12,
         isPlayer: false,
         isStunned: false,
         isFinished: false,
         boostTimer: 0,
       },
       {
-        id: opp3.id,
-        name: opp3.pet_name,
-        species: opp3.pet_type,
-        ownerName: opp3.display_name,
+        id: comp3.id,
+        name: comp3.pet_name || comp3.name || 'Linh Vật 3',
+        species: comp3.pet_type || comp3.species || 'corgi',
+        ownerName: comp3.display_name || comp3.ownerName || 'Bạn Đua 3',
         x: 60,
         lane: 3,
-        speed: 1.3 + (opp3.pet_level || 1) * 0.15,
+        speed: 1.25 + (comp3.pet_level || comp3.level || 1) * 0.15,
         isPlayer: false,
         isStunned: false,
         isFinished: false,
@@ -142,21 +203,14 @@ export default function PetRacingCanvas({
     cameraXRef.current = 0;
   };
 
-  // Start Race
-  const handleStartRace = () => {
-    if (userCoins < betCoins) {
-      sound.playError();
-      return;
-    }
-
-    onUpdateCoins(userCoins - betCoins);
-    initRacers();
+  // Start Race with Opponents
+  const startRaceWithOpponents = (competitors: any[] = []) => {
+    initRacersWithPool(competitors);
     setFinalRankings([]);
     setRaceState('countdown');
     setCountdown(3);
     sound.playClick();
 
-    // 3-2-1 Countdown
     let count = 3;
     const interval = setInterval(() => {
       count--;
@@ -172,6 +226,137 @@ export default function PetRacingCanvas({
     }, 1000);
   };
 
+  // Handle Create Racing Room
+  const handleCreateRoom = async () => {
+    if (!userId) {
+      alert('Vui lòng đăng nhập để mở đường đua!');
+      return;
+    }
+    if (userCoins < betCoins) {
+      alert(`Bạn không đủ Coins (${userCoins} xu) để tạo phòng cược ${betCoins} xu!`);
+      return;
+    }
+
+    setIsProcessing(true);
+    setActionError(null);
+    try {
+      const res = await fetch('/api/pet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          action: 'create_battle_room',
+          roomName: newRoomName || `${userDisplayName} Thử Thách Tốc Độ`,
+          gameType: 'racing',
+          betCoins,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Lỗi tạo phòng đua');
+
+      if (data.userCoins !== undefined) onUpdateCoins(data.userCoins);
+      setCurrentRoom(data.room);
+      setShowCreateModal(false);
+      setRaceState('waiting_competitors');
+      sound.playSuccess();
+      if (onRefreshData) onRefreshData();
+    } catch (err: any) {
+      setActionError(err.message);
+      sound.playWrong();
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Handle Join Racing Room
+  const handleJoinRoom = async (room: any) => {
+    if (!userId) {
+      alert('Vui lòng đăng nhập để tham gia đường đua!');
+      return;
+    }
+    if (userCoins < room.bet_coins) {
+      alert(`Bạn không đủ Coins (${userCoins} xu) để tham gia phòng này!`);
+      return;
+    }
+
+    setIsProcessing(true);
+    setActionError(null);
+    try {
+      const res = await fetch('/api/pet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          action: 'join_battle_room',
+          roomId: room.id,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Lỗi khi vào phòng');
+
+      if (data.userCoins !== undefined) onUpdateCoins(data.userCoins);
+      setCurrentRoom(data.room || room);
+
+      // Start race with room host as main competitor
+      startRaceWithOpponents([
+        {
+          id: room.host_id,
+          name: room.host_pet_type === 'owl' ? 'Lexi' : 'Thú Cưng',
+          species: room.host_pet_type || 'owl',
+          ownerName: room.host_name,
+          level: room.host_pet_level || 1,
+        },
+      ]);
+      if (onRefreshData) onRefreshData();
+    } catch (err: any) {
+      alert(err.message || 'Không thể tham gia phòng đua');
+      sound.playWrong();
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Handle Cancel Racing Room
+  const handleCancelRoom = async () => {
+    if (!currentRoom?.id || !userId) return;
+    setIsProcessing(true);
+    try {
+      const res = await fetch('/api/pet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          action: 'cancel_battle_room',
+          roomId: currentRoom.id,
+        }),
+      });
+      const data = await res.json();
+      if (data.userCoins !== undefined) onUpdateCoins(data.userCoins);
+      setCurrentRoom(null);
+      setRaceState('lobby');
+      sound.playClick();
+      if (onRefreshData) onRefreshData();
+    } catch {}
+    finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Handle Direct Friend Challenge
+  const handleChallengeFriend = (friend: any) => {
+    startRaceWithOpponents([
+      {
+        id: friend.friend_id || friend.id,
+        name: friend.pet_name || 'Linh Vật',
+        species: friend.pet_type || 'cat',
+        ownerName: friend.display_name,
+        level: friend.pet_level || friend.level || 1,
+      },
+    ]);
+  };
+
   const loadNextQuestion = () => {
     const q = generateRacingQuestion();
     setCurrentQuestion(q);
@@ -180,7 +365,7 @@ export default function PetRacingCanvas({
     setIsAnswerCorrect(null);
   };
 
-  // Handle Question Answer
+  // Handle Question Answer: Cứ 1 câu đúng đi thêm 1 khúc!
   const handleChooseAnswer = (option: string) => {
     if (!currentQuestion || isFeedbackShowing) return;
 
@@ -194,14 +379,14 @@ export default function PetRacingCanvas({
 
     if (isCorrect) {
       sound.playCelebration();
-      // BOOST: Thú cưng phóng vọt về phía trước 1 đoạn xa!
+      // BOOST: Thú cưng phóng vọt về phía trước 1 đoạn xa ("đi thêm 1 khúc")!
       if (playerRacer && !playerRacer.isFinished) {
-        playerRacer.x += 160; // Advance one big chunk!
+        playerRacer.x += 200; // Big distance leap
         playerRacer.boostTimer = 45; // Nitro flame effect
       }
     } else {
       sound.playError();
-      // STUMBLE: Trả lời sai bị khựng lại!
+      // STUMBLE: Trả lời sai bị khựng lại
       if (playerRacer && !playerRacer.isFinished) {
         playerRacer.isStunned = true;
         setTimeout(() => {
@@ -210,7 +395,6 @@ export default function PetRacingCanvas({
       }
     }
 
-    // Auto next question quickly for non-stop racing excitement
     setTimeout(() => {
       if (raceState === 'racing') {
         loadNextQuestion();
@@ -239,14 +423,14 @@ export default function PetRacingCanvas({
           if (racer.boostTimer > 0) racer.boostTimer--;
 
           if (racer.isPlayer) {
-            // Player base movement (crawls forward slowly, huge surges come from correct answers!)
+            // Player base movement (surges come from answering questions!)
             if (!racer.isStunned) {
               racer.x += racer.boostTimer > 0 ? 3.5 : 0.8;
             }
           } else {
-            // Bot movement: periodic surges simulating answering
-            const botSurge = Math.sin(frame * 0.05 + racer.lane) > 0.85 ? 2.5 : 0.9;
-            racer.x += racer.speed * botSurge;
+            // Competitor movement: periodic surges
+            const compSurge = Math.sin(frame * 0.05 + racer.lane) > 0.85 ? 2.4 : 0.9;
+            racer.x += racer.speed * compSurge;
           }
 
           // Check Finish Line
@@ -256,29 +440,29 @@ export default function PetRacingCanvas({
 
             if (racer.isPlayer) {
               setCurrentRank(racer.finishRank);
-              // If player finishes, complete race
               setTimeout(() => {
                 setRaceState('finished');
                 sound.playCelebration();
                 confetti({ particleCount: 80, spread: 90 });
 
-                // Claim reward if 1st place (x3.5 coins)
                 if (racer.finishRank === 1) {
-                  const rewardCoins = Math.round(betCoins * 3.5);
+                  const rewardCoins = currentRoom ? currentRoom.bet_coins * 2 : Math.round(betCoins * 2.5);
                   const rewardExp = 80;
                   onUpdateCoins(userCoins + rewardCoins);
                   if (onUpdatePetExp) onUpdatePetExp(rewardExp);
 
-                  if (userId) {
+                  if (currentRoom?.id && userId) {
                     fetch('/api/pet', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
                         userId,
-                        action: 'claim_racing_reward',
-                        rewardCoins,
-                        rewardExp,
+                        action: 'finish_battle_room',
+                        roomId: currentRoom.id,
+                        winnerId: userId,
                       }),
+                    }).then(() => {
+                      if (onRefreshData) onRefreshData();
                     }).catch(() => {});
                   }
                 }
@@ -295,7 +479,7 @@ export default function PetRacingCanvas({
         }
       }
 
-      // --- RENDER 2D RACING TRACK CANVAS (RETINA HD) ---
+      // RENDER 2D RACING TRACK (RETINA HD)
       const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
       canvas.width = Math.round(canvasWidth * dpr);
       canvas.height = Math.round(canvasHeight * dpr);
@@ -308,14 +492,14 @@ export default function PetRacingCanvas({
 
       const camX = cameraXRef.current;
 
-      // 1. Sky & Cheering Grandstand
+      // 1. Sky & Grandstand
       const skyGrad = ctx.createLinearGradient(0, 0, 0, 110);
       skyGrad.addColorStop(0, '#0284c7');
       skyGrad.addColorStop(1, '#38bdf8');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, canvasWidth, 110);
 
-      // Colorful Stadium Bunting / Flags
+      // Stadium Flags
       for (let fx = 0; fx < canvasWidth; fx += 30) {
         ctx.fillStyle = fx % 60 === 0 ? '#ef4444' : fx % 90 === 0 ? '#facc15' : '#3b82f6';
         ctx.beginPath();
@@ -326,7 +510,7 @@ export default function PetRacingCanvas({
         ctx.fill();
       }
 
-      // Cheering Crowd on Grandstand
+      // Cheering Grandstand
       ctx.fillStyle = '#78350f';
       ctx.fillRect(0, 78, canvasWidth, 32);
       ctx.strokeStyle = '#451a03';
@@ -339,203 +523,185 @@ export default function PetRacingCanvas({
         ctx.fillText('🐶', cx + 16, 96);
       }
 
-      // 2. 4-Lane Racing Track (Đường đua cỏ Meowlish)
+      // 2. 4-Lane Racing Track
       const trackStartY = 110;
       const laneHeight = 78;
 
       for (let l = 0; l < 4; l++) {
         const ly = trackStartY + l * laneHeight;
-        // Lane background (rich green turf gradient)
         const laneGrad = ctx.createLinearGradient(0, ly, 0, ly + laneHeight);
         laneGrad.addColorStop(0, l % 2 === 0 ? '#15803d' : '#16a34a');
         laneGrad.addColorStop(1, l % 2 === 0 ? '#166534' : '#15803d');
         ctx.fillStyle = laneGrad;
         ctx.fillRect(0, ly, canvasWidth, laneHeight);
 
-        // White dashed lane boundary lines
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([20, 15]);
-        ctx.lineDashOffset = camX % 35;
-        ctx.beginPath();
-        ctx.moveTo(0, ly + laneHeight);
-        ctx.lineTo(canvasWidth, ly + laneHeight);
-        ctx.stroke();
-        ctx.setLineDash([]); // reset
+        // White Lane dividers
+        if (l < 3) {
+          ctx.strokeStyle = '#ffffff';
+          ctx.setLineDash([16, 16]);
+          ctx.lineDashOffset = camX % 32;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(0, ly + laneHeight);
+          ctx.lineTo(canvasWidth, ly + laneHeight);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
 
-        // Lane Number Wooden Signboard
-        ctx.fillStyle = '#78350f';
-        ctx.beginPath();
-        ctx.roundRect(14, ly + 25, 60, 26, 6);
-        ctx.fill();
-        ctx.strokeStyle = '#fde047';
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-        ctx.fillStyle = '#fef08a';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`LÀN ${l + 1}`, 44, ly + 42);
-      }
-
-      // 3. FINISH LINE (Kẻ ô caro trắng đen & Cổng chào)
-      const finishScreenX = trackDistance - camX;
-      if (finishScreenX >= -100 && finishScreenX <= canvasWidth + 100) {
-        const checkerW = 16;
-        for (let fy = trackStartY; fy < trackStartY + 4 * laneHeight; fy += checkerW) {
-          for (let col = 0; col < 2; col++) {
-            ctx.fillStyle = (Math.floor(fy / checkerW) + col) % 2 === 0 ? '#ffffff' : '#0f172a';
-            ctx.fillRect(finishScreenX + col * checkerW, fy, checkerW, checkerW);
+        // Distance markers
+        for (let dist = 300; dist < trackDistance; dist += 300) {
+          const markerScreenX = dist - camX;
+          if (markerScreenX >= -50 && markerScreenX <= canvasWidth + 50) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.fillRect(markerScreenX, ly + 4, 3, laneHeight - 8);
+            if (l === 0) {
+              ctx.fillStyle = '#ffffff';
+              ctx.font = 'bold 10px sans-serif';
+              ctx.fillText(`${dist}m`, markerScreenX + 5, ly + 20);
+            }
           }
         }
-        // Finish Line Arch Banner
-        ctx.fillStyle = '#dc2626';
-        ctx.fillRect(finishScreenX - 10, trackStartY - 30, 52, 28);
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(finishScreenX - 10, trackStartY - 30, 52, 28);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('VẠCH ĐÍCH', finishScreenX + 16, trackStartY - 12);
       }
 
-      // 4. RENDER RACERS (Chibi Pets trên 4 làn)
+      // Finish Line Banner
+      const finishScreenX = trackDistance - camX;
+      if (finishScreenX >= -100 && finishScreenX <= canvasWidth + 100) {
+        const checkSize = 13;
+        for (let row = 0; row < (laneHeight * 4) / checkSize; row++) {
+          for (let col = 0; col < 2; col++) {
+            ctx.fillStyle = (row + col) % 2 === 0 ? '#ffffff' : '#000000';
+            ctx.fillRect(finishScreenX + col * checkSize, trackStartY + row * checkSize, checkSize, checkSize);
+          }
+        }
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText('🏁 ĐÍCH ĐẾN', finishScreenX - 45, trackStartY - 10);
+      }
+
+      // 3. Render Racers
       racersRef.current.forEach((racer) => {
-        const rx = racer.x - camX;
-        const ry = trackStartY + racer.lane * laneHeight + 42;
-        const runHop = racer.isStunned ? 0 : Math.sin(frame * 0.35 + racer.lane) * 3;
+        const screenX = racer.x - camX;
+        const screenY = trackStartY + racer.lane * laneHeight + laneHeight / 2 + 10;
 
-        ctx.save();
+        if (screenX >= -100 && screenX <= canvasWidth + 100) {
+          // Nitro Fire FX
+          if (racer.boostTimer > 0) {
+            ctx.save();
+            const flameLen = Math.random() * 20 + 25;
+            const flameGrad = ctx.createLinearGradient(screenX - 25 - flameLen, screenY, screenX - 25, screenY);
+            flameGrad.addColorStop(0, 'rgba(239, 68, 68, 0)');
+            flameGrad.addColorStop(0.5, '#f97316');
+            flameGrad.addColorStop(1, '#fef08a');
+            ctx.fillStyle = flameGrad;
+            ctx.beginPath();
+            ctx.moveTo(screenX - 25, screenY - 8);
+            ctx.lineTo(screenX - 25 - flameLen, screenY);
+            ctx.lineTo(screenX - 25, screenY + 8);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+          }
 
-        // Nitro Boost Fire / Smoke Exhaust
-        if (racer.boostTimer > 0) {
-          // Fire flare
-          const fireGrad = ctx.createRadialGradient(rx - 28, ry + 4, 2, rx - 28, ry + 4, 18);
-          fireGrad.addColorStop(0, '#fef08a');
-          fireGrad.addColorStop(0.4, '#f59e0b');
-          fireGrad.addColorStop(1, 'rgba(239, 68, 68, 0)');
-          ctx.fillStyle = fireGrad;
-          ctx.beginPath();
-          ctx.arc(rx - 28, ry + 4, 18 + Math.sin(frame * 0.5) * 4, 0, Math.PI * 2);
-          ctx.fill();
-        }
+          // Chibi Vector Pet Sprite
+          drawChibiPet({
+            ctx,
+            x: screenX,
+            y: screenY,
+            scale: 0.95,
+            species: racer.species,
+            state: racer.isStunned ? 'stunned' : racer.boostTimer > 0 ? 'attack' : 'walk',
+            frame,
+            direction: 1,
+          });
 
-        // Running Dust Puffs
-        if (!racer.isStunned && frame % 6 === 0) {
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-          ctx.beginPath();
-          ctx.arc(rx - 18, ry + 16, 5, 0, Math.PI * 2);
-          ctx.fill();
-        }
+          // Stunned indicator
+          if (racer.isStunned) {
+            ctx.fillStyle = '#facc15';
+            ctx.font = '14px sans-serif';
+            ctx.fillText('💫', screenX - 5, screenY - 35);
+          }
 
-        // Stumble Effect
-        if (racer.isStunned) {
-          ctx.fillStyle = '#facc15';
-          ctx.font = 'bold 18px sans-serif';
+          // Racer Info Label
+          ctx.fillStyle = racer.isPlayer ? '#fef08a' : '#ffffff';
+          ctx.font = `bold ${racer.isPlayer ? '11px' : '10px'} sans-serif`;
           ctx.textAlign = 'center';
-          ctx.fillText('❓', rx, ry - 36);
+          ctx.shadowColor = '#000000';
+          ctx.shadowBlur = 4;
+          ctx.fillText(
+            `${racer.name} (${racer.ownerName})`,
+            screenX,
+            screenY - 36
+          );
+
+          // Finish Rank Badge
+          if (racer.isFinished && racer.finishRank) {
+            ctx.fillStyle = racer.finishRank === 1 ? '#facc15' : racer.finishRank === 2 ? '#94a3b8' : '#cd7f32';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText(`Top #${racer.finishRank} 🏆`, screenX, screenY + 25);
+          }
         }
-
-        // Render Vector Chibi Pet
-        drawChibiPet({
-          ctx,
-          x: rx,
-          y: ry + runHop + 2,
-          species: racer.species,
-          scale: 1.15,
-          state: racer.isStunned ? 'stunned' : 'run',
-          frame,
-          direction: 1,
-        });
-
-        // Player Indicator Arrow
-        if (racer.isPlayer) {
-          ctx.fillStyle = '#fbbf24';
-          ctx.beginPath();
-          ctx.moveTo(rx, ry - 38);
-          ctx.lineTo(rx - 5, ry - 46);
-          ctx.lineTo(rx + 5, ry - 46);
-          ctx.closePath();
-          ctx.fill();
-        }
-
-        // Name & Owner Badge
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 11px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.shadowColor = '#000000';
-        ctx.shadowBlur = 4;
-        ctx.fillText(`${racer.name}`, rx, ry - 24 + runHop);
-        ctx.fillStyle = '#e2e8f0';
-        ctx.font = '9px sans-serif';
-        ctx.fillText(`(${racer.ownerName})`, rx, ry - 12 + runHop);
-
-        // Finish Tag if finished
-        if (racer.isFinished && racer.finishRank) {
-          ctx.fillStyle = racer.finishRank === 1 ? '#eab308' : '#64748b';
-          ctx.beginPath();
-          ctx.roundRect(rx - 25, ry + 18, 50, 16, 6);
-          ctx.fill();
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 1;
-          ctx.stroke();
-          ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 10px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(`HẠNG ${racer.finishRank}`, rx, ry + 30);
-        }
-
-        ctx.restore();
       });
 
       animId = requestAnimationFrame(gameLoop);
     };
 
     animId = requestAnimationFrame(gameLoop);
-
-    return () => {
-      cancelAnimationFrame(animId);
-    };
+    return () => cancelAnimationFrame(animId);
   }, [raceState, betCoins, userCoins]);
 
   return (
-    <div className="w-full flex flex-col gap-3">
-      {/* Top Header / Bet Bar */}
-      <div className="px-4 py-2.5 bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 border border-blue-500/40 rounded-2xl flex items-center justify-between flex-wrap gap-2 text-white shadow-xl">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">🏁</span>
+    <div className="w-full flex flex-col gap-3 font-sans">
+      {/* Top Header / Mode Switcher */}
+      <div className="px-4 py-3 bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-900 border-2 border-emerald-500/40 rounded-2xl flex items-center justify-between flex-wrap gap-2 text-white shadow-xl">
+        <div className="flex items-center gap-2.5">
+          <span className="text-2xl animate-bounce">🏇</span>
           <div>
             <h3 className="text-sm font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
-              Trường Đua Thú Cưng Tiếng Anh Meowlish
-              <span className="text-[10px] px-2 py-0.5 bg-blue-500/30 text-blue-200 rounded-full font-bold">
-                Tốc Độ Siêu Tốc
+              Đua Thú Cưng Tốc Độ (Rapid English Derby)
+              <span className="text-[10px] px-2 py-0.5 bg-emerald-500/30 text-emerald-200 rounded-full font-bold border border-emerald-400/40">
+                1 Câu Trả Lời = 1 Khúc Tăng Tốc
               </span>
             </h3>
             <p className="text-xs text-slate-300">
-              Trả lời đúng 1 câu = thú cưng bứt tốc chạy thêm 1 khúc! Về Nhất nhận x3.5 tiền cược!
+              Giải đố tiếng Anh siêu tốc để bứt phá về đích trước các đối thủ!
             </p>
           </div>
         </div>
 
-        {/* Bet Selector */}
-        {raceState === 'lobby' && (
-          <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-white/10">
-            <span className="text-xs font-bold text-amber-300">Mức Cược:</span>
-            {[50, 100, 200, 500].map((amount) => (
+        {/* Action buttons */}
+        <div className="flex items-center gap-2">
+          {raceState === 'lobby' && (
+            <>
               <button
-                key={amount}
-                onClick={() => setBetCoins(amount)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer ${
-                  betCoins === amount
-                    ? 'bg-amber-500 text-slate-950'
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
+                onClick={() => setShowCreateModal(true)}
+                className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
               >
-                {amount}🪙
+                <Plus className="w-4 h-4" />
+                <span>Mở Giải Đua Mới</span>
               </button>
-            ))}
-          </div>
-        )}
+              {onRefreshData && (
+                <button
+                  onClick={onRefreshData}
+                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl border border-slate-700 transition cursor-pointer"
+                  title="Làm mới giải đua"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              )}
+            </>
+          )}
+
+          {raceState === 'waiting_competitors' && (
+            <button
+              onClick={handleCancelRoom}
+              disabled={isProcessing}
+              className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+              <span>Hủy Giải & Nhận Lại Tiền</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main 2D Canvas Viewport */}
@@ -545,109 +711,321 @@ export default function PetRacingCanvas({
           className="w-full max-w-[840px] h-auto object-contain block touch-none"
         />
 
-        {/* LOBBY MODAL */}
+        {/* LOBBY OVERLAY: ROOM LIST & FRIEND RACE */}
         {raceState === 'lobby' && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center text-white">
-            <div className="text-5xl mb-2">🏁</div>
-            <h2 className="text-xl font-black text-amber-300 mb-1">
-              ĐẤU TRƯỜNG TỐC ĐỘ 4 LÀN: CƯỢC {betCoins} COINS
+          <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col p-4 text-white overflow-y-auto">
+            <div className="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+              <div className="flex items-center gap-2">
+                <Flag className="w-5 h-5 text-amber-400" />
+                <h2 className="text-sm font-black text-amber-300 uppercase tracking-wider">
+                  Sảnh Chờ Các Giải Đua Thú Cưng
+                </h2>
+              </div>
+              <span className="text-xs text-slate-400">
+                Đang có <b className="text-amber-400">{racingRooms.length}</b> giải đua mở
+              </span>
+            </div>
+
+            {/* Room list grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mb-4">
+              {racingRooms.length === 0 ? (
+                <div className="col-span-full py-8 px-4 bg-slate-900/60 border border-dashed border-slate-700 rounded-2xl flex flex-col items-center justify-center text-center">
+                  <div className="text-3xl mb-2">🏁</div>
+                  <h4 className="text-sm font-bold text-slate-200 mb-1">Chưa có giải đua nào đang mở</h4>
+                  <p className="text-xs text-slate-400 max-w-sm mb-3">
+                    Hãy bấm &ldquo;Mở Giải Đua Mới&rdquo; để tạo cuộc đua hoặc chọn bạn bè bên dưới để so tài tốc độ ngay!
+                  </p>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-lg hover:scale-105 active:scale-95 transition cursor-pointer"
+                  >
+                    + Mở Giải Đua Ngay
+                  </button>
+                </div>
+              ) : (
+                racingRooms.map((room) => {
+                  const isHost = room.host_id === userId;
+                  return (
+                    <div
+                      key={room.id}
+                      className="p-3 bg-slate-900/90 border border-slate-700/80 rounded-xl flex items-center justify-between gap-3 shadow-md hover:border-emerald-400/50 transition"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-xl shrink-0 border border-slate-700">
+                          🏁
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-black text-slate-100 truncate">{room.room_name}</h4>
+                          <p className="text-[11px] text-slate-400 truncate">
+                            Chủ giải: <b className="text-emerald-300">{room.host_name}</b>
+                          </p>
+                          <span className="text-[10px] text-amber-400 font-bold">
+                            Cược: {room.bet_coins} xu 🪙
+                          </span>
+                        </div>
+                      </div>
+
+                      {isHost ? (
+                        <button
+                          onClick={handleCancelRoom}
+                          className="px-3 py-1.5 bg-red-600/80 hover:bg-red-500 text-white font-bold text-xs rounded-lg transition shrink-0 cursor-pointer"
+                        >
+                          Hủy Giải
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleJoinRoom(room)}
+                          disabled={isProcessing}
+                          className="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 text-slate-950 font-black text-xs rounded-lg shadow transition shrink-0 cursor-pointer active:scale-95"
+                        >
+                          Vào Đua 🏇
+                        </button>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* DIRECT FRIEND RACE SECTION */}
+            <div className="mt-auto pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-black text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5" /> So Tài Cùng Bạn Bè ({acceptedFriends.length})
+                </span>
+              </div>
+
+              {acceptedFriends.length === 0 ? (
+                <p className="text-xs text-slate-500 italic">
+                  Bạn chưa có bạn bè trong danh sách. Hãy kết bạn ở tab &ldquo;Phố Xã Hội&rdquo; để mời đua cùng nhau nhé!
+                </p>
+              ) : (
+                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                  {acceptedFriends.map((friend) => (
+                    <div
+                      key={friend.friend_id || friend.id}
+                      className="px-3 py-2 bg-slate-900 border border-slate-700/60 rounded-xl flex items-center gap-2.5 shrink-0 shadow-sm"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-base border border-slate-700">
+                        {friend.pet_type === 'owl' ? '🦉' : friend.pet_type === 'cat' ? '🐱' : friend.pet_type === 'ice_dragon' ? '🐲' : '🐾'}
+                      </div>
+                      <div className="text-left">
+                        <div className="text-xs font-black text-slate-200">{friend.display_name}</div>
+                        <div className="text-[10px] text-slate-400">Lv.{friend.pet_level || friend.level || 1}</div>
+                      </div>
+                      <button
+                        onClick={() => handleChallengeFriend(friend)}
+                        disabled={isProcessing}
+                        className="ml-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] rounded-lg shadow transition cursor-pointer active:scale-95"
+                      >
+                        Mời Đua
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* WAITING FOR REAL COMPETITORS OVERLAY */}
+        {raceState === 'waiting_competitors' && currentRoom && (
+          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center text-white">
+            <div className="w-16 h-16 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin mb-4" />
+            <h2 className="text-lg font-black text-emerald-300 mb-1">
+              ĐANG CHỜ ĐỐI THỦ THAM GIA ĐƯỜNG ĐUA...
             </h2>
-            <p className="text-xs text-slate-300 max-w-md mb-4">
-              Cạnh tranh cùng 3 thú cưng của người chơi thật trong cộng đồng. Trả lời từ vựng tiếng Anh chính xác để kích hoạt Nitro tăng tốc thần sầu!
-            </p>
+            <div className="bg-slate-900 border border-slate-700 px-4 py-2.5 rounded-xl mb-4 text-xs text-slate-300 max-w-sm">
+              <p className="font-bold text-white mb-0.5">{currentRoom.room_name}</p>
+              <p>Mức cược: <b className="text-amber-400">{currentRoom.bet_coins} Coins</b> 🪙</p>
+              <p className="text-[11px] text-slate-400 mt-1">
+                Cuộc đua sẽ tự động xuất phát khi có người chơi gia nhập!
+              </p>
+            </div>
             <button
-              onClick={handleStartRace}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-sm rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition cursor-pointer flex items-center gap-2"
+              onClick={handleCancelRoom}
+              disabled={isProcessing}
+              className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-red-400 font-bold text-xs rounded-xl border border-red-500/30 transition cursor-pointer"
             >
-              <Zap className="w-5 h-5 text-amber-300" />
-              <span>Sẵn Sàng Xuất Phát!</span>
+              Hủy Giải & Hoàn Tiền Cược
             </button>
           </div>
         )}
 
-        {/* COUNTDOWN OVERLAY */}
+        {/* 3-2-1 COUNTDOWN OVERLAY */}
         {raceState === 'countdown' && (
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center">
-            <span className="text-7xl font-black text-amber-300 animate-ping">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center">
+            <div className="text-7xl font-black text-amber-300 animate-ping">
               {countdown}
-            </span>
+            </div>
+            <p className="text-sm font-bold text-slate-200 mt-4 tracking-widest uppercase">
+              Chuẩn bị bứt phá!
+            </p>
           </div>
         )}
 
-        {/* FINISHED RESULTS MODAL */}
+        {/* FINISHED OVERLAY */}
         {raceState === 'finished' && (
           <div className="absolute inset-0 bg-black/80 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center text-white">
-            <div className="text-6xl mb-2">{currentRank === 1 ? '🥇' : currentRank === 2 ? '🥈' : '🥉'}</div>
+            <div className="text-5xl mb-2 animate-bounce">
+              {currentRank === 1 ? '🥇' : currentRank === 2 ? '🥈' : '🥉'}
+            </div>
             <h2 className="text-2xl font-black text-amber-300 mb-1">
-              {currentRank === 1 ? 'VÔ ĐỊCH ĐƯỜNG ĐUA!' : `VỀ ĐÍCH HẠNG ${currentRank}!`}
+              {currentRank === 1 ? 'VÔ ĐỊCH ĐƯỜNG ĐUA!' : `CÁN ĐÍCH HẠNG #${currentRank}`}
             </h2>
-            <p className="text-xs text-slate-200 mb-4">
+            <p className="text-xs text-slate-200 mb-4 max-w-sm">
               {currentRank === 1
-                ? `Thú cưng ${playerPetName} đã chiến thắng áp đảo! Bạn nhận được thưởng x3.5 cược!`
-                : 'Đã nỗ lực hết mình! Hãy trau dồi thêm phản xạ từ vựng để giành cúp vàng lần tới!'}
+                ? 'Thú cưng của bạn đã bứt tốc ngoạn mục nhờ phản xạ tiếng Anh siêu phàm!'
+                : 'Bạn đã hoàn thành chặng đua xuất sắc! Hãy rèn luyện thêm để giành cúp vàng!'}
             </p>
+
             {currentRank === 1 && (
-              <div className="flex items-center gap-3 bg-amber-500/20 px-4 py-2 rounded-xl mb-4 text-xs font-bold text-amber-300 border border-amber-400/40">
-                <span>+{Math.round(betCoins * 3.5)} Coins 🪙</span>
+              <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl mb-4 text-xs font-bold text-amber-300 border border-amber-400/30">
+                <span>+{currentRoom ? currentRoom.bet_coins * 2 : Math.round(betCoins * 2.5)} Coins 🪙</span>
                 <span>+80 EXP ⭐</span>
               </div>
             )}
+
             <button
-              onClick={() => setRaceState('lobby')}
+              onClick={() => {
+                setRaceState('lobby');
+                setCurrentRoom(null);
+              }}
               className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition cursor-pointer"
             >
-              Trở Về Bãi Đua
+              Về Sảnh Chờ
             </button>
           </div>
         )}
       </div>
 
-      {/* RAPID QUIZ INTERACTION PANEL (Bottom) */}
+      {/* RAPID ENGLISH QUIZ PANEL: 1 CÂU ĐÚNG = ĐI THÊM 1 KHÚC */}
       {raceState === 'racing' && currentQuestion && (
-        <div className="p-4 bg-slate-900 border-2 border-blue-600/50 rounded-2xl flex flex-col gap-3 shadow-xl">
+        <div className="p-4 bg-slate-900 border-2 border-emerald-500/50 rounded-2xl flex flex-col gap-3 shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <span className="text-xs font-black text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Zap className="w-4 h-4 text-amber-400 animate-bounce" />
-              Bứt Tốc Anh Ngữ: {currentQuestion.prompt}
+            <span className="text-xs font-black text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+              <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
+              {currentQuestion.prompt}
             </span>
-            <span className="text-xs font-bold text-amber-300">
-              {currentQuestion.subPrompt}
+            <span className="text-[11px] font-bold text-emerald-400 animate-pulse">
+              Đúng = Phóng vọt 1 đoạn xa! 🚀
             </span>
           </div>
 
-          {/* 4 Choices */}
-          {currentQuestion.options && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {currentQuestion.options.map((opt, idx) => {
-                let btnStyle = 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700';
+          {currentQuestion.subPrompt && (
+            <div className="p-2.5 bg-slate-800 rounded-xl text-center border border-slate-700">
+              <span className="text-base font-black text-amber-200">
+                {currentQuestion.subPrompt}
+              </span>
+            </div>
+          )}
 
-                if (isFeedbackShowing) {
-                  if (opt === currentQuestion.correctAnswer) {
-                    btnStyle = 'bg-emerald-600 text-white border-emerald-400 ring-2 ring-emerald-300';
-                  } else if (opt === selectedOption && !isAnswerCorrect) {
-                    btnStyle = 'bg-red-600 text-white border-red-400';
-                  }
-                }
+          {/* Options */}
+          {currentQuestion.options && (
+            <div className="grid grid-cols-2 gap-2">
+              {currentQuestion.options.map((opt, idx) => {
+                const isSelected = selectedOption === opt;
+                const isCorrect = isFeedbackShowing && opt.toLowerCase() === (currentQuestion.correctAnswer as string).toLowerCase();
+                const isWrong = isFeedbackShowing && isSelected && !isCorrect;
 
                 return (
                   <button
                     key={idx}
                     disabled={isFeedbackShowing}
                     onClick={() => handleChooseAnswer(opt)}
-                    className={`p-3 rounded-xl border text-xs sm:text-sm font-bold text-left transition cursor-pointer flex items-center justify-between active:scale-98 ${btnStyle}`}
+                    className={`p-3 rounded-xl font-bold text-xs sm:text-sm text-left transition flex items-center justify-between border cursor-pointer ${
+                      isCorrect
+                        ? 'bg-emerald-600/30 border-emerald-500 text-emerald-300'
+                        : isWrong
+                        ? 'bg-red-600/30 border-red-500 text-red-300'
+                        : isSelected
+                        ? 'bg-amber-500/20 border-amber-400 text-amber-200'
+                        : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
+                    }`}
                   >
                     <span>{opt}</span>
-                    {isFeedbackShowing && opt === currentQuestion.correctAnswer && (
-                      <CheckCircle className="w-4 h-4 text-emerald-300 shrink-0" />
-                    )}
-                    {isFeedbackShowing && opt === selectedOption && !isAnswerCorrect && (
-                      <XCircle className="w-4 h-4 text-red-300 shrink-0" />
-                    )}
+                    {isCorrect && <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />}
+                    {isWrong && <XCircle className="w-4 h-4 text-red-400 shrink-0" />}
                   </button>
                 );
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* CREATE RACING ROOM MODAL */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-slate-900 border-2 border-emerald-400/50 rounded-2xl p-5 shadow-2xl text-white">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+              <h3 className="text-base font-black text-emerald-300 flex items-center gap-2">
+                <Flag className="w-5 h-5 text-emerald-400" /> Mở Giải Đua Tốc Độ Mới
+              </h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {actionError && (
+              <div className="p-2.5 mb-3 bg-red-500/20 border border-red-500/50 rounded-xl text-xs text-red-200">
+                {actionError}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3 mb-4">
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-1">Tên Giải Đua:</label>
+                <input
+                  type="text"
+                  value={newRoomName}
+                  onChange={(e) => setNewRoomName(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-emerald-300 focus:outline-hidden focus:border-emerald-400"
+                  placeholder="Nhập tên giải đua..."
+                  maxLength={50}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-1">Mức Cược (Coins):</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[50, 100, 200, 500].map((coins) => (
+                    <button
+                      key={coins}
+                      type="button"
+                      onClick={() => setBetCoins(coins)}
+                      className={`py-2 rounded-xl text-xs font-black border transition cursor-pointer ${
+                        betCoins === coins
+                          ? 'bg-emerald-500 border-emerald-300 text-slate-950 shadow-md'
+                          : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                      }`}
+                    >
+                      {coins} xu
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl"
+              >
+                Đóng
+              </button>
+              <button
+                onClick={handleCreateRoom}
+                disabled={isProcessing}
+                className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition active:scale-95 disabled:opacity-50"
+              >
+                {isProcessing ? 'Đang tạo...' : 'Mở Giải & Chờ Đối Thủ'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

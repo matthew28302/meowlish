@@ -54,9 +54,14 @@ export default function PetPage() {
   const [farmPlots, setFarmPlots] = useState<any[]>([]);
   const [livestock, setLivestock] = useState<any[]>([]);
   const [friendIds, setFriendIds] = useState<string[]>([]);
+  const [acceptedFriends, setAcceptedFriends] = useState<any[]>([]);
+  const [incomingFriendRequests, setIncomingFriendRequests] = useState<any[]>([]);
+  const [outgoingFriendIds, setOutgoingFriendIds] = useState<string[]>([]);
+  const [communityUsers, setCommunityUsers] = useState<any[]>([]);
   const [coupleData, setCoupleData] = useState<any>(null);
+  const [incomingProposal, setIncomingProposal] = useState<any>(null);
+  const [activeRooms, setActiveRooms] = useState<any[]>([]);
   const [recentChat, setRecentChat] = useState<any[]>([]);
-  const [realOpponents, setRealOpponents] = useState<any[]>([]);
 
   // Modals
   const [showShopModal, setShowShopModal] = useState<boolean>(false);
@@ -199,9 +204,14 @@ export default function PetPage() {
         if (data.farmPlots) setFarmPlots(data.farmPlots);
         if (data.livestock) setLivestock(data.livestock);
         if (data.friendIds) setFriendIds(data.friendIds);
+        if (data.acceptedFriends) setAcceptedFriends(data.acceptedFriends);
+        if (data.incomingFriendRequests) setIncomingFriendRequests(data.incomingFriendRequests);
+        if (data.outgoingFriendIds) setOutgoingFriendIds(data.outgoingFriendIds);
+        if (data.communityUsers) setCommunityUsers(data.communityUsers);
         if (data.couple) setCoupleData(data.couple);
+        if (data.incomingProposal !== undefined) setIncomingProposal(data.incomingProposal);
+        if (data.activeRooms) setActiveRooms(data.activeRooms);
         if (data.recentChat) setRecentChat(data.recentChat);
-        if (data.realOpponents) setRealOpponents(data.realOpponents);
         if (data.user?.coins !== undefined) {
           setUserCoins(data.user.coins);
           const stored = getStoredUser();
@@ -1121,7 +1131,10 @@ export default function PetPage() {
               );
             }}
             userId={currentUser?.id}
-            realOpponents={realOpponents}
+            userDisplayName={currentUser?.display_name || currentUser?.username || 'Bạn'}
+            activeRooms={activeRooms}
+            acceptedFriends={acceptedFriends}
+            onRefreshData={loadPetData}
           />
         </div>
       )}
@@ -1152,7 +1165,11 @@ export default function PetPage() {
               );
             }}
             userId={currentUser?.id}
-            realOpponents={realOpponents}
+            userDisplayName={currentUser?.display_name || currentUser?.username || 'Bạn'}
+            activeRooms={activeRooms}
+            acceptedFriends={acceptedFriends}
+            communityUsers={communityUsers}
+            onRefreshData={loadPetData}
           />
         </div>
       )}
@@ -1174,13 +1191,21 @@ export default function PetPage() {
               window.dispatchEvent(new Event('auth-state-changed'));
             }}
             onSendSpeech={(text) => setPetSpeech(text)}
-            friendIds={friendIds}
+            initialFriends={acceptedFriends}
+            initialIncomingRequests={incomingFriendRequests}
+            initialOutgoingFriendIds={outgoingFriendIds}
+            initialCommunityUsers={communityUsers}
             coupleData={coupleData}
+            incomingProposal={incomingProposal}
             recentChatList={recentChat}
             onVisitFriendFarm={(f) => {
               sound.playCelebration();
-              setPetSpeech(`Đang ghé thăm nông trại của ${f.displayName}! Thú cưng ${f.petName} đáng yêu quá! 🏡💖`);
-              setGameTab('sanctuary');
+              setPetSpeech(`Đang ghé thăm nông trại của ${f.displayName || f.display_name}! Thú cưng đáng yêu quá! 🏡💖`);
+              setGameTab('farm');
+            }}
+            onChallengeFriend={() => {
+              sound.playPop();
+              setGameTab('pvp');
             }}
           />
         </div>

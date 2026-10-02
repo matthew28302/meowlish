@@ -91,22 +91,8 @@ export async function GET(request: Request) {
     const farmPlots = db.prepare('SELECT * FROM pet_farm_plots WHERE user_id = ? ORDER BY plot_index ASC').all(userId);
     const livestock = db.prepare('SELECT * FROM pet_farm_livestock WHERE user_id = ?').all(userId);
 
-    // Social Friends, Couple and Recent Chat Messages
-    const dbFriends = db.prepare('SELECT friend_id FROM user_friends WHERE user_id = ?').all(userId) as { friend_id: string }[];
-    const friendIdSet = new Set(dbFriends.map((f) => f.friend_id));
-
-    // Couple status
-    const coupleRow = db.prepare(`
-      SELECT * FROM user_couples WHERE user_id_1 = ? OR user_id_2 = ? LIMIT 1
-    `).get(userId, userId) as any;
-
-    // Recent Global Pet Chat
-    const recentChat = db.prepare(`
-      SELECT * FROM pet_chat_messages ORDER BY created_at DESC LIMIT 20
-    `).all().reverse();
-
-    // Real Opponents from SQLite Database
-    const realOpponents = db.prepare(`
+    // 1. Accepted Friends with rich profile info
+    const acceptedFriends = db.prepare(`
       SELECT 
         u.id, 
         u.username, 
@@ -117,15 +103,104 @@ export async function GET(request: Request) {
         u.level as user_level, 
         COALESCE(p.pet_type, 'owl') as pet_type, 
         COALESCE(p.pet_name, 'Lexi Trí Tuệ') as pet_name, 
+        COALESCE(p.level, 1) as pet_level
+      FROM user_friends f
+      JOIN users u ON (u.id = CASE WHEN f.user_id = ? THEN f.friend_id ELSE f.user_id END)
+      LEFT JOIN user_pets p ON p.user_id = u.id
+      WHERE (f.user_id = ? OR f.friend_id = ?) AND f.status = 'accepted'
+    `).all(userId, userId, userId);
+
+    // 2. Incoming Friend Requests (Others asked me)
+    const incomingFriendRequests = db.prepare(`
+      SELECT 
+        f.id as request_id,
+        u.id, 
+        u.username, 
+        u.display_name, 
+        u.avatar, 
+        COALESCE(p.pet_type, 'owl') as pet_type, 
+        COALESCE(p.pet_name, 'Lexi Trí Tuệ') as pet_name, 
         COALESCE(p.level, 1) as pet_level,
-        COALESCE(p.equipped_hat, 'none') as equipped_hat,
-        COALESCE(p.equipped_outfit, 'none') as equipped_outfit
-      FROM users u 
-      LEFT JOIN user_pets p ON u.id = p.user_id 
-      WHERE u.status != 'disabled'
+        f.created_at
+      FROM user_friends f
+      JOIN users u ON u.id = f.user_id
+      LEFT JOIN user_pets p ON p.user_id = u.id
+      WHERE f.friend_id = ? AND f.status = 'pending'
+    `).all(userId);
+
+    // 3. Outgoing Friend Requests (I asked others)
+    const outgoingFriendRequests = db.prepare(`
+      SELECT friend_id FROM user_friends WHERE user_id = ? AND status = 'pending'
+    `).all(userId) as { friend_id: string }[];
+
+    // 4. Real Community Users (For finding & adding friends - NO FAKE BOTS!)
+    const communityUsers = db.prepare(`
+      SELECT 
+        u.id, 
+        u.username, 
+        u.display_name, 
+        u.avatar, 
+        u.level as user_level, 
+        COALESCE(p.pet_type, 'owl') as pet_type, 
+        COALESCE(p.pet_name, 'Lexi Trí Tuệ') as pet_name, 
+        COALESCE(p.level, 1) as pet_level
+      FROM users u
+      LEFT JOIN user_pets p ON p.user_id = u.id
+      WHERE u.id != ? AND u.status != 'disabled'
       ORDER BY u.exp DESC
-      LIMIT 20
+      LIMIT 25
+    `).all(userId);
+
+    // 5. Couple Status & Incoming Proposals
+    const coupleRow = db.prepare(`
+      SELECT 
+        c.*,
+        u1.display_name as user_1_name,
+        u2.display_name as user_2_name,
+        p1.pet_type as user_1_pet,
+        p2.pet_type as user_2_pet
+      FROM user_couples c
+      LEFT JOIN users u1 ON u1.id = c.user_id_1
+      LEFT JOIN users u2 ON u2.id = c.user_id_2
+      LEFT JOIN user_pets p1 ON p1.user_id = c.user_id_1
+      LEFT JOIN user_pets p2 ON p2.user_id = c.user_id_2
+      WHERE (c.user_id_1 = ? OR c.user_id_2 = ?) AND c.status = 'accepted'
+      LIMIT 1
+    `).get(userId, userId) as any;
+
+    const incomingProposal = db.prepare(`
+      SELECT 
+        c.*,
+        u.display_name as proposer_name,
+        u.username as proposer_username,
+        u.avatar as proposer_avatar,
+        COALESCE(p.pet_type, 'owl') as proposer_pet_type,
+        COALESCE(p.pet_name, 'Lexi') as proposer_pet_name
+      FROM user_couples c
+      JOIN users u ON u.id = c.proposer_id
+      LEFT JOIN user_pets p ON p.user_id = u.id
+      WHERE (c.user_id_1 = ? OR c.user_id_2 = ?) AND c.proposer_id != ? AND c.status = 'pending'
+      LIMIT 1
+    `).get(userId, userId, userId) as any;
+
+    // 6. Active Battle & Racing Rooms (Real rooms only!)
+    const activeRooms = db.prepare(`
+      SELECT * FROM pet_battle_rooms 
+      WHERE status = 'waiting' 
+      ORDER BY created_at DESC 
+      LIMIT 15
     `).all();
+
+    // 7. Recent Global Pet Chat
+    const recentChat = db.prepare(`
+      SELECT * FROM pet_chat_messages ORDER BY created_at DESC LIMIT 30
+    `).all().reverse();
+
+    const requestedRoomId = searchParams.get('roomId');
+    let roomDetail = null;
+    if (requestedRoomId) {
+      roomDetail = db.prepare('SELECT * FROM pet_battle_rooms WHERE id = ?').get(requestedRoomId) || null;
+    }
 
     const petMeta = PETS_CATALOG[pet.pet_type] || PETS_CATALOG.owl;
 
@@ -136,14 +211,19 @@ export async function GET(request: Request) {
         ...pet,
         meta: petMeta,
       },
+      roomDetail,
       inventory,
       gardenDecor,
       farmPlots,
       livestock,
-      friendIds: Array.from(friendIdSet),
+      acceptedFriends,
+      incomingFriendRequests,
+      outgoingFriendIds: outgoingFriendRequests.map((f) => f.friend_id),
+      communityUsers,
       couple: coupleRow || null,
+      incomingProposal: incomingProposal || null,
+      activeRooms,
       recentChat,
-      realOpponents,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Pet API error';
@@ -689,52 +769,329 @@ export async function POST(request: Request) {
       });
     }
 
-    // 16. ACTION: ADD FRIEND / KẾT BẠN
-    if (action === 'add_friend') {
-      const friendId = sanitizeText(body.friendId || '');
-      if (friendId && friendId !== userId) {
-        db.prepare(`
-          INSERT OR IGNORE INTO user_friends (id, user_id, friend_id, status)
-          VALUES (?, ?, ?, 'accepted')
-        `).run(`friend-${userId}-${friendId}`, userId, friendId);
+    // 16. ACTION: SEND FRIEND REQUEST / GỬI LỜI MỜI KẾT BẠN
+    if (action === 'send_friend_request') {
+      const targetUserId = sanitizeText(body.targetUserId || body.friendId || '');
+      if (!targetUserId || targetUserId === userId) {
+        return NextResponse.json({ error: 'Không thể gửi lời mời kết bạn cho chính mình!' }, { status: 400 });
       }
 
-      const dbFriends = db.prepare('SELECT friend_id FROM user_friends WHERE user_id = ?').all(userId) as { friend_id: string }[];
-      return NextResponse.json({
-        success: true,
-        message: 'Đã thêm bạn vào danh sách bằng hữu!',
-        friendIds: dbFriends.map((f) => f.friend_id),
-      });
-    }
+      // Check if already friends or already requested
+      const existing = db.prepare(`
+        SELECT * FROM user_friends 
+        WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)
+      `).get(userId, targetUserId, targetUserId, userId) as any;
 
-    // 17. ACTION: PROPOSE COUPLE / KẾT ĐÔI & HÔN LỄ
-    if (action === 'propose_couple') {
-      const partnerId = sanitizeText(body.partnerId || '');
-      const ring = WEDDING_RINGS.find((r) => r.id === body.ringId) || WEDDING_RINGS[0];
-
-      const coinUpdate = db.prepare('UPDATE users SET coins = coins - ? WHERE id = ? AND coins >= ?').run(ring.price, userId, ring.price);
-      if (coinUpdate.changes === 0) {
-        return NextResponse.json({ error: `Không đủ Coins để mua ${ring.name} (${ring.price} xu)!` }, { status: 400 });
+      if (existing) {
+        if (existing.status === 'accepted') {
+          return NextResponse.json({ error: 'Hai bạn đã là bạn bè của nhau rồi!' }, { status: 400 });
+        }
+        return NextResponse.json({ error: 'Lời mời kết bạn đang chờ phản hồi!' }, { status: 400 });
       }
 
-      const coupleId = `couple-${userId}-${partnerId || 'partner'}`;
       db.prepare(`
-        INSERT INTO user_couples (id, user_id_1, user_id_2, ring_type, love_points)
-        VALUES (?, ?, ?, ?, 100)
-        ON CONFLICT(user_id_1, user_id_2)
-        DO UPDATE SET ring_type = excluded.ring_type, love_points = love_points + 50
-      `).run(coupleId, userId, partnerId || 'friend_mai_xuan', ring.id);
+        INSERT INTO user_friends (id, user_id, friend_id, status)
+        VALUES (?, ?, ?, 'pending')
+      `).run(`freq-${userId}-${targetUserId}-${Date.now()}`, userId, targetUserId);
 
-      const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
-      const coupleRow = db.prepare(`
-        SELECT * FROM user_couples WHERE user_id_1 = ? OR user_id_2 = ? LIMIT 1
-      `).get(userId, userId) as any;
       void syncDbToS3Now();
 
       return NextResponse.json({
         success: true,
-        message: `Chúc mừng! Lễ kết đôi với ${ring.name} đã thành công mỹ mãn! 💍💖`,
-        couple: coupleRow,
+        message: 'Đã gửi lời mời kết bạn! Đang chờ bạn ấy đồng ý nhé.',
+      });
+    }
+
+    // 17. ACTION: ACCEPT FRIEND REQUEST / ĐỒNG Ý KẾT BẠN
+    if (action === 'accept_friend_request') {
+      const requestId = sanitizeText(body.requestId || '');
+      const requesterId = sanitizeText(body.requesterId || '');
+
+      let updated = 0;
+      if (requestId) {
+        const res = db.prepare(`
+          UPDATE user_friends 
+          SET status = 'accepted' 
+          WHERE id = ? AND friend_id = ?
+        `).run(requestId, userId);
+        updated = res.changes;
+      } else if (requesterId) {
+        const res = db.prepare(`
+          UPDATE user_friends 
+          SET status = 'accepted' 
+          WHERE user_id = ? AND friend_id = ?
+        `).run(requesterId, userId);
+        updated = res.changes;
+      }
+
+      if (updated === 0) {
+        return NextResponse.json({ error: 'Không tìm thấy lời mời kết bạn hợp lệ!' }, { status: 404 });
+      }
+
+      void syncDbToS3Now();
+
+      return NextResponse.json({
+        success: true,
+        message: 'Chúc mừng! Hai bạn đã chính thức trở thành bằng hữu! 🎉',
+      });
+    }
+
+    // 18. ACTION: DECLINE FRIEND REQUEST / TỪ CHỐI LỜI MỜI
+    if (action === 'decline_friend_request') {
+      const requestId = sanitizeText(body.requestId || '');
+      const requesterId = sanitizeText(body.requesterId || '');
+
+      if (requestId) {
+        db.prepare('DELETE FROM user_friends WHERE id = ? AND friend_id = ?').run(requestId, userId);
+      } else if (requesterId) {
+        db.prepare('DELETE FROM user_friends WHERE user_id = ? AND friend_id = ?').run(requesterId, userId);
+      }
+
+      void syncDbToS3Now();
+
+      return NextResponse.json({
+        success: true,
+        message: 'Đã từ chối lời mời kết bạn.',
+      });
+    }
+
+    // 19. ACTION: REMOVE FRIEND / HỦY KẾT BẠN
+    if (action === 'remove_friend') {
+      const friendId = sanitizeText(body.friendId || '');
+      if (friendId) {
+        db.prepare(`
+          DELETE FROM user_friends 
+          WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)
+        `).run(userId, friendId, friendId, userId);
+      }
+
+      void syncDbToS3Now();
+
+      return NextResponse.json({
+        success: true,
+        message: 'Đã xóa bạn khỏi danh sách bằng hữu.',
+      });
+    }
+
+    // 20. ACTION: PROPOSE COUPLE / GỬI LỜI CẦU HÔN (CẦN ĐƯỢC ĐỒNG Ý)
+    if (action === 'propose_couple') {
+      const partnerId = sanitizeText(body.partnerId || '');
+      if (!partnerId || partnerId === userId) {
+        return NextResponse.json({ error: 'Vui lòng chọn một người bạn để gửi lời cầu hôn!' }, { status: 400 });
+      }
+
+      // Check if already married
+      const existingCouple = db.prepare(`
+        SELECT * FROM user_couples 
+        WHERE (user_id_1 = ? OR user_id_2 = ? OR user_id_1 = ? OR user_id_2 = ?) AND status = 'accepted'
+      `).get(userId, userId, partnerId, partnerId);
+      if (existingCouple) {
+        return NextResponse.json({ error: 'Một trong hai người đã có đôi có cặp rồi!' }, { status: 400 });
+      }
+
+      const ring = WEDDING_RINGS.find((r) => r.id === body.ringId) || WEDDING_RINGS[0];
+
+      // Check Coins
+      const coinUpdate = db.prepare('UPDATE users SET coins = coins - ? WHERE id = ? AND coins >= ?').run(ring.price, userId, ring.price);
+      if (coinUpdate.changes === 0) {
+        return NextResponse.json({ error: `Không đủ Coins để mua ${ring.name} (${ring.price.toLocaleString()} xu)!` }, { status: 400 });
+      }
+
+      // Remove any prior pending proposals between them
+      db.prepare(`
+        DELETE FROM user_couples 
+        WHERE (user_id_1 = ? AND user_id_2 = ?) OR (user_id_1 = ? AND user_id_2 = ?)
+      `).run(userId, partnerId, partnerId, userId);
+
+      const coupleId = `proposal-${userId}-${partnerId}-${Date.now()}`;
+      db.prepare(`
+        INSERT INTO user_couples (id, user_id_1, user_id_2, ring_type, love_points, status, proposer_id)
+        VALUES (?, ?, ?, ?, 100, 'pending', ?)
+      `).run(coupleId, userId, partnerId, ring.id, userId);
+
+      const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
+      void syncDbToS3Now();
+
+      return NextResponse.json({
+        success: true,
+        message: `Đã trao tặng ${ring.name} và gửi lời cầu hôn! Hãy chờ bạn ấy đồng ý nhé! 💍💖`,
+        userCoins: freshUser?.coins || 0,
+      });
+    }
+
+    // 21. ACTION: RESPOND TO PROPOSAL / PHẢN HỒI LỜI CẦU HÔN (ĐỒNG Ý HOẶC TỪ CHỐI)
+    if (action === 'respond_proposal') {
+      const proposalId = sanitizeText(body.proposalId || '');
+      const isAccepted = body.response === 'accept';
+
+      const proposal = db.prepare('SELECT * FROM user_couples WHERE id = ?').get(proposalId) as any;
+      if (!proposal) {
+        return NextResponse.json({ error: 'Không tìm thấy lời cầu hôn này!' }, { status: 404 });
+      }
+
+      if (isAccepted) {
+        // Accept proposal -> Official couple!
+        db.prepare(`
+          UPDATE user_couples 
+          SET status = 'accepted', love_points = 100, married_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `).run(proposalId);
+
+        const coupleRow = db.prepare('SELECT * FROM user_couples WHERE id = ?').get(proposalId) as any;
+        void syncDbToS3Now();
+
+        return NextResponse.json({
+          success: true,
+          message: 'Chúc mừng hai bạn! Lễ kết đôi chính thức thành công viên mãn! 💍💖🎉',
+          couple: coupleRow,
+        });
+      } else {
+        // Decline proposal -> Refund ring coins to proposer
+        const ring = WEDDING_RINGS.find((r) => r.id === proposal.ring_type) || WEDDING_RINGS[0];
+        db.prepare('UPDATE users SET coins = coins + ? WHERE id = ?').run(ring.price, proposal.proposer_id);
+        db.prepare('DELETE FROM user_couples WHERE id = ?').run(proposalId);
+        void syncDbToS3Now();
+
+        return NextResponse.json({
+          success: true,
+          message: 'Đã từ chối lời cầu hôn. Số Coins đã được hoàn lại cho người cầu hôn.',
+        });
+      }
+    }
+
+    // 22. ACTION: BREAK UP / HỦY KẾT ĐÔI
+    if (action === 'break_up') {
+      db.prepare(`
+        DELETE FROM user_couples 
+        WHERE user_id_1 = ? OR user_id_2 = ?
+      `).run(userId, userId);
+
+      void syncDbToS3Now();
+
+      return NextResponse.json({
+        success: true,
+        message: 'Đã hủy trạng thái kết đôi.',
+      });
+    }
+
+    // 23. ACTION: CREATE BATTLE ROOM / TẠO PHÒNG QUYẾT ĐẤU THẬT
+    if (action === 'create_battle_room') {
+      const roomName = sanitizeText(body.roomName || `${user.display_name} Thách Đấu`).slice(0, 50);
+      const gameType = body.gameType === 'racing' ? 'racing' : 'pvp';
+      const betCoins = Math.min(2000, Math.max(0, parseInt(body.betCoins || '100', 10)));
+
+      if (betCoins > 0) {
+        const coinUpdate = db.prepare('UPDATE users SET coins = coins - ? WHERE id = ? AND coins >= ?').run(betCoins, userId, betCoins);
+        if (coinUpdate.changes === 0) {
+          return NextResponse.json({ error: `Không đủ Coins để tạo phòng cược ${betCoins} xu!` }, { status: 400 });
+        }
+      }
+
+      // Delete any old waiting room hosted by this user
+      db.prepare("DELETE FROM pet_battle_rooms WHERE host_id = ? AND status = 'waiting'").run(userId);
+
+      const roomId = `room-${userId}-${Date.now()}`;
+      db.prepare(`
+        INSERT INTO pet_battle_rooms (
+          id, room_name, game_type, bet_coins, 
+          host_id, host_name, host_pet_type, host_pet_level, status
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'waiting')
+      `).run(
+        roomId, roomName, gameType, betCoins,
+        userId, user.display_name, pet.pet_type, pet.level || 1
+      );
+
+      const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
+      const createdRoom = db.prepare('SELECT * FROM pet_battle_rooms WHERE id = ?').get(roomId);
+      void syncDbToS3Now();
+
+      return NextResponse.json({
+        success: true,
+        message: `Đã tạo phòng "${roomName}" thành công! Đang chờ đối thủ tham gia...`,
+        room: createdRoom,
+        userCoins: freshUser?.coins || 0,
+      });
+    }
+
+    // 24. ACTION: JOIN BATTLE ROOM / VÀO PHÒNG QUYẾT ĐẤU
+    if (action === 'join_battle_room') {
+      const roomId = sanitizeText(body.roomId || '');
+      const room = db.prepare("SELECT * FROM pet_battle_rooms WHERE id = ? AND status = 'waiting'").get(roomId) as any;
+      if (!room) {
+        return NextResponse.json({ error: 'Phòng không tồn tại hoặc đã bắt đầu!' }, { status: 404 });
+      }
+
+      if (room.host_id === userId) {
+        return NextResponse.json({ error: 'Bạn là chủ phòng này rồi!' }, { status: 400 });
+      }
+
+      if (room.bet_coins > 0) {
+        const coinUpdate = db.prepare('UPDATE users SET coins = coins - ? WHERE id = ? AND coins >= ?').run(room.bet_coins, userId, room.bet_coins);
+        if (coinUpdate.changes === 0) {
+          return NextResponse.json({ error: `Không đủ Coins (${room.bet_coins} xu) để tham gia phòng này!` }, { status: 400 });
+        }
+      }
+
+      db.prepare(`
+        UPDATE pet_battle_rooms 
+        SET guest_id = ?, guest_name = ?, guest_pet_type = ?, guest_pet_level = ?, status = 'in_progress'
+        WHERE id = ?
+      `).run(userId, user.display_name, pet.pet_type, pet.level || 1, roomId);
+
+      const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
+      const updatedRoom = db.prepare('SELECT * FROM pet_battle_rooms WHERE id = ?').get(roomId);
+      void syncDbToS3Now();
+
+      return NextResponse.json({
+        success: true,
+        message: `Đã vào phòng đối đầu cùng ${room.host_name}! Trận đấu bắt đầu! ⚔️`,
+        room: updatedRoom,
+        userCoins: freshUser?.coins || 0,
+      });
+    }
+
+    // 25. ACTION: CANCEL BATTLE ROOM / HỦY PHÒNG CHỜ
+    if (action === 'cancel_battle_room') {
+      const roomId = sanitizeText(body.roomId || '');
+      const room = db.prepare("SELECT * FROM pet_battle_rooms WHERE id = ? AND host_id = ? AND status = 'waiting'").get(roomId, userId) as any;
+      if (room) {
+        if (room.bet_coins > 0) {
+          db.prepare('UPDATE users SET coins = coins + ? WHERE id = ?').run(room.bet_coins, userId);
+        }
+        db.prepare('DELETE FROM pet_battle_rooms WHERE id = ?').run(roomId);
+      }
+
+      const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
+      void syncDbToS3Now();
+
+      return NextResponse.json({
+        success: true,
+        message: 'Đã hủy phòng và hoàn lại tiền cược.',
+        userCoins: freshUser?.coins || 0,
+      });
+    }
+
+    // 26. ACTION: FINISH BATTLE ROOM / KẾT THÚC TRẬN ĐẤU & TRAO THƯỞNG
+    if (action === 'finish_battle_room') {
+      const roomId = sanitizeText(body.roomId || '');
+      const winnerId = sanitizeText(body.winnerId || userId);
+      const room = db.prepare('SELECT * FROM pet_battle_rooms WHERE id = ?').get(roomId) as any;
+
+      if (room && room.status === 'in_progress') {
+        const prizeCoins = room.bet_coins * 2;
+        if (prizeCoins > 0) {
+          db.prepare('UPDATE users SET coins = coins + ?, exp = exp + 50 WHERE id = ?').run(prizeCoins, winnerId);
+        }
+        db.prepare("UPDATE pet_battle_rooms SET status = 'finished', winner_id = ? WHERE id = ?").run(winnerId, roomId);
+      }
+
+      const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
+      void syncDbToS3Now();
+
+      return NextResponse.json({
+        success: true,
+        message: 'Trận đấu đã kết thúc và trao thưởng thành công!',
         userCoins: freshUser?.coins || 0,
       });
     }

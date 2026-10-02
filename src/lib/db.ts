@@ -370,6 +370,39 @@ function createDb(): Database.Database {
       `);
     } catch {}
 
+    // Bảng Phòng Đấu & Ghép Cặp Thật (Pet Battle Rooms)
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS pet_battle_rooms (
+        id TEXT PRIMARY KEY,
+        room_name TEXT NOT NULL,
+        game_type TEXT NOT NULL DEFAULT 'pvp',
+        bet_coins INTEGER DEFAULT 100,
+        host_id TEXT NOT NULL,
+        host_name TEXT NOT NULL,
+        host_pet_type TEXT NOT NULL,
+        host_pet_level INTEGER DEFAULT 1,
+        guest_id TEXT,
+        guest_name TEXT,
+        guest_pet_type TEXT,
+        guest_pet_level INTEGER DEFAULT 1,
+        status TEXT DEFAULT 'waiting',
+        winner_id TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_battle_rooms_status ON pet_battle_rooms(status);
+      CREATE INDEX IF NOT EXISTS idx_battle_rooms_host ON pet_battle_rooms(host_id);
+    `);
+
+    // Migration cho bảng user_couples
+    try {
+      const coupleCols = db.prepare("PRAGMA table_info(user_couples)").all() as { name: string }[];
+      if (!coupleCols.some((col) => col.name === 'status')) {
+        db.exec("ALTER TABLE user_couples ADD COLUMN status TEXT DEFAULT 'accepted';");
+      }
+      if (!coupleCols.some((col) => col.name === 'proposer_id')) {
+        db.exec("ALTER TABLE user_couples ADD COLUMN proposer_id TEXT;");
+      }
+    } catch {}
 
     // Cập nhật tất cả tài khoản cũ chưa có giá trị coins mặc định
     db.exec("UPDATE users SET coins = 1000 WHERE coins IS NULL;");
