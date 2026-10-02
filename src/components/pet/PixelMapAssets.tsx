@@ -5,7 +5,7 @@ import React from 'react';
 // =========================================================================
 // 1. CỐI XAY GIÓ HÀ LAN THẬT (DUTCH WINDMILL WITH WOODEN LATTICE BLADES)
 // =========================================================================
-export function DutchWindmillSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
+function _Raw_DutchWindmillSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 180 * scale }}>
       <svg viewBox="0 0 140 180" width={140 * scale} height={180 * scale} className="overflow-visible drop-shadow-xl">
@@ -132,7 +132,7 @@ export function DutchWindmillSVG({ className = '', scale = 1.4 }: { className?: 
 // =========================================================================
 // 2. CÂY ĐẠI THỤ CỔ THỤ & THANG TRÈO (GRAND OAK TREE WITH CLIMBING LADDER)
 // =========================================================================
-export function GrandOakTreeSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
+function _Raw_GrandOakTreeSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 160 * scale, height: 180 * scale }}>
       <svg viewBox="0 0 160 180" width={160 * scale} height={180 * scale} className="overflow-visible drop-shadow-lg">
@@ -240,7 +240,7 @@ export function GrandOakTreeSVG({ className = '', scale = 1.4 }: { className?: s
 // =========================================================================
 // 3. BIỆT THỰ NÔNG TRẠI MÁI NGÓI ĐỎ (FARMHOUSE VILLA WITH SMOKING CHIMNEY)
 // =========================================================================
-export function FarmhouseVillaSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
+function _Raw_FarmhouseVillaSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 170 * scale, height: 130 * scale }}>
       <svg viewBox="0 0 170 130" width={170 * scale} height={130 * scale} className="overflow-visible drop-shadow-xl">
@@ -373,7 +373,7 @@ export function FarmhouseVillaSVG({ className = '', scale = 1.4 }: { className?:
 // =========================================================================
 // 4. HỒ SEN SINH THÁI & BẾN GỖ (LOTUS POND WITH WOODEN PIER & KOI FISH)
 // =========================================================================
-export function LotusPondSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
+function _Raw_LotusPondSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 220 * scale, height: 110 * scale }}>
       <svg viewBox="0 0 220 110" width={220 * scale} height={110 * scale} className="overflow-visible drop-shadow-lg">
@@ -507,7 +507,7 @@ export function LotusPondSVG({ className = '', scale = 1.4 }: { className?: stri
 // =========================================================================
 // 5. NẤM LÒ XO BẬT NHẢY (BOUNCY TRAMPOLINE MUSHROOM)
 // =========================================================================
-export function BouncyMushroomSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_BouncyMushroomSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 70 * scale, height: 75 * scale }}>
       <svg viewBox="0 0 70 75" width={70 * scale} height={75 * scale} className="overflow-visible">
@@ -552,7 +552,7 @@ export function BouncyMushroomSVG({ className = '', scale = 1 }: { className?: s
 // =========================================================================
 // 6. CHUỒNG GÀ & RƠM VÀNG (CHICKEN COOP & BARNYARD)
 // =========================================================================
-export function ChickenCoopSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_ChickenCoopSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 110 * scale, height: 85 * scale }}>
       <svg viewBox="0 0 110 85" width={110 * scale} height={85 * scale} className="overflow-visible">
@@ -602,7 +602,7 @@ export function ChickenCoopSVG({ className = '', scale = 1 }: { className?: stri
 // =========================================================================
 // 7. VƯỜN RAU CỦ 4 LUỐNG (RAISED VEGGIE GARDEN BEDS)
 // =========================================================================
-export function VeggiePatchSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_VeggiePatchSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 80 * scale }}>
       <svg viewBox="0 0 140 80" width={140 * scale} height={80 * scale} className="overflow-visible">
@@ -660,7 +660,7 @@ export function VeggiePatchSVG({ className = '', scale = 1 }: { className?: stri
 // =========================================================================
 // 8. NGỌN HẢI ĐĂNG BÃI BIỂN (COASTAL LIGHTHOUSE FOR SUNSET BEACH)
 // =========================================================================
-export function LighthouseSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_LighthouseSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 80 * scale, height: 160 * scale }}>
       <svg viewBox="0 0 80 160" width={80 * scale} height={160 * scale} className="overflow-visible">
@@ -696,7 +696,7 @@ export function LighthouseSVG({ className = '', scale = 1 }: { className?: strin
 // =========================================================================
 // 9. CÂY DỪA NHIỆT ĐỚI (TROPICAL COCONUT PALM TREE)
 // =========================================================================
-export function PalmTreeSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_PalmTreeSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 130 * scale, height: 160 * scale }}>
       <svg viewBox="0 0 130 160" width={130 * scale} height={160 * scale} className="overflow-visible">
@@ -737,7 +737,7 @@ export function PalmTreeSVG({ className = '', scale = 1 }: { className?: string;
 // =========================================================================
 // 10. TỦ SERVER RACK ĐÈN LED (ENTERPRISE 42U SERVER RACK FOR DEV DEN)
 // =========================================================================
-export function ServerRackSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_ServerRackSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 75 * scale, height: 130 * scale }}>
       <svg viewBox="0 0 75 130" width={75 * scale} height={130 * scale} className="overflow-visible">
@@ -766,7 +766,7 @@ export function ServerRackSVG({ className = '', scale = 1 }: { className?: strin
 // =========================================================================
 // 11. BÀN LÀM VIỆC DUAL MONITOR (DEVELOPER WORKSTATION FOR DEV DEN)
 // =========================================================================
-export function DevWorkstationSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_DevWorkstationSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 100 * scale }}>
       <svg viewBox="0 0 140 100" width={140 * scale} height={100 * scale} className="overflow-visible">
@@ -810,7 +810,7 @@ export function DevWorkstationSVG({ className = '', scale = 1 }: { className?: s
   );
 }
 
-export function CrystalCastleSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
+function _Raw_CrystalCastleSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 150 * scale, height: 160 * scale }}>
       <svg viewBox="0 0 150 160" width={150 * scale} height={160 * scale} className="overflow-visible drop-shadow-2xl">
@@ -892,7 +892,7 @@ export function CrystalCastleSVG({ className = '', scale = 1.4 }: { className?: 
 // =========================================================================
 // 13. SÂN BÓNG CHUYỀN BÃI BIỂN (BEACH VOLLEYBALL COURT WITH NET & BALL)
 // =========================================================================
-export function BeachVolleyballSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_BeachVolleyballSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 90 * scale }}>
       <svg viewBox="0 0 140 90" width={140 * scale} height={90 * scale} className="overflow-visible">
@@ -955,7 +955,7 @@ export function BeachVolleyballSVG({ className = '', scale = 1 }: { className?: 
 // =========================================================================
 // 14. QUẦY TIKI BAR MÁI LÁ CỌ NHIỆT ĐỚI (TROPICAL TIKI BAR & SURFBOARD)
 // =========================================================================
-export function TikiBarCabanaSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_TikiBarCabanaSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 145 * scale, height: 115 * scale }}>
       <svg viewBox="0 0 145 115" width={145 * scale} height={115 * scale} className="overflow-visible">
@@ -1037,7 +1037,7 @@ export function TikiBarCabanaSVG({ className = '', scale = 1 }: { className?: st
 // =========================================================================
 // 15. LÂU ĐÀI CÁT & ĐỐNG LỬA TRẠI (SANDCASTLE & BONFIRE CAMPING)
 // =========================================================================
-export function SandcastleBonfireSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_SandcastleBonfireSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 135 * scale, height: 90 * scale }}>
       <svg viewBox="0 0 130 85" width={130 * scale} height={85 * scale} className="overflow-visible">
@@ -1126,7 +1126,7 @@ export function SandcastleBonfireSVG({ className = '', scale = 1 }: { className?
 // =========================================================================
 // 16A. ĐẠI DƯƠNG TRÀN HÀNG NGANG & SÓNG BIỂN NHIỆT ĐỚI (FULL-WIDTH COASTAL OCEAN)
 // =========================================================================
-export function FullWidthOceanWavesSVG({ className = '', height = 120 }: { className?: string; height?: number }) {
+function _Raw_FullWidthOceanWavesSVG({ className = '', height = 120 }: { className?: string; height?: number }) {
   return (
     <div className={`relative w-full overflow-hidden select-none ${className}`} style={{ height }}>
       {/* Background deep ocean gradient */}
@@ -1240,7 +1240,7 @@ export function FullWidthOceanWavesSVG({ className = '', height = 120 }: { class
 // =========================================================================
 // 16. THUYỀN BUỒM & SÓNG BIỂN LƯỚT SÓNG (SAILBOAT & TROPICAL OCEAN WAVES)
 // =========================================================================
-export function SailboatWavesSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_SailboatWavesSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 175 * scale, height: 75 * scale }}>
       <svg viewBox="0 0 175 75" width={175 * scale} height={75 * scale} className="overflow-visible">
@@ -1303,7 +1303,7 @@ export function SailboatWavesSVG({ className = '', scale = 1 }: { className?: st
 // =========================================================================
 // 17. KỆ SÁCH THƯ VIỆN & THANG TRƯỢT (LIBRARY BOOKSHELF & ROLLING LADDER)
 // =========================================================================
-export function LibraryBookshelfSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_LibraryBookshelfSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 130 * scale, height: 145 * scale }}>
       <svg viewBox="0 0 130 145" width={130 * scale} height={145 * scale} className="overflow-visible">
@@ -1413,7 +1413,7 @@ export function LibraryBookshelfSVG({ className = '', scale = 1 }: { className?:
 // =========================================================================
 // 18. GHẾ LƯỜI BEANBAG & THẢM NORDIC (PLUSH BEANBAG & WOVEN NORDIC RUG)
 // =========================================================================
-export function BeanbagLoungeSVG({
+function _Raw_BeanbagLoungeSVG({
   className = '',
   scale = 1,
   isBouncing = false,
@@ -1482,7 +1482,7 @@ export function BeanbagLoungeSVG({
 // =========================================================================
 // 19. QUẦY CAFE ESPRESSO & PIZZA (ESPRESSO BAR & CHEESY PIZZA CORNER)
 // =========================================================================
-export function EspressoBarKitchenetteSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_EspressoBarKitchenetteSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 135 * scale, height: 105 * scale }}>
       <svg viewBox="0 0 135 105" width={135 * scale} height={105 * scale} className="overflow-visible">
@@ -1555,7 +1555,7 @@ export function EspressoBarKitchenetteSVG({ className = '', scale = 1 }: { class
 // =========================================================================
 // 20. BẢNG SPRINT KANBAN DI ĐỘNG (MOBILE AGILE KANBAN WHITEBOARD)
 // =========================================================================
-export function ScrumKanbanWhiteboardSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_ScrumKanbanWhiteboardSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 135 * scale, height: 95 * scale }}>
       <svg viewBox="0 0 135 95" width={135 * scale} height={95 * scale} className="overflow-visible">
@@ -1626,7 +1626,7 @@ export function ScrumKanbanWhiteboardSVG({ className = '', scale = 1 }: { classN
 // =========================================================================
 // 21. ĐÀI PHUN SAO THIÊN THẦN (CELESTIAL MARBLE ANGEL FOUNTAIN)
 // =========================================================================
-export function CelestialAngelFountainSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_CelestialAngelFountainSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 120 * scale }}>
       <svg viewBox="0 0 140 120" width={140 * scale} height={120 * scale} className="overflow-visible">
@@ -1701,7 +1701,7 @@ export function CelestialAngelFountainSVG({ className = '', scale = 1 }: { class
 // =========================================================================
 // 22. RƯƠNG BÁU KIM CƯƠNG TRI THỨC (GEMSTONE TREASURE CHEST OF WISDOM)
 // =========================================================================
-export function GemstoneTreasureChestSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_GemstoneTreasureChestSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 130 * scale, height: 95 * scale }}>
       <svg viewBox="0 0 130 95" width={130 * scale} height={95 * scale} className="overflow-visible">
@@ -1778,7 +1778,7 @@ export function GemstoneTreasureChestSVG({ className = '', scale = 1 }: { classN
 // =========================================================================
 // 23. CẦU VỒNG 7 MÀU PHA LÊ (7-COLOR CRYSTAL RAINBOW BRIDGE)
 // =========================================================================
-export function RainbowBridgeArchSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_RainbowBridgeArchSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 190 * scale, height: 100 * scale }}>
       <svg viewBox="0 0 190 100" width={190 * scale} height={100 * scale} className="overflow-visible">
@@ -1839,7 +1839,7 @@ export function RainbowBridgeArchSVG({ className = '', scale = 1 }: { className?
 // =========================================================================
 // 24. BẬC THANG MÂY & ĐÈN LỒNG TRĂNG SAO (STARRY CLOUD STAIRWAY PLATFORM)
 // =========================================================================
-export function StarryCloudPlatformSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_StarryCloudPlatformSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 130 * scale, height: 80 * scale }}>
       <svg viewBox="0 0 130 80" width={130 * scale} height={80 * scale} className="overflow-visible">
@@ -1885,7 +1885,7 @@ export function StarryCloudPlatformSVG({ className = '', scale = 1 }: { classNam
 // =========================================================================
 // 25. THOUSAND SUNNY / ONE PIECE - ĐẦU SƯ TỬ SUNNY (LION FIGUREHEAD)
 // =========================================================================
-export function ThousandSunnyLionFigureheadSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_ThousandSunnyLionFigureheadSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 150 * scale, height: 140 * scale }}>
       <svg viewBox="0 0 150 140" width={150 * scale} height={140 * scale} className="overflow-visible">
@@ -1978,7 +1978,7 @@ export function ThousandSunnyLionFigureheadSVG({ className = '', scale = 1 }: { 
 // =========================================================================
 // 26. CỘT BUỒM HẢI TẶC MŨ RƠM & ĐÀI QUAN SÁT (PIRATE MAST & JOLLY ROGER)
 // =========================================================================
-export function PirateMastJollyRogerSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_PirateMastJollyRogerSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 170 * scale, height: 200 * scale }}>
       <svg viewBox="0 0 170 200" width={170 * scale} height={200 * scale} className="overflow-visible">
@@ -2085,7 +2085,7 @@ export function PirateMastJollyRogerSVG({ className = '', scale = 1 }: { classNa
 // =========================================================================
 // 27. RƯƠNG KHO BÁU HẢI TẶC TRÀN VÀNG (PIRATE TREASURE CHEST)
 // =========================================================================
-export function PirateTreasureChestSVG({ className = '', scale = 1, isOpen = false }: { className?: string; scale?: number; isOpen?: boolean }) {
+function _Raw_PirateTreasureChestSVG({ className = '', scale = 1, isOpen = false }: { className?: string; scale?: number; isOpen?: boolean }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 90 * scale, height: 75 * scale }}>
       <svg viewBox="0 0 90 75" width={90 * scale} height={75 * scale} className="overflow-visible">
@@ -2154,7 +2154,7 @@ export function PirateTreasureChestSVG({ className = '', scale = 1, isOpen = fal
 // =========================================================================
 // 28. BÁNH LÁI TÀU VÀ LAN CAN BOONG (PIRATE HELM & DECK RAILING)
 // =========================================================================
-export function PirateHelmAndDeckRailingSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_PirateHelmAndDeckRailingSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 100 * scale, height: 100 * scale }}>
       <svg viewBox="0 0 100 100" width={100 * scale} height={100 * scale} className="overflow-visible">
@@ -2198,7 +2198,7 @@ export function PirateHelmAndDeckRailingSVG({ className = '', scale = 1 }: { cla
 // =========================================================================
 // 29. ĐẠI BÁC HẢI TẶC & THÙNG RƯỢU GỖ (PIRATE CANNON & BARRELS)
 // =========================================================================
-export function PirateCannonAndRumBarrelsSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_PirateCannonAndRumBarrelsSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 110 * scale, height: 80 * scale }}>
       <svg viewBox="0 0 110 80" width={110 * scale} height={80 * scale} className="overflow-visible">
@@ -2254,7 +2254,7 @@ export function PirateCannonAndRumBarrelsSVG({ className = '', scale = 1 }: { cl
 // =========================================================================
 // 30. VƯỜN CAM NAMI TRÊN BOONG TÀU (NAMI'S TANGERINE TREES)
 // =========================================================================
-export function NamiTangerineTreesSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_NamiTangerineTreesSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 110 * scale, height: 110 * scale }}>
       <svg viewBox="0 0 110 110" width={110 * scale} height={110 * scale} className="overflow-visible">
@@ -2308,7 +2308,7 @@ export function NamiTangerineTreesSVG({ className = '', scale = 1 }: { className
 // =========================================================================
 // 31. KONOHA - VÁCH ĐÁ TƯỢNG HOKAGE (HOKAGE ROCK MONUMENT)
 // =========================================================================
-export function HokageRockMonumentSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_HokageRockMonumentSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 220 * scale, height: 110 * scale }}>
       <svg viewBox="0 0 220 110" width={220 * scale} height={110 * scale} className="overflow-visible">
@@ -2397,7 +2397,7 @@ export function HokageRockMonumentSVG({ className = '', scale = 1 }: { className
 // =========================================================================
 // 32. QUÁN MÌ ICHIRAKU RAMEN (ICHIRAKU RAMEN SHOP)
 // =========================================================================
-export function IchirakuRamenShopSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_IchirakuRamenShopSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 150 * scale, height: 125 * scale }}>
       <svg viewBox="0 0 150 125" width={150 * scale} height={125 * scale} className="overflow-visible">
@@ -2475,7 +2475,7 @@ export function IchirakuRamenShopSVG({ className = '', scale = 1 }: { className?
 // =========================================================================
 // 33. HỒ SUỐI NƯỚC NÓNG ONSEN (ONSEN NATURAL HOT SPRING)
 // =========================================================================
-export function OnsenHotSpringSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_OnsenHotSpringSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 180 * scale, height: 105 * scale }}>
       <svg viewBox="0 0 180 105" width={180 * scale} height={105 * scale} className="overflow-visible">
@@ -2547,7 +2547,7 @@ export function OnsenHotSpringSVG({ className = '', scale = 1 }: { className?: s
 // =========================================================================
 // 34. CỔNG TORII ĐỎ VÀ RỪNG TRÚC (BAMBOO TORII SHRINE)
 // =========================================================================
-export function BambooToriiShrineSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_BambooToriiShrineSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 110 * scale, height: 130 * scale }}>
       <svg viewBox="0 0 110 130" width={110 * scale} height={130 * scale} className="overflow-visible">
@@ -2604,7 +2604,7 @@ export function BambooToriiShrineSVG({ className = '', scale = 1 }: { className?
 // =========================================================================
 // 35. BIA TẬP PHÓNG KUNAI & SHURIKEN (NINJA TRAINING POST)
 // =========================================================================
-export function NinjaTrainingPostSVG({ className = '', scale = 1, isHit = false }: { className?: string; scale?: number; isHit?: boolean }) {
+function _Raw_NinjaTrainingPostSVG({ className = '', scale = 1, isHit = false }: { className?: string; scale?: number; isHit?: boolean }) {
   return (
     <div
       className={`relative inline-block select-none transition-transform duration-150 ${isHit ? 'animate-wiggle scale-110' : ''} ${className}`}
@@ -2655,7 +2655,7 @@ export function NinjaTrainingPostSVG({ className = '', scale = 1, isHit = false 
 // =========================================================================
 // 36. HOGWARTS - NẾN LƠ LỬNG VÀ CỬA SỔ GOTHIC (FLOATING CANDLES GOTHIC HALL)
 // =========================================================================
-export function FloatingCandlesGothicHallSVG({ className = '', scale = 1, isLit = false }: { className?: string; scale?: number; isLit?: boolean }) {
+function _Raw_FloatingCandlesGothicHallSVG({ className = '', scale = 1, isLit = false }: { className?: string; scale?: number; isLit?: boolean }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 190 * scale, height: 130 * scale }}>
       <svg viewBox="0 0 190 130" width={190 * scale} height={130 * scale} className="overflow-visible">
@@ -2710,7 +2710,7 @@ export function FloatingCandlesGothicHallSVG({ className = '', scale = 1, isLit 
 // =========================================================================
 // 37. LÒ SƯỞI ĐÁ ĐẠI SẢNH ĐƯỜNG & LỬA FLOO (HOGWARTS GREAT FIREPLACE)
 // =========================================================================
-export function HogwartsGreatFireplaceSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_HogwartsGreatFireplaceSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 130 * scale }}>
       <svg viewBox="0 0 140 130" width={140 * scale} height={130 * scale} className="overflow-visible">
@@ -2768,7 +2768,7 @@ export function HogwartsGreatFireplaceSVG({ className = '', scale = 1 }: { class
 // =========================================================================
 // 38. BÀN TIỆC PHÉP THUẬT HOGWARTS (MAGIC FEAST TABLE)
 // =========================================================================
-export function MagicFeastTableSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_MagicFeastTableSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 180 * scale, height: 95 * scale }}>
       <svg viewBox="0 0 180 95" width={180 * scale} height={95 * scale} className="overflow-visible">
@@ -2823,7 +2823,7 @@ export function MagicFeastTableSVG({ className = '', scale = 1 }: { className?: 
 // =========================================================================
 // 39. NÓN PHÂN LOẠI TRÊN GHẾ GỖ (SORTING HAT PEDESTAL)
 // =========================================================================
-export function SortingHatPedestalSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_SortingHatPedestalSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 85 * scale, height: 105 * scale }}>
       <svg viewBox="0 0 85 105" width={85 * scale} height={105 * scale} className="overflow-visible">
@@ -2877,7 +2877,7 @@ export function SortingHatPedestalSVG({ className = '', scale = 1 }: { className
 // =========================================================================
 // 40. CỜ HIỆU 4 NHÀ HOGWARTS (HOGWARTS HOUSE BANNERS)
 // =========================================================================
-export function HogwartsHouseBannersSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_HogwartsHouseBannersSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 160 * scale, height: 110 * scale }}>
       <svg viewBox="0 0 160 110" width={160 * scale} height={110 * scale} className="overflow-visible">
@@ -2933,7 +2933,7 @@ export function HogwartsHouseBannersSVG({ className = '', scale = 1 }: { classNa
 // =========================================================================
 // 41. DORAEMON - 3 ỐNG BÊ TÔNG TAM GIÁC (DORAEMON CONCRETE PIPES)
 // =========================================================================
-export function DoraemonConcretePipesSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_DoraemonConcretePipesSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 175 * scale, height: 115 * scale }}>
       <svg viewBox="0 0 175 115" width={175 * scale} height={115 * scale} className="overflow-visible">
@@ -2994,7 +2994,7 @@ export function DoraemonConcretePipesSVG({ className = '', scale = 1 }: { classN
 // =========================================================================
 // 42. CỬA THẦN KỲ DORAEMON (ANYWHERE DOOR DOKODEMO)
 // =========================================================================
-export function AnywhereDoorPropSVG({ className = '', scale = 1, isOpen = false }: { className?: string; scale?: number; isOpen?: boolean }) {
+function _Raw_AnywhereDoorPropSVG({ className = '', scale = 1, isOpen = false }: { className?: string; scale?: number; isOpen?: boolean }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 95 * scale, height: 135 * scale }}>
       <svg viewBox="0 0 95 135" width={95 * scale} height={135 * scale} className="overflow-visible">
@@ -3048,7 +3048,7 @@ export function AnywhereDoorPropSVG({ className = '', scale = 1, isOpen = false 
 // =========================================================================
 // 43. HÀNG RÀO GỖ TUỔI THƠ & BÃI CỎ (NOSTALGIC WOODEN FENCE FIELD)
 // =========================================================================
-export function NostalgicWoodenFenceFieldSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_NostalgicWoodenFenceFieldSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 180 * scale, height: 75 * scale }}>
       <svg viewBox="0 0 180 75" width={180 * scale} height={75 * scale} className="overflow-visible">
@@ -3087,7 +3087,7 @@ export function NostalgicWoodenFenceFieldSVG({ className = '', scale = 1 }: { cl
 // =========================================================================
 // 44. GẬY BÓNG CHÀY & BÁNH RÁN DORAYAKI (NOBITA BASEBALL GEAR & DORAYAKI)
 // =========================================================================
-export function NobitaBaseballGearSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_NobitaBaseballGearSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 100 * scale, height: 75 * scale }}>
       <svg viewBox="0 0 100 75" width={100 * scale} height={75 * scale} className="overflow-visible">
@@ -3128,7 +3128,7 @@ export function NobitaBaseballGearSVG({ className = '', scale = 1 }: { className
 // =========================================================================
 // 45. CỘT ĐIỆN VÀ GƯƠNG CẦU LỒI KHU PHỐ (JAPANESE NEIGHBORHOOD POLE)
 // =========================================================================
-export function JapaneseNeighborhoodPoleSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_JapaneseNeighborhoodPoleSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 80 * scale, height: 160 * scale }}>
       <svg viewBox="0 0 80 160" width={80 * scale} height={160 * scale} className="overflow-visible">
@@ -3166,7 +3166,7 @@ export function JapaneseNeighborhoodPoleSVG({ className = '', scale = 1 }: { cla
 // =========================================================================
 // 46. CÂY KẸO MÚT KHỔNG LỒ KIRBY (GIANT LOLLIPOP TREE)
 // =========================================================================
-export function GiantLollipopTreeSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_GiantLollipopTreeSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 170 * scale }}>
       <svg viewBox="0 0 140 170" width={140 * scale} height={170 * scale} className="overflow-visible">
@@ -3209,7 +3209,7 @@ export function GiantLollipopTreeSVG({ className = '', scale = 1 }: { className?
 // =========================================================================
 // 47. NGÔI SAO VÀNG WARP STAR (KIRBY WARP STAR LAUNCHPAD)
 // =========================================================================
-export function KirbyWarpStarSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_KirbyWarpStarSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 120 * scale, height: 110 * scale }}>
       <svg viewBox="0 0 120 110" width={120 * scale} height={110 * scale} className="overflow-visible">
@@ -3249,7 +3249,7 @@ export function KirbyWarpStarSVG({ className = '', scale = 1 }: { className?: st
 // =========================================================================
 // 48. SUỐI THÁC CẦU VỒNG PASTEL (PASTEL RAINBOW RIVER WATERFALL)
 // =========================================================================
-export function RainbowRiverWaterfallSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_RainbowRiverWaterfallSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 180 * scale, height: 105 * scale }}>
       <svg viewBox="0 0 180 105" width={180 * scale} height={105 * scale} className="overflow-visible">
@@ -3281,7 +3281,7 @@ export function RainbowRiverWaterfallSVG({ className = '', scale = 1 }: { classN
 // =========================================================================
 // 49. CÂY TÁO THẦN WHISPY WOODS (WHISPY WOODS APPLE TREE)
 // =========================================================================
-export function WhispyWoodsAppleTreeSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_WhispyWoodsAppleTreeSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 150 * scale, height: 160 * scale }}>
       <svg viewBox="0 0 150 160" width={150 * scale} height={160 * scale} className="overflow-visible">
@@ -3328,7 +3328,7 @@ export function WhispyWoodsAppleTreeSVG({ className = '', scale = 1 }: { classNa
 // =========================================================================
 // 50. TRƯỢNG SAO STAR ROD & BỆ PHÉP THUẬT (STAR ROD MONUMENT)
 // =========================================================================
-export function StarRodMonumentSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
+function _Raw_StarRodMonumentSVG({ className = '', scale = 1 }: { className?: string; scale?: number }) {
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 100 * scale, height: 130 * scale }}>
       <svg viewBox="0 0 100 130" width={100 * scale} height={130 * scale} className="overflow-visible">
@@ -3364,3 +3364,57 @@ export function StarRodMonumentSVG({ className = '', scale = 1 }: { className?: 
     </div>
   );
 }
+
+
+// --- MEMOIZED ASSETS EXPORT (ZERO RE-RENDER COST WHEN PROPS UNCHANGED) ---
+export const DutchWindmillSVG = React.memo(_Raw_DutchWindmillSVG);
+export const GrandOakTreeSVG = React.memo(_Raw_GrandOakTreeSVG);
+export const FarmhouseVillaSVG = React.memo(_Raw_FarmhouseVillaSVG);
+export const LotusPondSVG = React.memo(_Raw_LotusPondSVG);
+export const BouncyMushroomSVG = React.memo(_Raw_BouncyMushroomSVG);
+export const ChickenCoopSVG = React.memo(_Raw_ChickenCoopSVG);
+export const VeggiePatchSVG = React.memo(_Raw_VeggiePatchSVG);
+export const LighthouseSVG = React.memo(_Raw_LighthouseSVG);
+export const PalmTreeSVG = React.memo(_Raw_PalmTreeSVG);
+export const ServerRackSVG = React.memo(_Raw_ServerRackSVG);
+export const DevWorkstationSVG = React.memo(_Raw_DevWorkstationSVG);
+export const CrystalCastleSVG = React.memo(_Raw_CrystalCastleSVG);
+export const BeachVolleyballSVG = React.memo(_Raw_BeachVolleyballSVG);
+export const TikiBarCabanaSVG = React.memo(_Raw_TikiBarCabanaSVG);
+export const SandcastleBonfireSVG = React.memo(_Raw_SandcastleBonfireSVG);
+export const FullWidthOceanWavesSVG = React.memo(_Raw_FullWidthOceanWavesSVG);
+export const SailboatWavesSVG = React.memo(_Raw_SailboatWavesSVG);
+export const LibraryBookshelfSVG = React.memo(_Raw_LibraryBookshelfSVG);
+export const BeanbagLoungeSVG = React.memo(_Raw_BeanbagLoungeSVG);
+export const EspressoBarKitchenetteSVG = React.memo(_Raw_EspressoBarKitchenetteSVG);
+export const ScrumKanbanWhiteboardSVG = React.memo(_Raw_ScrumKanbanWhiteboardSVG);
+export const CelestialAngelFountainSVG = React.memo(_Raw_CelestialAngelFountainSVG);
+export const GemstoneTreasureChestSVG = React.memo(_Raw_GemstoneTreasureChestSVG);
+export const RainbowBridgeArchSVG = React.memo(_Raw_RainbowBridgeArchSVG);
+export const StarryCloudPlatformSVG = React.memo(_Raw_StarryCloudPlatformSVG);
+export const ThousandSunnyLionFigureheadSVG = React.memo(_Raw_ThousandSunnyLionFigureheadSVG);
+export const PirateMastJollyRogerSVG = React.memo(_Raw_PirateMastJollyRogerSVG);
+export const PirateTreasureChestSVG = React.memo(_Raw_PirateTreasureChestSVG);
+export const PirateHelmAndDeckRailingSVG = React.memo(_Raw_PirateHelmAndDeckRailingSVG);
+export const PirateCannonAndRumBarrelsSVG = React.memo(_Raw_PirateCannonAndRumBarrelsSVG);
+export const NamiTangerineTreesSVG = React.memo(_Raw_NamiTangerineTreesSVG);
+export const HokageRockMonumentSVG = React.memo(_Raw_HokageRockMonumentSVG);
+export const IchirakuRamenShopSVG = React.memo(_Raw_IchirakuRamenShopSVG);
+export const OnsenHotSpringSVG = React.memo(_Raw_OnsenHotSpringSVG);
+export const BambooToriiShrineSVG = React.memo(_Raw_BambooToriiShrineSVG);
+export const NinjaTrainingPostSVG = React.memo(_Raw_NinjaTrainingPostSVG);
+export const FloatingCandlesGothicHallSVG = React.memo(_Raw_FloatingCandlesGothicHallSVG);
+export const HogwartsGreatFireplaceSVG = React.memo(_Raw_HogwartsGreatFireplaceSVG);
+export const MagicFeastTableSVG = React.memo(_Raw_MagicFeastTableSVG);
+export const SortingHatPedestalSVG = React.memo(_Raw_SortingHatPedestalSVG);
+export const HogwartsHouseBannersSVG = React.memo(_Raw_HogwartsHouseBannersSVG);
+export const DoraemonConcretePipesSVG = React.memo(_Raw_DoraemonConcretePipesSVG);
+export const AnywhereDoorPropSVG = React.memo(_Raw_AnywhereDoorPropSVG);
+export const NostalgicWoodenFenceFieldSVG = React.memo(_Raw_NostalgicWoodenFenceFieldSVG);
+export const NobitaBaseballGearSVG = React.memo(_Raw_NobitaBaseballGearSVG);
+export const JapaneseNeighborhoodPoleSVG = React.memo(_Raw_JapaneseNeighborhoodPoleSVG);
+export const GiantLollipopTreeSVG = React.memo(_Raw_GiantLollipopTreeSVG);
+export const KirbyWarpStarSVG = React.memo(_Raw_KirbyWarpStarSVG);
+export const RainbowRiverWaterfallSVG = React.memo(_Raw_RainbowRiverWaterfallSVG);
+export const WhispyWoodsAppleTreeSVG = React.memo(_Raw_WhispyWoodsAppleTreeSVG);
+export const StarRodMonumentSVG = React.memo(_Raw_StarRodMonumentSVG);

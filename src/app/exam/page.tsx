@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { EXAM_SETS, ExamSet, ExamQuestion } from '@/lib/data/exams';
 import { sound } from '@/lib/soundFx';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 import { speakText } from '@/lib/speech';
 import { getStoredUser, AuthUser } from '@/lib/auth';
 
@@ -60,6 +60,7 @@ export default function ExamPage() {
   const [rewardsAwarded, setRewardsAwarded] = useState<{ exp: number; coins: number } | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSubmitRef = useRef<() => void>(() => {});
 
   // Load user and completed exams history & check session
   useEffect(() => {
@@ -108,14 +109,14 @@ export default function ExamPage() {
     }
   }, []);
 
-  // Timer effect during testing
+  // Timer effect during testing (single stable interval without per-second re-registration)
   useEffect(() => {
-    if (mode === 'testing' && secondsRemaining > 0) {
+    if (mode === 'testing') {
       timerRef.current = setInterval(() => {
         setSecondsRemaining((prev) => {
           if (prev <= 1) {
-            clearInterval(timerRef.current!);
-            handleAutoSubmit();
+            if (timerRef.current) clearInterval(timerRef.current);
+            autoSubmitRef.current();
             return 0;
           }
           return prev - 1;
@@ -124,9 +125,23 @@ export default function ExamPage() {
     }
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
     };
-  }, [mode, secondsRemaining]);
+  }, [mode]);
+
+  // Clean up timer and confetti on unmount
+  useEffect(() => {
+    return () => {
+      confetti.reset();
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, []);
 
   // Save exam session in progress
   useEffect(() => {
@@ -214,6 +229,7 @@ export default function ExamPage() {
     sound.playError();
     calculateAndFinish();
   };
+  autoSubmitRef.current = handleAutoSubmit;
 
   // Manual submit
   const handleConfirmSubmit = () => {

@@ -26,6 +26,20 @@ import { sound } from '@/lib/soundFx';
 import { AuthUser, getCurrentUser, clearStoredUser } from '@/lib/auth';
 import AuthModal from './AuthModal';
 
+const NAV_LINKS = [
+  { href: '/', label: 'Lộ Trình', icon: Compass },
+  { href: '/exam', label: 'Bộ Đề Thi & Test', icon: Trophy, highlight: true },
+  { href: '/encyclopedia', label: 'Bách Khoa Toàn Thư', icon: Library, highlight: true },
+  { href: '/grammar', label: 'Ngữ Pháp Lego', icon: BookOpen },
+  { href: '/vocabulary', label: 'Từ Vựng IT & Daily', icon: Sparkles },
+  { href: '/practice/speaking', label: 'Luyện Nói Voice', icon: Mic },
+  { href: '/practice/writing', label: 'Luyện Viết', icon: PenTool },
+  { href: '/practice/listening', label: 'Luyện Nghe', icon: Headphones },
+  { href: '/practice/roleplay', label: 'Đóng Vai', icon: Gamepad2 },
+  { href: '/flashcards', label: 'Flashcard 3D', icon: Layers },
+  { href: '/bookmarks', label: 'Sổ Bookmark', icon: Bookmark },
+];
+
 export default function Navbar() {
   const pathname = usePathname();
   const [showAuth, setShowAuth] = useState(false);
@@ -57,19 +71,7 @@ export default function Navbar() {
     return () => window.removeEventListener('auth-state-changed', syncUser);
   }, []);
 
-  const navLinks = [
-    { href: '/', label: 'Lộ Trình', icon: Compass },
-    { href: '/exam', label: 'Bộ Đề Thi & Test', icon: Trophy, highlight: true },
-    { href: '/encyclopedia', label: 'Bách Khoa Toàn Thư', icon: Library, highlight: true },
-    { href: '/grammar', label: 'Ngữ Pháp Lego', icon: BookOpen },
-    { href: '/vocabulary', label: 'Từ Vựng IT & Daily', icon: Sparkles },
-    { href: '/practice/speaking', label: 'Luyện Nói Voice', icon: Mic },
-    { href: '/practice/writing', label: 'Luyện Viết', icon: PenTool },
-    { href: '/practice/listening', label: 'Luyện Nghe', icon: Headphones },
-    { href: '/practice/roleplay', label: 'Đóng Vai', icon: Gamepad2 },
-    { href: '/flashcards', label: 'Flashcard 3D', icon: Layers },
-    { href: '/bookmarks', label: 'Sổ Bookmark', icon: Bookmark },
-  ];
+  const navLinks = NAV_LINKS;
 
   return (
     <>

@@ -67,6 +67,7 @@ export default function EncyclopediaPage() {
   const [isCrawling, setIsCrawling] = useState<boolean>(false);
   const [crawlerError, setCrawlerError] = useState<string | null>(null);
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
   const categories = [
     { id: 'all', label: 'Tất Cả Mục Từ (26.500+)', icon: Database },
@@ -196,13 +197,31 @@ export default function EncyclopediaPage() {
 
   const handlePlayAudio = (entry: any) => {
     sound.playClick();
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.pause();
+      audioPlayerRef.current = null;
+    }
     if (entry.audioUrl) {
       const audio = new Audio(entry.audioUrl);
+      audioPlayerRef.current = audio;
+      audio.onended = () => {
+        if (audioPlayerRef.current === audio) audioPlayerRef.current = null;
+      };
       audio.play().catch(() => speakText(entry.word));
     } else {
       speakText(entry.word);
     }
   };
+
+  // Clean up audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioPlayerRef.current) {
+        audioPlayerRef.current.pause();
+        audioPlayerRef.current = null;
+      }
+    };
+  }, []);
 
   const handleSaveBookmark = async (e: React.MouseEvent, item: any) => {
     e.stopPropagation();
@@ -832,7 +851,7 @@ export default function EncyclopediaPage() {
               <div
                 key={item.id || item.word}
                 onClick={() => setSelectedEntry(item)}
-                className="card-playful p-5 border-2 border-slate-200 hover:border-emerald-400 bg-white hover:shadow-lg transition-all flex flex-col justify-between space-y-4 cursor-pointer group"
+                className="card-playful p-5 border-2 border-slate-200 hover:border-emerald-400 bg-white hover:shadow-lg transition-all flex flex-col justify-between space-y-4 cursor-pointer group content-auto transform-gpu"
               >
                 <div className="space-y-3">
                   {/* Top Word & IPA */}

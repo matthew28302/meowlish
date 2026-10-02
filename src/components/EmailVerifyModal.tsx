@@ -67,18 +67,20 @@ export default function EmailVerifyModal({
     }
   }, [isOpen, initialSessionId, user?.id, user?.email]);
 
-  // Countdown timer for OTP
+  // Countdown timer for OTP (single stable interval without per-second teardown)
   useEffect(() => {
-    let timer: NodeJS.Timeout | undefined;
-    if (isOpen && step === 'otp' && countdown > 0) {
-      timer = setInterval(() => {
-        setCountdown((c) => (c > 0 ? c - 1 : 0));
-      }, 1000);
-    }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [isOpen, step, countdown]);
+    if (!isOpen || step !== 'otp') return;
+    const timer = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isOpen, step]);
 
   if (!isOpen || !user) return null;
 

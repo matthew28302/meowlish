@@ -61,9 +61,9 @@ export async function GET(request: Request) {
     }
 
     if (search.trim()) {
-      const q = `%${search.trim()}%`;
-      conditions.push('(name LIKE ? OR email LIKE ? OR subject LIKE ? OR message LIKE ?)');
-      values.push(q, q, q, q);
+      const q = `%${search.trim().replace(/^#/, '')}%`;
+      conditions.push('(id LIKE ? OR name LIKE ? OR email LIKE ? OR subject LIKE ? OR message LIKE ?)');
+      values.push(q, q, q, q, q);
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';

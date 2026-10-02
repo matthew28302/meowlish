@@ -218,6 +218,8 @@ textarea::placeholder {
 
 .transform-style-3d {
   transform-style: preserve-3d;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .backface-hidden {
@@ -227,6 +229,35 @@ textarea::placeholder {
 
 .rotate-y-180 {
   transform: rotateY(180deg);
+}
+
+/* ========================================================================= */
+/* GPU Hardware Acceleration & Rendering Utilities                           */
+/* ========================================================================= */
+.transform-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-scroll {
+  will-change: scroll-position;
+}
+
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 220px;
+}
+
+.scroll-gpu {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* Custom scrollbar */
@@ -523,6 +554,8 @@ main,
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   touch-action: pan-y;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 button,
@@ -791,3 +824,51 @@ textarea,
 .animate-ball-shadow {
   animation: ball-landing-shadow 0.65s ease-out forwards;
 }
+
+/* ========================================================================= */
+/* Shared GPU Hardware Acceleration for All Interactive Sprite Animations    */
+/* Promotes animated elements to independent compositor layers               */
+/* ========================================================================= */
+.animate-float-soft,
+.animate-drawer-slide,
+.animate-flame,
+.animate-pixel-idle,
+.animate-pixel-walk,
+.animate-pixel-run,
+.animate-pixel-sleep,
+.animate-pixel-eat,
+.animate-pixel-happy,
+.animate-pixel-zzz,
+.animate-pixel-crumbs,
+.animate-pixel-climb,
+.animate-pixel-swim,
+.animate-pixel-jump,
+.animate-pet-waddle-walk,
+.animate-pet-waddle-run,
+.animate-pet-float-walk,
+.animate-pet-float-run,
+.animate-pet-float-idle,
+.animate-cinna-ear-l,
+.animate-cinna-ear-r,
+.animate-pet-bounce-walk,
+.animate-pet-bounce-run,
+.animate-pet-bounce-idle,
+.animate-pet-trot-walk,
+.animate-pet-trot-run,
+.animate-pet-tail-idle,
+.animate-pet-hop-walk,
+.animate-pet-hop-run,
+.animate-pet-pudgy-walk,
+.animate-pet-pudgy-run,
+.animate-pet-crawl-walk,
+.animate-pet-crawl-run,
+.animate-pet-flutter-walk,
+.animate-pet-flutter-run,
+.animate-ball-arc,
+.animate-ball-shadow {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+

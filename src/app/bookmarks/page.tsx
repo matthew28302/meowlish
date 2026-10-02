@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { sound } from '@/lib/soundFx';
 import { speakText } from '@/lib/speech';
@@ -153,14 +153,16 @@ export default function BookmarksPage() {
     downloadAnchor.remove();
   };
 
-  const filteredBookmarks = bookmarks.filter((b) => {
-    const matchQuery =
-      b.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.translation.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (b.note && b.note.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchTag = selectedTag === 'all' || b.tags.includes(selectedTag);
-    return matchQuery && matchTag;
-  });
+  const filteredBookmarks = useMemo(() => {
+    return bookmarks.filter((b) => {
+      const matchQuery =
+        b.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.translation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (b.note && b.note.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchTag = selectedTag === 'all' || b.tags.includes(selectedTag);
+      return matchQuery && matchTag;
+    });
+  }, [bookmarks, searchQuery, selectedTag]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-8">
@@ -259,7 +261,7 @@ export default function BookmarksPage() {
             return (
               <div
                 key={b.id}
-                className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 hover:border-amber-400 rounded-3xl p-5 shadow-sm transition-all flex flex-col justify-between space-y-3"
+                className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 hover:border-amber-400 rounded-3xl p-5 shadow-sm transition-all flex flex-col justify-between space-y-3 content-auto transform-gpu"
               >
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2">

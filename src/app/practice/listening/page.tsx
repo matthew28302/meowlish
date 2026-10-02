@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { LISTENING_EXERCISES, ListeningExercise } from '@/lib/data/practice';
 import { sound } from '@/lib/soundFx';
 import { speakText } from '@/lib/speech';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 import {
   Headphones,
   Volume2,
@@ -40,6 +40,12 @@ export default function ListeningPracticePage() {
         } catch (e) {}
       }
     }
+  }, []);
+
+  React.useEffect(() => {
+    return () => {
+      confetti.reset();
+    };
   }, []);
 
   const exercise = LISTENING_EXERCISES[currentIdx];

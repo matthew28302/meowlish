@@ -29,9 +29,14 @@ import {
 import { sound } from '@/lib/soundFx';
 import { getStoredUser, setStoredUser, AuthUser } from '@/lib/auth';
 import { PETS_CATALOG, SHOP_ITEMS, ShopItem, getPetTitle, checkCinnamorollAccess, CINNAMOROLL_ALLOWED_EMAILS } from '@/lib/petData';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 import PixelFarmGame, { PixelFarmHandle } from '@/components/pet/PixelFarmGame';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
+import PixelFarmPlots from '@/components/pet/PixelFarmPlots';
+import PetPvPArena from '@/components/pet/PetPvPArena';
+import PetRacingDerby from '@/components/pet/PetRacingDerby';
+import PetSocialHub from '@/components/pet/PetSocialHub';
+import { SocialFriend } from '@/lib/petSocialData';
 
 export default function PetPage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
@@ -43,6 +48,14 @@ export default function PetPage() {
   const [inventory, setInventory] = useState<any[]>([]);
   const [gardenDecor, setGardenDecor] = useState<any[]>([]);
   const [userCoins, setUserCoins] = useState<number>(0);
+
+  // Game Hub Tab Mode: sanctuary | farm | pvp | racing | social
+  const [gameTab, setGameTab] = useState<'sanctuary' | 'farm' | 'pvp' | 'racing' | 'social'>('sanctuary');
+  const [farmPlots, setFarmPlots] = useState<any[]>([]);
+  const [livestock, setLivestock] = useState<any[]>([]);
+  const [friendIds, setFriendIds] = useState<string[]>([]);
+  const [coupleData, setCoupleData] = useState<any>(null);
+  const [recentChat, setRecentChat] = useState<any[]>([]);
 
   // Modals
   const [showShopModal, setShowShopModal] = useState<boolean>(false);
@@ -78,6 +91,13 @@ export default function PetPage() {
   const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number; y: number }[]>([]);
   const [petSpeech, setPetSpeech] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Clean up confetti on unmount
+  useEffect(() => {
+    return () => {
+      confetti.reset();
+    };
+  }, []);
 
   // Khôi phục cache từ localStorage SAU khi hydration (chạy trên client).
   // Nếu có cache => hiển thị pet ngay, không cần chờ fetch.
@@ -175,6 +195,11 @@ export default function PetPage() {
         }
         setInventory(data.inventory || []);
         setGardenDecor(data.gardenDecor || []);
+        if (data.farmPlots) setFarmPlots(data.farmPlots);
+        if (data.livestock) setLivestock(data.livestock);
+        if (data.friendIds) setFriendIds(data.friendIds);
+        if (data.couple) setCoupleData(data.couple);
+        if (data.recentChat) setRecentChat(data.recentChat);
         if (data.user?.coins !== undefined) {
           setUserCoins(data.user.coins);
           const stored = getStoredUser();
@@ -251,10 +276,7 @@ export default function PetPage() {
     if (!isOwned && userCoins < foodItem.price) {
       sound.playWrong();
       const needed = foodItem.price - userCoins;
-      const willClaim = confirm(`🪙 Bạn đang có ${userCoins.toLocaleString()} Coins, cần thêm ${needed.toLocaleString()} Coins để mua ${foodItem.name}.\n\nBạn có muốn nhận ngay +500 Coins miễn phí từ Meowlish để cho thú cưng ăn không?`);
-      if (willClaim) {
-        await handleClaimBonus();
-      }
+      alert(`🪙 Bạn đang có ${userCoins.toLocaleString()} Coins, cần thêm ${needed.toLocaleString()} Coins để mua món ăn "${foodItem.name}".\nHãy hoàn thành các bài học và bài kiểm tra để tích lũy thêm Coins nhé!`);
       return;
     }
 
@@ -541,48 +563,6 @@ export default function PetPage() {
     } catch {}
   };
 
-  // Action: Nhận 500 Coins thưởng học tập miễn phí
-  const handleClaimBonus = async () => {
-    sound.playCelebration();
-    try {
-      const res = await fetch('/api/pet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: currentUser?.id,
-          action: 'claim_bonus',
-        }),
-      });
-      let newCoins = userCoins + 500;
-      if (res.ok) {
-        const data = await res.json();
-        if (data.coins !== undefined) {
-          newCoins = data.coins;
-        }
-      }
-      setUserCoins(newCoins);
-      const stored = getStoredUser();
-      if (stored) {
-        setStoredUser({ ...stored, coins: newCoins });
-      }
-      window.dispatchEvent(new Event('auth-state-changed'));
-      confetti({
-        particleCount: 50,
-        spread: 60,
-        origin: { y: 0.5 },
-      });
-      alert(`🎉 Chúc mừng bạn đã nhận +500 Coins thưởng! Số dư hiện tại: ${newCoins.toLocaleString()} Coins.`);
-    } catch {
-      const newCoins = userCoins + 500;
-      setUserCoins(newCoins);
-      const stored = getStoredUser();
-      if (stored) {
-        setStoredUser({ ...stored, coins: newCoins });
-      }
-      window.dispatchEvent(new Event('auth-state-changed'));
-    }
-  };
-
   // Action: Purchase from Shop
   const handlePurchase = async (item: ShopItem) => {
     sound.playClick();
@@ -590,10 +570,7 @@ export default function PetPage() {
     if (userCoins < item.price) {
       sound.playWrong();
       const needed = item.price - userCoins;
-      const willClaim = confirm(`🪙 Bạn đang có ${userCoins.toLocaleString()} Coins, cần thêm ${needed.toLocaleString()} Coins để sở hữu "${item.name}".\n\nBạn có muốn nhận ngay +500 Coins miễn phí từ Meowlish để mua không?`);
-      if (willClaim) {
-        await handleClaimBonus();
-      }
+      alert(`🪙 Bạn đang có ${userCoins.toLocaleString()} Coins, cần thêm ${needed.toLocaleString()} Coins để sở hữu "${item.name}".\nHãy hoàn thành các bài học và thử thách tiếng Anh để tích lũy thêm Coins nhé!`);
       return;
     }
 
@@ -827,166 +804,382 @@ export default function PetPage() {
 
   return (
     <div className="w-full h-full flex-1 min-h-0 flex flex-col p-2 sm:p-3 gap-2 overflow-y-auto custom-scrollbar select-none pb-24 lg:pb-2 overflow-x-hidden">
-      {/* ================= EXPANSIVE PIXEL FARM ARENA (FILLS 100% REMAINING SCREEN) ================= */}
-      <div className="flex-1 w-full min-h-[380px] sm:min-h-[460px] md:min-h-0 relative">
-        {!petData && isLoading ? (
-          <div className="w-full h-full min-h-[420px] rounded-3xl bg-gradient-to-b from-sky-400 via-emerald-300 to-emerald-500 border-4 border-emerald-600/30 shadow-2xl flex flex-col items-center justify-center gap-4 text-white">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full border-4 border-white/40 border-t-white animate-spin" />
-              <Sparkles className="w-8 h-8 text-amber-300 absolute inset-0 m-auto animate-pulse" />
+      {/* ================= TEAMOBI AVATAR 2D WORLD NAVIGATOR ================= */}
+      <div className="w-full shrink-0 bg-gradient-to-r from-emerald-900 via-teal-950 to-amber-950 rounded-2xl p-1.5 sm:p-2 border-2 border-emerald-500/50 shadow-lg flex items-center justify-between gap-1.5 overflow-x-auto custom-scrollbar">
+        <div className="flex items-center gap-1.5 min-w-max">
+          <button
+            onClick={() => {
+              sound.playClick();
+              setGameTab('sanctuary');
+            }}
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+              gameTab === 'sanctuary'
+                ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
+                : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
+            }`}
+          >
+            <span>🏡</span>
+            <span>Khu Vườn</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sound.playClick();
+              setGameTab('farm');
+            }}
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+              gameTab === 'farm'
+                ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
+                : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
+            }`}
+          >
+            <span>🌾</span>
+            <span>Nông Trại (8 Luống)</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sound.playClick();
+              setGameTab('pvp');
+            }}
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+              gameTab === 'pvp'
+                ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
+                : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
+            }`}
+          >
+            <span>⚔️</span>
+            <span>Đấu Trường PvP</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sound.playClick();
+              setGameTab('racing');
+            }}
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+              gameTab === 'racing'
+                ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
+                : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
+            }`}
+          >
+            <span>🏁</span>
+            <span>Đua Thú Cưng</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sound.playClick();
+              setGameTab('social');
+            }}
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+              gameTab === 'social'
+                ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
+                : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
+            }`}
+          >
+            <span>👥</span>
+            <span>Phố Xã Hội & Kết Đôi</span>
+          </button>
+        </div>
+
+        {/* Right Info: Coins Display */}
+        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+          <div className="flex items-center gap-1 bg-black/40 px-2.5 py-1 rounded-full border border-amber-400/40 text-xs font-black text-amber-300">
+            <Coins className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+            <span>{userCoins.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= TAB 1: SANCTUARY (KHU VƯỜN THÚ CƯNG) ================= */}
+      {gameTab === 'sanctuary' && (
+        <div className="flex-1 w-full min-h-[380px] sm:min-h-[460px] md:min-h-0 relative flex flex-col gap-2">
+          <div className="flex-1 w-full relative min-h-[380px]">
+            {!petData && isLoading ? (
+              <div className="w-full h-full min-h-[420px] rounded-3xl bg-gradient-to-b from-sky-400 via-emerald-300 to-emerald-500 border-4 border-emerald-600/30 shadow-2xl flex flex-col items-center justify-center gap-4 text-white">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full border-4 border-white/40 border-t-white animate-spin" />
+                  <Sparkles className="w-8 h-8 text-amber-300 absolute inset-0 m-auto animate-pulse" />
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="text-lg font-black tracking-wide drop-shadow-md">Đang mở cửa khu vườn thú cưng...</p>
+                  <p className="text-xs text-white/80 font-medium">Chuẩn bị không gian và đón thú cưng của bạn về nhà 🏡✨</p>
+                </div>
+              </div>
+            ) : (
+              <PixelFarmGame
+                ref={farmRef}
+                species={petData?.pet_type || 'owl'}
+                petName={petData?.pet_name || currentPetMeta.name}
+                habitat={petData?.selected_habitat || 'emerald_garden'}
+                equippedHat={petData?.equipped_hat}
+                equippedOutfit={petData?.equipped_outfit}
+                equippedAccessory={petData?.equipped_accessory}
+                hunger={petData?.hunger || 80}
+                happiness={petData?.happiness || 90}
+                level={petData?.level || 1}
+                exp={petData?.exp || 0}
+                userCoins={userCoins}
+                onPet={() => handlePet()}
+                onSwitchPet={() => setShowSwitchModal(true)}
+                speechText={petSpeech}
+                onSpeechChange={(text) => setPetSpeech(text)}
+                onStateChange={(state) => setFarmState(state)}
+                isCouple={Boolean(coupleData)}
+                coupleTitle={
+                  coupleData?.ring_type === 'ring_diamond'
+                    ? '✨ Uyên Ương Hoàng Gia'
+                    : coupleData?.ring_type === 'ring_gold'
+                    ? '🌹 Cặp Đôi Ngọt Ngào'
+                    : '❤️ Cặp Đôi Tri Kỷ'
+                }
+              />
+            )}
+          </div>
+
+          {/* DEDICATED ACTION TOOLBAR (SEPARATED COMPLETELY OUTSIDE MAP) */}
+          <div className="w-full shrink-0 bg-white/95 backdrop-blur-md rounded-2xl p-2 sm:p-2.5 border-2 border-emerald-200/80 shadow-md flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
+            {/* Left: Modals & Wardrobe */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                onClick={() => handleOpenShop('shop')}
+                className="btn-3d btn-3d-amber px-3.5 py-2 min-h-[40px] text-xs font-black text-slate-950 cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-102 touch-manipulation"
+                title="Mở Cửa Hàng & Phòng Thử Đồ Thời Trang"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span>Cửa Hàng & Thử Đồ</span>
+              </button>
+
+              <button
+                onClick={() => handleOpenShop('wardrobe')}
+                className="btn-3d btn-3d-white px-3.5 py-2 min-h-[40px] text-xs font-black text-slate-800 cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-102 touch-manipulation"
+                title="Mở Tủ Đồ Cá Nhân"
+              >
+                <Shirt className="w-4 h-4 text-emerald-600" />
+                <span>Tủ Đồ</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  sound.playClick();
+                  setShowHabitatModal(true);
+                }}
+                className="btn-3d btn-3d-emerald px-3 py-2 min-h-[40px] text-xs font-black text-white cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-102 hidden sm:flex touch-manipulation"
+                title="Đổi Cảnh Quan Sân Vườn"
+              >
+                <Trees className="w-4 h-4" />
+                <span>Cảnh Quan</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  sound.playClick();
+                  setShowSwitchModal(true);
+                }}
+                className="px-2.5 py-2 min-h-[40px] rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-black cursor-pointer flex items-center gap-1 transition touch-manipulation"
+                title="Chọn Nuôi Linh Vật Khác"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+                <span className="hidden md:inline">Đổi Bé</span>
+              </button>
             </div>
-            <div className="text-center space-y-1">
-              <p className="text-lg font-black tracking-wide drop-shadow-md">Đang mở cửa khu vườn thú cưng...</p>
-              <p className="text-xs text-white/80 font-medium">Chuẩn bị không gian và đón thú cưng của bạn về nhà 🏡✨</p>
+
+            {/* Right: Farm Interaction & Movement Tools */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                onClick={() => {
+                  sound.playClick();
+                  setShowFeedModal(true);
+                }}
+                className="px-2.5 sm:px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:scale-102"
+                title="Cho thú cưng ăn thực đơn bổ dưỡng"
+              >
+                <Utensils className="w-3.5 h-3.5" />
+                <span>Cho Ăn</span>
+              </button>
+
+              {mapActionButtons.map((btn) => (
+                <button
+                  key={btn.key}
+                  onClick={() => farmRef.current?.performMapAction(btn.key)}
+                  className={`px-2.5 sm:px-3 py-1.5 ${btn.bg} text-white rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1 shadow-xs hover:scale-102`}
+                  title={`Lệnh cho Bé thực hiện hành động ${btn.label}`}
+                >
+                  <span>{btn.emoji}</span>
+                  <span>{btn.label}</span>
+                </button>
+              ))}
+
+              <button
+                onClick={() => farmRef.current?.tossBall()}
+                className="px-2.5 sm:px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:scale-102 hidden sm:flex"
+                title="Ném bóng cho thú cưng nhặt"
+              >
+                <span>🎾</span>
+                <span>Ném Bóng</span>
+              </button>
+
+              <button
+                onClick={() => farmRef.current?.callPet()}
+                className="px-2.5 sm:px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-800 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 border border-slate-300 shadow-xs hover:scale-102 hidden sm:flex"
+                title="Gọi thú cưng lại gần bạn"
+              >
+                <Volume2 className="w-3.5 h-3.5 text-blue-600" />
+                <span>Gọi Bé</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const next = farmRef.current?.toggleSleep();
+                  if (next !== undefined) {
+                    setFarmState((prev) => ({ ...prev, isSleeping: next }));
+                  }
+                }}
+                className={`px-2.5 sm:px-3 py-1.5 text-xs font-black rounded-xl border transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:scale-102 ${
+                  farmState.isSleeping
+                    ? 'bg-sky-500 text-white border-sky-400 ring-2 ring-sky-300'
+                    : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700'
+                }`}
+                title="Cho thú cưng chợp mắt hoặc đánh thức"
+              >
+                <span>💤</span>
+                <span>{farmState.isSleeping ? 'Thức Dậy' : 'Đi Ngủ'}</span>
+              </button>
+
+              <button
+                onClick={() => farmRef.current?.toggleSpeed()}
+                className={`px-2.5 py-1.5 text-xs font-black rounded-xl border transition cursor-pointer flex items-center gap-1 ${
+                  farmState.isSpeedFast
+                    ? 'bg-orange-500 text-white border-orange-400'
+                    : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                }`}
+                title="Tốc độ di chuyển: Đi dạo hoặc Chạy nhanh"
+              >
+                <Zap className={`w-3.5 h-3.5 ${farmState.isSpeedFast ? 'text-amber-200 fill-amber-200' : 'text-slate-400'}`} />
+                <span>{farmState.isSpeedFast ? 'Nhanh' : 'Chậm'}</span>
+              </button>
             </div>
           </div>
-        ) : (
-          <PixelFarmGame
-            ref={farmRef}
-            species={petData?.pet_type || 'owl'}
-            petName={petData?.pet_name || currentPetMeta.name}
-            habitat={petData?.selected_habitat || 'emerald_garden'}
-            equippedHat={petData?.equipped_hat}
-            equippedOutfit={petData?.equipped_outfit}
-            equippedAccessory={petData?.equipped_accessory}
-            hunger={petData?.hunger || 80}
-            happiness={petData?.happiness || 90}
-            level={petData?.level || 1}
-            exp={petData?.exp || 0}
+        </div>
+      )}
+
+      {/* ================= TAB 2: FARM & LIVESTOCK ================= */}
+      {gameTab === 'farm' && (
+        <div className="w-full flex-1 min-h-0">
+          <PixelFarmPlots
             userCoins={userCoins}
-            onPet={() => handlePet()}
-            onSwitchPet={() => setShowSwitchModal(true)}
-            speechText={petSpeech}
-            onSpeechChange={(text) => setPetSpeech(text)}
-            onStateChange={(state) => setFarmState(state)}
+            onUpdateCoins={(c) => {
+              setUserCoins(c);
+              const s = getStoredUser();
+              if (s) setStoredUser({ ...s, coins: c });
+              window.dispatchEvent(new Event('auth-state-changed'));
+            }}
+            onUpdatePetExp={(exp) => {
+              setPetData((prev: any) =>
+                prev
+                  ? {
+                      ...prev,
+                      exp: (prev.exp || 0) + exp,
+                      level: Math.floor(((prev.exp || 0) + exp) / 50) + 1,
+                    }
+                  : prev
+              );
+            }}
+            userId={currentUser?.id}
+            initialPlots={farmPlots}
+            initialLivestock={livestock}
           />
-        )}
-      </div>
-
-      {/* ================= DEDICATED ACTION TOOLBAR (SEPARATED COMPLETELY OUTSIDE MAP) ================= */}
-      <div className="w-full shrink-0 bg-white/95 backdrop-blur-md rounded-2xl p-2 sm:p-2.5 border-2 border-emerald-200/80 shadow-md flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
-        {/* Left: Modals & Wardrobe */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <button
-            onClick={() => handleOpenShop('shop')}
-            className="btn-3d btn-3d-amber px-3.5 py-2 min-h-[40px] text-xs font-black text-slate-950 cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-102 touch-manipulation"
-            title="Mở Cửa Hàng & Phòng Thử Đồ Thời Trang"
-          >
-            <ShoppingBag className="w-4 h-4" />
-            <span>Cửa Hàng & Thử Đồ</span>
-          </button>
-
-          <button
-            onClick={() => handleOpenShop('wardrobe')}
-            className="btn-3d btn-3d-white px-3.5 py-2 min-h-[40px] text-xs font-black text-slate-800 cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-102 touch-manipulation"
-            title="Mở Tủ Đồ Cá Nhân"
-          >
-            <Shirt className="w-4 h-4 text-emerald-600" />
-            <span>Tủ Đồ</span>
-          </button>
-
-          <button
-            onClick={() => {
-              sound.playClick();
-              setShowHabitatModal(true);
-            }}
-            className="btn-3d btn-3d-emerald px-3 py-2 min-h-[40px] text-xs font-black text-white cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-102 hidden sm:flex touch-manipulation"
-            title="Đổi Cảnh Quan Sân Vườn"
-          >
-            <Trees className="w-4 h-4" />
-            <span>Cảnh Quan</span>
-          </button>
-
-          <button
-            onClick={() => {
-              sound.playClick();
-              setShowSwitchModal(true);
-            }}
-            className="px-2.5 py-2 min-h-[40px] rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-black cursor-pointer flex items-center gap-1 transition touch-manipulation"
-            title="Chọn Nuôi Linh Vật Khác"
-          >
-            <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
-            <span className="hidden md:inline">Đổi Bé</span>
-          </button>
         </div>
+      )}
 
-        {/* Right: Farm Interaction & Environmental Movement Tools */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <button
-            onClick={() => {
-              sound.playClick();
-              setShowFeedModal(true);
+      {/* ================= TAB 3: PVP COMBAT ARENA ================= */}
+      {gameTab === 'pvp' && (
+        <div className="w-full flex-1 min-h-0">
+          <PetPvPArena
+            playerSpecies={petData?.pet_type || 'owl'}
+            playerPetName={petData?.pet_name || currentPetMeta.name}
+            playerLevel={petData?.level || 1}
+            userCoins={userCoins}
+            onUpdateCoins={(c) => {
+              setUserCoins(c);
+              const s = getStoredUser();
+              if (s) setStoredUser({ ...s, coins: c });
+              window.dispatchEvent(new Event('auth-state-changed'));
             }}
-            className="px-2.5 sm:px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:scale-102"
-            title="Cho thú cưng ăn thực đơn bổ dưỡng"
-          >
-            <Utensils className="w-3.5 h-3.5" />
-            <span>Cho Ăn</span>
-          </button>
-
-          {/* Dynamically adapt to active map actions */}
-          {mapActionButtons.map((btn) => (
-            <button
-              key={btn.key}
-              onClick={() => farmRef.current?.performMapAction(btn.key)}
-              className={`px-2.5 sm:px-3 py-1.5 ${btn.bg} text-white rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1 shadow-xs hover:scale-102`}
-              title={`Lệnh cho Bé thực hiện hành động ${btn.label}`}
-            >
-              <span>{btn.emoji}</span>
-              <span>{btn.label}</span>
-            </button>
-          ))}
-
-          <button
-            onClick={() => farmRef.current?.tossBall()}
-            className="px-2.5 sm:px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:scale-102 hidden sm:flex"
-            title="Ném bóng cho thú cưng nhặt"
-          >
-            <span>🎾</span>
-            <span>Ném Bóng</span>
-          </button>
-
-          <button
-            onClick={() => farmRef.current?.callPet()}
-            className="px-2.5 sm:px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-800 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 border border-slate-300 shadow-xs hover:scale-102 hidden sm:flex"
-            title="Gọi thú cưng lại gần bạn"
-          >
-            <Volume2 className="w-3.5 h-3.5 text-blue-600" />
-            <span>Gọi Bé</span>
-          </button>
-
-          <button
-            onClick={() => {
-              const next = farmRef.current?.toggleSleep();
-              if (next !== undefined) {
-                setFarmState((prev) => ({ ...prev, isSleeping: next }));
-              }
+            onUpdatePetExp={(exp) => {
+              setPetData((prev: any) =>
+                prev
+                  ? {
+                      ...prev,
+                      exp: (prev.exp || 0) + exp,
+                      level: Math.floor(((prev.exp || 0) + exp) / 50) + 1,
+                    }
+                  : prev
+              );
             }}
-            className={`px-2.5 sm:px-3 py-1.5 text-xs font-black rounded-xl border transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:scale-102 ${
-              farmState.isSleeping
-                ? 'bg-sky-500 text-white border-sky-400 ring-2 ring-sky-300'
-                : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700'
-            }`}
-            title="Cho thú cưng chợp mắt hoặc đánh thức"
-          >
-            <span>💤</span>
-            <span>{farmState.isSleeping ? 'Thức Dậy' : 'Đi Ngủ'}</span>
-          </button>
-
-          <button
-            onClick={() => farmRef.current?.toggleSpeed()}
-            className={`px-2.5 py-1.5 text-xs font-black rounded-xl border transition cursor-pointer flex items-center gap-1 ${
-              farmState.isSpeedFast
-                ? 'bg-orange-500 text-white border-orange-400'
-                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-            }`}
-            title="Tốc độ di chuyển: Đi dạo hoặc Chạy nhanh"
-          >
-            <Zap className={`w-3.5 h-3.5 ${farmState.isSpeedFast ? 'text-amber-200 fill-amber-200' : 'text-slate-400'}`} />
-            <span>{farmState.isSpeedFast ? 'Nhanh' : 'Chậm'}</span>
-          </button>
+            userId={currentUser?.id}
+          />
         </div>
-      </div>
+      )}
+
+      {/* ================= TAB 4: PET RACING DERBY ================= */}
+      {gameTab === 'racing' && (
+        <div className="w-full flex-1 min-h-0">
+          <PetRacingDerby
+            playerSpecies={petData?.pet_type || 'owl'}
+            playerPetName={petData?.pet_name || currentPetMeta.name}
+            userCoins={userCoins}
+            onUpdateCoins={(c) => {
+              setUserCoins(c);
+              const s = getStoredUser();
+              if (s) setStoredUser({ ...s, coins: c });
+              window.dispatchEvent(new Event('auth-state-changed'));
+            }}
+            onUpdatePetExp={(exp) => {
+              setPetData((prev: any) =>
+                prev
+                  ? {
+                      ...prev,
+                      exp: (prev.exp || 0) + exp,
+                      level: Math.floor(((prev.exp || 0) + exp) / 50) + 1,
+                    }
+                  : prev
+              );
+            }}
+            userId={currentUser?.id}
+          />
+        </div>
+      )}
+
+      {/* ================= TAB 5: SOCIAL HUB & COUPLE ================= */}
+      {gameTab === 'social' && (
+        <div className="w-full flex-1 min-h-0">
+          <PetSocialHub
+            currentUserId={currentUser?.id}
+            currentUsername={currentUser?.username}
+            currentDisplayName={currentUser?.display_name}
+            playerSpecies={petData?.pet_type || 'owl'}
+            playerPetName={petData?.pet_name || currentPetMeta.name}
+            userCoins={userCoins}
+            onUpdateCoins={(c) => {
+              setUserCoins(c);
+              const s = getStoredUser();
+              if (s) setStoredUser({ ...s, coins: c });
+              window.dispatchEvent(new Event('auth-state-changed'));
+            }}
+            onSendSpeech={(text) => setPetSpeech(text)}
+            friendIds={friendIds}
+            coupleData={coupleData}
+            recentChatList={recentChat}
+            onVisitFriendFarm={(f) => {
+              sound.playCelebration();
+              setPetSpeech(`Đang ghé thăm nông trại của ${f.displayName}! Thú cưng ${f.petName} đáng yêu quá! 🏡💖`);
+              setGameTab('sanctuary');
+            }}
+          />
+        </div>
+      )}
 
       {/* ================= MODAL 1: SHOP & FITTING ROOM (Phòng Thử Đồ & Mua Sắm) ================= */}
       {showShopModal && (
@@ -1012,14 +1205,6 @@ export default function PetPage() {
                   <span>{userCoins.toLocaleString()}</span>
                   <span className="hidden sm:inline">Coins</span>
                 </div>
-                <button
-                  onClick={handleClaimBonus}
-                  className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 text-[11px] sm:text-xs font-black shadow-xs flex items-center gap-1 transition cursor-pointer active:scale-95"
-                  title="Nhận thêm 500 Xu miễn phí"
-                >
-                  <span>🎁</span>
-                  <span>+500 Xu</span>
-                </button>
                 <button
                   onClick={() => setShowShopModal(false)}
                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer ml-1"

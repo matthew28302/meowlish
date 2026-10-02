@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { GRAMMAR_LESSONS, GrammarLesson, LegoBlock } from '@/lib/data/grammar';
 import { sound } from '@/lib/soundFx';
 import { speakText } from '@/lib/speech';
@@ -27,7 +27,7 @@ import {
   ChevronUp,
   ExternalLink,
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 import { getStoredUser } from '@/lib/auth';
 
 export default function GrammarPage() {
@@ -47,23 +47,32 @@ export default function GrammarPage() {
   const [showPrepositionGuide, setShowPrepositionGuide] = useState(false);
   const [prepositionTab, setPrepositionTab] = useState<'time' | 'place' | 'deadlines' | 'collocations'>('time');
 
-  const filteredLessons = GRAMMAR_LESSONS.filter((lesson) => {
-    const matchesSearch =
-      lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lesson.vietnameseTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lesson.summary.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesLevel = levelFilter === 'All' || lesson.level === levelFilter;
-    const matchesCategory =
-      categoryFilter === 'all'
-        ? true
-        : categoryFilter === 'prepositions'
-        ? lesson.category === 'prepositions' || lesson.id.startsWith('prepositions-')
-        : categoryFilter === 'tenses'
-        ? lesson.category === 'tenses' || lesson.id.includes('tense') || lesson.id.includes('present') || lesson.id.includes('past') || lesson.id.includes('future')
-        : !(lesson.category === 'prepositions' || lesson.id.startsWith('prepositions-')) &&
-          !(lesson.category === 'tenses' || lesson.id.includes('tense') || lesson.id.includes('present') || lesson.id.includes('past') || lesson.id.includes('future'));
-    return matchesSearch && matchesLevel && matchesCategory;
-  });
+  // Clean up confetti on unmount
+  useEffect(() => {
+    return () => {
+      confetti.reset();
+    };
+  }, []);
+
+  const filteredLessons = useMemo(() => {
+    return GRAMMAR_LESSONS.filter((lesson) => {
+      const matchesSearch =
+        lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        lesson.vietnameseTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        lesson.summary.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesLevel = levelFilter === 'All' || lesson.level === levelFilter;
+      const matchesCategory =
+        categoryFilter === 'all'
+          ? true
+          : categoryFilter === 'prepositions'
+          ? lesson.category === 'prepositions' || lesson.id.startsWith('prepositions-')
+          : categoryFilter === 'tenses'
+          ? lesson.category === 'tenses' || lesson.id.includes('tense') || lesson.id.includes('present') || lesson.id.includes('past') || lesson.id.includes('future')
+          : !(lesson.category === 'prepositions' || lesson.id.startsWith('prepositions-')) &&
+            !(lesson.category === 'tenses' || lesson.id.includes('tense') || lesson.id.includes('present') || lesson.id.includes('past') || lesson.id.includes('future'));
+      return matchesSearch && matchesLevel && matchesCategory;
+    });
+  }, [searchQuery, levelFilter, categoryFilter]);
 
   const handleSelectLesson = (lesson: GrammarLesson) => {
     sound.playClick();

@@ -19,6 +19,19 @@ export default function AccessTracker() {
       return;
     }
 
+    let clientUserId: string | null = null;
+    let clientUsername: string | null = null;
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('meowlish_current_user');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          clientUserId = parsed?.id || null;
+          clientUsername = parsed?.username || null;
+        }
+      } catch {}
+    }
+
     try {
       fetch('/api/log/access', {
         method: 'POST',
@@ -26,6 +39,8 @@ export default function AccessTracker() {
         body: JSON.stringify({
           pathname,
           title: typeof document !== 'undefined' ? document.title : '',
+          clientUserId,
+          clientUsername,
         }),
         keepalive: true,
       }).catch(() => {});

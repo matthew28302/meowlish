@@ -175,9 +175,70 @@ function createDb(): Database.Database {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS pet_farm_plots (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      plot_index INTEGER NOT NULL,
+      crop_type TEXT DEFAULT 'carrot',
+      stage TEXT DEFAULT 'empty',
+      planted_at TEXT,
+      watered_at TEXT,
+      harvest_ready_at TEXT,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE(user_id, plot_index)
+    );
+
+    CREATE TABLE IF NOT EXISTS pet_farm_livestock (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      animal_type TEXT NOT NULL,
+      fed_at TEXT,
+      ready_at TEXT,
+      produced_count INTEGER DEFAULT 0,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE(user_id, animal_type)
+    );
+
+    CREATE TABLE IF NOT EXISTS user_friends (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      friend_id TEXT NOT NULL,
+      status TEXT DEFAULT 'accepted',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE(user_id, friend_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS user_couples (
+      id TEXT PRIMARY KEY,
+      user_id_1 TEXT NOT NULL,
+      user_id_2 TEXT NOT NULL,
+      ring_type TEXT DEFAULT 'diamond_ring',
+      love_points INTEGER DEFAULT 100,
+      married_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id_1) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id_2) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE(user_id_1, user_id_2)
+    );
+
+    CREATE TABLE IF NOT EXISTS pet_chat_messages (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      username TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      pet_type TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_coin_tx_user_id ON coin_transactions(user_id);
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_date);
+    CREATE INDEX IF NOT EXISTS idx_farm_plots_user ON pet_farm_plots(user_id);
+    CREATE INDEX IF NOT EXISTS idx_farm_livestock_user ON pet_farm_livestock(user_id);
+    CREATE INDEX IF NOT EXISTS idx_friends_user ON user_friends(user_id);
+    CREATE INDEX IF NOT EXISTS idx_chat_created ON pet_chat_messages(created_at);
   `);
 
   // Migration: Ensure 'coins' and 'email' columns exist
@@ -282,6 +343,7 @@ function createDb(): Database.Database {
         email TEXT NOT NULL,
         user_id TEXT,
         category TEXT NOT NULL,
+        priority TEXT DEFAULT 'medium',
         subject TEXT NOT NULL,
         message TEXT NOT NULL,
         rating INTEGER DEFAULT 5,
@@ -293,6 +355,21 @@ function createDb(): Database.Database {
       CREATE INDEX IF NOT EXISTS idx_support_status ON support_messages(status);
       CREATE INDEX IF NOT EXISTS idx_support_time ON support_messages(created_at);
     `);
+
+    // Migration: Cột priority & indexes cho bảng support_messages
+    try {
+      const supportCols = db.prepare("PRAGMA table_info(support_messages)").all() as { name: string }[];
+      const hasPriority = supportCols.some((col) => col.name === 'priority');
+      if (!hasPriority) {
+        db.exec("ALTER TABLE support_messages ADD COLUMN priority TEXT DEFAULT 'medium';");
+      }
+      db.exec(`
+        CREATE INDEX IF NOT EXISTS idx_support_user ON support_messages(user_id);
+        CREATE INDEX IF NOT EXISTS idx_support_email ON support_messages(email);
+        CREATE INDEX IF NOT EXISTS idx_support_priority ON support_messages(priority);
+      `);
+    } catch {}
+
 
     // Cập nhật tất cả tài khoản cũ chưa có giá trị coins mặc định
     db.exec("UPDATE users SET coins = 1000 WHERE coins IS NULL;");

@@ -57,7 +57,7 @@ import {
   StarRodMonumentSVG,
 } from './PixelMapAssets';
 import { sound } from '@/lib/soundFx';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 
 export interface PixelFarmHandle {
   tossBall: () => void;
@@ -102,6 +102,8 @@ export interface PixelFarmGameProps {
   speechText?: string;
   onSpeechChange?: (text: string) => void;
   onStateChange?: (state: { isSleeping: boolean; isSpeedFast: boolean }) => void;
+  isCouple?: boolean;
+  coupleTitle?: string;
 }
 
 const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function PixelFarmGame(
@@ -122,12 +124,15 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     speechText,
     onSpeechChange,
     onStateChange,
+    isCouple = false,
+    coupleTitle,
   },
   ref
 ) {
   // Pet Coordinates (% inside screen-bounded canvas: x: 8 to 92, y: 16 to 84)
   const [petPos, setPetPos] = useState({ x: 50, y: 55 });
   const [facing, setFacing] = useState<'left' | 'right'>('right');
+  const [dayTimeMode, setDayTimeMode] = useState<'day' | 'sunset' | 'night'>('day');
   const [animState, setAnimState] = useState<PetAnimationState>(() => {
     if (typeof window === 'undefined') return 'idle';
     try {
@@ -207,10 +212,19 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     }
   }, [speechText]);
 
+  // Cleanup confetti and movement timer on unmount
+  useEffect(() => {
+    return () => {
+      confetti.reset();
+      if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
+    };
+  }, []);
+
   // Ambient Butterfly fluttering loop (Emerald Farm)
   useEffect(() => {
     if (habitat !== 'emerald_garden') return;
     const interval = setInterval(() => {
+      if (document.hidden) return;
       setButterflyPos({
         x: 25 + Math.random() * 50,
         y: 20 + Math.random() * 40,
@@ -223,6 +237,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
   useEffect(() => {
     if (habitat !== 'sunset_beach' && habitat !== 'thousand_sunny') return;
     const interval = setInterval(() => {
+      if (document.hidden) return;
       setSeagullPos({
         x: 15 + Math.random() * 70,
         y: 8 + Math.random() * 20,
@@ -235,6 +250,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
   useEffect(() => {
     if (habitat !== 'konoha_valley') return;
     const interval = setInterval(() => {
+      if (document.hidden) return;
       setSakuraPetalPos({
         x: 10 + Math.random() * 80,
         y: 15 + Math.random() * 60,
@@ -461,7 +477,10 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       });
     };
 
-    const roamingInterval = setInterval(startRoaming, 6000 + Math.random() * 3500);
+    const roamingInterval = setInterval(() => {
+      if (document.hidden) return;
+      startRoaming();
+    }, 6000 + Math.random() * 3500);
     return () => {
       clearInterval(roamingInterval);
       if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
@@ -1518,7 +1537,71 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border-4 border-emerald-900/90 cursor-crosshair select-none"
         style={{ imageRendering: 'pixelated' }}
       >
-{/* ================= 1. EMERALD FARM (NÔNG TRẠI XANH) ================= */}
+        {/* Time of Day Cycle Switcher (Day / Sunset / Night) */}
+        <div className="absolute top-2.5 right-3 z-45 flex items-center gap-1 bg-black/50 backdrop-blur-md p-1 rounded-2xl border border-white/20 text-white shadow-xl">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setDayTimeMode('day');
+            }}
+            className={`px-2.5 py-1 rounded-xl text-[10px] font-black transition cursor-pointer flex items-center gap-1 ${
+              dayTimeMode === 'day' ? 'bg-amber-400 text-slate-950 shadow-md' : 'text-slate-300 hover:text-white'
+            }`}
+            title="Ban Ngày Nắng Ấm"
+          >
+            ☀️ Ngày
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setDayTimeMode('sunset');
+            }}
+            className={`px-2.5 py-1 rounded-xl text-[10px] font-black transition cursor-pointer flex items-center gap-1 ${
+              dayTimeMode === 'sunset' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-300 hover:text-white'
+            }`}
+            title="Hoàng Hôn Ráng Chiều"
+          >
+            🌇 Hoàng Hôn
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setDayTimeMode('night');
+            }}
+            className={`px-2.5 py-1 rounded-xl text-[10px] font-black transition cursor-pointer flex items-center gap-1 ${
+              dayTimeMode === 'night' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-300 hover:text-white'
+            }`}
+            title="Ban Đêm Trăng Sao & Đom Đóm"
+          >
+            🌙 Đêm
+          </button>
+        </div>
+
+        {/* Environmental Atmospheric Lighting Overlay */}
+        {dayTimeMode === 'sunset' && (
+          <div className="absolute inset-0 z-35 bg-gradient-to-b from-orange-500/25 via-rose-600/15 to-amber-900/10 pointer-events-none transition-opacity duration-700" />
+        )}
+        {dayTimeMode === 'night' && (
+          <div className="absolute inset-0 z-35 bg-gradient-to-b from-indigo-950/65 via-slate-950/50 to-slate-900/40 pointer-events-none transition-opacity duration-700">
+            {/* Glowing Fireflies */}
+            <div className="absolute top-1/4 left-1/5 w-2.5 h-2.5 rounded-full bg-yellow-300 blur-[1px] animate-ping" style={{ animationDuration: '3s' }} />
+            <div className="absolute top-1/2 left-3/4 w-2 h-2 rounded-full bg-emerald-300 blur-[1px] animate-ping" style={{ animationDuration: '4s' }} />
+            <div className="absolute top-2/3 left-1/3 w-2 h-2 rounded-full bg-yellow-200 blur-[1px] animate-ping" style={{ animationDuration: '2.5s' }} />
+            <div className="absolute top-1/3 left-2/3 w-2.5 h-2.5 rounded-full bg-lime-300 blur-[1px] animate-ping" style={{ animationDuration: '3.5s' }} />
+            {/* Moon in sky */}
+            <div className="absolute top-4 left-6 text-3xl opacity-85 filter drop-shadow-[0_0_10px_rgba(255,255,255,0.9)]">🌙</div>
+          </div>
+        )}
+
+        {/* Ambient Falling Sakura Petals (Nostalgic TeaMobi Aura) */}
+        <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
+          <div className="absolute top-2 left-[12%] text-sm opacity-70 animate-bounce" style={{ animationDuration: '4s' }}>🌸</div>
+          <div className="absolute top-8 left-[38%] text-xs opacity-60 animate-bounce" style={{ animationDuration: '5.5s' }}>🌸</div>
+          <div className="absolute top-5 left-[64%] text-sm opacity-75 animate-bounce" style={{ animationDuration: '4.8s' }}>🌸</div>
+          <div className="absolute top-12 left-[82%] text-xs opacity-65 animate-bounce" style={{ animationDuration: '6s' }}>🌸</div>
+        </div>
+
+        {/* ================= 1. EMERALD FARM (NÔNG TRẠI XANH) ================= */}
         {habitat === 'emerald_garden' && (
           <div className="absolute inset-0 bg-[#4ade80] overflow-hidden">
             {/* Sky Background Gradient & Clouds */}
@@ -2891,6 +2974,14 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                 : 'none',
           }}
         >
+          {/* Couple Romantic Hearts & Title */}
+          {isCouple && (
+            <div className="absolute -top-15 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-2.5 py-0.5 rounded-full text-[9px] font-black shadow-lg animate-pulse whitespace-nowrap z-45 border border-pink-300/60 pointer-events-none">
+              <span>💍💖</span>
+              <span>{coupleTitle || 'Uyên Ương Tri Kỷ'}</span>
+            </div>
+          )}
+
           {/* Dynamic Speech Bubble over Pet */}
           {currentSpeech && (
             <div

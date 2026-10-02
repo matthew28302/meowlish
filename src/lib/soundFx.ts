@@ -1,23 +1,80 @@
 // Sound effects generated via Web Audio API (No external MP3 files needed)
 
+declare global {
+  interface Window {
+    __MEOWLISH_AUDIO_CTX__?: AudioContext;
+  }
+}
+
 class SoundFX {
-  private ctx: AudioContext | null = null;
+  private userInteracted = false;
+  private interactionListenersAttached = false;
+
+  constructor() {
+    this.setupInteractionUnlock();
+  }
+
+  private setupInteractionUnlock() {
+    if (typeof window === 'undefined') return;
+
+    const unlock = () => {
+      this.userInteracted = true;
+      const ctx = window.__MEOWLISH_AUDIO_CTX__;
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      removeListeners();
+    };
+
+    const removeListeners = () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('touchstart', unlock);
+      window.removeEventListener('keydown', unlock);
+      this.interactionListenersAttached = false;
+    };
+
+    if (!this.interactionListenersAttached) {
+      window.addEventListener('pointerdown', unlock, { passive: true, once: true });
+      window.addEventListener('touchstart', unlock, { passive: true, once: true });
+      window.addEventListener('keydown', unlock, { passive: true, once: true });
+      this.interactionListenersAttached = true;
+    }
+
+    // Auto-suspend when document is hidden to save mobile CPU/battery
+    document.addEventListener('visibilitychange', () => {
+      const ctx = window.__MEOWLISH_AUDIO_CTX__;
+      if (!ctx) return;
+      if (document.hidden) {
+        if (ctx.state === 'running') {
+          ctx.suspend().catch(() => {});
+        }
+      } else if (this.userInteracted && ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+    });
+  }
 
   private getContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     try {
-      if (!this.ctx) {
+      // Re-use global singleton across hot reloads / renders
+      let ctx = window.__MEOWLISH_AUDIO_CTX__ || null;
+
+      if (!ctx || ctx.state === 'closed') {
         const AudioCtx =
           window.AudioContext ||
           (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
         if (AudioCtx) {
-          this.ctx = new AudioCtx();
+          ctx = new AudioCtx();
+          window.__MEOWLISH_AUDIO_CTX__ = ctx;
         }
       }
-      if (this.ctx && this.ctx.state === 'suspended') {
-        this.ctx.resume().catch(() => {});
+
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
       }
-      return this.ctx;
+
+      return ctx;
     } catch {
       return null;
     }
@@ -43,6 +100,13 @@ class SoundFX {
 
         osc.connect(gain);
         gain.connect(ctx.destination);
+
+        osc.onended = () => {
+          try {
+            osc.disconnect();
+            gain.disconnect();
+          } catch {}
+        };
 
         osc.start(now + idx * 0.08);
         osc.stop(now + idx * 0.08 + 0.4);
@@ -71,6 +135,13 @@ class SoundFX {
 
       osc.connect(gain);
       gain.connect(ctx.destination);
+
+      osc.onended = () => {
+        try {
+          osc.disconnect();
+          gain.disconnect();
+        } catch {}
+      };
 
       osc.start(now);
       osc.stop(now + 0.26);
@@ -112,6 +183,13 @@ class SoundFX {
         osc.connect(gain);
         gain.connect(ctx.destination);
 
+        osc.onended = () => {
+          try {
+            osc.disconnect();
+            gain.disconnect();
+          } catch {}
+        };
+
         osc.start(t);
         osc.stop(t + n.d + 0.05);
         t += n.d * 0.85;
@@ -141,6 +219,13 @@ class SoundFX {
       osc.connect(gain);
       gain.connect(ctx.destination);
 
+      osc.onended = () => {
+        try {
+          osc.disconnect();
+          gain.disconnect();
+        } catch {}
+      };
+
       osc.start(now);
       osc.stop(now + 0.05);
     } catch {
@@ -167,6 +252,13 @@ class SoundFX {
 
       osc.connect(gain);
       gain.connect(ctx.destination);
+
+      osc.onended = () => {
+        try {
+          osc.disconnect();
+          gain.disconnect();
+        } catch {}
+      };
 
       osc.start(now);
       osc.stop(now + 0.1);
@@ -195,6 +287,13 @@ class SoundFX {
       osc.connect(gain);
       gain.connect(ctx.destination);
 
+      osc.onended = () => {
+        try {
+          osc.disconnect();
+          gain.disconnect();
+        } catch {}
+      };
+
       osc.start(now);
       osc.stop(now + 0.36);
     } catch {
@@ -222,6 +321,13 @@ class SoundFX {
       osc.connect(gain);
       gain.connect(ctx.destination);
 
+      osc.onended = () => {
+        try {
+          osc.disconnect();
+          gain.disconnect();
+        } catch {}
+      };
+
       osc.start(now);
       osc.stop(now + 0.23);
     } catch {
@@ -248,6 +354,13 @@ class SoundFX {
 
       osc.connect(gain);
       gain.connect(ctx.destination);
+
+      osc.onended = () => {
+        try {
+          osc.disconnect();
+          gain.disconnect();
+        } catch {}
+      };
 
       osc.start(now);
       osc.stop(now + 0.16);

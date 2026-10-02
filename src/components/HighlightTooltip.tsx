@@ -53,6 +53,7 @@ export default function HighlightTooltip() {
   const [isSaving, setIsSaving] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchAITranslation = async (text: string, context: string) => {
     if (abortControllerRef.current) {
@@ -264,6 +265,15 @@ export default function HighlightTooltip() {
     };
   }, [position, mobileTranslateBtn]);
 
+  // Clean up all timers and in-flight fetch requests on unmount
+  useEffect(() => {
+    return () => {
+      if (selectionTimerRef.current) clearTimeout(selectionTimerRef.current);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+    };
+  }, []);
+
   // Listen to selectionchange (with 200ms debounce whenever selection stops), touchend and mouseup
   useEffect(() => {
     const onSelectionChange = () => {
@@ -285,7 +295,7 @@ export default function HighlightTooltip() {
         return;
       }
       if (selectionTimerRef.current) clearTimeout(selectionTimerRef.current);
-      setTimeout(handleSelection, 20);
+      selectionTimerRef.current = setTimeout(handleSelection, 20);
     };
 
     const onTouchEnd = (e: TouchEvent) => {
@@ -298,7 +308,7 @@ export default function HighlightTooltip() {
         return;
       }
       if (selectionTimerRef.current) clearTimeout(selectionTimerRef.current);
-      setTimeout(handleSelection, 120);
+      selectionTimerRef.current = setTimeout(handleSelection, 120);
     };
 
     document.addEventListener('selectionchange', onSelectionChange);
@@ -349,7 +359,7 @@ export default function HighlightTooltip() {
       if (res.ok) {
         setIsSaved(true);
         sound.playSuccess();
-        setTimeout(() => {
+        saveTimerRef.current = setTimeout(() => {
           setPosition(null);
           setSelectedText('');
           setShowNoteInput(false);

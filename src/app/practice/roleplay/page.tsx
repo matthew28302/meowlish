@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { ROLEPLAY_SCENARIOS, RoleplayScenario } from '@/lib/data/practice';
 import { sound } from '@/lib/soundFx';
 import { speakText } from '@/lib/speech';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 import {
   Gamepad2,
   Volume2,
@@ -50,6 +50,12 @@ export default function RoleplayPage() {
         } catch (e) {}
       }
     }
+  }, []);
+
+  React.useEffect(() => {
+    return () => {
+      confetti.reset();
+    };
   }, []);
 
   const scenario = ROLEPLAY_SCENARIOS[scenarioIdx];

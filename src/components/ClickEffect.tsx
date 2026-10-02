@@ -124,6 +124,7 @@ export default function ClickEffect() {
     // Spawn subtle drag trail particle (floating pastel paw / spark dust)
     const spawnDragParticle = (x: number, y: number) => {
       if (Math.random() > 0.45) return; // Limit frequency for smoothness
+      if (particlesRef.current.length >= 50) return; // Prevent particle buffer overflow
 
       const angle = Math.random() * Math.PI * 2;
       const speed = 0.5 + Math.random() * 1.5;
@@ -298,6 +299,7 @@ export default function ClickEffect() {
     let isDragging = false;
     let startX = 0;
     let startY = 0;
+    let lastDragSpawnTime = 0;
 
     const handlePointerDown = (e: PointerEvent) => {
       if (e.pointerType === 'touch') return;
@@ -322,8 +324,12 @@ export default function ClickEffect() {
           document.documentElement.classList.remove('mouse-down');
           document.documentElement.classList.add('mouse-dragging');
         }
-        // Spawn subtle trailing particles as user drags
-        spawnDragParticle(e.clientX, e.clientY);
+        // Throttle trailing drag particles to max ~30 FPS to save CPU
+        const now = performance.now();
+        if (now - lastDragSpawnTime > 32) {
+          lastDragSpawnTime = now;
+          spawnDragParticle(e.clientX, e.clientY);
+        }
       }
     };
 
@@ -364,6 +370,14 @@ export default function ClickEffect() {
       handleDragEnd(e);
     };
 
+    const handleVisibility = () => {
+      if (document.hidden && animIdRef.current !== null) {
+        cancelAnimationFrame(animIdRef.current);
+        animIdRef.current = null;
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('pointerdown', handlePointerDown);
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
@@ -376,6 +390,7 @@ export default function ClickEffect() {
     window.addEventListener('drop', handleWindowDrop);
 
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('pointerdown', handlePointerDown);
       window.removeEventListener('pointermove', handlePointerMove);
@@ -389,7 +404,10 @@ export default function ClickEffect() {
 
       if (animIdRef.current !== null) {
         cancelAnimationFrame(animIdRef.current);
+        animIdRef.current = null;
       }
+      particlesRef.current = [];
+      ripplesRef.current = [];
     };
   }, []);
 

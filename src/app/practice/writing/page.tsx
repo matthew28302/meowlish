@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { WRITING_PROMPTS, WritingPrompt } from '@/lib/data/practice';
 import { sound } from '@/lib/soundFx';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 import {
   PenTool,
   CheckCircle2,
@@ -64,11 +64,20 @@ export default function WritingPracticePage() {
   const [aiTopicInput, setAiTopicInput] = useState('');
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
 
+  // Clean up confetti on unmount
+  useEffect(() => {
+    return () => {
+      confetti.reset();
+    };
+  }, []);
+
   // Filtered prompts
-  const filteredPrompts = promptsList.filter((p) => {
-    if (categoryFilter === 'all') return true;
-    return p.category === categoryFilter;
-  });
+  const filteredPrompts = useMemo(() => {
+    return promptsList.filter((p) => {
+      if (categoryFilter === 'all') return true;
+      return p.category === categoryFilter;
+    });
+  }, [promptsList, categoryFilter]);
 
   const prompt = filteredPrompts[currentIdx] || filteredPrompts[0] || WRITING_PROMPTS[0];
 

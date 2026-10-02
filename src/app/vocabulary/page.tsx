@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { VOCABULARY_LIST, VocabItem } from '@/lib/data/vocabulary';
 import { sound } from '@/lib/soundFx';
 import { speakText } from '@/lib/speech';
@@ -36,13 +36,15 @@ export default function VocabularyPage() {
     { id: 'it-interview', label: '🎯 IT: Tech Interview' },
   ];
 
-  const filteredWords = VOCABULARY_LIST.filter((item) => {
-    const matchCat = activeCategory === 'all' || item.category === activeCategory;
-    const matchSearch =
-      item.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.meaningVi.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchCat && matchSearch;
-  });
+  const filteredWords = useMemo(() => {
+    return VOCABULARY_LIST.filter((item) => {
+      const matchCat = activeCategory === 'all' || item.category === activeCategory;
+      const matchSearch =
+        item.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.meaningVi.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchCat && matchSearch;
+    });
+  }, [activeCategory, searchQuery]);
 
   const handleSaveBookmark = async (item: VocabItem) => {
     sound.playClick();
@@ -139,7 +141,7 @@ export default function VocabularyPage() {
           return (
             <div
               key={item.id}
-              className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4 content-auto transform-gpu"
             >
               <div className="space-y-3">
                 {/* Card Top */}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { SPEAKING_PROMPTS, SpeakingPrompt } from '@/lib/data/practice';
 import { sound } from '@/lib/soundFx';
 import {
@@ -10,7 +10,7 @@ import {
   createSpeechRecognizer,
   SpeechRecognitionController,
 } from '@/lib/speech';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 import {
   Mic,
   MicOff,
@@ -57,12 +57,20 @@ export default function SpeakingPracticePage() {
     }
   }, []);
 
+  useEffect(() => {
+    return () => {
+      confetti.reset();
+    };
+  }, []);
+
   // Filter prompts
-  const filteredPrompts = SPEAKING_PROMPTS.filter((p) => {
-    const catMatch = categoryFilter === 'all' || p.category === categoryFilter;
-    const diffMatch = difficultyFilter === 'all' || p.difficulty === difficultyFilter;
-    return catMatch && diffMatch;
-  });
+  const filteredPrompts = useMemo(() => {
+    return SPEAKING_PROMPTS.filter((p) => {
+      const catMatch = categoryFilter === 'all' || p.category === categoryFilter;
+      const diffMatch = difficultyFilter === 'all' || p.difficulty === difficultyFilter;
+      return catMatch && diffMatch;
+    });
+  }, [categoryFilter, difficultyFilter]);
 
   const prompt = filteredPrompts[currentIdx % filteredPrompts.length] || SPEAKING_PROMPTS[0];
 

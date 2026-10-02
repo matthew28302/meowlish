@@ -10,7 +10,7 @@ interface MascotProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export default function MascotCompanion({
+function MascotCompanion({
   mood = 'happy',
   message = 'Hôm nay hãy học thêm 3 cụm từ mới để duy trì chuỗi Streak nhé!',
   size = 'md',
@@ -120,3 +120,5 @@ export default function MascotCompanion({
     </div>
   );
 }
+
+export default React.memo(MascotCompanion);

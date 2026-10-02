@@ -746,6 +746,36 @@ export const PETS_CATALOG: Record<string, PetConfig> = {
     ],
   },
 
+  ice_dragon: {
+    id: 'ice_dragon',
+    name: 'Rồng Băng Tuyết',
+    species: 'Băng Long Cực Bắc',
+    emoji: '🐉❄️',
+    avatarBg: 'from-cyan-500 to-blue-600',
+    description: 'Thần thú rồng băng cổ đại từ đỉnh núi tuyết vĩnh cửu, mang sức mạnh kiểm soát băng giá tuyệt đối.',
+    buff: {
+      title: 'Hơi Thở Băng Giá',
+      description: '+25% Sát thương và phòng thủ trong Đấu Trường Thú Cưng PvP',
+      bonusType: 'all',
+      bonusPercent: 25,
+    },
+    greetings: [
+      'Roaaar! Băng giá vĩnh cửu đang bảo vệ khu vườn của bạn! ❄️',
+      'Đỉnh núi tuyết ngàn năm chúc bạn một ngày học tiếng Anh bùng nổ!',
+      'Cùng ta đóng băng mọi câu hỏi ngữ pháp hóc búa nào! 🐉',
+    ],
+    eatSounds: [
+      'Măm măm tinh thể băng ngọt lành! 🍧',
+      'Hơi lạnh sảng khoái lan tỏa khắp cơ thể!',
+      'Gầm vang! Năng lượng băng đăng đã phục hồi 100%!',
+    ],
+    happyQuotes: [
+      'Cảm giác được vuốt ve ấm áp xua tan cái lạnh giá băng! 💖',
+      'Bạn là kỵ sĩ rồng xuất sắc nhất trên đỉnh tuyết phủ!',
+      'Sức mạnh băng long sẽ luôn song hành cùng bạn!',
+    ],
+  },
+
   // ==================== DORAEMON ====================
   doraemon: {
     id: 'doraemon',

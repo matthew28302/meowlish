@@ -36,29 +36,48 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     }
 
+    const clientUserId = typeof body.clientUserId === 'string' ? body.clientUserId.trim() : null;
+    const clientUsername = typeof body.clientUsername === 'string' ? body.clientUsername.trim() : null;
+    const isAdminRoute = pathname.startsWith('/duahau');
+
+    const cookieHeader = request.headers.get('cookie') || '';
+    const adminMatch = cookieHeader.match(/duahau_admin_session=([^;]+)/);
+    const userMatch = cookieHeader.match(/meowlish_user_session=([^;]+)/);
+
     let username = 'guest';
     let userId: string | null = null;
 
-    // 1. Kiểm tra phiên đăng nhập Quản Trị Viên (duahau_admin_session)
-    const cookieHeader = request.headers.get('cookie') || '';
-    const adminMatch = cookieHeader.match(/duahau_admin_session=([^;]+)/);
-    if (adminMatch && verifyAdminToken(decodeURIComponent(adminMatch[1]))) {
-      username = 'admin';
-      userId = 'user_admin_root';
+    if (isAdminRoute) {
+      // 1. Tuyến đường Quản Trị (/duahau) -> Ưu tiên phiên Admin
+      if (adminMatch && verifyAdminToken(decodeURIComponent(adminMatch[1]))) {
+        username = 'admin';
+        userId = 'user_admin_root';
+      }
     } else {
-      // 2. Kiểm tra phiên đăng nhập Học viên (meowlish_user_session)
-      const userMatch = cookieHeader.match(/meowlish_user_session=([^;]+)/);
+      // 2. Tuyến đường Học Viên / Công khai -> Ưu tiên phiên Học Viên (tránh bị cookie admin của tab khác đè)
       if (userMatch) {
         const token = decodeURIComponent(userMatch[1]);
         const sessionUserId = verifyUserSessionToken(token);
         if (sessionUserId) {
           userId = sessionUserId;
-          try {
-            const user = db.prepare('SELECT username FROM users WHERE id = ?').get(userId) as any;
-            if (user && user.username) {
-              username = user.username;
-            }
-          } catch {}
+        }
+      }
+
+      // Nếu cookie chưa đồng bộ kịp hoặc phiên lưu ở client, sử dụng clientUserId nếu khớp dữ liệu
+      if (!userId && clientUserId) {
+        userId = clientUserId;
+      }
+
+      if (userId) {
+        try {
+          const user = db.prepare('SELECT username FROM users WHERE id = ?').get(userId) as any;
+          if (user && user.username) {
+            username = user.username;
+          } else if (clientUsername) {
+            username = clientUsername;
+          }
+        } catch {
+          if (clientUsername) username = clientUsername;
         }
       }
     }

@@ -5,7 +5,7 @@ import { VOCABULARY_LIST } from '@/lib/data/vocabulary';
 import { sound } from '@/lib/soundFx';
 import { speakText } from '@/lib/speech';
 import { getStoredUser } from '@/lib/auth';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 import {
   Layers,
   Volume2,
@@ -97,6 +97,12 @@ export default function FlashcardsPage() {
         );
       });
   }, [activeTab]);
+
+  useEffect(() => {
+    return () => {
+      confetti.reset();
+    };
+  }, []);
 
   const card = deck[currentIdx];
 
@@ -241,10 +247,10 @@ export default function FlashcardsPage() {
           {/* 3D Flippable Card */}
           <div
             onClick={handleFlip}
-            className="w-full h-80 sm:h-96 relative cursor-pointer select-none perspective-1000 group"
+            className="w-full h-80 sm:h-96 relative cursor-pointer select-none perspective-1000 group transform-gpu"
           >
             <div
-              className={`w-full h-full relative duration-500 transform-style-3d transition-transform ${
+              className={`w-full h-full relative duration-500 transform-style-3d will-change-transform transition-transform ${
                 isFlipped ? 'rotate-y-180' : ''
               }`}
             >

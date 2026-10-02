@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Sparkles,
@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
 import MascotCompanion from '@/components/MascotCompanion';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 import { speakText } from '@/lib/speech';
 import { getStoredUser, AuthUser, setStoredUser } from '@/lib/auth';
 import { PETS_CATALOG, getPetTitle } from '@/lib/petData';
@@ -195,11 +195,22 @@ export default function HomePage() {
     });
   };
 
-  const currentPath: LearningPath = LEARNING_PATHS[activeTargetCode] || LEARNING_PATHS.toeic;
+  useEffect(() => {
+    return () => {
+      confetti.reset();
+    };
+  }, []);
+
+  const currentPath: LearningPath = useMemo(() => {
+    return LEARNING_PATHS[activeTargetCode] || LEARNING_PATHS.toeic;
+  }, [activeTargetCode]);
 
   // Calculate completed nodes in active path
-  const completedInPath = currentPath.nodes.filter((n) => completedNodeIds[n.id]).length;
-  const pathProgressPercent = Math.round((completedInPath / currentPath.nodes.length) * 100);
+  const { completedInPath, pathProgressPercent } = useMemo(() => {
+    const completed = currentPath.nodes.filter((n) => completedNodeIds[n.id]).length;
+    const percent = Math.round((completed / currentPath.nodes.length) * 100);
+    return { completedInPath: completed, pathProgressPercent: percent };
+  }, [currentPath, completedNodeIds]);
 
   return (
     <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 pb-24 lg:pb-12 overflow-x-hidden">

@@ -55,7 +55,7 @@ export interface PixelPetSpriteProps {
   isSleeping?: boolean;
 }
 
-export default function PixelPetSprite({
+function PixelPetSprite({
   species = 'owl',
   animationState = 'idle',
   facing = 'right',
@@ -2145,6 +2145,79 @@ export default function PixelPetSprite({
             <ellipse cx="45" cy="30" rx="2.5" ry="1.5" fill="#fda4af" opacity="0.75" />
           </g>
         )}
+
+        {/* 28. ICE DRAGON (RỒNG BĂNG TUYẾT - CHIBI FROST WYRM) */}
+        {species === 'ice_dragon' && (
+          <g id="species-ice-dragon">
+            {/* Dragon Wings with Icy Spine Spikes */}
+            <path
+              d="M 20 36 C 8 28, 2 35, 4 45 C 10 44, 16 41, 20 40 Z"
+              fill="#7dd3fc"
+              stroke="#0284c7"
+              strokeWidth="1"
+            />
+            <path
+              d="M 44 36 C 56 28, 62 35, 60 45 C 54 44, 48 41, 44 40 Z"
+              fill="#7dd3fc"
+              stroke="#0284c7"
+              strokeWidth="1"
+            />
+            {/* Ice Crystal Horns */}
+            <path d="M 22 20 L 14 8 L 22 14 Z" fill="#38bdf8" stroke="#0369a1" strokeWidth="1" />
+            <path d="M 42 20 L 50 8 L 42 14 Z" fill="#38bdf8" stroke="#0369a1" strokeWidth="1" />
+            <polygon points="32,10 29,15 35,15" fill="#bae6fd" stroke="#0284c7" strokeWidth="0.8" />
+
+            {/* Dragon Body */}
+            <path
+              d="M 21 34 C 17 40, 17 50, 23 54 C 27 55, 37 55, 41 54 C 47 50, 47 40, 43 34 Z"
+              fill="#38bdf8"
+              stroke="#0284c7"
+              strokeWidth="1.2"
+            />
+            {/* Pale Frost Belly with Ice Rune Scales */}
+            <ellipse cx="32" cy="45" rx="7.5" ry="6" fill="#e0f2fe" stroke="#7dd3fc" strokeWidth="0.8" />
+            <path d="M 29 43 Q 32 46 35 43" fill="none" stroke="#38bdf8" strokeWidth="0.8" />
+            <path d="M 29 47 Q 32 50 35 47" fill="none" stroke="#38bdf8" strokeWidth="0.8" />
+
+            {/* Dragon Tail with Ice Spines */}
+            <path d="M 41 47 Q 54 49 57 41" fill="none" stroke="#38bdf8" strokeWidth="4.5" strokeLinecap="round" />
+            <polygon points="46,43 48,39 50,43" fill="#0284c7" />
+            <polygon points="51,41 53,37 55,41" fill="#0284c7" />
+            <polygon points="56,39 59,34 57,41" fill="#7dd3fc" stroke="#0284c7" strokeWidth="0.6" />
+
+            {/* Dragon Paws */}
+            <ellipse cx="24" cy="54" rx="4" ry="2.2" fill="#0284c7" />
+            <ellipse cx="40" cy="54" rx="4" ry="2.2" fill="#0284c7" />
+
+            {/* Chubby Dragon Head */}
+            <ellipse cx="32" cy="27" rx="16" ry="11" fill="#38bdf8" stroke="#0284c7" strokeWidth="1.2" />
+
+            {/* Cute Snout & Tiny Frost Breaths */}
+            <ellipse cx="32" cy="33" rx="7" ry="4.5" fill="#bae6fd" stroke="#0284c7" strokeWidth="0.8" />
+            <circle cx="29.5" cy="32.5" r="0.9" fill="#0369a1" />
+            <circle cx="34.5" cy="32.5" r="0.9" fill="#0369a1" />
+            <path d="M 30 34.5 Q 32 36.5 34 34.5" fill="none" stroke="#0369a1" strokeWidth="1" strokeLinecap="round" />
+
+            {/* Eyes */}
+            {effectiveState === 'sleep' ? (
+              <>
+                <line x1="23" y1="24" x2="28" y2="24" stroke="#0284c7" strokeWidth="2.2" strokeLinecap="round" />
+                <line x1="36" y1="24" x2="41" y2="24" stroke="#0284c7" strokeWidth="2.2" strokeLinecap="round" />
+              </>
+            ) : (
+              <>
+                <circle cx="26" cy="24" r="3.6" fill="#0284c7" />
+                <circle cx="25" cy="23" r="1.3" fill="#ffffff" />
+                <circle cx="38" cy="24" r="3.6" fill="#0284c7" />
+                <circle cx="37" cy="23" r="1.3" fill="#ffffff" />
+              </>
+            )}
+
+            {/* Rosy Icy Cheeks */}
+            <ellipse cx="20" cy="29" rx="2.5" ry="1.5" fill="#fda4af" opacity="0.8" />
+            <ellipse cx="44" cy="29" rx="2.5" ry="1.5" fill="#fda4af" opacity="0.8" />
+          </g>
+        )}
       
         {/* ========================================================================= */}
         {/* LỚP 3: TRANG PHỤC THÚ CƯNG (EQUIPPED OUTFITS - ÔM SÁT THÂN VỪA KHÍT 64x64) */}
@@ -2665,3 +2738,5 @@ export default function PixelPetSprite({
     </div>
   );
 }
+
+export default React.memo(PixelPetSprite);

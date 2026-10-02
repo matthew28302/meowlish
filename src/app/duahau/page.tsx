@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   Shield,
@@ -96,7 +96,8 @@ interface SupportMessage {
   name: string;
   email: string;
   user_id?: string;
-  category: 'feedback' | 'bug' | 'guide' | 'other';
+  category: 'feedback' | 'bug' | 'guide' | 'account' | 'other';
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
   subject: string;
   message: string;
   rating: number;
@@ -173,27 +174,38 @@ export default function DuaHauAdminPage() {
   const [selectedTicket, setSelectedTicket] = useState<SupportMessage | null>(null);
   const [adminReplyText, setAdminReplyText] = useState<string>('');
   const [isReplyingTicket, setIsReplyingTicket] = useState<boolean>(false);
+  const notifTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Show Toast
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
     if (type === 'success') sound.playSuccess();
     else sound.playWrong();
-    setTimeout(() => setNotification(null), 3500);
+    if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
+    notifTimerRef.current = setTimeout(() => setNotification(null), 3500);
   };
 
-  // OTP Countdown Timer
+  // OTP Countdown Timer (single stable interval without per-second teardown)
   useEffect(() => {
-    let timer: NodeJS.Timeout | undefined;
-    if (loginStep === 'otp' && otpCountdown > 0) {
-      timer = setInterval(() => {
-        setOtpCountdown((prev) => (prev > 0 ? prev - 1 : 0));
-      }, 1000);
-    }
+    if (loginStep !== 'otp') return;
+    const timer = setInterval(() => {
+      setOtpCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [loginStep]);
+
+  // Clean up timers on unmount
+  useEffect(() => {
     return () => {
-      if (timer) clearInterval(timer);
+      if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
     };
-  }, [loginStep, otpCountdown]);
+  }, []);
 
   // Check saved session on mount
   useEffect(() => {
@@ -2088,7 +2100,21 @@ export default function DuaHauAdminPage() {
                     catLabel = '🐛 Báo lỗi';
                   } else if (ticket.category === 'guide') {
                     catColor = 'bg-sky-500/20 text-sky-300 border-sky-500/30';
-                    catLabel = '📖 Hướng dẫn';
+                    catLabel = '📖 Học tập';
+                  } else if (ticket.category === 'account') {
+                    catColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+                    catLabel = '🔒 Tài khoản';
+                  }
+
+                  let prioBadge = null;
+                  if (ticket.priority === 'urgent') {
+                    prioBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-rose-500/20 text-rose-300 border-rose-500/40">🔴 Khẩn cấp</span>;
+                  } else if (ticket.priority === 'high') {
+                    prioBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-orange-500/20 text-orange-300 border-orange-500/40">🟠 Ưu tiên cao</span>;
+                  } else if (ticket.priority === 'low') {
+                    prioBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-500/20 text-emerald-300 border-emerald-500/40">🟢 Thấp</span>;
+                  } else {
+                    prioBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-amber-500/20 text-amber-300 border-amber-500/40">🟡 Trung bình</span>;
                   }
 
                   return (
@@ -2102,6 +2128,7 @@ export default function DuaHauAdminPage() {
                           <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${catColor}`}>
                             {catLabel}
                           </span>
+                          {prioBadge}
 
                           {/* Star Rating */}
                           <div className="flex items-center gap-0.5 px-2 py-0.5 bg-slate-950 rounded-full border border-slate-800">
