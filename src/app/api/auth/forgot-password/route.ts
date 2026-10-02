@@ -2,14 +2,15 @@ import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { db, hashPassword } from '@/lib/db';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import { logAccess, logEmail, logError } from '@/lib/systemLogs';
 import logger from '@/lib/logger';
 import dns from 'dns';
 import crypto from 'crypto';
 
 export async function POST(request: Request) {
+  const clientIp = getClientIp(request);
+  const userAgent = request.headers.get('user-agent') || '';
   try {
-    const clientIp = getClientIp(request);
-
     // Rate Limiting: Chống spam email & brute-force reset password
     const rateCheck = checkRateLimit({
       key: `forgot_pwd:${clientIp}`,
@@ -19,6 +20,13 @@ export async function POST(request: Request) {
 
     if (!rateCheck.allowed) {
       logger.warn(`Forgot password rate limit reached for IP: ${clientIp}`);
+      logAccess({
+        action: 'forgot_password_rate_limited',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'rate_limited',
+        details: 'Vượt quá số lần yêu cầu đặt lại mật khẩu (5 lần/15 phút)',
+      });
       return rateLimitExceededResponse('Bạn đã yêu cầu đặt lại mật khẩu quá số lần cho phép. Vui lòng thử lại sau ít phút để bảo vệ an toàn!', rateCheck.resetInSeconds);
     }
 
@@ -45,6 +53,14 @@ export async function POST(request: Request) {
     // Chặn tuyệt đối đặt lại mật khẩu Admin từ cổng công khai
     if (user && (user.username === 'admin' || user.role === 'admin')) {
       logger.warn(`Blocked public password reset attempt for admin account from IP: ${clientIp}`);
+      logAccess({
+        username: user.username,
+        action: 'forgot_password_blocked_admin',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'blocked',
+        details: 'Chặn yêu cầu đặt lại mật khẩu Admin từ cổng công khai',
+      });
       return NextResponse.json(
         { error: 'Tài khoản Quản trị viên chỉ có thể quản lý tại cổng bảo mật /duahau.' },
         { status: 403 }
@@ -52,6 +68,15 @@ export async function POST(request: Request) {
     }
 
     if (user && user.status === 'disabled') {
+      logAccess({
+        user_id: user.id,
+        username: user.username,
+        action: 'forgot_password_blocked_disabled',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'blocked',
+        details: 'Tài khoản đã bị vô hiệu hóa yêu cầu đặt lại mật khẩu',
+      });
       return NextResponse.json(
         { error: 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ Quản trị viên.' },
         { status: 403 }
@@ -126,12 +151,46 @@ export async function POST(request: Request) {
       db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(pwdHash, user.id);
       logger.info(`Successfully sent password reset email to: ${recipientEmail}`);
 
+      logEmail({
+        recipient: recipientEmail,
+        subject: 'Yêu cầu đặt lại mật khẩu - Meowlish English',
+        purpose: 'forgot_password',
+        status: 'sent',
+      });
+
+      logAccess({
+        user_id: user.id,
+        username: user.username,
+        action: 'forgot_password_success',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: `Đã gửi mật khẩu khôi phục qua email ${recipientEmail}`,
+      });
+
       return NextResponse.json({
         success: true,
         message: 'Mật khẩu mới đã được gửi đến email đăng ký của bạn. Vui lòng kiểm tra hộp thư!',
       });
     } catch (mailErr) {
       logger.error('Failed to send SMTP password reset email', { error: mailErr });
+      logEmail({
+        recipient: recipientEmail,
+        subject: 'Yêu cầu đặt lại mật khẩu - Meowlish English',
+        purpose: 'forgot_password',
+        status: 'failed',
+        error_message: mailErr instanceof Error ? mailErr.message : String(mailErr),
+      });
+
+      logError({
+        endpoint: 'POST /api/auth/forgot-password',
+        error_message: mailErr instanceof Error ? mailErr.message : String(mailErr),
+        stack_trace: mailErr instanceof Error ? mailErr.stack : null,
+        ip: clientIp,
+        user_id: user.id,
+        severity: 'error',
+      });
+
       // BẢO MẬT: Tuyệt đối không để lộ mật khẩu trong response kể cả khi SMTP lỗi!
       return NextResponse.json({
         error: 'Không thể gửi email lúc này. Vui lòng thử lại sau giây lát hoặc liên hệ hỗ trợ.',
@@ -139,6 +198,13 @@ export async function POST(request: Request) {
     }
   } catch (err: unknown) {
     logger.error('Unexpected error in POST /api/auth/forgot-password', { error: err });
+    logError({
+      endpoint: 'POST /api/auth/forgot-password',
+      error_message: err instanceof Error ? err.message : String(err),
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: clientIp,
+      severity: 'error',
+    });
     const message = err instanceof Error ? err.message : 'Lỗi hệ thống';
     return NextResponse.json({ error: message }, { status: 500 });
   }

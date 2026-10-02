@@ -10,6 +10,7 @@ import {
   getAuthenticatedUser,
 } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import { logAccess, logError } from '@/lib/systemLogs';
 import logger from '@/lib/logger';
 
 function formatSafeUser(user: any) {
@@ -74,8 +75,9 @@ export async function GET(request: Request) {
 
 // POST: Đăng ký, Đăng nhập, Xác thực 2FA, Xác thực Email, Bật/Tắt 2FA
 export async function POST(request: Request) {
+  const clientIp = getClientIp(request);
+  const userAgent = request.headers.get('user-agent') || '';
   try {
-    const clientIp = getClientIp(request);
     const body = await request.json();
     const { action, username, email, password, displayName, sessionId, otp, userId, enable } = body;
 
@@ -96,6 +98,15 @@ export async function POST(request: Request) {
 
     // 0. ACTION: USER LOGOUT (HỦY PHIÊN BẢO MẬT & XÓA COOKIE)
     if (action === 'logout') {
+      logAccess({
+        user_id: userId || null,
+        username: username || null,
+        action: 'logout',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: 'Đăng xuất khỏi hệ thống',
+      });
       const response = NextResponse.json({ success: true, message: 'Đăng xuất thành công.' });
       response.cookies.delete('meowlish_user_session');
       return response;
@@ -104,6 +115,13 @@ export async function POST(request: Request) {
     // 1. ACTION: VERIFY 2FA LOGIN OTP
     if (action === 'verify_2fa') {
       if (!sessionId || !otp) {
+        logAccess({
+          action: '2fa_verify_failed',
+          ip: clientIp,
+          user_agent: userAgent,
+          status: 'failed',
+          details: 'Thiếu mã OTP hoặc Session ID',
+        });
         return NextResponse.json({ error: 'Vui lòng nhập đầy đủ mã OTP xác thực.' }, { status: 400 });
       }
 
@@ -114,6 +132,14 @@ export async function POST(request: Request) {
       });
 
       if (!verifyRes.valid || !verifyRes.userId) {
+        logAccess({
+          user_id: verifyRes.userId || null,
+          action: '2fa_verify_failed',
+          ip: clientIp,
+          user_agent: userAgent,
+          status: 'failed',
+          details: verifyRes.error || 'Mã xác thực OTP không hợp lệ hoặc đã hết hạn',
+        });
         return NextResponse.json({ error: verifyRes.error || 'Mã xác thực không hợp lệ.' }, { status: 400 });
       }
 
@@ -127,6 +153,15 @@ export async function POST(request: Request) {
       }
 
       if ((user as any).status === 'disabled') {
+        logAccess({
+          user_id: (user as any).id,
+          username: (user as any).username,
+          action: 'login_blocked_disabled',
+          ip: clientIp,
+          user_agent: userAgent,
+          status: 'blocked',
+          details: 'Tài khoản đã bị vô hiệu hóa bởi Quản trị viên',
+        });
         return NextResponse.json({
           error: 'Tài khoản của bạn đã bị vô hiệu hóa bởi Quản trị viên.',
           status: 'disabled',
@@ -134,6 +169,15 @@ export async function POST(request: Request) {
       }
 
       logger.info(`User logged in via 2FA successfully: ${verifyRes.userId}`);
+      logAccess({
+        user_id: (user as any).id,
+        username: (user as any).username,
+        action: '2fa_login_success',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: 'Đăng nhập thành công qua xác thực 2FA',
+      });
 
       const response = NextResponse.json({
         success: true,
@@ -166,6 +210,14 @@ export async function POST(request: Request) {
       }
 
       if (!activeSessionId || !otp || !userId) {
+        logAccess({
+          user_id: userId || null,
+          action: 'verify_email_failed',
+          ip: clientIp,
+          user_agent: userAgent,
+          status: 'failed',
+          details: 'Thiếu thông tin xác thực email hoặc mã OTP chưa được gửi',
+        });
         return NextResponse.json({ error: 'Thiếu thông tin xác thực email hoặc mã OTP chưa được gửi.' }, { status: 400 });
       }
 
@@ -176,6 +228,14 @@ export async function POST(request: Request) {
       });
 
       if (!verifyRes.valid) {
+        logAccess({
+          user_id: userId,
+          action: 'verify_email_failed',
+          ip: clientIp,
+          user_agent: userAgent,
+          status: 'failed',
+          details: verifyRes.error || 'Mã OTP không hợp lệ',
+        });
         return NextResponse.json({ error: verifyRes.error || 'Mã OTP không hợp lệ.' }, { status: 400 });
       }
 
@@ -188,6 +248,15 @@ export async function POST(request: Request) {
       `).get(userId);
 
       logger.info(`Email verified for user: ${userId}`);
+      logAccess({
+        user_id: userId,
+        username: (updatedUser as any)?.username,
+        action: 'verify_email_success',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: 'Xác thực email thành công - Mở khóa toàn bộ tính năng',
+      });
 
       return NextResponse.json({
         success: true,
@@ -246,6 +315,16 @@ export async function POST(request: Request) {
         }, { status: 500 });
       }
 
+      logAccess({
+        user_id: user.id,
+        username: user.username,
+        action: 'resend_email_verification',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: `Gửi lại mã OTP xác thực email tới ${maskEmail(user.email)}`,
+      });
+
       return NextResponse.json({
         success: true,
         sessionId: newSessionId,
@@ -281,6 +360,15 @@ export async function POST(request: Request) {
       `).get(userId);
 
       logger.info(`User ${user.username} toggled 2FA to ${wantEnable}`);
+      logAccess({
+        user_id: userId,
+        username: user.username,
+        action: 'toggle_2fa',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: wantEnable ? 'Bật tính năng xác thực 2 lớp (2FA)' : 'Tắt tính năng xác thực 2 lớp (2FA)',
+      });
 
       return NextResponse.json({
         success: true,
@@ -404,6 +492,15 @@ export async function POST(request: Request) {
       }
 
       logger.info(`User registered successfully: ${cleanUsername}`, { id });
+      logAccess({
+        user_id: id,
+        username: cleanUsername,
+        action: 'register_success',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: `Đăng ký tài khoản mới: @${cleanUsername}${cleanEmail ? ` (${cleanEmail})` : ''}`,
+      });
 
       const response = NextResponse.json({
         success: true,
@@ -431,12 +528,28 @@ export async function POST(request: Request) {
     const loginRate = checkRateLimit({ key: `auth_login:${clientIp}`, maxAttempts: 20, windowMs: 10 * 60 * 1000 });
     if (!loginRate.allowed) {
       logger.warn(`Login rate limit exceeded for IP: ${clientIp}`);
+      logAccess({
+        username: cleanUsername,
+        action: 'login_rate_limited',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'rate_limited',
+        details: 'Đăng nhập sai quá nhiều lần (20 lần/10 phút)',
+      });
       return rateLimitExceededResponse('Bạn đã thử đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 10 phút!', loginRate.resetInSeconds);
     }
 
     // TÁCH BIỆT ADMIN VÀ USER: Tài khoản Admin chỉ được đăng nhập tại /duahau
     if (cleanUsername === 'admin') {
       logger.warn(`Blocked admin login on public user form: ${cleanUsername}`);
+      logAccess({
+        username: 'admin',
+        action: 'admin_login_public_blocked',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'blocked',
+        details: 'Thử đăng nhập tài khoản Quản trị tại form người dùng công khai',
+      });
       return NextResponse.json(
         { error: 'Tài khoản Quản trị viên (Admin) chỉ được phép đăng nhập tại cổng quản trị bảo mật (/duahau).' },
         { status: 403 }
@@ -450,6 +563,14 @@ export async function POST(request: Request) {
 
     if (!user || user.password_hash !== pwdHash) {
       logger.warn(`Failed login attempt for username: ${cleanUsername}`);
+      logAccess({
+        username: cleanUsername,
+        action: 'login_failed',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'failed',
+        details: 'Sai tên đăng nhập hoặc mật khẩu',
+      });
       return NextResponse.json(
         { error: 'Tên đăng nhập hoặc mật khẩu không chính xác' },
         { status: 401 }
@@ -457,6 +578,15 @@ export async function POST(request: Request) {
     }
 
     if (user.role === 'admin') {
+      logAccess({
+        user_id: user.id,
+        username: user.username,
+        action: 'admin_login_public_blocked',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'blocked',
+        details: 'Tài khoản admin bị chặn đăng nhập tại form công khai',
+      });
       return NextResponse.json(
         { error: 'Tài khoản Quản trị viên (Admin) chỉ được phép đăng nhập tại cổng quản trị bảo mật (/duahau).' },
         { status: 403 }
@@ -465,6 +595,15 @@ export async function POST(request: Request) {
 
     if (user.status === 'disabled') {
       logger.warn(`Blocked login attempt for disabled user: ${cleanUsername}`);
+      logAccess({
+        user_id: user.id,
+        username: user.username,
+        action: 'login_blocked_disabled',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'blocked',
+        details: 'Tài khoản đã bị vô hiệu hóa bởi Quản trị viên',
+      });
       return NextResponse.json(
         { error: 'Tài khoản của bạn đã bị vô hiệu hóa bởi Quản trị viên.', status: 'disabled' },
         { status: 403 }
@@ -494,6 +633,15 @@ export async function POST(request: Request) {
       }
 
       logger.info(`2FA required for user login: ${user.username}, email: ${user.email}`);
+      logAccess({
+        user_id: user.id,
+        username: user.username,
+        action: 'login_2fa_prompted',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'pending_2fa',
+        details: `Yêu cầu xác thực 2FA gửi tới email ${maskEmail(user.email)}`,
+      });
 
       return NextResponse.json({
         success: true,
@@ -506,6 +654,15 @@ export async function POST(request: Request) {
 
     // Đăng nhập bình thường khi không bật 2FA
     logger.info(`User logged in successfully: ${user.username}`, { id: user.id });
+    logAccess({
+      user_id: user.id,
+      username: user.username,
+      action: 'login_success',
+      ip: clientIp,
+      user_agent: userAgent,
+      status: 'success',
+      details: `Đăng nhập thành công: @${user.username}`,
+    });
 
     const response = NextResponse.json({
       success: true,
@@ -525,6 +682,13 @@ export async function POST(request: Request) {
     return response;
   } catch (err: unknown) {
     logger.error('Error in POST /api/auth', { error: err });
+    logError({
+      endpoint: 'POST /api/auth',
+      error_message: err instanceof Error ? err.message : String(err),
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: clientIp,
+      severity: 'error',
+    });
     const message = err instanceof Error ? err.message : 'Lỗi hệ thống';
     return NextResponse.json({ error: message }, { status: 500 });
   }

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyAdminToken } from '@/lib/adminAuth';
+import { getClientIp } from '@/lib/rateLimit';
 import logger from '@/lib/logger';
 import nodemailer from 'nodemailer';
 import dns from 'dns';
-import { logEmail } from '@/lib/systemLogs';
+import { logEmail, logAccess, logError } from '@/lib/systemLogs';
 
 async function resolveIpv4(host: string): Promise<string> {
   try {
@@ -92,12 +93,22 @@ export async function GET(request: Request) {
 
 // POST: Thao tác cập nhật trạng thái, trả lời, xóa góp ý
 export async function POST(request: Request) {
+  const clientIp = getClientIp(request);
+  const userAgent = request.headers.get('user-agent') || '';
   try {
     const authHeader = request.headers.get('authorization');
     const body = await request.json();
     const { action, ticketId, status, replyContent, adminSecret } = body;
 
     if (!verifyAdmin(request, authHeader, adminSecret)) {
+      logAccess({
+        username: 'admin',
+        action: 'admin_unauthorized_action',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'failed',
+        details: 'Cố gắng thực hiện thao tác hỗ trợ nhưng không có token hợp lệ',
+      });
       return NextResponse.json({ error: 'Truy cập bị từ chối.' }, { status: 401 });
     }
 
@@ -124,6 +135,15 @@ export async function POST(request: Request) {
         WHERE id = ?
       `).run(status, resolvedAt, ticketId);
 
+      logAccess({
+        username: 'admin',
+        action: 'admin_support_update_status',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: `Cập nhật trạng thái thư góp ý #${ticketId} sang "${status}"`,
+      });
+
       return NextResponse.json({
         success: true,
         message: `Đã cập nhật trạng thái sang "${status}".`,
@@ -141,6 +161,15 @@ export async function POST(request: Request) {
         SET admin_reply = ?, status = 'resolved', resolved_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `).run(replyContent.trim(), ticketId);
+
+      logAccess({
+        username: 'admin',
+        action: 'admin_support_reply',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: `Phản hồi thư góp ý #${ticketId} của ${ticket.name} (${ticket.email})`,
+      });
 
       // Gửi email phản hồi đến người dùng
       try {
@@ -168,7 +197,7 @@ export async function POST(request: Request) {
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0;">
               <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 22px; text-align: center; color: #ffffff;">
                 <div style="font-size: 28px; margin-bottom: 4px;">🍉</div>
-                <h2 style="margin: 0; font-size: 18px; font-weight: 800;">PHẢN HỒI TỪ BAN QUẢN TRỊ MEOWLISH</h2>
+                <h2 style="margin: 0; font-size: 18px; font-weight: 800;">PHẢN HỒI TỪ BAN QUẢN TRI MEOWLISH</h2>
               </div>
               <div style="padding: 24px; color: #1e293b; font-size: 14px; line-height: 1.6;">
                 <p>Chào <strong>${ticket.name}</strong>,</p>
@@ -213,6 +242,14 @@ ${replyContent.trim()}
     // 3. Xóa thư góp ý
     if (action === 'delete') {
       db.prepare('DELETE FROM support_messages WHERE id = ?').run(ticketId);
+      logAccess({
+        username: 'admin',
+        action: 'admin_support_delete',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: `Đã xóa thư góp ý #${ticketId}`,
+      });
       return NextResponse.json({
         success: true,
         message: 'Đã xóa thư góp ý thành công.',
@@ -222,6 +259,13 @@ ${replyContent.trim()}
     return NextResponse.json({ error: 'Action không hợp lệ.' }, { status: 400 });
   } catch (err: any) {
     logger.error('Error in POST /api/admin/support:', { error: err });
+    logError({
+      endpoint: 'POST /api/admin/support',
+      error_message: err instanceof Error ? err.message : String(err),
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: clientIp,
+      severity: 'error',
+    });
     return NextResponse.json({ error: err.message || 'Lỗi thao tác hỗ trợ' }, { status: 500 });
   }
 }

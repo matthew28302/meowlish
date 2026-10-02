@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { db, hashPassword, verifyDbIntegrity } from '@/lib/db';
 import { getSyncStatus, uploadDbToS3 } from '@/lib/s3Sync';
 import { verifyAdminToken } from '@/lib/adminAuth';
+import { getClientIp } from '@/lib/rateLimit';
+import { logAccess, logError } from '@/lib/systemLogs';
 import logger from '@/lib/logger';
 
 // Helper: Verify admin access from authorization header, request body, or HttpOnly cookie
@@ -96,12 +98,22 @@ export async function GET(request: Request) {
 
 // POST: Thực hiện các tác vụ quản trị (Khóa/Mở khóa, Set Coin, Set Level, Đổi mật khẩu, Sao lưu S3)
 export async function POST(request: Request) {
+  const clientIp = getClientIp(request);
+  const userAgent = request.headers.get('user-agent') || '';
   try {
     const authHeader = request.headers.get('authorization');
     const body = await request.json();
     const { adminSecret, token, action, targetUserId, coins, level, exp, newPassword } = body;
 
     if (!verifyAdmin(request, authHeader, token || adminSecret)) {
+      logAccess({
+        username: 'admin',
+        action: 'admin_unauthorized_action',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'failed',
+        details: `Cố gắng thực hiện ${action} nhưng không có token hợp lệ`,
+      });
       return NextResponse.json({ error: 'Bạn không có quyền thực hiện thao tác quản trị này. Vui lòng xác thực 2FA.' }, { status: 401 });
     }
 
@@ -109,6 +121,14 @@ export async function POST(request: Request) {
     if (action === 'trigger_backup') {
       const ok = await uploadDbToS3();
       const s3Status = await getSyncStatus();
+      logAccess({
+        username: 'admin',
+        action: 'admin_trigger_backup',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: ok ? 'success' : 'failed',
+        details: ok ? 'Sao lưu dữ liệu thủ công lên Filebase S3 thành công' : 'Sao lưu lên Filebase S3 thất bại',
+      });
       return NextResponse.json({
         success: ok,
         message: ok ? 'Đã sao lưu cơ sở dữ liệu lên Filebase S3 thành công 100%! 🚀' : 'Sao lưu lên Filebase S3 thất bại.',
@@ -143,6 +163,14 @@ export async function POST(request: Request) {
       }
 
       logger.info(`Admin toggled status for user ${targetUser.username} to ${nextStatus}`);
+      logAccess({
+        username: 'admin',
+        action: 'admin_toggle_user_status',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: `Đổi trạng thái tài khoản @${targetUser.username} (${targetUserId}) sang "${nextStatus}"`,
+      });
       uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
       return NextResponse.json({
         success: true,
@@ -157,6 +185,14 @@ export async function POST(request: Request) {
       db.prepare('UPDATE users SET coins = ? WHERE id = ?').run(parsedCoins, targetUserId);
 
       logger.info(`Admin set coins for user ${targetUser.username} to ${parsedCoins}`);
+      logAccess({
+        username: 'admin',
+        action: 'admin_set_coins',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: `Cập nhật số xu của @${targetUser.username} (${targetUserId}) thành ${parsedCoins.toLocaleString()} Coins`,
+      });
       uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
       return NextResponse.json({
         success: true,
@@ -172,6 +208,14 @@ export async function POST(request: Request) {
       db.prepare('UPDATE users SET level = ?, exp = ? WHERE id = ?').run(parsedLevel, parsedExp, targetUserId);
 
       logger.info(`Admin set level for user ${targetUser.username} to Lv.${parsedLevel} (${parsedExp} EXP)`);
+      logAccess({
+        username: 'admin',
+        action: 'admin_set_level',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: `Cập nhật cấp độ @${targetUser.username} (${targetUserId}) thành Lv.${parsedLevel} (${parsedExp} EXP)`,
+      });
       uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
       return NextResponse.json({
         success: true,
@@ -190,6 +234,14 @@ export async function POST(request: Request) {
       db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, targetUserId);
 
       logger.info(`Admin reset password for user ${targetUser.username}`);
+      logAccess({
+        username: 'admin',
+        action: 'admin_set_password',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: `Đặt lại mật khẩu cho tài khoản @${targetUser.username} (${targetUserId})`,
+      });
       uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
       return NextResponse.json({
         success: true,
@@ -219,6 +271,14 @@ export async function POST(request: Request) {
       deleteUserTransaction(targetUserId);
 
       logger.info(`Admin deleted user ${targetUser.username} (ID: ${targetUserId})`);
+      logAccess({
+        username: 'admin',
+        action: 'admin_delete_user',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: `Xóa vĩnh viễn tài khoản @${targetUser.username} (${targetUserId})`,
+      });
 
       // Đồng bộ ngay lập tức lên Filebase S3
       uploadDbToS3().catch((err) => logger.warn('[Admin API] S3 auto-sync after delete error:', { error: err }));
@@ -232,6 +292,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Hành động không hợp lệ.' }, { status: 400 });
   } catch (err: unknown) {
     logger.error('Error in POST /api/admin/users:', { error: err });
+    logError({
+      endpoint: 'POST /api/admin/users',
+      error_message: err instanceof Error ? err.message : String(err),
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: clientIp,
+      severity: 'error',
+    });
     const message = err instanceof Error ? err.message : 'Database error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

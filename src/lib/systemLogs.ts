@@ -9,7 +9,7 @@ export interface AccessLogEntry {
   action: string;
   ip?: string | null;
   user_agent?: string | null;
-  status?: 'success' | 'failed' | 'blocked';
+  status?: 'success' | 'failed' | 'blocked' | 'rate_limited' | 'pending_2fa';
   details?: string | null;
 }
 

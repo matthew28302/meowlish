@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { Volume2, Bookmark, Check, X, Sparkles, MessageSquare, Zap, Loader2, Brain, BookOpen } from 'lucide-react';
 import { lookupWord, DictionaryEntry } from '@/lib/data/dictionary';
 import { speakText } from '@/lib/speech';
@@ -30,6 +31,12 @@ interface AIPedagogicalState {
 }
 
 export default function HighlightTooltip() {
+  const pathname = usePathname();
+
+  // BỎ TÍNH NĂNG BÔI ĐEN DỊCH TRÊN TRANG ADMIN DƯA HẤU (/duahau)
+  if (pathname?.startsWith('/duahau')) {
+    return null;
+  }
   const [selectedText, setSelectedText] = useState('');
   const [contextSentence, setContextSentence] = useState('');
   const [position, setPosition] = useState<{ x: number; y: number; isMobile?: boolean } | null>(null);
