@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import {
   X,
   User,
@@ -97,9 +98,12 @@ export default function AuthModal({
           : 'opacity-0 -translate-x-3 scale-75 -rotate-6'
       }`}
     >
-      <img
+      <Image
         src="/meo.png"
         alt="Mèo trỏ bút"
+        width={176}
+        height={144}
+        sizes="44px"
         className="w-9 sm:w-11 h-auto drop-shadow-md select-none pointer-events-none"
       />
     </div>
@@ -1078,10 +1082,13 @@ export default function AuthModal({
           {currentUser ? (
             /* Khi đã đăng nhập xong: hiển thị hình nền home.png với hiệu ứng điện ảnh */
             <div className="absolute inset-0 w-full h-full animate-in fade-in duration-700">
-              <img
-                src="/home.png"
+              <Image
+                src="/home.jpg"
                 alt="Meowlish Home"
-                className="w-full h-full object-cover select-none pointer-events-none"
+                fill
+                sizes="(min-width: 768px) 70vw, 0px"
+                loading="lazy"
+                className="object-cover select-none pointer-events-none"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none" />
             </div>
@@ -1096,10 +1103,13 @@ export default function AuthModal({
                     : 'opacity-0 scale-105 blur-[3px] pointer-events-none z-0'
                 }`}
               >
-                <img
+                <Image
                   src="/login.jpg"
                   alt="Meowlish Đăng Nhập"
-                  className="w-full h-full object-cover select-none pointer-events-none"
+                  fill
+                  sizes="(min-width: 768px) 70vw, 0px"
+                  loading="lazy"
+                  className="object-cover select-none pointer-events-none"
                 />
               </div>
 
@@ -1111,10 +1121,13 @@ export default function AuthModal({
                     : 'opacity-0 scale-105 blur-[3px] pointer-events-none z-0'
                 }`}
               >
-                <img
+                <Image
                   src="/register.jpg"
                   alt="Meowlish Đăng Ký"
-                  className="w-full h-full object-cover select-none pointer-events-none"
+                  fill
+                  sizes="(min-width: 768px) 70vw, 0px"
+                  loading="lazy"
+                  className="object-cover select-none pointer-events-none"
                 />
               </div>
 
@@ -1126,10 +1139,13 @@ export default function AuthModal({
                     : 'opacity-0 scale-105 blur-[3px] pointer-events-none z-0'
                 }`}
               >
-                <img
+                <Image
                   src="/forgot.jpg"
                   alt="Meowlish Quên Mật Khẩu"
-                  className="w-full h-full object-cover select-none pointer-events-none"
+                  fill
+                  sizes="(min-width: 768px) 70vw, 0px"
+                  loading="lazy"
+                  className="object-cover select-none pointer-events-none"
                 />
               </div>
 

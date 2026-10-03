@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Charis+SIL:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+/* Font Charis SIL đã nạp qua <link> trong layout.tsx — không @import lại ở đây (tránh parse CSS trùng) */
 @import "tailwindcss";
 
 @variant dark (&:where(.dark, .dark *));
@@ -38,22 +38,28 @@ body {
   min-height: 100vh;
 }
 
-/* Global input text contrast & selectable text */
-input,
-textarea,
-select {
-  color: #0f172a;
-  user-select: text;
-  -webkit-user-select: text;
-}
-.dark input,
-.dark textarea,
-.dark select {
-  color: #f8fafc;
-}
-input::placeholder,
-textarea::placeholder {
-  color: #94a3b8;
+/* Global input text contrast & selectable text.
+   NOTE: kept inside @layer base so Tailwind text utilities (text-white,
+   text-slate-300, ...) on inputs/selects still win over this default.
+   Unlayered, this rule used to override every utility and rendered dark
+   text on dark inputs (e.g. /duahau forms). */
+@layer base {
+  input,
+  textarea,
+  select {
+    color: #0f172a;
+    user-select: text;
+    -webkit-user-select: text;
+  }
+  .dark input,
+  .dark textarea,
+  .dark select {
+    color: #f8fafc;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: #94a3b8;
+  }
 }
 
 /* Gamified 3D Playful Buttons (Duolingo & Animal Crossing inspired) */
@@ -141,6 +147,125 @@ textarea::placeholder {
 .card-playful:hover {
   border-color: #a7f3d0;
   box-shadow: 0 14px 30px -4px rgba(16, 185, 129, 0.08);
+}
+
+/* ========================================================================= */
+/* TeaMobi "Avatar 2D" casual-game card / HUD / button system                */
+/* Visual language lifted from the 2D canvas games: chunky outlines, thick    */
+/* bottom edges (game-button push), gold gradients, dark translucent HUD chips*/
+/* ========================================================================= */
+.card-arcade {
+  --arcade-accent: #10b981;
+  --arcade-accent-deep: #047857;
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.35rem;
+  background-color: #ffffff;
+  background-image: linear-gradient(
+    155deg,
+    #ffffff 0%,
+    #ffffff 52%,
+    color-mix(in srgb, var(--arcade-accent) 12%, #ffffff) 100%
+  );
+  border: 3px solid var(--arcade-accent);
+  border-bottom: 6px solid var(--arcade-accent-deep);
+  box-shadow: 0 14px 24px -16px rgba(15, 23, 42, 0.55);
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease;
+}
+
+.card-arcade:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 30px -16px rgba(15, 23, 42, 0.6);
+}
+
+/* Subtle pixel-dot flourish in the top-right corner of every arcade card */
+.card-arcade::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 46px;
+  height: 40px;
+  border-radius: 10px;
+  background-image: radial-gradient(var(--arcade-accent) 1.5px, transparent 1.6px);
+  background-size: 9px 9px;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.card-arcade-emerald { --arcade-accent: #10b981; --arcade-accent-deep: #047857; }
+.card-arcade-teal { --arcade-accent: #2dd4bf; --arcade-accent-deep: #0f766e; }
+.card-arcade-sky { --arcade-accent: #38bdf8; --arcade-accent-deep: #0369a1; }
+.card-arcade-purple { --arcade-accent: #a78bfa; --arcade-accent-deep: #6d28d9; }
+.card-arcade-amber { --arcade-accent: #fbbf24; --arcade-accent-deep: #b45309; }
+.card-arcade-rose { --arcade-accent: #fb7185; --arcade-accent-deep: #be123c; }
+.card-arcade-indigo { --arcade-accent: #818cf8; --arcade-accent-deep: #4338ca; }
+
+/* Chunky gold game button (matches "Thu Hoạch Hết" / "Rải Thóc" in-game HUD) */
+.btn-arcade {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 900;
+  border-radius: 0.9rem;
+  color: #78350f;
+  background-image: linear-gradient(180deg, #fde68a 0%, #fbbf24 48%, #f59e0b 100%);
+  border: 2px solid #b45309;
+  border-bottom-width: 5px;
+  box-shadow: 0 8px 16px -10px rgba(245, 158, 11, 0.95);
+  transition: all 0.12s ease-in-out;
+  user-select: none;
+}
+.btn-arcade:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+.btn-arcade:active {
+  transform: translateY(4px);
+  border-bottom-width: 2px;
+  box-shadow: none;
+}
+
+/* Dark translucent HUD chip (canvas-game status pill) */
+.hud-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: rgba(2, 6, 23, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 0.85rem;
+  color: #f8fafc;
+  font-weight: 800;
+  padding: 0.25rem 0.6rem;
+}
+
+/* Gold coin pill */
+.coin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-image: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+  color: #78350f;
+  border: 2px solid #d97706;
+  border-bottom-width: 4px;
+  border-radius: 999px;
+  font-weight: 900;
+  padding: 0.2rem 0.7rem;
+}
+
+/* Small uppercase badge ribbon used on feature cards */
+.badge-arcade {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background-image: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.78));
+  color: #fde68a;
+  border: 1px solid rgba(253, 230, 138, 0.4);
+  white-space: nowrap;
 }
 
 /* Word Token / Scrambled Lego Chip */
@@ -554,7 +679,10 @@ main,
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   touch-action: pan-y;
-  transform: translateZ(0);
+  /* NOTE: no `transform: translateZ(0)` here on purpose — a transformed ancestor
+     becomes the containing block for position:fixed descendants, which would
+     trap the page modals (they would scroll with the container and their close
+     button could slide under the app header on mobile). */
   backface-visibility: hidden;
 }
 
