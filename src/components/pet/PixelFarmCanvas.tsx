@@ -5,6 +5,31 @@ import { sound } from '@/lib/soundFx';
 import confetti from 'canvas-confetti';
 import { Sparkles, Utensils, Award, RefreshCw, Volume2, Info, ChevronRight, Check } from 'lucide-react';
 import { drawChibiChicken, drawChibiDairyCow } from './drawFarmLivestock';
+import { LIVESTOCK_CATALOG } from '@/lib/petFarmData';
+
+type LivestockStatus = 'idle' | 'producing' | 'ready';
+
+// Chu kỳ mặc định (bắt buộc khớp với server): GÀ 3 GIỜ / BÒ 24 GIỜ
+const DEFAULT_CYCLE_SECONDS: Record<'chicken' | 'cow', number> = {
+  chicken: 3 * 60 * 60,
+  cow: 24 * 60 * 60,
+};
+
+/** Dòng trạng thái server trả về cho mỗi loài (nguồn sự thật của chu kỳ). */
+interface LivestockState {
+  animal_type: 'chicken' | 'cow';
+  fed_at?: string | null;
+  ready_at?: string | null;
+  last_fed_at?: string | null;
+  producing_until?: string | null;
+  cycle_seconds?: number | null;
+  produced_count?: number;
+  status: LivestockStatus;
+  remaining_seconds: number;
+  total_seconds: number;
+  progress: number;
+  server_time?: number;
+}
 
 interface FoodDrop {
   id: string;
@@ -77,7 +102,7 @@ export default function PixelFarmCanvas({
   const [harvestedMilk, setHarvestedMilk] = useState(0);
   const [activeTool, setActiveTool] = useState<'wheat' | 'hay' | 'hand'>('wheat');
   const [bannerMsg, setBannerMsg] = useState<string>(
-    'Chào mừng đến Nông Trại Meowlish 2D! Chạm vào đồng cỏ để rải thóc 🌾 cho gà hoặc cỏ 🌿 cho bò!'
+    'Chào mừng đến Nông Trại Meowlish 2.5D! Chạm vào đồng cỏ để rải thóc 🌾 cho gà hoặc cỏ 🌿 cho bò!'
   );
 
   // High-DPI Dimensions
@@ -100,6 +125,119 @@ export default function PixelFarmCanvas({
   const floatTextsRef = useRef<FloatingText[]>([]);
   const frameCountRef = useRef<number>(0);
 
+  // ===== SERVER-SIDE PRODUCTION TIMERS (3h gà / 24h bò) =====
+  const livestockRef = useRef<Record<'chicken' | 'cow', LivestockState | null>>({
+    chicken: null,
+    cow: null,
+  });
+  const [livestockUi, setLivestockUi] = useState<Record<'chicken' | 'cow', LivestockState | null>>({
+    chicken: null,
+    cow: null,
+  });
+  // Khóa đồng bộ tạm thời: true trong lúc POST đang chạy để tránh rải thêm thức ăn
+  const feedLockRef = useRef<boolean>(false);
+  // Chu kỳ đã spawn sản phẩm lên canvas (không spawn trùng khi poll lại)
+  const spawnedCycleRef = useRef<Record<string, string>>({});
+  const isMountedRef = useRef(true);
+  // Chống dữ liệu cũ ghi đè dữ liệu mới (poll GET về trễ sau khi POST đã ghi)
+  const lastServerTimeRef = useRef<number>(0);
+
+  const catalog = (type: 'chicken' | 'cow') =>
+    LIVESTOCK_CATALOG[type] || LIVESTOCK_CATALOG.chicken;
+
+  // ===== Helpers: chu kỳ sản xuất phía máy chủ =====
+  const formatCountdown = (totalSeconds: number) => {
+    const s = Math.max(0, Math.floor(totalSeconds));
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
+  };
+
+  const cycleKeyOf = (row: LivestockState) =>
+    String(row?.producing_until ?? row?.ready_at ?? '');
+
+  /** Đẩy sản phẩm (trứng/sữa) lên đồng cỏ khi server báo chu kỳ đã xong. */
+  const spawnProduceFor = (type: 'chicken' | 'cow', row: LivestockState) => {
+    const key = cycleKeyOf(row);
+    if (!key) return;
+    if (spawnedCycleRef.current[type] === key) return;
+    const produceType = type === 'chicken' ? 'egg' : 'milk';
+    if (producesRef.current.some((p) => p.type === produceType)) return;
+    spawnedCycleRef.current[type] = key;
+
+    const meta = catalog(type);
+    const siblings = animalsRef.current.filter((a) => a.type === type);
+    const anchor = siblings[Math.floor(Math.random() * siblings.length)];
+    const x = Math.max(70, Math.min(canvasWidth - 70, (anchor?.x ?? canvasWidth / 2) + (Math.random() * 44 - 22)));
+    const y = Math.max(170, Math.min(canvasHeight - 70, (anchor?.y ?? canvasHeight / 2) + 18));
+
+    producesRef.current.push({
+      id: `prod-${type}-${key}`,
+      type: produceType,
+      x,
+      y,
+      rewardCoins: meta.rewardCoins,
+      rewardExp: meta.rewardExp,
+      bounceOffset: 0,
+      createdAt: Date.now(),
+    });
+    addFloatText(
+      produceType === 'egg' ? '🥚 Trứng Vàng!' : '🥛 Sữa Tươi!',
+      x,
+      y - 26,
+      produceType === 'egg' ? '#fef08a' : '#93c5fd'
+    );
+    sound.playPop();
+  };
+
+  /** Cập nhật trạng thái server vào ref + UI (và spawn sản phẩm nếu chu kỳ xong). */
+  const applyLivestock = (rows: any[] | undefined | null) => {
+    if (!Array.isArray(rows) || rows.length === 0) return;
+
+    // Bỏ qua phản hồi cũ: poll GET về trễ không được ghi đè trạng thái mới hơn
+    const serverTime = Number(rows[0]?.server_time) || 0;
+    if (serverTime > 0) {
+      if (serverTime < lastServerTimeRef.current) return;
+      lastServerTimeRef.current = serverTime;
+    }
+
+    const next: Record<'chicken' | 'cow', LivestockState | null> = { chicken: null, cow: null };
+    rows.forEach((raw) => {
+      if (!raw) return;
+      const type: 'chicken' | 'cow' = raw.animal_type === 'cow' ? 'cow' : 'chicken';
+      next[type] = {
+        ...raw,
+        animal_type: type,
+        status: (raw.status as LivestockStatus) || 'idle',
+        remaining_seconds: Number(raw.remaining_seconds) || 0,
+        total_seconds: Number(raw.total_seconds) || 0,
+        progress: Number(raw.progress) || 0,
+      };
+    });
+    livestockRef.current = next;
+    if (isMountedRef.current) setLivestockUi(next);
+    (['chicken', 'cow'] as const).forEach((type) => {
+      const row = next[type];
+      if (row && row.status === 'ready') spawnProduceFor(type, row);
+    });
+  };
+
+  /** Poll trạng thái chu kỳ từ server (nguồn sự thật duy nhất). */
+  const syncLivestock = async () => {
+    if (!userId) return;
+    if (feedLockRef.current) return; // đừng poll lúc đang có POST chưa xong
+    try {
+      const res = await fetch(`/api/pet?userId=${encodeURIComponent(userId)}`, { cache: 'no-store' });
+      const data = await res.json().catch(() => null);
+      if (!isMountedRef.current) return;
+      if (data?.livestock) applyLivestock(data.livestock);
+    } catch {
+      // offline — giữ nguyên trạng thái hiện tại
+    }
+  };
+
   // Add floating text
   const addFloatText = (text: string, x: number, y: number, color = '#fef08a') => {
     floatTextsRef.current.push({
@@ -112,20 +250,52 @@ export default function PixelFarmCanvas({
     });
   };
 
-  // Drop food on ground
+  // Drop food on ground (BỊ KHÓA khi server đang đếm chu kỳ sản xuất)
   const dropFoodAt = (x: number, y: number, type: 'wheat' | 'hay') => {
-    const cost = type === 'wheat' ? 5 : 10;
+    const animalType: 'chicken' | 'cow' = type === 'wheat' ? 'chicken' : 'cow';
+    const meta = catalog(animalType);
+    const row = livestockRef.current[animalType];
+    const status: LivestockStatus = row?.status ?? 'idle';
+
+    // 1. KHÓA CHO ĂN: đang trong chu kỳ 3h/24h → không cho rải thức ăn nữa
+    if (status === 'producing') {
+      setBannerMsg(
+        `⛔ ${meta.name} đang sản xuất — còn ${formatCountdown(row?.remaining_seconds ?? 0)} nữa mới cho ăn tiếp được!`
+      );
+      sound.playError();
+      return;
+    }
+
+    // 2. Đã chín nhưng chưa thu hoạch → cho ăn sẽ mất thành quả, chặn lại
+    if (status === 'ready') {
+      setBannerMsg(
+        `🧺 ${meta.name} đã sẵn sàng ${meta.produceName}! Nhấp vào sản phẩm (hoặc bấm Thu Hoạch Hết) trước khi cho ăn đợt mới.`
+      );
+      sound.playError();
+      return;
+    }
+
+    // 3. Đang chờ server xác nhận bữa ăn trước đó
+    if (feedLockRef.current) {
+      setBannerMsg('⏳ Đang xử lý bữa ăn trước đó, chờ một giây nhé!');
+      sound.playError();
+      return;
+    }
+
+    const cost = meta.feedPrice;
     if (userCoins < cost) {
       setBannerMsg(`Bạn cần ít nhất ${cost} Coins để mua ${type === 'wheat' ? 'thóc cho gà' : 'cỏ cho bò'}!`);
       sound.playError();
       return;
     }
 
+    const coinsBefore = userCoins;
     onUpdateCoins(Math.max(0, userCoins - cost));
     sound.playClick();
 
+    const foodId = `food-${Date.now()}-${Math.random()}`;
     foodsRef.current.push({
-      id: `food-${Date.now()}-${Math.random()}`,
+      id: foodId,
       type,
       x: Math.max(90, Math.min(canvasWidth - 90, x)),
       y: Math.max(160, Math.min(canvasHeight - 60, y)),
@@ -139,74 +309,167 @@ export default function PixelFarmCanvas({
         : '🌿 Đã rải bó cỏ ngọt thơm! Đàn bò sữa đang ung dung tới ăn...'
     );
 
-    if (userId) {
-      fetch('/api/pet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          action: 'feed_livestock',
-          animalType: type === 'wheat' ? 'chicken' : 'cow',
-        }),
-      }).catch(() => {});
-    }
+    if (!userId) return; // Khách chơi vui — không có chu kỳ server
+
+    feedLockRef.current = true;
+    fetch('/api/pet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        action: 'feed_livestock',
+        animalType,
+      }),
+    })
+      .then((res) => res.json().catch(() => ({})))
+      .then((data: any) => {
+        if (!isMountedRef.current) return;
+        if (data?.livestock) applyLivestock(data.livestock);
+        if (data?.error) {
+          // Server từ chối (đang đếm ngược / chưa đủ xu) → hoàn tiền & gỡ thức ăn
+          onUpdateCoins(coinsBefore);
+          foodsRef.current = foodsRef.current.filter((f) => f.id !== foodId);
+          setBannerMsg(`⛔ ${data.error}`);
+          sound.playError();
+          return;
+        }
+        if (typeof data?.userCoins === 'number') onUpdateCoins(data.userCoins);
+        if (data?.message) setBannerMsg(data.message);
+      })
+      .catch(() => {
+        if (isMountedRef.current) setBannerMsg('⚠️ Mất kết nối máy chủ — chu kỳ cho ăn chưa được ghi nhận.');
+      })
+      .finally(() => {
+        feedLockRef.current = false;
+      });
   };
 
-  // Collect Produce (Egg / Milk)
+  // Collect Produce (Egg / Milk) — server kiểm tra chu kỳ mới cho nhận
   const collectProduce = (item: FarmProduce) => {
-    sound.playCelebration();
-    onUpdateCoins(userCoins + item.rewardCoins);
-    if (onUpdatePetExp) onUpdatePetExp(item.rewardExp);
+    const animalType: 'chicken' | 'cow' = item.type === 'egg' ? 'chicken' : 'cow';
 
-    if (item.type === 'egg') {
-      setHarvestedEggs((prev) => prev + 1);
-    } else {
-      setHarvestedMilk((prev) => prev + 1);
-    }
+    const celebrate = (coins: number, exp: number) => {
+      sound.playCelebration();
+      onUpdateCoins(coins);
+      if (onUpdatePetExp) onUpdatePetExp(exp);
 
-    addFloatText(`+${item.rewardCoins} 🪙`, item.x, item.y - 20, '#facc15');
-    addFloatText(`+${item.rewardExp} EXP ⭐`, item.x, item.y - 38, '#60a5fa');
-    confetti({ particleCount: 20, spread: 50, origin: { x: item.x / canvasWidth, y: item.y / canvasHeight } });
-
-    if (userId) {
-      fetch('/api/pet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          action: 'harvest_livestock',
-          animalType: item.type === 'egg' ? 'chicken' : 'cow',
-        }),
-      }).catch(() => {});
-    }
-
-    producesRef.current = producesRef.current.filter((p) => p.id !== item.id);
-  };
-
-  // Collect All Produces
-  const handleCollectAll = () => {
-    if (producesRef.current.length === 0) {
-      setBannerMsg('Hiện chưa có Trứng hoặc Sữa nào trên nông trại. Hãy cho gà và bò ăn no để thu hoạch nhé!');
-      return;
-    }
-    let totalCoins = 0;
-    let totalExp = 0;
-
-    producesRef.current.forEach((item) => {
-      totalCoins += item.rewardCoins;
-      totalExp += item.rewardExp;
       if (item.type === 'egg') setHarvestedEggs((prev) => prev + 1);
       else setHarvestedMilk((prev) => prev + 1);
-      addFloatText(`+${item.rewardCoins}🪙`, item.x, item.y - 20, '#facc15');
-    });
 
-    onUpdateCoins(userCoins + totalCoins);
-    if (onUpdatePetExp) onUpdatePetExp(totalExp);
-    producesRef.current = [];
+      addFloatText(`+${item.rewardCoins} 🪙`, item.x, item.y - 20, '#facc15');
+      addFloatText(`+${item.rewardExp} EXP ⭐`, item.x, item.y - 38, '#60a5fa');
+      confetti({ particleCount: 20, spread: 50, origin: { x: item.x / canvasWidth, y: item.y / canvasHeight } });
+      producesRef.current = producesRef.current.filter((p) => p.id !== item.id);
+    };
 
-    sound.playCelebration();
-    confetti({ particleCount: 35, spread: 65 });
-    setBannerMsg(`🧺 Đã thu hoạch toàn bộ! Nhận được +${totalCoins} Coins và +${totalExp} EXP! 🎉`);
+    if (!userId) {
+      celebrate(userCoins + item.rewardCoins, item.rewardExp);
+      return;
+    }
+
+    fetch('/api/pet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, action: 'harvest_livestock', animalType }),
+    })
+      .then((res) => res.json().catch(() => ({})))
+      .then((data: any) => {
+        if (!isMountedRef.current) return;
+        if (data?.livestock) applyLivestock(data.livestock);
+        if (data?.error) {
+          sound.playError();
+          const row = livestockRef.current[animalType];
+          if (row && row.status !== 'ready') {
+            // Sản phẩm không còn hiệu lực trên server → dọn khỏi đồng cỏ
+            producesRef.current = producesRef.current.filter((p) => p.id !== item.id);
+          }
+          setBannerMsg(`⛔ ${data.error}`);
+          return;
+        }
+        celebrate(typeof data?.userCoins === 'number' ? data.userCoins : userCoins, item.rewardExp);
+        if (data?.message) setBannerMsg(data.message);
+      })
+      .catch(() => {
+        if (isMountedRef.current) {
+          setBannerMsg('⚠️ Mất kết nối máy chủ — sản phẩm vẫn còn trên đồng cỏ, thử lại sau.');
+        }
+      });
+  };
+
+  // Collect All Produce
+  const handleCollectAll = () => {
+    const readyNow = (['chicken', 'cow'] as const).filter((t) => livestockRef.current[t]?.status === 'ready');
+    if (producesRef.current.length === 0 && readyNow.length === 0) {
+      setBannerMsg('Hiện chưa có Trứng hoặc Sữa nào chín. Hãy cho gà và bò ăn no rồi đợi chu kỳ nhé!');
+      return;
+    }
+
+    if (!userId) {
+      let totalCoins = 0;
+      let totalExp = 0;
+      producesRef.current.forEach((item) => {
+        totalCoins += item.rewardCoins;
+        totalExp += item.rewardExp;
+        if (item.type === 'egg') setHarvestedEggs((prev) => prev + 1);
+        else setHarvestedMilk((prev) => prev + 1);
+        addFloatText(`+${item.rewardCoins}🪙`, item.x, item.y - 20, '#facc15');
+      });
+      onUpdateCoins(userCoins + totalCoins);
+      if (onUpdatePetExp) onUpdatePetExp(totalExp);
+      producesRef.current = [];
+      sound.playCelebration();
+      confetti({ particleCount: 35, spread: 65 });
+      setBannerMsg(`🧺 Đã thu hoạch toàn bộ! Nhận được +${totalCoins} Coins và +${totalExp} EXP! 🎉`);
+      return;
+    }
+
+    fetch('/api/pet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, action: 'harvest_all_livestock' }),
+    })
+      .then((res) => res.json().catch(() => ({})))
+      .then((data: any) => {
+        if (!isMountedRef.current) return;
+        if (data?.livestock) applyLivestock(data.livestock);
+        if (data?.error) {
+          sound.playError();
+          setBannerMsg(`⛔ ${data.error}`);
+          return;
+        }
+
+        const stillReady = new Set(
+          (Array.isArray(data?.livestock) ? data.livestock : [])
+            .filter((r: any) => r.status === 'ready')
+            .map((r: any) => (r.animal_type === 'cow' ? 'cow' : 'chicken'))
+        );
+        const collected = producesRef.current.filter(
+          (p) => !stillReady.has(p.type === 'egg' ? 'chicken' : 'cow')
+        );
+        let totalCoins = 0;
+        let totalExp = 0;
+        collected.forEach((item) => {
+          totalCoins += item.rewardCoins;
+          totalExp += item.rewardExp;
+          if (item.type === 'egg') setHarvestedEggs((prev) => prev + 1);
+          else setHarvestedMilk((prev) => prev + 1);
+          addFloatText(`+${item.rewardCoins}🪙`, item.x, item.y - 20, '#facc15');
+        });
+        producesRef.current = producesRef.current.filter((p) => collected.indexOf(p) === -1);
+
+        if (typeof data?.userCoins === 'number') onUpdateCoins(data.userCoins);
+        if (onUpdatePetExp && totalExp > 0) onUpdatePetExp(totalExp);
+
+        sound.playCelebration();
+        confetti({ particleCount: 35, spread: 65 });
+        setBannerMsg(
+          data?.message ||
+            `🧺 Đã thu hoạch toàn bộ! Nhận được +${totalCoins} Coins và +${totalExp} EXP! 🎉`
+        );
+      })
+      .catch(() => {
+        if (isMountedRef.current) setBannerMsg('⚠️ Mất kết nối máy chủ — chưa thu hoạch được, thử lại sau.');
+      });
   };
 
   // Canvas Click & Touch Interaction Handler
@@ -320,38 +583,11 @@ export default function PixelFarmCanvas({
         } else if (animal.state === 'eating') {
           animal.actionTimer--;
           if (animal.actionTimer <= 0) {
-            // Produce Egg or Milk!
+            // Ăn xong → vui mừng. TRỨNG/SỮA KHÔNG sinh ở đây nữa:
+            // chu kỳ 3h/24h chạy trên server, client chỉ spawn khi server báo xong.
             animal.state = 'producing';
             animal.actionTimer = 40;
             animal.heartTimer = 80;
-
-            if (animal.type === 'chicken') {
-              producesRef.current.push({
-                id: `egg-${Date.now()}-${Math.random()}`,
-                type: 'egg',
-                x: animal.x + (animal.direction === 1 ? -18 : 18),
-                y: animal.y + 10,
-                rewardCoins: 40,
-                rewardExp: 15,
-                bounceOffset: 0,
-                createdAt: Date.now(),
-              });
-              addFloatText('🥚 Trứng Vàng!', animal.x, animal.y - 20, '#fef08a');
-              sound.playPop();
-            } else {
-              producesRef.current.push({
-                id: `milk-${Date.now()}-${Math.random()}`,
-                type: 'milk',
-                x: animal.x + (animal.direction === 1 ? -28 : 28),
-                y: animal.y + 14,
-                rewardCoins: 80,
-                rewardExp: 30,
-                bounceOffset: 0,
-                createdAt: Date.now(),
-              });
-              addFloatText('🥛 Sữa Tươi!', animal.x, animal.y - 24, '#93c5fd');
-              sound.playCelebration();
-            }
           }
         } else if (animal.state === 'producing') {
           animal.actionTimer--;
@@ -474,6 +710,33 @@ export default function PixelFarmCanvas({
       ctx.fillStyle = grassGrad;
       ctx.fillRect(0, 170, canvasWidth, canvasHeight - 170);
 
+      // --- 2.5D: ĐỘ SÂU CỦA NỀN ĐẤT ---
+      // Sương mù chân trời (horizon haze) tạo không khí xa
+      const hazeGrad = ctx.createLinearGradient(0, 168, 0, 250);
+      hazeGrad.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+      hazeGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = hazeGrad;
+      ctx.fillRect(0, 168, canvasWidth, 84);
+
+      // Các dải cỏ theo chiều sâu: xa thì sáng, gần thì tối dần (mô phỏng phối cảnh)
+      const depthBands = [
+        { y: 238, color: 'rgba(11, 62, 20, 0.05)' },
+        { y: 296, color: 'rgba(11, 62, 20, 0.08)' },
+        { y: 354, color: 'rgba(11, 62, 20, 0.12)' },
+        { y: 412, color: 'rgba(11, 62, 20, 0.16)' },
+        { y: 470, color: 'rgba(11, 62, 20, 0.22)' },
+      ];
+      depthBands.forEach((band) => {
+        ctx.fillStyle = band.color;
+        ctx.beginPath();
+        ctx.moveTo(0, band.y);
+        ctx.quadraticCurveTo(canvasWidth * 0.5, band.y - 9, canvasWidth, band.y);
+        ctx.lineTo(canvasWidth, band.y + 58);
+        ctx.quadraticCurveTo(canvasWidth * 0.5, band.y + 49, 0, band.y + 58);
+        ctx.closePath();
+        ctx.fill();
+      });
+
       // Detailed Grass Tufts & Wildflowers
       for (let gx = 30; gx < canvasWidth - 30; gx += 55) {
         for (let gy = 190; gy < canvasHeight - 30; gy += 45) {
@@ -502,7 +765,13 @@ export default function PixelFarmCanvas({
         }
       }
 
+      // --- 2.5D: MẶT ĐẤT PHÍA TRƯỚC (khối nền nổi) được vẽ sau ao sen ---
       // Cobblestone / Sandy Farm Paths
+      // Bóng đổ của lối đi (khối nổi slightly above ground)
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.16)';
+      ctx.beginPath();
+      ctx.ellipse(canvasWidth * 0.48, canvasHeight * 0.58 + 12, 132, 220, 0, 0, Math.PI * 2);
+      ctx.fill();
       ctx.fillStyle = '#e2ba86';
       ctx.beginPath();
       ctx.ellipse(canvasWidth * 0.48, canvasHeight * 0.58, 125, 215, 0, 0, Math.PI * 2);
@@ -566,20 +835,44 @@ export default function PixelFarmCanvas({
       ctx.fillRect(pondX + 42, pondY - 24, 28, 3);
       ctx.restore();
 
+      // --- 2.5D: MẶT ĐẤT PHÍA TRƯỚC (thân khối đất nổi ở gần người xem) ---
+      drawForegroundLedge(ctx, canvasWidth, canvasHeight);
+
       // --- LAYER 4: WOODEN FENCES & CHARMING BARNS ---
-      // Paddock Division Fence
+      // --- 2.5D: HÀNG RÀO PHÂN CÁCH (bóng đổ + nắp cột nổi) ---
+      const fenceX = canvasWidth * 0.45;
+      const fenceBottom = canvasHeight - 48;
+
+      // Bóng đổ lệch xuống trái (ánh sáng tới từ mặt trời phía bên phải)
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.22)';
+      ctx.lineWidth = 7;
+      ctx.beginPath();
+      ctx.moveTo(fenceX - 7, 146);
+      ctx.lineTo(fenceX - 7, fenceBottom + 5);
+      ctx.stroke();
+
+      // Thân cột/rào chính
       ctx.strokeStyle = '#78350f';
       ctx.lineWidth = 5;
       ctx.beginPath();
-      ctx.moveTo(canvasWidth * 0.45, 140);
-      ctx.lineTo(canvasWidth * 0.45, canvasHeight - 25);
+      ctx.moveTo(fenceX, 140);
+      ctx.lineTo(fenceX, fenceBottom);
       ctx.stroke();
-      // Fence Posts
-      for (let fy = 150; fy < canvasHeight - 30; fy += 38) {
-        ctx.fillStyle = '#92400e';
-        ctx.fillRect(canvasWidth * 0.45 - 6, fy, 12, 14);
+
+      // Nắp cột 3D (mặt trên sáng, có bóng nhỏ dưới chân)
+      for (let fy = 150; fy < fenceBottom - 8; fy += 38) {
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.18)';
+        ctx.beginPath();
+        ctx.ellipse(fenceX - 3, fy + 15, 11, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(fenceX - 6, fy, 12, 15);
         ctx.fillStyle = '#b45309';
-        ctx.fillRect(canvasWidth * 0.45 - 4, fy + 2, 8, 10);
+        ctx.fillRect(fenceX - 4, fy + 2, 8, 11);
+        ctx.fillStyle = '#d97706';
+        ctx.beginPath();
+        ctx.ellipse(fenceX, fy + 1, 6, 2.5, 0, 0, Math.PI * 2);
+        ctx.fill();
       }
 
       // COZY CHICKEN BARN (Chuồng Gà Meowlish)
@@ -704,10 +997,38 @@ export default function PixelFarmCanvas({
         ctx.restore();
       });
 
-      // --- LAYER 7: ANIMALS RENDERING (Depth sorted) ---
+      // --- LAYER 7: ANIMALS RENDERING (Depth sorted, 2.5D nổi khối) ---
       const sortedAnimals = [...animalsRef.current].sort((a, b) => a.y - b.y);
 
       sortedAnimals.forEach((animal) => {
+        const isCow = animal.type === 'cow';
+
+        // 1) Bóng đổ đậm ngay dưới thân — làm con vật "đứng trên mặt đất"
+        ctx.save();
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.3)';
+        ctx.beginPath();
+        ctx.ellipse(animal.x + 7, animal.y + (isCow ? 24 : 15), isCow ? 42 : 26, isCow ? 13 : 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // 2) Hào quang sáng nhẹ để tách con vật khỏi nền (nổi bật hơn)
+        const haloRadius = isCow ? 62 : 44;
+        const halo = ctx.createRadialGradient(animal.x, animal.y - 8, 6, animal.x, animal.y - 8, haloRadius);
+        halo.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+        halo.addColorStop(0.6, 'rgba(255, 255, 255, 0.1)');
+        halo.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(animal.x, animal.y - 8, haloRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3) Phóng to 14% quanh điểm đặt chân — con vật to, dễ nhìn hơn
+        ctx.save();
+        const scaleUp = 1.14;
+        ctx.translate(animal.x, animal.y);
+        ctx.scale(scaleUp, scaleUp);
+        ctx.translate(-animal.x, -animal.y);
+
         if (animal.type === 'chicken') {
           drawChibiChicken({
             ctx,
@@ -730,6 +1051,26 @@ export default function PixelFarmCanvas({
             frame,
             heartTimer: animal.heartTimer,
           });
+        }
+        ctx.restore();
+      });
+
+      // --- LAYER 7b: THANH ĐẾM NGƯỢC CHU KỲ NGAY TRÊN ĐẦU CON VẬT ---
+      const nowMs = Date.now();
+      sortedAnimals.forEach((animal) => {
+        const row = livestockRef.current[animal.type];
+        if (!row) return;
+        const isCow = animal.type === 'cow';
+        const barTop = animal.y - (isCow ? 66 : 52);
+
+        if (row.status === 'producing') {
+          const start = Number(row.last_fed_at ?? row.fed_at ?? 0);
+          const end = Number(row.producing_until ?? row.ready_at ?? 0);
+          const progress = end > start ? Math.min(1, Math.max(0, (nowMs - start) / (end - start))) : 0;
+          const remain = end > 0 ? Math.max(0, Math.ceil((end - nowMs) / 1000)) : 0;
+          drawCountdownBar(ctx, animal.x, barTop, progress, formatCountdown(remain), animal.type);
+        } else if (row.status === 'ready') {
+          drawReadyBadge(ctx, animal.x, barTop, animal.type, frame);
         }
       });
 
@@ -757,6 +1098,25 @@ export default function PixelFarmCanvas({
     };
   }, [userCoins, userId]);
 
+  // ===== Đồng hồ chu kỳ: poll server + tick 1s cho UI =====
+  const [nowTick, setNowTick] = useState<number>(() => Date.now());
+  useEffect(() => {
+    isMountedRef.current = true;
+    syncLivestock();
+    const pollTimer = window.setInterval(() => {
+      syncLivestock();
+    }, 4000);
+    const tickTimer = window.setInterval(() => {
+      setNowTick(Date.now());
+    }, 1000);
+    return () => {
+      isMountedRef.current = false;
+      window.clearInterval(pollTimer);
+      window.clearInterval(tickTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
   return (
     <div className="w-full flex flex-col gap-3" ref={containerRef}>
       {/* Top Banner Status (Purged of all external trademarks) */}
@@ -765,12 +1125,14 @@ export default function PixelFarmCanvas({
           <span className="text-2xl">🌾</span>
           <div>
             <h3 className="text-sm font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
-              Nông Trại Meowlish 2D
+              Nông Trại Meowlish 2.5D
               <span className="text-[10px] px-2 py-0.5 bg-emerald-500/40 text-emerald-200 rounded-full font-extrabold border border-emerald-400/40">
-                HD Retina 60 FPS
+                HD 60 FPS · SERVER TIMER
               </span>
             </h3>
-            <p className="text-xs text-slate-200 font-medium">{bannerMsg}</p>
+            <p className="text-xs text-slate-200 font-medium" data-testid="farm-banner">
+              {bannerMsg}
+            </p>
           </div>
         </div>
 
@@ -790,13 +1152,20 @@ export default function PixelFarmCanvas({
 
           <button
             onClick={handleCollectAll}
-            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-xl shadow-md transition cursor-pointer flex items-center gap-1 active:scale-95"
-            title="Thu hoạch tất cả trứng và sữa trên nông trại"
+            data-testid="harvest-all"
+            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-xl shadow-md transition cursor-pointer flex items-center gap-1 active:scale-95 border-b-[3px] border-amber-700"
+            title="Thu hoạch tất cả trứng và sữa đã chín"
           >
             <span>🧺</span>
             <span>Thu Hoạch Hết</span>
           </button>
         </div>
+      </div>
+
+      {/* ===== THANH ĐẾM NGƯỢC CHU KỲ SERVER (Gà 3 giờ / Bò 24 giờ) ===== */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <LivestockCountdownCard type="chicken" state={livestockUi.chicken} now={nowTick} />
+        <LivestockCountdownCard type="cow" state={livestockUi.cow} now={nowTick} />
       </div>
 
       {/* Main 2D Canvas Viewport (High-DPI Native Sharpness) */}
@@ -817,10 +1186,10 @@ export default function PixelFarmCanvas({
                 ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-300'
                 : 'bg-white/10 text-white hover:bg-white/20'
             }`}
-            title="Rải thóc cho gà ăn (5 xu)"
+            title={`Rải thóc cho gà ăn (${LIVESTOCK_CATALOG.chicken.feedPrice} xu) — khóa khi đang đếm chu kỳ`}
           >
             <span>🌾</span>
-            <span>Rải Thóc (5🪙)</span>
+            <span>{`Rải Thóc (${LIVESTOCK_CATALOG.chicken.feedPrice}🪙)`}</span>
           </button>
 
           <button
@@ -830,10 +1199,10 @@ export default function PixelFarmCanvas({
                 ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-300'
                 : 'bg-white/10 text-white hover:bg-white/20'
             }`}
-            title="Rải cỏ cho bò ăn (10 xu)"
+            title={`Rải cỏ cho bò ăn (${LIVESTOCK_CATALOG.cow.feedPrice} xu) — khóa khi đang đếm chu kỳ`}
           >
             <span>🌿</span>
-            <span>Rải Cỏ (10🪙)</span>
+            <span>{`Rải Cỏ (${LIVESTOCK_CATALOG.cow.feedPrice}🪙)`}</span>
           </button>
         </div>
       </div>
@@ -843,7 +1212,116 @@ export default function PixelFarmCanvas({
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
           <span>
-            <b>Mẹo Nông Dân Meowlish:</b> Chăm chỉ cho gà ăn thóc vàng và bò ăn cỏ ngọt để thu hoạch Trứng Vàng 🥚 và Sữa Tươi 🥛, tích lũy Coins & EXP nâng cấp thú cưng!
+            <b>Mẹo Nông Dân Meowlish:</b> Gà đẻ 🥚 mỗi <b>3 giờ</b>, bò cho 🥛 mỗi <b>24 giờ</b> — chu kỳ tính trên máy chủ nên tải lại trang vẫn giữ nguyên. Trong lúc đếm ngược, đàn vật <b>không ăn thêm</b> được; hết chu kỳ thì chạm vào sản phẩm để nhận Coins &amp; EXP!
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Thẻ trạng thái chu kỳ sản xuất phía server (đếm ngược 3h/24h)
+ * — hiển thị song song với thanh vẽ trên đầu con vật trong canvas.
+ */
+function LivestockCountdownCard({
+  type,
+  state,
+  now,
+}: {
+  type: 'chicken' | 'cow';
+  state: LivestockState | null;
+  now: number;
+}) {
+  const meta = LIVESTOCK_CATALOG[type] || LIVESTOCK_CATALOG.chicken;
+  const status: LivestockStatus = state?.status ?? 'idle';
+  const end = Number(state?.producing_until ?? state?.ready_at ?? 0);
+  const start = Number(state?.last_fed_at ?? state?.fed_at ?? 0);
+  const cycle = Number(state?.total_seconds) || DEFAULT_CYCLE_SECONDS[type];
+  const remain = status === 'producing' && end > 0 ? Math.max(0, Math.ceil((end - now) / 1000)) : 0;
+
+  let progress = 0;
+  if (status === 'ready') progress = 1;
+  else if (end > start && now >= start) progress = Math.min(1, Math.max(0, (now - start) / (end - start)));
+
+  const fmt = (total: number) => {
+    const s = Math.max(0, Math.floor(total));
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
+  };
+
+  const badgeText =
+    status === 'producing' ? 'ĐANG SẢN XUẤT' : status === 'ready' ? 'SẴN SÀNG THU HOẠCH' : 'CHƯA CHO ĂN';
+  const badgeClass =
+    status === 'producing'
+      ? 'bg-sky-500/25 text-sky-200 border-sky-400/60'
+      : status === 'ready'
+        ? 'bg-amber-400 text-slate-950 border-amber-200 animate-pulse'
+        : 'bg-white/10 text-emerald-200 border-emerald-400/40';
+  const fill =
+    status === 'ready'
+      ? '#facc15'
+      : type === 'chicken'
+        ? 'linear-gradient(90deg, #f59e0b, #fde047)'
+        : 'linear-gradient(90deg, #0ea5e9, #7dd3fc)';
+
+  return (
+    <div
+      data-testid={`livestock-status-${type}`}
+      data-status={status}
+      data-remaining={String(remain)}
+      data-progress={String(Math.round(progress * 100))}
+      className={`relative overflow-hidden rounded-2xl border-2 px-3 py-2 flex items-center gap-3 shadow-lg ${
+        status === 'ready'
+          ? 'border-amber-400 bg-amber-500/20'
+          : status === 'producing'
+            ? 'border-sky-400/60 bg-emerald-950/70'
+            : 'border-emerald-500/40 bg-emerald-950/50'
+      }`}
+    >
+      <div className="text-2xl leading-none shrink-0">{type === 'chicken' ? '🐔' : '🐄'}</div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <span
+            className={`text-[11px] font-black uppercase tracking-wider truncate ${
+              status === 'ready' ? 'text-amber-950' : 'text-amber-300'
+            }`}
+          >
+            {type === 'chicken' ? 'Gà Đẻ (chu kỳ 3 giờ)' : 'Bò Sữa (chu kỳ 24 giờ)'}
+          </span>
+          <span
+            data-testid={`livestock-badge-${type}`}
+            className={`text-[10px] px-2 py-0.5 rounded-full font-black border whitespace-nowrap ${badgeClass}`}
+          >
+            {badgeText}
+          </span>
+        </div>
+
+        <div className="mt-1.5 h-2.5 w-full rounded-full bg-black/55 border border-white/15 overflow-hidden">
+          <div
+            className="h-full rounded-full transition-[width] duration-1000 ease-linear"
+            style={{ width: `${Math.round(progress * 100)}%`, background: fill }}
+          />
+        </div>
+
+        <div
+          className={`mt-1 flex items-center justify-between gap-2 text-[10px] font-bold ${
+            status === 'ready' ? 'text-amber-950/90' : 'text-emerald-100/90'
+          }`}
+        >
+          <span className="truncate">
+            {status === 'producing'
+              ? `⏳ Còn ${fmt(remain)} nữa`
+              : status === 'ready'
+                ? '🧺 Chạm vào trứng/sữa để thu hoạch'
+                : `${meta.name} chưa ăn · chu kỳ ${fmt(cycle)}`}
+          </span>
+          <span className={`shrink-0 ${status === 'ready' ? 'text-amber-950' : 'text-amber-200/90'}`}>
+            {Math.round(progress * 100)}%
           </span>
         </div>
       </div>
@@ -904,6 +1382,16 @@ function drawCozyChickenCoop(ctx: CanvasRenderingContext2D, x: number, y: number
   ctx.save();
   ctx.translate(x, y);
 
+  // --- 2.5D: BÓNG ĐỔ DỌC THEO ÁNH SÁNG (chèn xuống đất trước khi vẽ nhà) ---
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.26)';
+  ctx.beginPath();
+  ctx.ellipse(54, 150, 100, 21, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.14)';
+  ctx.beginPath();
+  ctx.ellipse(34, 152, 74, 15, 0, 0, Math.PI * 2);
+  ctx.fill();
+
   // Coop Main Wood Walls
   const wallGrad = ctx.createLinearGradient(0, 40, 0, 120);
   wallGrad.addColorStop(0, '#b45309');
@@ -919,6 +1407,19 @@ function drawCozyChickenCoop(ctx: CanvasRenderingContext2D, x: number, y: number
   for (let px = 15; px < 135; px += 20) {
     ctx.fillRect(px, 40, 3, 85);
   }
+
+  // Mặt bên trái tối hơn → khối nhà có bề sâu 2.5D
+  ctx.fillStyle = 'rgba(69, 26, 3, 0.62)';
+  ctx.beginPath();
+  ctx.moveTo(-2, 47);
+  ctx.lineTo(-15, 54);
+  ctx.lineTo(-15, 132);
+  ctx.lineTo(-2, 125);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(28, 10, 2, 0.7)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
 
   // Gable Shingled Roof (Terracotta Red)
   ctx.fillStyle = '#dc2626';
@@ -998,12 +1499,35 @@ function drawCozyDairyBarn(ctx: CanvasRenderingContext2D, x: number, y: number) 
   ctx.save();
   ctx.translate(x, y);
 
+  // --- 2.5D: BÓNG ĐỔ DÀI TRÊN SÂN (trước khi vẽ khối nhà) ---
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.26)';
+  ctx.beginPath();
+  ctx.ellipse(66, 131, 114, 23, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.13)';
+  ctx.beginPath();
+  ctx.ellipse(40, 133, 84, 16, 0, 0, Math.PI * 2);
+  ctx.fill();
+
   // Stone Foundation
   ctx.fillStyle = '#78716c';
   ctx.fillRect(0, 95, 170, 30);
   ctx.strokeStyle = '#44403c';
   ctx.lineWidth = 2;
   ctx.strokeRect(0, 95, 170, 30);
+
+  // Mặt bên trái tối hơn → nhà bò có bề sâu 2.5D
+  ctx.fillStyle = 'rgba(28, 15, 7, 0.6)';
+  ctx.beginPath();
+  ctx.moveTo(-2, 42);
+  ctx.lineTo(-17, 50);
+  ctx.lineTo(-17, 131);
+  ctx.lineTo(-2, 125);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(10, 6, 3, 0.7)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
 
   // Red Timber Main Wall
   const barnGrad = ctx.createLinearGradient(0, 35, 0, 95);
@@ -1058,6 +1582,175 @@ function drawCozyDairyBarn(ctx: CanvasRenderingContext2D, x: number, y: number) 
   ctx.font = 'bold 10px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText('CHUỒNG BÒ MEOWLISH', 85, 33);
+
+  ctx.restore();
+}
+
+/**
+ * Helper 2.5D: Mặt đất phía trước — dải cỏ trên cùng + mặt cắt đất đá sỏi,
+ * tạo cảm giác khối nền nổi có độ dày.
+ */
+function drawForegroundLedge(ctx: CanvasRenderingContext2D, width: number, height: number) {
+  const top = height - 40;
+  ctx.save();
+
+  // Bóng đổ mềm ngay trên mép khối đất (tách mặt đất và thân khối)
+  const shade = ctx.createLinearGradient(0, top - 26, 0, top + 6);
+  shade.addColorStop(0, 'rgba(15, 23, 42, 0)');
+  shade.addColorStop(1, 'rgba(15, 23, 42, 0.3)');
+  ctx.fillStyle = shade;
+  ctx.fillRect(0, top - 26, width, 32);
+
+  // Thân khối đất (mặt cắt có chiều sâu)
+  const soil = ctx.createLinearGradient(0, top, 0, height);
+  soil.addColorStop(0, '#8a5a2b');
+  soil.addColorStop(0.35, '#73441f');
+  soil.addColorStop(1, '#4a2a11');
+  ctx.fillStyle = soil;
+  ctx.beginPath();
+  ctx.moveTo(0, top + 6);
+  ctx.quadraticCurveTo(width * 0.5, top - 6, width, top + 6);
+  ctx.lineTo(width, height);
+  ctx.lineTo(0, height);
+  ctx.closePath();
+  ctx.fill();
+
+  // Sỏi đá lấp lánh trên mặt cắt
+  for (let i = 0; i < 22; i++) {
+    const sx = 16 + ((i * 47) % (width - 32));
+    const sy = top + 14 + ((i * 13) % 20);
+    ctx.fillStyle = i % 3 === 0 ? 'rgba(255, 237, 213, 0.35)' : 'rgba(28, 15, 5, 0.4)';
+    ctx.beginPath();
+    ctx.ellipse(sx, sy, 4 + (i % 3), 2.5 + (i % 2), i * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Mép cỏ nhô lên trên mặt khối (viền cỏ sáng)
+  ctx.strokeStyle = '#6cc23a';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(0, top + 5);
+  ctx.quadraticCurveTo(width * 0.5, top - 5, width, top + 5);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(15, 23, 42, 0.25)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, top + 8);
+  ctx.quadraticCurveTo(width * 0.5, top - 2, width, top + 8);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/**
+ * Helper 2.5D: Thanh đếm ngược chu kỳ sản xuất vẽ ngay trên đầu con vật.
+ */
+function drawCountdownBar(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  top: number,
+  progress: number,
+  label: string,
+  type: 'chicken' | 'cow'
+) {
+  const w = 78;
+  const h = 10;
+  const x = cx - w / 2;
+  const accent = type === 'chicken' ? '#fbbf24' : '#38bdf8';
+  const accentLight = type === 'chicken' ? '#fde047' : '#93c5fd';
+  const icon = type === 'chicken' ? '🥚' : '🥛';
+
+  ctx.save();
+
+  // Nhãn đồng hồ phía trên thanh
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'center';
+  const labelText = `${icon} ${label}`;
+  const textWidth = Math.max(w, ctx.measureText(labelText).width + 16);
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+  ctx.beginPath();
+  ctx.roundRect(cx - textWidth / 2, top - 20, textWidth, 17, 8.5);
+  ctx.fill();
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = accentLight;
+  ctx.fillText(labelText, cx, top - 7.5);
+
+  // Nền thanh (track)
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+  ctx.beginPath();
+  ctx.roundRect(x, top, w, h, 5);
+  ctx.fill();
+
+  // Phần đã chạy
+  const fillW = Math.max(6, (w - 6) * Math.min(1, Math.max(0, progress)));
+  const fillGrad = ctx.createLinearGradient(x, 0, x + w, 0);
+  fillGrad.addColorStop(0, accent);
+  fillGrad.addColorStop(1, accentLight);
+  ctx.fillStyle = fillGrad;
+  ctx.beginPath();
+  ctx.roundRect(x + 3, top + 3, fillW, h - 6, 3);
+  ctx.fill();
+
+  // Viền + vạch chia 1/4 cho cảm giác chính xác
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.roundRect(x, top, w, h, 5);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(15, 23, 42, 0.35)';
+  ctx.lineWidth = 1;
+  for (let q = 1; q < 4; q++) {
+    const qx = x + (w * q) / 4;
+    ctx.beginPath();
+    ctx.moveTo(qx, top + 2);
+    ctx.lineTo(qx, top + h - 2);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Helper: Huy hiệu "SẴN SÀNG THU HOẠCH" nhấp nháy khi chu kỳ đã kết thúc.
+ */
+function drawReadyBadge(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  top: number,
+  type: 'chicken' | 'cow',
+  frame: number
+) {
+  const pulse = 0.5 + Math.sin(frame * 0.12) * 0.5;
+  const icon = type === 'chicken' ? '🥚' : '🥛';
+  const label = `${icon} SẴN SÀNG!`;
+
+  ctx.save();
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'center';
+  const textWidth = ctx.measureText(label).width + 20;
+
+  // Glow nhấp nháy quanh huy hiệu
+  ctx.fillStyle = `rgba(250, 204, 21, ${0.18 + pulse * 0.22})`;
+  ctx.beginPath();
+  ctx.roundRect(cx - textWidth / 2 - 4, top - 22, textWidth + 8, 21, 10.5);
+  ctx.fill();
+
+  ctx.fillStyle = '#facc15';
+  ctx.beginPath();
+  ctx.roundRect(cx - textWidth / 2, top - 19, textWidth, 17, 8.5);
+  ctx.fill();
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = '#451a03';
+  ctx.fillText(label, cx, top - 6.5);
+
+  ctx.font = '9px sans-serif';
+  ctx.fillStyle = '#fef3c7';
+  ctx.fillText('Chạm để thu hoạch', cx, top + 6);
 
   ctx.restore();
 }

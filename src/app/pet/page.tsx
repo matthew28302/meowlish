@@ -831,7 +831,7 @@ export default function PetPage() {
             }`}
           >
             <span>🌾</span>
-            <span>Nông Trại 2D (Gà & Bò)</span>
+            <span>Nông Trại 2.5D (Gà & Bò)</span>
           </button>
 
           <button
@@ -951,9 +951,9 @@ export default function PetPage() {
           </div>
 
           {/* DEDICATED ACTION TOOLBAR (SEPARATED COMPLETELY OUTSIDE MAP) */}
-          <div className="w-full shrink-0 bg-white/95 backdrop-blur-md rounded-2xl p-2 sm:p-2.5 border-2 border-emerald-200/80 shadow-md flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
+          <div className="w-full shrink-0 rounded-2xl p-2 sm:p-2.5 border-2 border-emerald-300/70 bg-gradient-to-b from-white via-white to-emerald-50/70 shadow-[0_5px_0_rgba(5,150,105,0.18),0_14px_24px_-16px_rgba(5,150,105,0.6)] flex flex-col lg:flex-row lg:items-center gap-2">
             {/* Left: Modals & Wardrobe */}
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="flex flex-wrap items-center gap-1.5 [&>button]:shrink-0 [&>button]:whitespace-nowrap">
               <button
                 onClick={() => handleOpenShop('shop')}
                 className="btn-3d btn-3d-amber px-3.5 py-2 min-h-[40px] text-xs font-black text-slate-950 cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-102 touch-manipulation"
@@ -977,7 +977,7 @@ export default function PetPage() {
                   sound.playClick();
                   setShowHabitatModal(true);
                 }}
-                className="btn-3d btn-3d-emerald px-3 py-2 min-h-[40px] text-xs font-black text-white cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-102 hidden sm:flex touch-manipulation"
+                className="btn-3d btn-3d-emerald px-3 py-2 min-h-[40px] text-xs font-black text-white cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-102 touch-manipulation"
                 title="Đổi Cảnh Quan Sân Vườn"
               >
                 <Trees className="w-4 h-4" />
@@ -989,7 +989,7 @@ export default function PetPage() {
                   sound.playClick();
                   setShowSwitchModal(true);
                 }}
-                className="px-2.5 py-2 min-h-[40px] rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-black cursor-pointer flex items-center gap-1 transition touch-manipulation"
+                className="px-2.5 py-2 min-h-[40px] rounded-2xl border border-slate-200 border-b-[3px] border-b-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[11px] sm:text-xs font-black cursor-pointer flex items-center gap-1 transition hover:-translate-y-0.5 active:translate-y-0.5 active:border-b touch-manipulation"
                 title="Chọn Nuôi Linh Vật Khác"
               >
                 <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
@@ -998,13 +998,13 @@ export default function PetPage() {
             </div>
 
             {/* Right: Farm Interaction & Movement Tools */}
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="flex flex-wrap items-center gap-1.5 lg:ml-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap">
               <button
                 onClick={() => {
                   sound.playClick();
                   setShowFeedModal(true);
                 }}
-                className="px-2.5 sm:px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:scale-102"
+                className="px-2.5 sm:px-3 py-1.5 min-h-[36px] bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl border-b-[3px] border-emerald-800/70 text-[11px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-[0_3px_8px_-4px_rgba(6,95,70,0.5)] hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5 active:border-b-0 active:shadow-none"
                 title="Cho thú cưng ăn thực đơn bổ dưỡng"
               >
                 <Utensils className="w-3.5 h-3.5" />
@@ -1015,7 +1015,7 @@ export default function PetPage() {
                 <button
                   key={btn.key}
                   onClick={() => farmRef.current?.performMapAction(btn.key)}
-                  className={`px-2.5 sm:px-3 py-1.5 ${btn.bg} text-white rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1 shadow-xs hover:scale-102`}
+                  className={`px-2.5 sm:px-3 py-1.5 min-h-[36px] ${btn.bg} text-white rounded-2xl border-b-[3px] border-black/20 text-[11px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1 shadow-[0_3px_8px_-4px_rgba(0,0,0,0.45)] hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5 active:border-b-0 active:shadow-none`}
                   title={`Lệnh cho Bé thực hiện hành động ${btn.label}`}
                 >
                   <span>{btn.emoji}</span>
@@ -1025,7 +1025,7 @@ export default function PetPage() {
 
               <button
                 onClick={() => farmRef.current?.tossBall()}
-                className="px-2.5 sm:px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:scale-102 hidden sm:flex"
+                className="px-2.5 sm:px-3 py-1.5 min-h-[36px] bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl border-b-[3px] border-amber-600/70 text-[11px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-[0_3px_8px_-4px_rgba(217,119,6,0.5)] hover:-translate-y-0.5 active:translate-y-0.5 active:border-b-0 active:shadow-none touch-manipulation"
                 title="Ném bóng cho thú cưng nhặt"
               >
                 <span>🎾</span>
@@ -1034,7 +1034,7 @@ export default function PetPage() {
 
               <button
                 onClick={() => farmRef.current?.callPet()}
-                className="px-2.5 sm:px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-800 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 border border-slate-300 shadow-xs hover:scale-102 hidden sm:flex"
+                className="px-2.5 sm:px-3 py-1.5 min-h-[36px] bg-white hover:bg-slate-100 text-slate-800 rounded-2xl border border-slate-300 border-b-[3px] border-b-slate-400/70 text-[11px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 active:border-b hover:scale-100 touch-manipulation"
                 title="Gọi thú cưng lại gần bạn"
               >
                 <Volume2 className="w-3.5 h-3.5 text-blue-600" />
@@ -1048,7 +1048,7 @@ export default function PetPage() {
                     setFarmState((prev) => ({ ...prev, isSleeping: next }));
                   }
                 }}
-                className={`px-2.5 sm:px-3 py-1.5 text-xs font-black rounded-xl border transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:scale-102 ${
+                className={`px-2.5 sm:px-3 py-1.5 min-h-[36px] text-[11px] sm:text-xs font-black rounded-2xl border-b-[3px] transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 ${
                   farmState.isSleeping
                     ? 'bg-sky-500 text-white border-sky-400 ring-2 ring-sky-300'
                     : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700'
@@ -1061,7 +1061,7 @@ export default function PetPage() {
 
               <button
                 onClick={() => farmRef.current?.toggleSpeed()}
-                className={`px-2.5 py-1.5 text-xs font-black rounded-xl border transition cursor-pointer flex items-center gap-1 ${
+                className={`px-2.5 py-1.5 min-h-[36px] text-[11px] sm:text-xs font-black rounded-2xl border-b-[3px] transition cursor-pointer flex items-center gap-1 hover:-translate-y-0.5 active:translate-y-0.5 ${
                   farmState.isSpeedFast
                     ? 'bg-orange-500 text-white border-orange-400'
                     : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'

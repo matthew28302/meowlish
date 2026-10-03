@@ -5,7 +5,7 @@ import { CROPS_CATALOG, LIVESTOCK_CATALOG } from '@/lib/petFarmData';
 import { WEDDING_RINGS, MOCK_COMMUNITY_USERS } from '@/lib/petSocialData';
 import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
-import { syncDbToS3Now } from '@/lib/s3Sync';
+import { syncDbToS3Now, refreshIfRemoteNewer } from '@/lib/s3Sync';
 
 function ensurePet(userId: string) {
   let pet = db.prepare('SELECT * FROM user_pets WHERE user_id = ?').get(userId) as any;
@@ -26,7 +26,117 @@ function ensurePet(userId: string) {
   return pet;
 }
 
+// ============================================================
+// SERVER-SIDE LIVESTOCK PRODUCTION CYCLES (CHU KỲ CHĂN NUÔI)
+// Chu kỳ mặc định bắt buộc: GÀ = 3 GIỜ, BÒ = 24 GIỜ.
+// Chỉ được rút ngắn khi set env FARM_CYCLE_TEST (đơn vị: giây) — dùng cho test.
+// ============================================================
+const LIVESTOCK_CYCLE_SECONDS: Record<'chicken' | 'cow', number> = {
+  chicken: 3 * 60 * 60, // 3 giờ = 10800 giây
+  cow: 24 * 60 * 60,    // 24 giờ = 86400 giây
+};
+
+/** Định dạng đồng hồ đếm ngược dạng 3:00:00 / 12:45 */
+function formatCountdown(totalSeconds: number): string {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  const hours = Math.floor(s / 3600);
+  const minutes = Math.floor((s % 3600) / 60);
+  const seconds = s % 60;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${minutes}:${pad(seconds)}`;
+}
+
+function resolveCycleSeconds(animalType: 'chicken' | 'cow'): number {
+  const raw = process.env.FARM_CYCLE_TEST;
+  if (raw) {
+    const seconds = Number(raw);
+    if (Number.isFinite(seconds) && seconds > 0) {
+      return Math.max(1, Math.floor(seconds));
+    }
+  }
+  return LIVESTOCK_CYCLE_SECONDS[animalType];
+}
+
+type LivestockStatus = 'idle' | 'producing' | 'ready';
+
+function ensureLivestockProductionColumns() {
+  try {
+    const cols = db.prepare('PRAGMA table_info(pet_farm_livestock)').all() as { name: string }[];
+    const names = new Set(cols.map((c) => c.name));
+    const addColumn = (ddl: string) => {
+      try {
+        db.prepare(ddl).run();
+      } catch {
+        // cột đã tồn tại / DB khác cấu trúc — bỏ qua
+      }
+    };
+    if (!names.has('last_fed_at')) addColumn('ALTER TABLE pet_farm_livestock ADD COLUMN last_fed_at TEXT');
+    if (!names.has('producing_until')) addColumn('ALTER TABLE pet_farm_livestock ADD COLUMN producing_until TEXT');
+    if (!names.has('cycle_seconds')) addColumn('ALTER TABLE pet_farm_livestock ADD COLUMN cycle_seconds INTEGER');
+  } catch {
+    // bảng chưa sẵn sàng — ensureFarmAndLivestock sẽ xử lý sau
+  }
+}
+
+function readLivestockRow(userId: string, animalType: 'chicken' | 'cow') {
+  return db.prepare('SELECT * FROM pet_farm_livestock WHERE user_id = ? AND animal_type = ?').get(userId, animalType) as any;
+}
+
+function livestockEndAt(row: any): number | null {
+  const raw = row?.producing_until ?? row?.ready_at ?? null;
+  if (!raw) return null;
+  const end = Number(raw);
+  return Number.isFinite(end) ? end : null;
+}
+
+function livestockStartAt(row: any): number | null {
+  const raw = row?.last_fed_at ?? row?.fed_at ?? null;
+  if (!raw) return null;
+  const start = Number(raw);
+  return Number.isFinite(start) ? start : null;
+}
+
+function livestockStatusOf(row: any, now: number = Date.now()): LivestockStatus {
+  const end = livestockEndAt(row);
+  if (end === null) return 'idle';
+  return now >= end ? 'ready' : 'producing';
+}
+
+/** Trang trí livestock row thêm status / countdown để client vẽ thanh tiến trình. */
+function decorateLivestock(rows: any[], now: number = Date.now()) {
+  return (rows || []).map((row) => {
+    const type: 'chicken' | 'cow' = row.animal_type === 'cow' ? 'cow' : 'chicken';
+    const status = livestockStatusOf(row, now);
+    const end = livestockEndAt(row);
+    const start = livestockStartAt(row);
+    let totalSeconds = Number(row?.cycle_seconds) || resolveCycleSeconds(type);
+    if (end !== null && start !== null && end > start) {
+      totalSeconds = Math.round((end - start) / 1000);
+    }
+    const remaining = status === 'producing' && end !== null ? Math.max(0, Math.ceil((end - now) / 1000)) : 0;
+    const progress = totalSeconds > 0 && status === 'producing' && end !== null && start !== null
+      ? Math.min(1, Math.max(0, (now - start) / (end - start)))
+      : status === 'ready' ? 1 : 0;
+    return {
+      ...row,
+      status,
+      remaining_seconds: remaining,
+      total_seconds: totalSeconds,
+      progress,
+      server_time: now,
+    };
+  });
+}
+
+function allLivestockFor(userId: string, now: number = Date.now()) {
+  return decorateLivestock(
+    db.prepare('SELECT * FROM pet_farm_livestock WHERE user_id = ?').all(userId) as any[],
+    now
+  );
+}
+
 function ensureFarmAndLivestock(userId: string) {
+  ensureLivestockProductionColumns();
   const existingPlots = db.prepare('SELECT COUNT(*) as count FROM pet_farm_plots WHERE user_id = ?').get(userId) as any;
   if (!existingPlots || existingPlots.count === 0) {
     const insertPlot = db.prepare(`
@@ -56,6 +166,11 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const requestedUserId = searchParams.get('userId');
+
+    // Làm tươi DB từ Filebase nếu instance này đang giữ bản cũ (throttle 15s) —
+    // triệu chứng "user A tạo phòng nhưng user B không thấy" là do 2 request
+    // chạy trên 2 instance /tmp khác nhau, bản của instance B chưa có phòng.
+    await refreshIfRemoteNewer('pet-get');
 
     const auth = getAuthenticatedUser(request, requestedUserId);
     if (auth.status === 'disabled') {
@@ -89,7 +204,7 @@ export async function GET(request: Request) {
 
     // Farm Plots & Livestock state
     const farmPlots = db.prepare('SELECT * FROM pet_farm_plots WHERE user_id = ? ORDER BY plot_index ASC').all(userId);
-    const livestock = db.prepare('SELECT * FROM pet_farm_livestock WHERE user_id = ?').all(userId);
+    const livestock = allLivestockFor(userId);
 
     // 1. Accepted Friends with rich profile info
     const acceptedFriends = db.prepare(`
@@ -216,6 +331,7 @@ export async function GET(request: Request) {
       gardenDecor,
       farmPlots,
       livestock,
+      serverNow: Date.now(),
       acceptedFriends,
       incomingFriendRequests,
       outgoingFriendIds: outgoingFriendRequests.map((f) => f.friend_id),
@@ -646,52 +762,105 @@ export async function POST(request: Request) {
       });
     }
 
-    // 11. ACTION: FEED LIVESTOCK / CHĂN NUÔI GÀ & BÒ
+    // 11. ACTION: FEED LIVESTOCK / CHĂN NUÔI GÀ & BÒ (SERVER TIMER 3H / 24H)
     if (action === 'feed_livestock') {
-      const animalType = body.animalType === 'cow' ? 'cow' : 'chicken';
+      const animalType: 'chicken' | 'cow' = body.animalType === 'cow' ? 'cow' : 'chicken';
       const animal = LIVESTOCK_CATALOG[animalType];
+
+      ensureFarmAndLivestock(userId);
+
+      const now = Date.now();
+      const row = readLivestockRow(userId, animalType);
+      const status = livestockStatusOf(row, now);
+      const endAt = livestockEndAt(row);
+      const remainSeconds = status === 'producing' && endAt !== null ? Math.max(0, Math.ceil((endAt - now) / 1000)) : 0;
+
+      // KHÓA CHO ĂN: còn chu kỳ sản xuất thì không được cho ăn thêm (không trừ tiền).
+      if (status === 'producing') {
+        return NextResponse.json({
+          error: `${animal.name} đang trong chu kỳ sản xuất — còn ${formatCountdown(remainSeconds)} nữa mới cho ăn tiếp được!`,
+          livestock: allLivestockFor(userId),
+          blocked: true,
+          remainingSeconds: remainSeconds,
+        }, { status: 409 });
+      }
+
+      // Đã có sản phẩm sẵn sàng thu hoạch — cho ăn sẽ làm mất thu hoạch, nên chặn.
+      if (status === 'ready') {
+        return NextResponse.json({
+          error: `${animal.name} đã sẵn sàng ${animal.produceName}! Hãy thu hoạch trước khi cho ăn đợt mới.`,
+          livestock: allLivestockFor(userId),
+          blocked: true,
+          remainingSeconds: 0,
+        }, { status: 409 });
+      }
 
       const coinUpdate = db.prepare('UPDATE users SET coins = coins - ? WHERE id = ? AND coins >= ?').run(animal.feedPrice, userId, animal.feedPrice);
       if (coinUpdate.changes === 0) {
         return NextResponse.json({ error: `Không đủ Coins để mua thức ăn cho ${animal.name} (${animal.feedPrice} xu)!` }, { status: 400 });
       }
 
-      const now = Date.now();
-      const readyAt = String(now + animal.cycleSeconds * 1000);
+      const cycleSeconds = resolveCycleSeconds(animalType);
+      const readyAt = String(now + cycleSeconds * 1000);
 
       db.prepare(`
-        INSERT INTO pet_farm_livestock (id, user_id, animal_type, fed_at, ready_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO pet_farm_livestock (id, user_id, animal_type, fed_at, ready_at, last_fed_at, producing_until, cycle_seconds)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id, animal_type)
-        DO UPDATE SET fed_at = excluded.fed_at, ready_at = excluded.ready_at
-      `).run(`live-${userId}-${animalType}`, userId, animalType, String(now), readyAt);
+        DO UPDATE SET
+          fed_at = excluded.fed_at,
+          ready_at = excluded.ready_at,
+          last_fed_at = excluded.last_fed_at,
+          producing_until = excluded.producing_until,
+          cycle_seconds = excluded.cycle_seconds
+      `).run(`live-${userId}-${animalType}`, userId, animalType, String(now), readyAt, String(now), readyAt, cycleSeconds);
 
-      const livestock = db.prepare('SELECT * FROM pet_farm_livestock WHERE user_id = ?').all(userId);
       const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
       void syncDbToS3Now();
 
       return NextResponse.json({
         success: true,
-        message: `Đã cho ${animal.name} ăn no nê! Đang chờ sản xuất ${animal.produceName}!`,
-        livestock,
+        message: `Đã cho ${animal.name} ăn no nê! ${animal.produceName} sẽ sẵn sàng sau ${formatCountdown(cycleSeconds)}.`,
+        livestock: allLivestockFor(userId),
         userCoins: freshUser?.coins || 0,
+        cycleSeconds,
       });
     }
 
     // 12. ACTION: HARVEST LIVESTOCK / THU HOẠCH TRỨNG & SỮA
     if (action === 'harvest_livestock') {
-      const animalType = body.animalType === 'cow' ? 'cow' : 'chicken';
+      const animalType: 'chicken' | 'cow' = body.animalType === 'cow' ? 'cow' : 'chicken';
       const animal = LIVESTOCK_CATALOG[animalType];
+
+      ensureFarmAndLivestock(userId);
+
+      const now = Date.now();
+      const row = readLivestockRow(userId, animalType);
+      const status = livestockStatusOf(row, now);
+      const endAt = livestockEndAt(row);
+      const remainSeconds = status === 'producing' && endAt !== null ? Math.max(0, Math.ceil((endAt - now) / 1000)) : 0;
+
+      // CHƯA CHÍN THÌ KHÔNG CHO THU HOẠCH (server là nguồn sự thật duy nhất).
+      if (status !== 'ready') {
+        const message = status === 'producing'
+          ? `${animal.name} vẫn đang sản xuất — còn ${formatCountdown(remainSeconds)} nữa mới thu hoạch được!`
+          : `${animal.name} chưa được cho ăn nên chưa có ${animal.produceName} để thu hoạch!`;
+        return NextResponse.json({
+          error: message,
+          livestock: allLivestockFor(userId),
+          blocked: true,
+          remainingSeconds: remainSeconds,
+        }, { status: 409 });
+      }
 
       db.prepare('UPDATE users SET coins = coins + ?, exp = exp + ? WHERE id = ?').run(animal.rewardCoins, animal.rewardExp, userId);
       db.prepare('UPDATE user_pets SET exp = exp + ? WHERE user_id = ?').run(animal.rewardExp, userId);
       db.prepare(`
         UPDATE pet_farm_livestock 
-        SET fed_at = null, ready_at = null, produced_count = produced_count + 1 
+        SET fed_at = null, ready_at = null, last_fed_at = null, producing_until = null, cycle_seconds = null, produced_count = produced_count + 1 
         WHERE user_id = ? AND animal_type = ?
       `).run(userId, animalType);
 
-      const livestock = db.prepare('SELECT * FROM pet_farm_livestock WHERE user_id = ?').all(userId);
       const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
       const freshPet = ensurePet(userId);
       void syncDbToS3Now();
@@ -699,7 +868,51 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         message: `Đã thu hoạch ${animal.produceName}! Nhận +${animal.rewardCoins} Coins & +${animal.rewardExp} EXP!`,
-        livestock,
+        livestock: allLivestockFor(userId),
+        userCoins: freshUser?.coins || 0,
+        pet: freshPet,
+      });
+    }
+
+    // 12b. ACTION: HARVEST ALL READY LIVESTOCK / THU HOẠCH HẾT SẴN SÀNG
+    if (action === 'harvest_all_livestock') {
+      ensureFarmAndLivestock(userId);
+
+      const now = Date.now();
+      const rows = db.prepare('SELECT * FROM pet_farm_livestock WHERE user_id = ?').all(userId) as any[];
+      let totalCoins = 0;
+      let totalExp = 0;
+      let count = 0;
+
+      for (const row of rows) {
+        if (livestockStatusOf(row, now) !== 'ready') continue;
+        const animal = LIVESTOCK_CATALOG[row.animal_type === 'cow' ? 'cow' : 'chicken'];
+        totalCoins += animal.rewardCoins;
+        totalExp += animal.rewardExp;
+        count++;
+        db.prepare(`
+          UPDATE pet_farm_livestock 
+          SET fed_at = null, ready_at = null, last_fed_at = null, producing_until = null, cycle_seconds = null, produced_count = produced_count + 1 
+          WHERE id = ?
+        `).run(row.id);
+      }
+
+      if (count > 0) {
+        db.prepare('UPDATE users SET coins = coins + ?, exp = exp + ? WHERE id = ?').run(totalCoins, totalExp, userId);
+        db.prepare('UPDATE user_pets SET exp = exp + ? WHERE user_id = ?').run(totalExp, userId);
+      }
+
+      const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
+      const freshPet = ensurePet(userId);
+      void syncDbToS3Now();
+
+      return NextResponse.json({
+        success: true,
+        message: count > 0
+          ? `Đã thu hoạch ${count} mẻ sản phẩm! Nhận +${totalCoins} Coins & +${totalExp} EXP!`
+          : 'Chưa có trứng hoặc sữa nào sẵn sàng để thu hoạch!',
+        harvested: count,
+        livestock: allLivestockFor(userId),
         userCoins: freshUser?.coins || 0,
         pet: freshPet,
       });

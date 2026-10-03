@@ -1490,43 +1490,67 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
   return (
     <div className="relative w-full h-full flex flex-col justify-between select-none">
       {/* ================= IN-GAME TOP HUD BAR ================= */}
-      <div className="absolute top-2 inset-x-2 z-30 flex items-center justify-between gap-2 pointer-events-none">
+      <div className="absolute top-2 inset-x-2 z-30 flex items-start justify-between gap-1.5 sm:gap-2 pointer-events-none">
         {/* Left: Pet Info & Vitals Pill */}
-        <div className="flex items-center gap-2 bg-black/65 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/20 text-white pointer-events-auto shadow-xl">
-          <div className="text-xl">🐾</div>
-          <div>
-            <div className="flex items-center gap-1.5 text-xs font-black">
-              <span>{petName}</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500 text-white font-mono">
+        <div className="pointer-events-auto flex items-center gap-1.5 sm:gap-2 min-w-0 max-w-[56%] sm:max-w-[46%] md:max-w-none bg-gradient-to-r from-slate-950/85 via-slate-900/75 to-slate-900/60 backdrop-blur-md px-2 sm:px-3 py-1.5 rounded-2xl border border-white/15 text-white shadow-[0_6px_16px_-6px_rgba(0,0,0,0.75)]">
+          <div className="shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/40 grid place-items-center text-base sm:text-lg">🐾</div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-black leading-tight">
+              <span className="truncate">{petName}</span>
+              <span className="shrink-0 text-[9px] px-1.5 py-[1px] rounded-md bg-emerald-500 text-white font-mono ring-1 ring-emerald-300/50">
                 Lv.{level}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-[10px] text-slate-200 font-bold">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-slate-200 font-bold whitespace-nowrap">
               <span>🍗 {hunger}%</span>
-              <span>•</span>
               <span>💖 {happiness}%</span>
-              <span>•</span>
-              <span className="text-amber-300 font-mono">{exp % 50}/50 EXP</span>
+              <span className="text-amber-300 font-mono hidden sm:inline">{exp % 50}/50 EXP</span>
             </div>
           </div>
         </div>
 
-        {/* Right: Coins Counter & Quick Switch Pet */}
-        <div className="flex items-center gap-1.5 pointer-events-auto">
-          <div className="flex items-center gap-1.5 bg-amber-400 text-slate-950 px-3 py-1.5 rounded-2xl border border-amber-300 text-xs font-black shadow-lg">
-            <span>🪙</span>
-            <span>{userCoins.toLocaleString()}</span>
+        {/* Right: stacked coin counter + day/night cycle (one flex row => never collides on mobile) */}
+        <div className="pointer-events-auto flex flex-col items-end gap-1.5 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 bg-gradient-to-b from-amber-300 to-amber-400 text-slate-950 px-2.5 sm:px-3 py-1.5 rounded-2xl border-b-2 border-amber-500 text-[11px] sm:text-xs font-black shadow-lg">
+              <span>🪙</span>
+              <span>{userCoins.toLocaleString()}</span>
+            </div>
+            {onSwitchPet && (
+              <button
+                onClick={onSwitchPet}
+                className="btn-3d btn-3d-white px-2.5 py-1.5 min-h-[32px] text-xs font-black text-slate-800 cursor-pointer shadow-md flex items-center gap-1"
+                title="Chọn nuôi thú cưng khác"
+              >
+                <span>🔄</span>
+                <span className="hidden md:inline">Đổi Bé</span>
+              </button>
+            )}
           </div>
-          {onSwitchPet && (
-            <button
-              onClick={onSwitchPet}
-              className="btn-3d btn-3d-white px-2.5 py-1.5 text-xs font-black text-slate-800 cursor-pointer shadow-md flex items-center gap-1"
-              title="Chọn nuôi thú cưng khác"
-            >
-              <span>🔄</span>
-              <span className="hidden xs:inline">Đổi Bé</span>
-            </button>
-          )}
+
+          {/* Time of Day Cycle Switcher (Ngày / Hoàng Hôn / Đêm) — lives in the HUD row so it can never overlap the coin chip */}
+          <div className="flex items-center gap-0.5 bg-slate-950/70 backdrop-blur-md p-1 rounded-2xl border border-white/15 shadow-lg">
+            {([
+              { key: 'day', icon: '☀️', label: 'Ngày', active: 'bg-amber-400 text-slate-950 shadow-md' },
+              { key: 'sunset', icon: '🌇', label: 'Hoàng Hôn', active: 'bg-orange-500 text-white shadow-md' },
+              { key: 'night', icon: '🌙', label: 'Đêm', active: 'bg-indigo-500 text-white shadow-md' },
+            ] as const).map((mode) => (
+              <button
+                key={mode.key}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDayTimeMode(mode.key);
+                }}
+                className={`px-1.5 sm:px-2.5 py-1 rounded-xl text-[10px] font-black transition cursor-pointer flex items-center gap-1 ${
+                  dayTimeMode === mode.key ? mode.active : 'text-slate-300 hover:text-white'
+                }`}
+                title={`Chuyển cảnh: ${mode.label}`}
+              >
+                <span>{mode.icon}</span>
+                <span className="hidden sm:inline">{mode.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -1534,49 +1558,9 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       <div
         ref={containerRef}
         onClick={handleGroundClick}
-        className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border-4 border-emerald-900/90 cursor-crosshair select-none"
+        className="relative w-full h-full rounded-3xl overflow-hidden border-4 border-emerald-950/85 ring-[3px] ring-emerald-400/70 shadow-[0_22px_45px_-20px_rgba(4,47,34,0.9)] cursor-crosshair select-none"
         style={{ imageRendering: 'pixelated' }}
       >
-        {/* Time of Day Cycle Switcher (Day / Sunset / Night) */}
-        <div className="absolute top-2.5 right-3 z-45 flex items-center gap-1 bg-black/50 backdrop-blur-md p-1 rounded-2xl border border-white/20 text-white shadow-xl">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setDayTimeMode('day');
-            }}
-            className={`px-2.5 py-1 rounded-xl text-[10px] font-black transition cursor-pointer flex items-center gap-1 ${
-              dayTimeMode === 'day' ? 'bg-amber-400 text-slate-950 shadow-md' : 'text-slate-300 hover:text-white'
-            }`}
-            title="Ban Ngày Nắng Ấm"
-          >
-            ☀️ Ngày
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setDayTimeMode('sunset');
-            }}
-            className={`px-2.5 py-1 rounded-xl text-[10px] font-black transition cursor-pointer flex items-center gap-1 ${
-              dayTimeMode === 'sunset' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-300 hover:text-white'
-            }`}
-            title="Hoàng Hôn Ráng Chiều"
-          >
-            🌇 Hoàng Hôn
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setDayTimeMode('night');
-            }}
-            className={`px-2.5 py-1 rounded-xl text-[10px] font-black transition cursor-pointer flex items-center gap-1 ${
-              dayTimeMode === 'night' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-300 hover:text-white'
-            }`}
-            title="Ban Đêm Trăng Sao & Đom Đóm"
-          >
-            🌙 Đêm
-          </button>
-        </div>
-
         {/* Environmental Atmospheric Lighting Overlay */}
         {dayTimeMode === 'sunset' && (
           <div className="absolute inset-0 z-35 bg-gradient-to-b from-orange-500/25 via-rose-600/15 to-amber-900/10 pointer-events-none transition-opacity duration-700" />
@@ -1603,40 +1587,60 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
         {/* ================= 1. EMERALD FARM (NÔNG TRẠI XANH) ================= */}
         {habitat === 'emerald_garden' && (
-          <div className="absolute inset-0 bg-[#4ade80] overflow-hidden">
-            {/* Sky Background Gradient & Clouds */}
-            <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-[#7dd3fc] to-transparent opacity-60 pointer-events-none" />
-            <div className="absolute top-2 left-10 text-4xl opacity-50 pointer-events-none animate-pulse" style={{ animationDuration: '6s' }}>☁️</div>
-            <div className="absolute top-6 right-20 text-3xl opacity-40 pointer-events-none animate-pulse" style={{ animationDuration: '8s' }}>☁️</div>
-            <div className="absolute top-4 left-1/2 text-2xl opacity-40 pointer-events-none animate-pulse" style={{ animationDuration: '7s' }}>☁️</div>
-
-            {/* Fine Pixel Grass Texture with multiple patterns */}
+          <div className="absolute inset-0 overflow-hidden bg-[#3ec97b]">
+            {/* Layer 1: meadow base gradient (light at the horizon, richer green toward the viewer) */}
             <div
-              className="absolute inset-0 opacity-40 pointer-events-none"
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: 'linear-gradient(180deg, #7ee2a8 0%, #5ad792 20%, #45cd82 48%, #33bf74 78%, #2ab26b 100%)' }}
+            />
+
+            {/* Layer 2: soft mowed lawn stripes for depth */}
+            <div
+              className="absolute inset-0 pointer-events-none opacity-[0.07]"
+              style={{ backgroundImage: 'repeating-linear-gradient(101deg, rgba(255,255,255,0.6) 0 58px, rgba(0,0,0,0.5) 58px 116px)' }}
+            />
+
+            {/* Layer 3: distant rolling hills along the horizon */}
+            <div className="absolute -top-3 left-[6%] w-56 h-24 rounded-[50%] bg-[#2ec27e] opacity-70 blur-[3px] pointer-events-none z-0" />
+            <div className="absolute -top-5 left-[36%] w-72 h-28 rounded-[50%] bg-[#35d08a] opacity-60 blur-[3px] pointer-events-none z-0" />
+            <div className="absolute -top-3 right-[5%] w-64 h-24 rounded-[50%] bg-[#2ebf79] opacity-65 blur-[3px] pointer-events-none z-0" />
+
+            {/* Layer 4: sunlit clearings & shaded corners */}
+            <div className="absolute top-[16%] left-[10%] w-72 h-40 rounded-full bg-emerald-100/25 blur-2xl pointer-events-none z-0" />
+            <div className="absolute bottom-[4%] right-[8%] w-80 h-44 rounded-full bg-emerald-950/15 blur-2xl pointer-events-none z-0" />
+            <div className="absolute bottom-[10%] left-[6%] w-64 h-36 rounded-full bg-emerald-950/10 blur-2xl pointer-events-none z-0" />
+
+            {/* Layer 5: fine two-tone pixel grass texture */}
+            <div
+              className="absolute inset-0 opacity-35 pointer-events-none"
               style={{
-                backgroundImage: `radial-gradient(#15803d 1px, transparent 1px), radial-gradient(#16a34a 2px, transparent 2px), radial-gradient(#14532d 1px, transparent 1px)`,
-                backgroundSize: '16px 16px, 24px 24px, 32px 32px',
-                backgroundPosition: '0 0, 8px 8px, 16px 16px',
+                backgroundImage: `radial-gradient(#15803d 1px, transparent 1px), radial-gradient(#86efac 1px, transparent 1px)`,
+                backgroundSize: '18px 18px, 27px 27px',
+                backgroundPosition: '0 0, 11px 14px',
               }}
             />
 
-            {/* Top Perimeter Wooden Fence & Bushes */}
-            <div className="absolute top-0 left-0 right-0 h-10 bg-[#78350f]/20 border-b-2 border-[#451a03]/50 flex items-end justify-between px-2 pointer-events-none z-0">
-              <div className="flex gap-1.5 w-full justify-between pb-0.5">
+            {/* Clouds drifting over the meadow */}
+            <div className="absolute top-3 left-10 text-4xl opacity-50 pointer-events-none animate-pulse z-0" style={{ animationDuration: '6s' }}>☁️</div>
+            <div className="absolute top-7 right-20 text-3xl opacity-40 pointer-events-none animate-pulse z-0" style={{ animationDuration: '8s' }}>☁️</div>
+            <div className="absolute top-4 left-1/2 text-2xl opacity-40 pointer-events-none animate-pulse z-0" style={{ animationDuration: '7s' }}>☁️</div>
+
+            {/* Layer 6: top perimeter — trimmed hedge, twin rails and a picket fence with ground shadow */}
+            <div className="absolute top-0 inset-x-0 h-14 pointer-events-none z-0 overflow-hidden">
+              <div className="absolute inset-x-0 top-0 h-11 bg-gradient-to-b from-emerald-900 via-emerald-800 to-emerald-700/70" />
+              <div className="absolute inset-x-0 top-[10px] h-[4px] rounded-full bg-[#92400e]/85 shadow-[0_1px_0_rgba(0,0,0,0.25)]" />
+              <div className="absolute inset-x-0 top-[26px] h-[4px] rounded-full bg-[#b45309]/85 shadow-[0_1px_0_rgba(0,0,0,0.25)]" />
+              <div className="absolute inset-x-0 top-[6px] flex items-end justify-between px-1.5">
                 {Array.from({ length: 30 }).map((_, i) => (
-                  <div key={i} className="w-2.5 h-6 bg-[#ca8a04] border border-[#78350f] rounded-t-sm shadow-sm" />
+                  <div
+                    key={i}
+                    className="w-2.5 sm:w-3 h-9 sm:h-10 rounded-t-[3px] border border-[#78350f]/70 bg-gradient-to-b from-amber-300 via-yellow-500 to-amber-600 shadow-[0_2px_0_rgba(0,0,0,0.22)]"
+                  />
                 ))}
               </div>
+              <div className="absolute inset-x-0 top-[46px] h-3 bg-gradient-to-b from-black/25 to-transparent blur-[2px]" />
             </div>
-            
-            {/* Background Hill elements */}
-            <div className="absolute top-8 left-1/4 w-32 h-16 bg-[#22c55e] rounded-t-full opacity-60 blur-[2px] pointer-events-none z-0"></div>
-            <div className="absolute top-6 right-1/3 w-40 h-20 bg-[#16a34a] rounded-t-full opacity-50 blur-[2px] pointer-events-none z-0"></div>
 
-            {/* Decorative Natural Clusters (Bushes, Rocks, Wildflowers) */}
-            {/* Dirt path winding through the farm */}
-            <div className="absolute top-[40%] left-[25%] w-[50%] h-[40%] bg-[#854d0e] rounded-full opacity-30 blur-2xl pointer-events-none z-0 transform -rotate-12"></div>
-            
             {/* Bush with yellow flowers */}
             <div className="absolute top-[18%] left-[45%] pointer-events-none z-10 flex items-end drop-shadow-md">
               <div className="w-14 h-12 bg-emerald-800 rounded-full blur-[1px]"></div>
@@ -2857,6 +2861,14 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           </div>
         )}
 
+        {/* ================= SHARED ATMOSPHERE (ALL HABITATS): edge vignette + top/bottom shade for depth ================= */}
+        <div
+          className="absolute inset-0 z-[3] pointer-events-none"
+          style={{ background: 'radial-gradient(125% 95% at 50% 45%, rgba(15,23,42,0) 42%, rgba(15,23,42,0.26) 100%)' }}
+        />
+        <div className="absolute inset-x-0 top-0 h-20 z-[3] pointer-events-none bg-gradient-to-b from-slate-950/20 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-24 z-[3] pointer-events-none bg-gradient-to-t from-slate-950/15 to-transparent" />
+
         {/* Tossed Toy Ball with 3D Arc Throw & Ground Landing Shadow */}
         {toyBall && (
           <>
@@ -2985,7 +2997,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           {/* Dynamic Speech Bubble over Pet */}
           {currentSpeech && (
             <div
-              className="absolute -top-9 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-xs text-slate-900 px-2.5 py-0.5 rounded-xl shadow-xl border border-emerald-500 text-[10px] font-black whitespace-nowrap z-40 pointer-events-none animate-bounce"
+              className="absolute -top-9 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-xs text-slate-900 px-2.5 py-1 rounded-xl shadow-xl border-2 border-emerald-500 text-[10px] font-black z-40 pointer-events-none animate-bounce w-max max-w-[60vw] sm:max-w-xs text-center leading-snug break-words"
               style={{ animationDuration: '3s' }}
             >
               <span>{currentSpeech}</span>
