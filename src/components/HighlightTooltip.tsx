@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { Volume2, Bookmark, Check, X, Sparkles, MessageSquare, Zap, Loader2, Brain, BookOpen } from 'lucide-react';
 import { lookupWord, DictionaryEntry } from '@/lib/data/dictionary';
@@ -52,6 +52,8 @@ export default function HighlightTooltip() {
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  // Viewport rect của vùng bôi đen (để kẹp popup trong màn hình khi nội dung AI về)
+  const lastRectRef = useRef<{ left: number; top: number; width: number; height: number } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -166,17 +168,22 @@ export default function HighlightTooltip() {
         isMobile: true,
       });
     } else {
-      const screenY = rect.top + window.scrollY;
-      const fitsAbove = rect.top > 380;
-      const targetY = fitsAbove ? screenY - 10 : Math.max(window.scrollY + 16, screenY + rect.height + 10);
-      const transformStyle = fitsAbove ? 'translateY(-100%)' : 'none';
+      // DESKTOP: định vị FIXED theo viewport (miễn nhiễm scroller là <main>
+      // hay window) + ước lượng kích thước, useLayoutEffect sẽ kẹp chính xác
+      // sau khi đo popup thật.
+      const w = Math.min(400, window.innerWidth - 24);
+      lastRectRef.current = { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+      const estH = 340;
+      let x = rect.left + rect.width / 2 - w / 2;
+      x = Math.max(8, Math.min(window.innerWidth - w - 8, x));
+      let y: number;
+      if (rect.top >= estH + 16) {
+        y = rect.top - estH - 10; // hiện phía trên vùng bôi đen
+      } else {
+        y = Math.max(8, rect.top + rect.height + 10); // hiện phía dưới
+      }
 
-      setPosition({
-        x: Math.max(12, Math.min(window.innerWidth - 420, rect.left + rect.width / 2 - 190)),
-        y: targetY,
-        transform: transformStyle,
-        isMobile: false,
-      } as any);
+      setPosition({ x, y, isMobile: false });
     }
 
     fetchAITranslation(text, sentence);
@@ -264,6 +271,39 @@ export default function HighlightTooltip() {
       document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [position, mobileTranslateBtn]);
+
+  // Kẹp popup desktop trong viewport sau mỗi lần nội dung đổi (AI về / đổi tab):
+  // đo kích thước thật, căn giữa theo vùng bôi đen, lật trên/dưới, không tràn.
+  useLayoutEffect(() => {
+    if (!position || position.isMobile) return;
+    const el = tooltipRef.current;
+    const r = lastRectRef.current;
+    if (!el || !r) return;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    if (!w || !h) return;
+
+    const idealX = r.left + r.width / 2 - w / 2;
+    const minX = 8;
+    const maxX = Math.max(minX, window.innerWidth - w - 8);
+    const newX = Math.max(minX, Math.min(maxX, idealX));
+
+    const aboveTop = r.top - h - 10;
+    const belowTop = r.top + r.height + 10;
+    let newY: number;
+    if (r.top >= h + 16) {
+      newY = aboveTop;
+    } else if (belowTop + h + 8 <= window.innerHeight) {
+      newY = belowTop;
+    } else {
+      // Cao hơn cả khoảng trên lẫn dưới: ghim sát mép trên, nội dung cuộn trong
+      newY = 8;
+    }
+
+    if (Math.abs(newX - position.x) > 1 || Math.abs(newY - position.y) > 1) {
+      setPosition({ x: newX, y: newY, isMobile: false });
+    }
+  }, [position, aiResult, pedagogicalResult, activeTab, dictionaryResult]);
 
   // Clean up all timers and in-flight fetch requests on unmount
   useEffect(() => {
@@ -428,11 +468,14 @@ export default function HighlightTooltip() {
                   maxWidth: '430px',
                 }
               : {
-                  position: 'absolute',
+                  position: 'fixed',
                   left: `${position.x}px`,
                   top: `${position.y}px`,
-                  transform: (position as any).transform || 'none',
                   zIndex: 9999,
+                  // Kích cỡ theo nội dung: co giãn tự nhiên, tối đa 400px
+                  width: 'fit-content',
+                  maxWidth: 'min(400px, calc(100vw - 24px))',
+                  minWidth: 'min(280px, calc(100vw - 24px))',
                 }
           }
           className="animate-in fade-in zoom-in-95 duration-150 filter drop-shadow-2xl"

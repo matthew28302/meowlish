@@ -318,9 +318,11 @@ export default function PetRacingCanvas({
     }
   };
 
-  // Handle Cancel Racing Room
-  const handleCancelRoom = async () => {
-    if (!currentRoom?.id || !userId) return;
+  // Handle Cancel Racing Room (nhận room tường minh: nút "Hủy Giải" trong
+  // danh sách sảnh truyền room của nó vì currentRoom là null sau reload)
+  const handleCancelRoom = async (room?: any) => {
+    const target = room || currentRoom;
+    if (!target?.id || !userId) return;
     setIsProcessing(true);
     try {
       const res = await fetch('/api/pet', {
@@ -329,16 +331,23 @@ export default function PetRacingCanvas({
         body: JSON.stringify({
           userId,
           action: 'cancel_battle_room',
-          roomId: currentRoom.id,
+          roomId: target.id,
         }),
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Lỗi hủy giải đua');
       if (data.userCoins !== undefined) onUpdateCoins(data.userCoins);
-      setCurrentRoom(null);
-      setRaceState('lobby');
+      // Chỉ reset về sảnh khi hủy đúng phòng đang mở/chờ
+      if (!room || room.id === currentRoom?.id) {
+        setCurrentRoom(null);
+        setRaceState('lobby');
+      }
       sound.playClick();
       if (onRefreshData) onRefreshData();
-    } catch {}
+    } catch (err: any) {
+      setActionError(err.message || 'Không thể hủy giải đua');
+      sound.playWrong();
+    }
     finally {
       setIsProcessing(false);
     }
@@ -767,8 +776,9 @@ export default function PetRacingCanvas({
 
                       {isHost ? (
                         <button
-                          onClick={handleCancelRoom}
-                          className="px-3 py-1.5 bg-red-600/80 hover:bg-red-500 text-white font-bold text-xs rounded-lg transition shrink-0 cursor-pointer"
+                          onClick={() => handleCancelRoom(room)}
+                          disabled={isProcessing}
+                          className="px-3 py-1.5 bg-red-600/80 hover:bg-red-500 text-white font-bold text-xs rounded-lg transition shrink-0 cursor-pointer disabled:opacity-50"
                         >
                           Hủy Giải
                         </button>
