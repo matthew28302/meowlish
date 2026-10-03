@@ -167,8 +167,8 @@ body {
     #ffffff 52%,
     color-mix(in srgb, var(--arcade-accent) 12%, #ffffff) 100%
   );
-  border: 3px solid var(--arcade-accent);
-  border-bottom: 6px solid var(--arcade-accent-deep);
+  border: 3px solid color-mix(in srgb, var(--arcade-accent) 72%, #94a3b8);
+  border-bottom: 6px solid color-mix(in srgb, var(--arcade-accent-deep) 82%, #64748b);
   box-shadow: 0 14px 24px -16px rgba(15, 23, 42, 0.55);
   transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease;
 }
@@ -189,7 +189,7 @@ body {
   border-radius: 10px;
   background-image: radial-gradient(var(--arcade-accent) 1.5px, transparent 1.6px);
   background-size: 9px 9px;
-  opacity: 0.22;
+  opacity: 0.15;
   pointer-events: none;
 }
 
