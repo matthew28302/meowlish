@@ -927,8 +927,8 @@ export default function PetPage() {
 
       {/* ================= TAB 1: SANCTUARY (KHU VƯỜN THÚ CƯNG) ================= */}
       {gameTab === 'sanctuary' && (
-        <div className="flex-1 w-full min-h-[380px] sm:min-h-[460px] md:min-h-0 relative flex flex-col gap-2">
-          <div className="flex-1 w-full relative min-h-[380px]">
+        <div className="flex-1 w-full min-h-0 sm:min-h-[460px] md:min-h-0 relative flex flex-col gap-2">
+          <div className="flex-1 w-full relative min-h-[200px] sm:min-h-[460px] md:min-h-0">
             {!petData && isLoading ? (
               <div className="w-full h-full min-h-[420px] rounded-3xl bg-gradient-to-b from-sky-400 via-emerald-300 to-emerald-500 border-4 border-emerald-600/30 shadow-2xl flex flex-col items-center justify-center gap-4 text-white">
                 <div className="relative">
@@ -971,10 +971,12 @@ export default function PetPage() {
             )}
           </div>
 
-          {/* DEDICATED ACTION TOOLBAR (SEPARATED COMPLETELY OUTSIDE MAP) */}
-          <div className="w-full shrink-0 rounded-2xl p-2 sm:p-2.5 border-2 border-emerald-300/70 bg-gradient-to-b from-white via-white to-emerald-50/70 shadow-[0_5px_0_rgba(5,150,105,0.18),0_14px_24px_-16px_rgba(5,150,105,0.6)] flex flex-col lg:flex-row lg:items-center gap-2">
+          {/* DEDICATED ACTION TOOLBAR (SEPARATED COMPLETELY OUTSIDE MAP).
+              Mobile: một hàng cuộn ngang để vườn vừa khung hình không cuộn;
+              desktop (lg+): wrap nhiều hàng như cũ. */}
+          <div className="w-full shrink-0 rounded-2xl p-2 sm:p-2.5 border-2 border-emerald-300/70 bg-gradient-to-b from-white via-white to-emerald-50/70 shadow-[0_5px_0_rgba(5,150,105,0.18),0_14px_24px_-16px_rgba(5,150,105,0.6)] flex flex-row flex-nowrap lg:flex-wrap items-center gap-2 overflow-x-auto lg:overflow-visible custom-scrollbar">
             {/* Left: Modals & Wardrobe */}
-            <div className="flex flex-wrap items-center gap-1.5 [&>button]:shrink-0 [&>button]:whitespace-nowrap">
+            <div className="flex flex-nowrap lg:flex-wrap shrink-0 items-center gap-1.5 [&>button]:shrink-0 [&>button]:whitespace-nowrap">
               <button
                 onClick={() => handleOpenShop('shop')}
                 className="btn-3d btn-3d-amber px-3.5 py-2 min-h-[40px] text-xs font-black text-slate-950 cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-102 touch-manipulation"
@@ -1019,7 +1021,7 @@ export default function PetPage() {
             </div>
 
             {/* Right: Farm Interaction & Movement Tools */}
-            <div className="flex flex-wrap items-center gap-1.5 lg:ml-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap">
+            <div className="flex flex-nowrap lg:flex-wrap shrink-0 items-center gap-1.5 lg:ml-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap">
               <button
                 onClick={() => {
                   sound.playClick();
