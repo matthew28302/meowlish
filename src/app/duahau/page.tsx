@@ -938,8 +938,8 @@ export default function DuaHauAdminPage() {
         <div
           className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl shadow-2xl border text-xs sm:text-sm font-black flex items-center gap-2 animate-bounce ${
             notification.type === 'success'
-              ? 'bg-emerald-600 border-emerald-400 text-white'
-              : 'bg-rose-600 border-rose-400 text-white'
+              ? 'bg-emerald-700 border-emerald-400 text-white'
+              : 'bg-rose-700 border-rose-400 text-white'
           }`}
         >
           {notification.type === 'success' ? (
@@ -1085,7 +1085,7 @@ export default function DuaHauAdminPage() {
             }}
             className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
               activeAdminTab === 'users'
-                ? 'bg-rose-600 text-white shadow-lg shadow-rose-900/40'
+                ? 'bg-rose-700 text-white shadow-lg shadow-rose-900/40'
                 : 'text-slate-400 hover:text-white hover:bg-slate-850'
             }`}
           >
@@ -1103,7 +1103,7 @@ export default function DuaHauAdminPage() {
             }}
             className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
               activeAdminTab === 'access_logs'
-                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/40'
+                ? 'bg-emerald-700 text-white shadow-lg shadow-emerald-900/40'
                 : 'text-slate-400 hover:text-white hover:bg-slate-850'
             }`}
           >
@@ -1143,7 +1143,7 @@ export default function DuaHauAdminPage() {
             }}
             className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
               activeAdminTab === 'email_logs'
-                ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/40'
+                ? 'bg-sky-700 text-white shadow-lg shadow-sky-900/40'
                 : 'text-slate-400 hover:text-white hover:bg-slate-850'
             }`}
           >
@@ -1163,7 +1163,7 @@ export default function DuaHauAdminPage() {
             }}
             className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer whitespace-nowrap ${
               activeAdminTab === 'support'
-                ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/40'
+                ? 'bg-amber-700 text-white shadow-lg shadow-amber-900/40'
                 : 'text-slate-400 hover:text-white hover:bg-slate-850'
             }`}
           >
@@ -1204,7 +1204,7 @@ export default function DuaHauAdminPage() {
               onClick={() => setStatusFilter('all')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                 statusFilter === 'all'
-                  ? 'bg-rose-600 text-white'
+                  ? 'bg-rose-700 text-white'
                   : 'bg-slate-800 text-slate-400 hover:text-white'
               }`}
             >
@@ -1214,7 +1214,7 @@ export default function DuaHauAdminPage() {
               onClick={() => setStatusFilter('active')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                 statusFilter === 'active'
-                  ? 'bg-emerald-600 text-white'
+                  ? 'bg-emerald-700 text-white'
                   : 'bg-slate-800 text-slate-400 hover:text-white'
               }`}
             >
@@ -1258,7 +1258,7 @@ export default function DuaHauAdminPage() {
               <tbody className="divide-y divide-slate-800">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-slate-500 font-medium">
+                    <td colSpan={7} className="py-8 text-center text-slate-400 font-medium">
                       Không tìm thấy người dùng nào phù hợp.
                     </td>
                   </tr>
@@ -1293,7 +1293,7 @@ export default function DuaHauAdminPage() {
                                 @{user.username}
                               </div>
                               {user.email && (
-                                <div className="text-[10px] text-slate-500 font-mono" title={user.email}>
+                                <div className="text-[10px] text-slate-400 font-mono" title={user.email}>
                                   {maskEmail(user.email)}
                                 </div>
                               )}
@@ -1342,7 +1342,7 @@ export default function DuaHauAdminPage() {
                               </div>
                             </div>
                           ) : (
-                            <span className="text-slate-500 text-xs font-mono">Chưa có</span>
+                            <span className="text-slate-400 text-xs font-mono">Chưa có</span>
                           )}
                         </td>
 
@@ -1352,7 +1352,7 @@ export default function DuaHauAdminPage() {
                             <Flame className="w-3 h-3" />
                             <span>{user.streak || 0} ngày</span>
                           </div>
-                          <div className="text-[10px] text-slate-500">
+                          <div className="text-[10px] text-slate-400">
                             {user.last_active_date || 'Gần đây'}
                           </div>
                         </td>
@@ -1468,7 +1468,7 @@ export default function DuaHauAdminPage() {
                 </div>
                 <button
                   onClick={() => fetchLogs('access_logs', 1, logSearch, logFilter)}
-                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-bold transition cursor-pointer"
+                  className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
                   Tìm
                 </button>
@@ -1557,7 +1557,7 @@ export default function DuaHauAdminPage() {
                                 )}
                               </div>
                               {log.user_id && (
-                                <div className="text-[10px] text-slate-500 font-mono truncate max-w-[120px]">
+                                <div className="text-[10px] text-slate-400 font-mono truncate max-w-[120px]">
                                   {log.user_id}
                                 </div>
                               )}
@@ -1644,7 +1644,7 @@ export default function DuaHauAdminPage() {
                 </div>
                 <button
                   onClick={() => fetchLogs('error_logs', 1, logSearch, logFilter)}
-                  className="px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl text-xs font-bold transition cursor-pointer"
+                  className="px-3.5 py-2 bg-rose-700 hover:bg-rose-600 text-white rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
                   Tìm
                 </button>
@@ -1740,7 +1740,7 @@ export default function DuaHauAdminPage() {
                               </td>
                               <td className="py-3 px-4 font-mono text-[11px] text-slate-300 whitespace-nowrap">
                                 <div>{log.ip || '-'}</div>
-                                {log.user_id && <div className="text-[10px] text-slate-500">{log.user_id}</div>}
+                                {log.user_id && <div className="text-[10px] text-slate-400">{log.user_id}</div>}
                               </td>
                               <td className="py-3 px-4 text-center whitespace-nowrap">
                                 {log.stack_trace ? (
@@ -1751,7 +1751,7 @@ export default function DuaHauAdminPage() {
                                     {isExpanded ? 'Ẩn' : 'Xem'}
                                   </button>
                                 ) : (
-                                  <span className="text-slate-600 text-[11px]">Không có</span>
+                                  <span className="text-slate-400 text-[11px]">Không có</span>
                                 )}
                               </td>
                             </tr>
@@ -1822,7 +1822,7 @@ export default function DuaHauAdminPage() {
                 </div>
                 <button
                   onClick={() => fetchLogs('email_logs', 1, logSearch, logFilter)}
-                  className="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-2xl text-xs font-bold transition cursor-pointer"
+                  className="px-3.5 py-2 bg-sky-700 hover:bg-sky-600 text-white rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
                   Tìm
                 </button>
@@ -1992,7 +1992,7 @@ export default function DuaHauAdminPage() {
                 </div>
                 <button
                   onClick={() => fetchSupport(undefined, supportFilterStatus, supportFilterCategory, supportSearch)}
-                  className="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-2xl text-xs font-bold transition cursor-pointer"
+                  className="px-3.5 py-2 bg-amber-700 hover:bg-amber-600 text-white rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
                   Tìm
                 </button>
@@ -2035,7 +2035,7 @@ export default function DuaHauAdminPage() {
                 }}
                 className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   supportFilterStatus === 'all'
-                    ? 'bg-amber-600 text-white shadow-md'
+                    ? 'bg-amber-700 text-white shadow-md'
                     : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
                 }`}
               >
@@ -2061,7 +2061,7 @@ export default function DuaHauAdminPage() {
                 }}
                 className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   supportFilterStatus === 'processing'
-                    ? 'bg-sky-600 text-white shadow-md'
+                    ? 'bg-sky-700 text-white shadow-md'
                     : 'bg-slate-900 border border-slate-800 text-sky-400 hover:text-sky-300'
                 }`}
               >
@@ -2074,7 +2074,7 @@ export default function DuaHauAdminPage() {
                 }}
                 className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   supportFilterStatus === 'resolved'
-                    ? 'bg-emerald-600 text-white shadow-md'
+                    ? 'bg-emerald-700 text-white shadow-md'
                     : 'bg-slate-900 border border-slate-800 text-emerald-400 hover:text-emerald-300'
                 }`}
               >
@@ -2138,7 +2138,7 @@ export default function DuaHauAdminPage() {
                                 className={`w-3 h-3 ${
                                   i < (ticket.rating || 5)
                                     ? 'fill-amber-400 text-amber-400'
-                                    : 'text-slate-600'
+                                    : 'text-slate-500'
                                 }`}
                               />
                             ))}
@@ -2181,7 +2181,7 @@ export default function DuaHauAdminPage() {
                           {ticket.user_id && (
                             <>
                               <span>•</span>
-                              <span className="font-mono text-[10px] text-slate-500">ID: {ticket.user_id}</span>
+                              <span className="font-mono text-[10px] text-slate-400">ID: {ticket.user_id}</span>
                             </>
                           )}
                         </div>
@@ -2418,7 +2418,7 @@ export default function DuaHauAdminPage() {
                   })
                 }
                 disabled={isSubmittingAction || newPasswordInput.trim().length < 4}
-                className="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs cursor-pointer disabled:opacity-50"
+                className="flex-1 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-black text-xs cursor-pointer disabled:opacity-50"
               >
                 Xác Nhận Đổi
               </button>
@@ -2465,7 +2465,7 @@ export default function DuaHauAdminPage() {
                   })
                 }
                 disabled={isSubmittingAction}
-                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs cursor-pointer transition flex items-center justify-center gap-1.5 shadow-lg shadow-rose-950 disabled:opacity-50"
+                className="flex-1 py-2.5 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-black text-xs cursor-pointer transition flex items-center justify-center gap-1.5 shadow-lg shadow-rose-950 disabled:opacity-50"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>Xóa vĩnh viễn</span>

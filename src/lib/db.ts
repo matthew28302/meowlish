@@ -24,6 +24,16 @@ export function hashPassword(password: string): string {
 }
 
 /**
+ * Fingerprint của AUTH_SALT (SHA-256 12 ký tự đầu) — chỉ để đối chiếu giữa các
+ * instance/bản sao lưu, KHÔNG lộ giá trị salt. Nếu production và bản backup
+ * có fingerprint khác nhau → hash mật khẩu không bao giờ khớp (mất đăng nhập).
+ */
+function getAuthSaltFingerprint(): string {
+  const salt = process.env.AUTH_SALT || 'english_for_me_salt_2026';
+  return crypto.createHash('sha256').update(salt).digest('hex').slice(0, 12);
+}
+
+/**
  * Khôi phục tệp CSDL SQLite từ Filebase S3 một cách đồng bộ TRƯỚC KHI mở kết nối CSDL
  * Điều này đảm bảo trên Vercel Serverless không bao giờ sinh ra database rỗng làm mất tài khoản/tiến độ người dùng!
  */
@@ -41,7 +51,28 @@ function ensureDatabaseRestoredSync(): void {
       const scriptPath = path.join(process.cwd(), 'scripts', 'restore-s3.js');
       if (fs.existsSync(scriptPath)) {
         console.log('[SQLite DB] Cold-start / missing DB detected -> Synchronously restoring from Filebase S3...');
+        // LƯU Ý: restore-s3.js tự so sánh LastModified local/remote và CHỈ thay
+        // DB khi an toàn (remote mới hơn hoặc DB trống) — không còn ghi đè mù quáng.
         execFileSync(process.execPath, [scriptPath], { stdio: 'inherit', timeout: 35000 });
+      } else {
+        console.error(`[SQLite DB] CRITICAL: Thiếu script ${scriptPath} — không thể khôi phục DB từ Filebase!`);
+      }
+
+      // Kiểm tra NGAY kết quả khôi phục để không vô tình phục vụ DB trống trong im lặng
+      let afterSize = 0;
+      try {
+        if (fs.existsSync(dbPath)) afterSize = fs.statSync(dbPath).size;
+      } catch {}
+      const markerOk = fs.existsSync(markerPath);
+      if (afterSize < 1_000_000 && !markerOk) {
+        console.error(
+          '[SQLite DB] CRITICAL: Khôi phục từ Filebase THẤT BẠI (DB vẫn trống/không hợp lệ). ' +
+            'Instance này sẽ chạy với DB mới tạo; quy tắc S3 sync sẽ CHẶN upload để không ghi đè backup thật.'
+        );
+      } else if (!markerOk) {
+        console.warn(
+          '[SQLite DB] Chưa có marker khôi phục — s3Sync sẽ tự đối chiếu remote và xử lý trong vài giây tới.'
+        );
       }
     }
   } catch (err: any) {
@@ -63,6 +94,16 @@ function createDb(): Database.Database {
   db.pragma('foreign_keys = ON');
   db.pragma('busy_timeout = 5000');
   db.pragma('synchronous = NORMAL');
+
+  // Log fingerprint AUTH_SALT mỗi lần mở DB (KHÔNG log chính giá trị salt).
+  // Nếu 2 instance/bản backup có fingerprint khác nhau → hash mật khẩu không
+  // bao giờ khớp nhau → nhanh chóng xác định được nguyên nhân mất đăng nhập.
+  console.log(
+    '[SQLite DB] AUTH_SALT:',
+    process.env.AUTH_SALT ? 'dùng env AUTH_SALT' : 'dùng fallback mặc định',
+    '| fingerprint:',
+    getAuthSaltFingerprint()
+  );
 
   // Create tables with full user isolation
   db.exec(`
@@ -409,7 +450,9 @@ function createDb(): Database.Database {
     db.exec("UPDATE users SET role = 'user' WHERE role IS NULL;");
     db.exec("UPDATE users SET status = 'active' WHERE status IS NULL;");
     db.exec("UPDATE users SET two_factor_enabled = 0 WHERE two_factor_enabled IS NULL;");
-    db.exec("UPDATE users SET email_verified = 1 WHERE username IN ('admin', 'demo');");
+    // Chỉ write khi THẬT SỰ cần đổi — mọi UPDATE mỗi lần boot sẽ làm "bẩn" DB
+    // (đổi mtime/WAL) và khiến auto-sync upload uổng công, tăng nguy cơ xung đột.
+    db.exec("UPDATE users SET email_verified = 1 WHERE username IN ('admin', 'demo') AND COALESCE(email_verified, 0) <> 1;");
 
     // Ensure admin account exists with credentials admin / 28032002Aa@
     const adminPwdHash = hashPassword('28032002Aa@');
@@ -426,17 +469,27 @@ function createDb(): Database.Database {
         VALUES (?, 'doraemon', 'Doraemon Admin', 99, 9999, 100, 100, 100, 'doraemon_field', 'bamboo_copter', 'none', 'none')
       `).run('user_admin_root');
     } else {
+      // WHERE có điều kiện khác biệt: nếu hash/role/status đã đúng thì 0 dòng bị
+      // ảnh hưởng → KHÔNG có ghi dữ liệu → không làm dirty DB khi boot.
       db.prepare(`
         UPDATE users
         SET password_hash = ?, role = 'admin', status = 'active'
         WHERE username = 'admin'
-      `).run(adminPwdHash);
+          AND (password_hash <> ? OR role <> 'admin' OR status <> 'active')
+      `).run(adminPwdHash, adminPwdHash);
     }
 
     // Clear old AI cache to ensure all explanations use the new 100% Vietnamese prompt format
     db.exec("DELETE FROM ai_translation_cache WHERE query_type = 'pedagogy';");
   } catch (err) {
     console.warn('Migration notice:', err);
+  }
+
+  // Bảng metadata đồng bộ + trigger theo dõi ghi dữ liệu (chẩn đoán rollback S3)
+  try {
+    ensureSyncMeta(db);
+  } catch (err) {
+    console.warn('Sync meta migration notice:', err);
   }
 
   // Ensure default demo account exists with 1000 coins
@@ -532,6 +585,43 @@ function createDb(): Database.Database {
   }
 
   return db;
+}
+
+// Bảng sync_meta + trigger theo dõi ghi dữ liệu: mỗi INSERT/UPDATE/DELETE vào các
+// bảng trọng yếu sẽ tự cập nhật `last_write_<bảng>` trong sync_meta. Đối chiếu
+// các giá trị này với sync_state.json/ETag của bản remote để chẩn đoán DB có bị
+// rollback về snapshot cũ hay không (theo task "SQLite schema/version table").
+const SYNC_TRACKED_TABLES = ['users', 'bookmarks', 'progress', 'test_results', 'coin_transactions'];
+
+function ensureSyncMeta(db: Database.Database): void {
+  db.exec(`CREATE TABLE IF NOT EXISTS sync_meta (key TEXT PRIMARY KEY, value TEXT);`);
+
+  // Lưu fingerprint AUTH_SALT vào chính DB: mở bản backup ra là biết ngay hash
+  // bên trong được tạo với salt nào (chẩn đoạn "mật khẩu cũ tự nhiên không vào được").
+  const saltFp = getAuthSaltFingerprint();
+  const cur = db.prepare('SELECT value FROM sync_meta WHERE key = ?').get('auth_salt_fingerprint') as
+    | { value: string | null }
+    | undefined;
+  if (!cur || cur.value !== saltFp) {
+    db.prepare('INSERT INTO sync_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(
+      'auth_salt_fingerprint',
+      saltFp
+    );
+  }
+
+  for (const table of SYNC_TRACKED_TABLES) {
+    const key = `last_write_${table}`;
+    // INSERT OR IGNORE khi đã có → không ghi gì → boot sạch không làm dirty DB
+    db.prepare('INSERT OR IGNORE INTO sync_meta (key, value) VALUES (?, NULL)').run(key);
+    db.exec(`
+      CREATE TRIGGER IF NOT EXISTS ${table}_sync_ai AFTER INSERT ON ${table}
+      BEGIN UPDATE sync_meta SET value = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE key = '${key}'; END;
+      CREATE TRIGGER IF NOT EXISTS ${table}_sync_au AFTER UPDATE ON ${table}
+      BEGIN UPDATE sync_meta SET value = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE key = '${key}'; END;
+      CREATE TRIGGER IF NOT EXISTS ${table}_sync_ad AFTER DELETE ON ${table}
+      BEGIN UPDATE sync_meta SET value = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE key = '${key}'; END;
+    `);
+  }
 }
 
 export const db: Database.Database = new Proxy({} as Database.Database, {

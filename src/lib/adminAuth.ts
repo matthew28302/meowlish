@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer';
 import { db, hashPassword } from './db';
 import logger from './logger';
 import { logEmail } from './systemLogs';
+import { adminOtpTemplate, mailFrom, EMAIL_BRAND } from './emailTemplates';
 
 async function resolveIpv4(host: string): Promise<string> {
   try {
@@ -99,6 +100,15 @@ export function verifyAdminToken(token: string | null | undefined): boolean {
 
 // 5. Send secure 2FA OTP Email to vukiet28032002@gmail.com
 export async function sendAdminOtpEmail(otp: string): Promise<{ success: boolean; error?: string }> {
+  const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+  // Chỉ dựng nội dung email (presentation) — không thay đổi logic OTP.
+  const emailContent = adminOtpTemplate({
+    otp,
+    expiresInMinutes: Math.round(OTP_TTL_MS / 60000),
+    maxAttempts: 3,
+    sentAt: now,
+  });
+
   try {
     const smtpUser = process.env.SMTP_USER || 'admin@imfishball.id.vn';
     const smtpPass = process.env.SMTP_PASS || '28032002Aa@';
@@ -122,65 +132,20 @@ export async function sendAdminOtpEmail(otp: string): Promise<{ success: boolean
       ...({ family: 4 } as any),
     });
 
-    const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-
     const mailOptions = {
-      from: `"Meowlish Dưa Hấu Security" <${smtpUser}>`,
+      from: mailFrom(smtpUser),
       to: ADMIN_EMAIL,
-      subject: `🍉 [MÃ XÁC THỰC 2FA ADMIN] ${otp} - Quản trị Meowlish Dưa Hấu`,
-      html: `
-        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 580px; margin: 0 auto; background: #0f172a; color: #f8fafc; border-radius: 20px; overflow: hidden; border: 2px solid #e11d48; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
-          <!-- Header Banner -->
-          <div style="background: linear-gradient(135deg, #e11d48 0%, #059669 100%); padding: 25px 20px; text-align: center;">
-            <div style="font-size: 38px; margin-bottom: 5px;">🍉🛡️</div>
-            <h1 style="margin: 0; font-size: 22px; color: #ffffff; letter-spacing: 0.5px;">XÁC THỰC 2 LỚP ADMIN DƯA HẤU</h1>
-            <p style="margin: 5px 0 0 0; font-size: 12px; color: rgba(255,255,255,0.85); font-weight: bold;">Hệ Thống Quản Trị Tối Cao Meowlish</p>
-          </div>
-
-          <!-- Body Content -->
-          <div style="padding: 30px 25px; text-align: center;">
-            <p style="font-size: 14px; color: #94a3b8; margin-top: 0;">
-              Xin chào Quản trị viên, bạn đang yêu cầu đăng nhập vào cổng điều khiển <strong style="color: #fda4af;">/duahau</strong>.
-            </p>
-
-            <div style="margin: 25px 0; background: #1e293b; padding: 20px; border-radius: 16px; border: 1px dashed #e11d48;">
-              <div style="font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: bold; letter-spacing: 1.5px; margin-bottom: 8px;">
-                Mã Xác Thực Bảo Mật (OTP)
-              </div>
-              <div style="font-size: 38px; font-weight: 900; letter-spacing: 10px; color: #38bdf8; font-family: monospace; text-shadow: 0 0 20px rgba(56,189,248,0.4);">
-                ${otp}
-              </div>
-              <div style="font-size: 11px; color: #f43f5e; margin-top: 8px; font-weight: bold;">
-                ⏳ Mã có hiệu lực trong 5 phút. Tối đa 3 lần thử.
-              </div>
-            </div>
-
-            <!-- Details Table -->
-            <div style="background: #020617; border-radius: 12px; padding: 12px 16px; text-align: left; font-size: 11px; color: #64748b; line-height: 1.8;">
-              <div>• <strong>Thời gian:</strong> <span style="color: #cbd5e1;">${now}</span></div>
-              <div>• <strong>Tài khoản đích:</strong> <span style="color: #cbd5e1;">admin</span></div>
-              <div>• <strong>Email nhận mã:</strong> <span style="color: #38bdf8;">${ADMIN_EMAIL}</span></div>
-              <div>• <strong>Mã hóa phiên:</strong> <span style="color: #10b981;">AES-256-GCM End-to-End</span></div>
-            </div>
-
-            <p style="font-size: 11px; color: #64748b; margin-top: 25px; margin-bottom: 0;">
-              ⚠️ Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email và kiểm tra lại mật khẩu quản trị ngay lập tức.
-            </p>
-          </div>
-
-          <!-- Footer -->
-          <div style="background: #020617; padding: 15px; text-align: center; border-top: 1px solid #1e293b; font-size: 10px; color: #475569;">
-            Meowlish Security Protocol • Dưa Hấu Admin Console • Confidential
-          </div>
-        </div>
-      `,
+      replyTo: EMAIL_BRAND.contactEmail,
+      subject: emailContent.subject,
+      html: emailContent.html,
+      text: emailContent.text,
     };
 
     await transporter.sendMail(mailOptions);
     logger.info(`[Admin 2FA] OTP email successfully sent to ${ADMIN_EMAIL}`);
     logEmail({
       recipient: ADMIN_EMAIL,
-      subject: `[ADMIN 2FA CODE] ${otp} - Meowlish Dưa Hấu Console`,
+      subject: emailContent.subject,
       purpose: 'admin_2fa',
       status: 'sent',
     });
@@ -189,7 +154,7 @@ export async function sendAdminOtpEmail(otp: string): Promise<{ success: boolean
     logger.error('[Admin 2FA] Failed to send OTP email:', { error: err });
     logEmail({
       recipient: ADMIN_EMAIL,
-      subject: `[ADMIN 2FA CODE] OTP Email`,
+      subject: emailContent.subject,
       purpose: 'admin_2fa',
       status: 'failed',
       error_message: err?.message || 'Lỗi gửi email máy chủ',

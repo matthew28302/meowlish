@@ -11,7 +11,7 @@ import {
 } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { logAccess, logError } from '@/lib/systemLogs';
-import { syncDbToS3Now } from '@/lib/s3Sync';
+import { syncDbToS3Now, refreshIfRemoteNewer } from '@/lib/s3Sync';
 import logger from '@/lib/logger';
 
 function formatSafeUser(user: any) {
@@ -562,10 +562,22 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = db.prepare(`
+    const userQuery = `
       SELECT id, username, email, password_hash, display_name, avatar, streak, exp, level, coins, target_exam, role, status, two_factor_enabled, email_verified, created_at 
       FROM users WHERE username = ?
-    `).get(cleanUsername) as any;
+    `;
+    let user = db.prepare(userQuery).get(cleanUsername) as any;
+
+    if (!user || user.password_hash !== pwdHash) {
+      // Instance này có thể đang giữ bản SQLite CŨ trong /tmp (user vừa đăng ký
+      // hoặc đổi mật khẩu ở instance khác, bản mới chưa kịp về đây). Thử làm
+      // tươi từ Filebase rồi tra lại MỘT lần trước khi báo lỗi (throttle 1 lần/
+      // 15s/instance nên không tạo tải S3).
+      const refreshed = await refreshIfRemoteNewer('login-retry');
+      if (refreshed) {
+        user = db.prepare(userQuery).get(cleanUsername) as any;
+      }
+    }
 
     if (!user || user.password_hash !== pwdHash) {
       logger.warn(`Failed login attempt for username: ${cleanUsername}`);

@@ -7,6 +7,7 @@ import nodemailer from 'nodemailer';
 import dns from 'dns';
 import { logEmail, logAccess, logError } from '@/lib/systemLogs';
 import { syncDbToS3Now } from '@/lib/s3Sync';
+import { supportReplyTemplate, mailFrom, EMAIL_BRAND } from '@/lib/emailTemplates';
 
 async function resolveIpv4(host: string): Promise<string> {
   try {
@@ -174,7 +175,14 @@ export async function POST(request: Request) {
         details: `Phản hồi thư góp ý #${ticketId} của ${ticket.name} (${ticket.email})`,
       });
 
-      // Gửi email phản hồi đến người dùng
+      // Gửi email phản hồi đến người dùng (chỉ presentation — không đổi logic lưu DB)
+      const replyEmail = supportReplyTemplate({
+        name: ticket.name,
+        ticketId: String(ticket.id),
+        subject: ticket.subject,
+        reply: replyContent.trim(),
+      });
+
       try {
         const smtpUser = process.env.SMTP_USER || 'admin@imfishball.id.vn';
         const smtpPass = process.env.SMTP_PASS || '28032002Aa@';
@@ -191,37 +199,18 @@ export async function POST(request: Request) {
           ...({ family: 4 } as any),
         });
 
-        const replySubject = `Re: [Meowlish Support] ${ticket.subject}`;
         await transporter.sendMail({
-          from: `"Ban Quản Trị Meowlish" <${smtpUser}>`,
+          from: mailFrom(smtpUser),
           to: ticket.email,
-          subject: replySubject,
-          html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0;">
-              <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 22px; text-align: center; color: #ffffff;">
-                <div style="font-size: 28px; margin-bottom: 4px;">🍉</div>
-                <h2 style="margin: 0; font-size: 18px; font-weight: 800;">PHẢN HỒI TỪ BAN QUẢN TRI MEOWLISH</h2>
-              </div>
-              <div style="padding: 24px; color: #1e293b; font-size: 14px; line-height: 1.6;">
-                <p>Chào <strong>${ticket.name}</strong>,</p>
-                <p>Về vấn đề / góp ý của bạn: <em>"${ticket.subject}"</em></p>
-                <div style="background: #f1f5f9; border-left: 4px solid #059669; border-radius: 8px; padding: 14px; margin: 16px 0; color: #334155; white-space: pre-wrap;">
-${replyContent.trim()}
-                </div>
-                <p style="margin-top: 16px; font-size: 13px; color: #64748b;">
-                  Nếu bạn còn bất kỳ thắc mắc hay đề xuất nào khác, đừng ngần ngại phản hồi lại email này nhé!
-                </p>
-              </div>
-              <div style="background: #f8fafc; padding: 14px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0;">
-                Meowlish English Platform • Ban Quản Trị
-              </div>
-            </div>
-          `,
+          replyTo: EMAIL_BRAND.contactEmail,
+          subject: replyEmail.subject,
+          html: replyEmail.html,
+          text: replyEmail.text,
         });
 
         logEmail({
           recipient: ticket.email,
-          subject: replySubject,
+          subject: replyEmail.subject,
           purpose: 'support_admin_reply',
           status: 'sent',
         });
@@ -229,7 +218,7 @@ ${replyContent.trim()}
         logger.warn('[Support Reply] Email send failed:', { error: mailErr });
         logEmail({
           recipient: ticket.email,
-          subject: `Re: ${ticket.subject}`,
+          subject: replyEmail.subject,
           purpose: 'support_admin_reply',
           status: 'failed',
           error_message: mailErr?.message,

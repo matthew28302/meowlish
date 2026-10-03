@@ -239,7 +239,7 @@ export default function RoleplayPage() {
               <button
                 key={sc.id}
                 onClick={() => startScenario(idx)}
-                className="card-playful bg-white border-2 border-slate-200 hover:border-purple-500 p-5 rounded-2xl text-left space-y-3 hover:shadow-lg transition-all group cursor-pointer"
+                className="card-arcade card-arcade-purple p-5 text-left space-y-3 group cursor-pointer"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-2xl">{sc.partnerAvatar}</span>

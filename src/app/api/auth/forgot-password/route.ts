@@ -5,6 +5,7 @@ import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/ra
 import { logAccess, logEmail, logError } from '@/lib/systemLogs';
 import { syncDbToS3Now } from '@/lib/s3Sync';
 import logger from '@/lib/logger';
+import { passwordResetTemplate, mailFrom, EMAIL_BRAND } from '@/lib/emailTemplates';
 import dns from 'dns';
 import crypto from 'crypto';
 
@@ -129,21 +130,20 @@ export async function POST(request: Request) {
       ...({ family: 4 } as any),
     });
 
+    // Nội dung email (presentation only — không đổi logic sinh mật khẩu/lưu DB)
+    const resetEmail = passwordResetTemplate({
+      displayName: user.display_name,
+      username: user.username,
+      newPassword,
+    });
+
     const mailOptions = {
-      from: `"Meowlish Support" <${smtpUser}>`,
+      from: mailFrom(smtpUser),
       to: recipientEmail,
-      subject: 'Yêu cầu đặt lại mật khẩu - Meowlish English',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
-          <h2 style="color: #059669; text-align: center;">🐱 Meowlish English</h2>
-          <p>Xin chào <strong>${user.display_name}</strong>,</p>
-          <p>Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong>${user.username}</strong>.</p>
-          <p>Mật khẩu mới tạm thời của bạn là: <strong style="font-size: 18px; color: #d97706; letter-spacing: 1px;">${newPassword}</strong></p>
-          <p>Vui lòng đăng nhập bằng mật khẩu mới này và đổi lại mật khẩu cá nhân trong phần cài đặt.</p>
-          <br/>
-          <p style="font-size: 12px; color: #64748b; text-align: center;">Nếu bạn không yêu cầu đặt lại mật khẩu, xin vui lòng bỏ qua email này hoặc liên hệ hỗ trợ.</p>
-        </div>
-      `,
+      replyTo: EMAIL_BRAND.contactEmail,
+      subject: resetEmail.subject,
+      html: resetEmail.html,
+      text: resetEmail.text,
     };
 
     try {
@@ -155,7 +155,7 @@ export async function POST(request: Request) {
 
       logEmail({
         recipient: recipientEmail,
-        subject: 'Yêu cầu đặt lại mật khẩu - Meowlish English',
+        subject: resetEmail.subject,
         purpose: 'forgot_password',
         status: 'sent',
       });
@@ -178,7 +178,7 @@ export async function POST(request: Request) {
       logger.error('Failed to send SMTP password reset email', { error: mailErr });
       logEmail({
         recipient: recipientEmail,
-        subject: 'Yêu cầu đặt lại mật khẩu - Meowlish English',
+        subject: resetEmail.subject,
         purpose: 'forgot_password',
         status: 'failed',
         error_message: mailErr instanceof Error ? mailErr.message : String(mailErr),

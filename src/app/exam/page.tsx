@@ -498,7 +498,7 @@ export default function ExamPage() {
               return (
                 <div
                   key={exam.id}
-                  className="card-playful bg-white border-2 border-slate-200 hover:border-emerald-500 p-6 rounded-3xl flex flex-col justify-between space-y-4 hover:shadow-lg transition-all group"
+                  className="card-arcade card-arcade-emerald p-6 flex flex-col justify-between space-y-4 group"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">

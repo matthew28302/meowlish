@@ -851,7 +851,7 @@ export default function EncyclopediaPage() {
               <div
                 key={item.id || item.word}
                 onClick={() => setSelectedEntry(item)}
-                className="card-playful p-5 border-2 border-slate-200 hover:border-emerald-400 bg-white hover:shadow-lg transition-all flex flex-col justify-between space-y-4 cursor-pointer group content-auto transform-gpu"
+                className="card-arcade card-arcade-emerald p-5 flex flex-col justify-between space-y-4 cursor-pointer group content-auto transform-gpu"
               >
                 <div className="space-y-3">
                   {/* Top Word & IPA */}

@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer';
 import { db } from './db';
 import logger from './logger';
 import { logEmail } from './systemLogs';
+import { userEmailOtpTemplate, mailFrom, EMAIL_BRAND } from './emailTemplates';
 
 // Helper to resolve IPv4
 async function resolveIpv4(host: string): Promise<string> {
@@ -55,6 +56,9 @@ export async function sendUserOtpEmail({
   purpose: '2fa_login' | 'verify_email' | 'toggle_2fa';
   displayName?: string;
 }): Promise<{ success: boolean; error?: string }> {
+  // Chỉ dựng nội dung email (presentation) — không thay đổi bất kỳ logic OTP nào.
+  const emailContent = userEmailOtpTemplate({ purpose, otp, displayName });
+
   try {
     const smtpUser = process.env.SMTP_USER || 'admin@imfishball.id.vn';
     const smtpPass = process.env.SMTP_PASS || '28032002Aa@';
@@ -78,80 +82,20 @@ export async function sendUserOtpEmail({
       ...({ family: 4 } as any),
     });
 
-    let subject = '';
-    let title = '';
-    let description = '';
-    let badgeColor = '#059669';
-
-    if (purpose === '2fa_login') {
-      subject = `🐱 [MÃ XÁC THỰC 2FA ĐĂNG NHẬP] ${otp} - Meowlish English`;
-      title = 'XÁC THỰC ĐĂNG NHẬP 2 LỚP (2FA)';
-      description = 'Bạn đang đăng nhập vào Meowlish. Hãy nhập mã OTP dưới đây để hoàn tất:';
-      badgeColor = '#0284c7';
-    } else if (purpose === 'verify_email') {
-      subject = `🐱 [MÃ KÍCH HOẠT TÀI KHOẢN] ${otp} - Meowlish English`;
-      title = 'XÁC THỰC EMAIL TÀI KHOẢN';
-      description = 'Chào mừng bạn đến với Meowlish! Hãy nhập mã OTP này để kích hoạt đầy đủ tính năng học tập:';
-      badgeColor = '#059669';
-    } else if (purpose === 'toggle_2fa') {
-      subject = `🛡️ [XÁC NHẬN CÀI ĐẶT BẢO MẬT 2FA] ${otp} - Meowlish`;
-      title = 'XÁC NHẬN CÀI ĐẶT BẢO MẬT 2 LỚP';
-      description = 'Bạn đang thay đổi trạng thái bảo mật 2FA cho tài khoản. Nhập mã OTP để xác nhận:';
-      badgeColor = '#e11d48';
-    }
-
-    const name = displayName || 'Bạn';
-
     const mailOptions = {
-      from: `"Meowlish Support" <${smtpUser}>`,
+      from: mailFrom(smtpUser),
       to: email,
-      subject,
-      html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 540px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.06);">
-          <!-- Header -->
-          <div style="background: linear-gradient(135deg, ${badgeColor} 0%, #0d9488 100%); padding: 25px 20px; text-align: center; color: #ffffff;">
-            <div style="font-size: 32px; margin-bottom: 4px;">🐱✨</div>
-            <h1 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 0.5px;">${title}</h1>
-            <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">Học Tiếng Anh Giao Tiếp & IT Thực Chiến</p>
-          </div>
-
-          <!-- Body -->
-          <div style="padding: 28px 24px; text-align: center; color: #334155;">
-            <p style="font-size: 15px; margin-top: 0; line-height: 1.5;">
-              Xin chào <strong>${name}</strong>,<br/>
-              ${description}
-            </p>
-
-            <div style="margin: 24px 0; background: #f8fafc; border: 2px dashed ${badgeColor}; padding: 18px; border-radius: 16px;">
-              <div style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: bold; letter-spacing: 1.5px; margin-bottom: 6px;">
-                Mã Xác Thực Của Bạn
-              </div>
-              <div style="font-size: 36px; font-weight: 900; letter-spacing: 8px; color: ${badgeColor}; font-family: monospace;">
-                ${otp}
-              </div>
-              <div style="font-size: 11px; color: #e11d48; margin-top: 6px; font-weight: 600;">
-                ⏳ Mã có hiệu lực trong vòng 10 phút. Không chia sẻ mã này cho bất kỳ ai.
-              </div>
-            </div>
-
-            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 0; line-height: 1.6;">
-              Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email hoặc đổi mật khẩu để bảo vệ tài khoản.
-            </p>
-          </div>
-
-          <!-- Footer -->
-          <div style="background: #f1f5f9; padding: 14px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0;">
-            Meowlish English Platform • English for IT & Daily Life
-          </div>
-        </div>
-      `,
+      replyTo: EMAIL_BRAND.contactEmail,
+      subject: emailContent.subject,
+      html: emailContent.html,
+      text: emailContent.text,
     };
 
     await transporter.sendMail(mailOptions);
     logger.info(`[User 2FA] OTP email sent to ${email} for purpose: ${purpose}`);
     logEmail({
       recipient: email,
-      subject,
+      subject: emailContent.subject,
       purpose,
       status: 'sent',
     });
@@ -160,7 +104,7 @@ export async function sendUserOtpEmail({
     logger.error('[User 2FA] Failed to send OTP email:', { error: err });
     logEmail({
       recipient: email,
-      subject: `OTP Email (${purpose})`,
+      subject: emailContent.subject,
       purpose,
       status: 'failed',
       error_message: err?.message || 'Lỗi gửi email máy chủ',

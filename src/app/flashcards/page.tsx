@@ -338,7 +338,7 @@ export default function FlashcardsPage() {
         </div>
       ) : (
         /* Completion Screen */
-        <div className="card-playful border-2 border-emerald-300 p-8 sm:p-12 text-center space-y-5 shadow-lg bg-white">
+        <div className="card-arcade card-arcade-emerald p-8 sm:p-12 text-center space-y-5">
           <div className="text-5xl animate-bounce">🎉</div>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
             Tuyệt Vời! Bạn Đã Hoàn Thành Bộ Thẻ
