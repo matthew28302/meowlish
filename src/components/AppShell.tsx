@@ -28,11 +28,13 @@ import {
   Check,
   ArrowRight,
   HelpCircle,
+  Pencil,
 } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
 import { AuthUser, getCurrentUser, setStoredUser, clearStoredUser, removeSavedAccount } from '@/lib/auth';
 import AuthModal from './AuthModal';
 import EmailVerifyModal from './EmailVerifyModal';
+import ProfileEditModal from './ProfileEditModal';
 
 interface NavItem {
   href: string;
@@ -58,6 +60,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [isEmailVerifyOpen, setIsEmailVerifyOpen] = useState(false);
   const [emailVerifySessionId, setEmailVerifySessionId] = useState<string | null>(null);
   const [disabledNotice, setDisabledNotice] = useState<string | null>(null);
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+
+  // Đóng menu avatar khi đổi trang
+  useEffect(() => {
+    setShowAvatarMenu(false);
+  }, [pathname]);
 
   // Xử lý đăng xuất lập tức khi tài khoản bị vô hiệu hóa
   const handleAccountDisabled = (reason?: string) => {
@@ -555,20 +564,67 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   </div>
                 )}
 
-                {/* User Avatar Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    sound.playClick();
-                    setShowAuth(true);
-                  }}
-                  className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 p-1 sm:px-2.5 sm:py-1.5 rounded-2xl text-xs font-bold transition border border-slate-200 cursor-pointer shadow-xs"
-                >
-                  <span className="text-sm">{currentUser?.avatar || '🐱'}</span>
-                  <span className="hidden sm:inline max-w-[90px] truncate">
-                    {currentUser?.display_name || 'Đăng Nhập'}
-                  </span>
-                </button>
+                {/* User Avatar Button + Dropdown */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      if (currentUser) setShowAvatarMenu((v) => !v);
+                      else setShowAuth(true);
+                    }}
+                    className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 p-1 sm:px-2.5 sm:py-1.5 rounded-2xl text-xs font-bold transition border border-slate-200 cursor-pointer shadow-xs"
+                  >
+                    <span className="text-sm">{currentUser?.avatar || '🐱'}</span>
+                    <span className="hidden sm:inline max-w-[90px] truncate">
+                      {currentUser?.display_name || 'Đăng Nhập'}
+                    </span>
+                  </button>
+
+                  {showAvatarMenu && currentUser && (
+                    <>
+                      {/* Bắt click ra ngoài để đóng menu */}
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowAvatarMenu(false)}
+                      />
+                      <div className="absolute right-0 top-full mt-2 w-60 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                        <div className="px-3 py-2 mb-1 border-b border-slate-100 dark:border-slate-800">
+                          <div className="text-sm font-black text-slate-900 dark:text-white truncate">
+                            {currentUser.display_name}
+                          </div>
+                          <div className="text-[11px] font-mono text-slate-400 truncate">
+                            @{currentUser.username}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sound.playClick();
+                            setShowAvatarMenu(false);
+                            setShowProfileEdit(true);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-2xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-200 text-xs font-black transition cursor-pointer text-left"
+                        >
+                          <Pencil className="w-4 h-4 text-emerald-500 shrink-0" />
+                          Sửa thông tin cá nhân
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sound.playClick();
+                            setShowAvatarMenu(false);
+                            setShowAuth(true);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-black transition cursor-pointer text-left"
+                        >
+                          <User className="w-4 h-4 text-cyan-500 shrink-0" />
+                          Tài khoản &amp; Bảo mật
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -769,6 +825,20 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <span>{currentUser?.avatar || '🐱'}</span>
                 <span>{currentUser ? currentUser.display_name : 'Đăng Nhập Tài Khoản'}</span>
               </button>
+              {currentUser && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMobileDrawerOpen(false);
+                    setShowProfileEdit(true);
+                  }}
+                  className="w-full btn-3d btn-3d-white p-3 text-xs font-black text-slate-800 touch-manipulation mt-2"
+                >
+                  <span>✏️</span>
+                  <span>Sửa thông tin cá nhân</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -792,6 +862,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         user={currentUser}
         initialSessionId={emailVerifySessionId}
         onVerified={(updated) => {
+          setCurrentUser(updated);
+          setStoredUser(updated);
+        }}
+      />
+
+      {/* 7. PROFILE EDIT MODAL (Sửa thông tin cá nhân) */}
+      <ProfileEditModal
+        isOpen={showProfileEdit}
+        onClose={() => setShowProfileEdit(false)}
+        user={currentUser}
+        onUpdated={(updated) => {
           setCurrentUser(updated);
           setStoredUser(updated);
         }}

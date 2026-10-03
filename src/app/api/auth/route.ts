@@ -80,7 +80,7 @@ export async function POST(request: Request) {
   const userAgent = request.headers.get('user-agent') || '';
   try {
     const body = await request.json();
-    const { action, username, email, password, displayName, sessionId, otp, userId, enable } = body;
+    const { action, username, email, password, displayName, sessionId, otp, userId, enable, avatar, currentPassword, newPassword } = body;
 
     // Chống Spam / Brute Force cho các tác vụ Auth
     if (action === 'register') {
@@ -95,6 +95,9 @@ export async function POST(request: Request) {
     } else if (action === 'toggle_2fa') {
       const rate = checkRateLimit({ key: `auth_toggle_2fa:${clientIp}`, maxAttempts: 10, windowMs: 10 * 60 * 1000 });
       if (!rate.allowed) return rateLimitExceededResponse('Thao tác cài đặt bảo mật quá nhanh. Vui lòng chờ vài phút!', rate.resetInSeconds);
+    } else if (action === 'update_profile') {
+      const rate = checkRateLimit({ key: `auth_update_profile:${clientIp}`, maxAttempts: 10, windowMs: 10 * 60 * 1000 });
+      if (!rate.allowed) return rateLimitExceededResponse('Thao tác cập nhật thông tin quá nhanh. Vui lòng chờ vài phút!', rate.resetInSeconds);
     }
 
     // 0. ACTION: USER LOGOUT (HỦY PHIÊN BẢO MẬT & XÓA COOKIE)
@@ -379,6 +382,112 @@ export async function POST(request: Request) {
         message: wantEnable
           ? 'Đã kích hoạt bảo mật 2 lớp (2FA)! Mã xác thực sẽ được gửi về email khi đăng nhập.'
           : 'Đã tắt tính năng bảo mật 2 lớp.',
+        user: formatSafeUser(updatedUser),
+      });
+    }
+
+    // 4b. ACTION: CẬP NHẬT THÔNG TIN CÁ NHÂN (TÊN / ẢNH ĐẠI DIỆN / MẬT KHẨU)
+    if (action === 'update_profile') {
+      if (!userId) {
+        return NextResponse.json({ error: 'Thiếu ID người dùng.' }, { status: 400 });
+      }
+
+      // Kiểm soát phân quyền: chỉ chính chủ sở hữu tài khoản mới được sửa
+      const auth = getAuthenticatedUser(request, userId);
+      if (!auth.authenticated || auth.status !== 'active' || auth.userId !== userId) {
+        return NextResponse.json(
+          { error: auth.error || 'Vui lòng đăng nhập để sửa thông tin.' },
+          { status: auth.status === 'unauthorized' ? 401 : 403 }
+        );
+      }
+
+      const dbUser = db.prepare(
+        'SELECT id, username, display_name, avatar, password_hash FROM users WHERE id = ?'
+      ).get(userId) as any;
+      if (!dbUser) {
+        return NextResponse.json({ error: 'Tài khoản không tồn tại.' }, { status: 404 });
+      }
+
+      const updates: string[] = [];
+      const params: any[] = [];
+
+      // a) Tên hiển thị
+      if (displayName !== undefined && displayName !== null) {
+        const cleanName = sanitizeText(String(displayName)).replace(/\s+/g, ' ').trim().slice(0, 30);
+        if (cleanName.length < 2 || cleanName.length > 30) {
+          return NextResponse.json({ error: 'Tên hiển thị phải từ 2 đến 30 ký tự.' }, { status: 400 });
+        }
+        if (cleanName !== dbUser.display_name) {
+          updates.push('display_name = ?');
+          params.push(cleanName);
+        }
+      }
+
+      // b) Ảnh đại diện (emoji)
+      if (avatar !== undefined && avatar !== null) {
+        const cleanAvatar = String(avatar).trim();
+        if (!cleanAvatar || cleanAvatar.length > 8 || /[\s<>]/.test(cleanAvatar)) {
+          return NextResponse.json({ error: 'Ảnh đại diện không hợp lệ (chỉ chọn 1 emoji).' }, { status: 400 });
+        }
+        if (cleanAvatar !== dbUser.avatar) {
+          updates.push('avatar = ?');
+          params.push(cleanAvatar);
+        }
+      }
+
+      // c) Đổi mật khẩu (bắt buộc nhập đúng mật khẩu hiện tại)
+      if (newPassword !== undefined && newPassword !== null && String(newPassword).length > 0) {
+        const cleanNew = String(newPassword).trim();
+        const cleanCurrent = String(currentPassword || '');
+        if (cleanNew.length < 6 || cleanNew.length > 100) {
+          return NextResponse.json({ error: 'Mật khẩu mới phải từ 6 đến 100 ký tự.' }, { status: 400 });
+        }
+        if (!cleanCurrent) {
+          return NextResponse.json({ error: 'Vui lòng nhập mật khẩu hiện tại để đổi mật khẩu.' }, { status: 400 });
+        }
+        if (hashPassword(cleanCurrent) !== dbUser.password_hash) {
+          logAccess({
+            user_id: userId,
+            username: dbUser.username,
+            action: 'update_profile',
+            ip: clientIp,
+            user_agent: userAgent,
+            status: 'failed',
+            details: 'Đổi mật khẩu thất bại: sai mật khẩu hiện tại',
+          });
+          return NextResponse.json({ error: 'Mật khẩu hiện tại không đúng.' }, { status: 400 });
+        }
+        updates.push('password_hash = ?');
+        params.push(hashPassword(cleanNew));
+      }
+
+      if (updates.length === 0) {
+        return NextResponse.json({ error: 'Không có thay đổi nào để lưu.' }, { status: 400 });
+      }
+
+      db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...params, userId);
+      void syncDbToS3Now();
+
+      const updatedUser = db.prepare(`
+        SELECT id, username, email, display_name, avatar, streak, exp, level, coins, target_exam, role, status, two_factor_enabled, email_verified, created_at
+        FROM users WHERE id = ?
+      `).get(userId);
+
+      const changedFields = updates.map((u) => u.split(' =')[0]).join(', ');
+      logger.info(`User ${dbUser.username} updated profile fields: ${changedFields}`);
+      logAccess({
+        user_id: userId,
+        username: dbUser.username,
+        action: 'update_profile',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'success',
+        details: `Cập nhật thông tin cá nhân (${changedFields})`,
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: updates.includes('password_hash = ?') ? 'Đã lưu thông tin và đổi mật khẩu thành công!' : 'Đã lưu thay đổi thông tin cá nhân!',
         user: formatSafeUser(updatedUser),
       });
     }
