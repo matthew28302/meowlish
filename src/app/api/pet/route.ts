@@ -522,15 +522,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Bạn chưa sở hữu vật phẩm này!' }, { status: 400 });
       }
 
+      // SET tường minh theo yêu cầu của client (tuyệt đối không toggle theo DB:
+      // client đã tính trạng thái đích từ UI, toggle 2 phía gây mặc-thành-tháo
+      // khi UI lệch DB). Muốn tháo: client gửi itemId 'none' (nhánh trên).
       if (item.type === 'hat') {
-        const nextHat = pet.equipped_hat === itemId ? 'none' : itemId;
-        db.prepare('UPDATE user_pets SET equipped_hat = ? WHERE user_id = ?').run(nextHat, userId);
+        db.prepare('UPDATE user_pets SET equipped_hat = ? WHERE user_id = ?').run(itemId, userId);
       } else if (item.type === 'outfit') {
-        const nextOutfit = pet.equipped_outfit === itemId ? 'none' : itemId;
-        db.prepare('UPDATE user_pets SET equipped_outfit = ? WHERE user_id = ?').run(nextOutfit, userId);
+        db.prepare('UPDATE user_pets SET equipped_outfit = ? WHERE user_id = ?').run(itemId, userId);
       } else if (item.type === 'accessory') {
-        const nextAcc = pet.equipped_accessory === itemId ? 'none' : itemId;
-        db.prepare('UPDATE user_pets SET equipped_accessory = ? WHERE user_id = ?').run(nextAcc, userId);
+        db.prepare('UPDATE user_pets SET equipped_accessory = ? WHERE user_id = ?').run(itemId, userId);
       }
 
       const updatedPet = ensurePet(userId);

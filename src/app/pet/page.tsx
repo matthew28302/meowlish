@@ -380,8 +380,16 @@ export default function PetPage() {
       if (res.ok) {
         const data = await res.json();
         setPetData((prev: any) => ({ ...prev, ...data.pet }));
+      } else {
+        const errData = await res.json().catch(() => null);
+        sound.playWrong();
+        alert(errData?.error || 'Không thể tháo đồ lúc này!');
+        await loadPetData();
       }
-    } catch {}
+    } catch {
+      sound.playWrong();
+      await loadPetData();
+    }
   };
 
   // Action: Equip or Unequip Item on Pet (Optimistic Update)
@@ -416,7 +424,10 @@ export default function PetPage() {
         body: JSON.stringify({
           userId: currentUser?.id,
           action: 'equip',
-          itemId: item.id,
+          // Gửi TRẠNG THÁI ĐÍCH (item.id hoặc 'none') + itemType để server
+          // SET tường minh, không toggle theo DB (tránh double-toggle).
+          itemId: nextVal,
+          itemType: item.type,
         }),
       });
       if (res.ok) {
@@ -431,8 +442,18 @@ export default function PetPage() {
           return updated;
         });
         window.dispatchEvent(new Event('auth-state-changed'));
+      } else {
+        // Server từ chối (chưa sở hữu / phiên hết hạn...): báo lỗi + đồng bộ
+        // lại từ server để hủy trạng thái optimistic sai lệch.
+        const errData = await res.json().catch(() => null);
+        sound.playWrong();
+        alert(errData?.error || 'Không thể thay đồ cho thú cưng lúc này!');
+        await loadPetData();
       }
-    } catch {}
+    } catch {
+      sound.playWrong();
+      await loadPetData();
+    }
   };
 
   // Action: Switch Pet Species (Optimistic Update)
