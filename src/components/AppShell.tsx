@@ -596,7 +596,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         )}
 
         <main
-          className="flex-1 min-h-0 flex flex-col w-full overflow-y-auto overscroll-y-contain custom-scrollbar pb-24 lg:pb-0"
+          // [&>div.overflow-x-hidden:not(.flex-1)]:shrink-0 — page roots with
+          // overflow-x-hidden compute overflow-y:auto (spec) => min-size 0 =>
+          // flex-shrink collapses them to the viewport, so MAIN ends up with
+          // nothing to scroll and wheel events over the right/left blank margins
+          // did nothing. Keep those roots at content height so MAIN scrolls.
+          // .flex-1 excluded: pet page root is intentionally a full-height
+          // internal scroller.
+          className="flex-1 min-h-0 flex flex-col w-full overflow-y-auto overscroll-y-contain custom-scrollbar pb-24 lg:pb-0 [&>div.overflow-x-hidden:not(.flex-1)]:shrink-0"
         >
           {children}
         </main>
