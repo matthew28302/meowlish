@@ -2220,7 +2220,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'windmill', 'windmill')}
               onTouchEnd={(e) => onObjTouch(e, 'windmill', 'windmill')}
               style={{ left: '16%', top: '22%', zIndex: EMERALD_FEET_Z.windmill }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Cối xay gió Hà Lan xoay cánh quạt nan gỗ"
             >
               <DutchWindmillSVG scale={scaleObj(1.40)} />
@@ -2236,7 +2236,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'climb', 'oak')}
               onTouchEnd={(e) => onObjTouch(e, 'climb', 'oak')}
               style={{ left: '88%', top: '22%', zIndex: EMERALD_FEET_Z.oak }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform hover:scale-105"
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform hover:shadow-lg hover:scale-105"
               title="Cây đại thụ + Xích đu gỗ - Bấm để Bé trèo hái táo rồi ngồi xích đu đung đưa!"
             >
               <div key={shakeWrapKey('oak')} className={shakeWrapCls('oak')}>
@@ -2267,7 +2267,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'villa', 'villa')}
               onTouchEnd={(e) => onObjTouch(e, 'villa', 'villa')}
               style={{ left: '18%', top: '50%', zIndex: EMERALD_FEET_Z.villa }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Biệt thự nông trại mái ngói đỏ"
             >
               <FarmhouseVillaSVG scale={scaleObj(1.40)} />
@@ -2280,7 +2280,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'coop', 'coop')}
               onTouchEnd={(e) => onObjTouch(e, 'coop', 'coop')}
               style={{ left: '48%', top: '40%', zIndex: EMERALD_FEET_Z.coop }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Chuồng gà & Đụn rơm - Bấm để cho gà ăn!"
             >
               <ChickenCoopSVG scale={scaleObj(1.40)} />
@@ -2310,7 +2310,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'veggie', 'flower')}
               onTouchEnd={(e) => onObjTouch(e, 'veggie', 'flower')}
               style={{ left: '20%', top: '80%', zIndex: EMERALD_FEET_Z.flower }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform ${bloomId > 0 ? 'scale-110' : 'hover:scale-105'}`}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform ${bloomId > 0 ? 'scale-110' : 'hover:shadow-lg hover:scale-105'}`}
               title="Bồn hoa & Luống rau củ 4 mùa bội thu - Bấm để thu hoạch!"
             >
               <VeggiePatchSVG scale={scaleObj(1.40)} />
@@ -2326,7 +2326,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'swim', 'pond')}
               onTouchEnd={(e) => onObjTouch(e, 'swim', 'pond')}
               style={{ left: '80%', top: '78%', zIndex: EMERALD_FEET_Z.pond }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Đầm hồ sen sinh thái - Bấm để Bé nhảy xuống bơi lội mát rượi!"
             >
               <LotusPondSVG scale={scaleObj(1.40)} />
@@ -2429,7 +2429,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'lighthouse', 'lighthouse')}
               onTouchEnd={(e) => onObjTouch(e, 'lighthouse', 'lighthouse')}
               style={{ left: '16%', top: '26%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Ngọn hải đăng xoay đèn rực rỡ"
             >
               <LighthouseSVG scale={scaleObj(1.40)} />
@@ -2441,7 +2441,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'climb', 'palm')}
               onTouchEnd={(e) => onObjTouch(e, 'climb', 'palm')}
               style={{ left: '86%', top: '26%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Cây dừa nhiệt đới - Bấm để Bé leo hái dừa xiêm!"
             >
               <div key={shakeWrapKey('palm')} className={shakeWrapCls('palm')}>
@@ -2469,7 +2469,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'sandcastle', 'sandcastle')}
               onTouchEnd={(e) => onObjTouch(e, 'sandcastle', 'sandcastle')}
               style={{ left: '20%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Lâu đài cát & Lửa trại bãi biển - Bấm để vui chơi!"
             >
               <SandcastleBonfireSVG scale={scaleObj(1.40)} />
@@ -2481,7 +2481,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'tiki', 'tiki')}
               onTouchEnd={(e) => onObjTouch(e, 'tiki', 'tiki')}
               style={{ left: '82%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Quầy Tiki Bar nhiệt đới - Bấm để uống nước dừa mát lạnh!"
             >
               <TikiBarCabanaSVG scale={scaleObj(1.40)} />
@@ -2552,7 +2552,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'climb', 'bookshelf')}
               onTouchEnd={(e) => onObjTouch(e, 'climb', 'bookshelf')}
               style={{ left: '18%', top: '28%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Kệ sách thuật toán & thang lăn - Bấm để trèo thang đọc sách!"
             >
               <LibraryBookshelfSVG scale={scaleObj(1.37)} />
@@ -2565,7 +2565,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'code', 'workstation')}
               onTouchEnd={(e) => onObjTouch(e, 'code', 'workstation')}
               style={{ left: '50%', top: '28%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Dàn máy dual monitor - Bấm để Bé NGỒI code, nhận EXP!"
             >
               <DevWorkstationSVG scale={scaleObj(1.40)} />
@@ -2578,7 +2578,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'server', 'server')}
               onTouchEnd={(e) => onObjTouch(e, 'server', 'server')}
               style={{ left: '84%', top: '28%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Tủ server rack 42U đèn LED nhấp nháy - Bấm để kiểm tra hạ tầng và uptime!"
             >
               <ServerRackSVG scale={scaleObj(1.35)} />
@@ -2590,7 +2590,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'kanban', 'kanban')}
               onTouchEnd={(e) => onObjTouch(e, 'kanban', 'kanban')}
               style={{ left: '50%', top: '54%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Bảng Scrum Kanban tiến độ dự án - Bấm để Bé kiểm tra sprint!"
             >
               <ScrumKanbanWhiteboardSVG scale={scaleObj(1.30)} />
@@ -2602,7 +2602,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'beanbag', 'beanbag')}
               onTouchEnd={(e) => onObjTouch(e, 'beanbag', 'beanbag')}
               style={{ left: '20%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Đệm lười Beanbag êm ái - Bấm để Bé nhún nhảy cực vui!"
             >
               <BeanbagLoungeSVG scale={scaleObj(1.12)} isBouncing={isBouncingBeanbag} />
@@ -2614,7 +2614,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'coffee', 'coffee')}
               onTouchEnd={(e) => onObjTouch(e, 'coffee', 'coffee')}
               style={{ left: '82%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Quầy pha cafe Espresso & Pizza - Bấm để nạp năng lượng!"
             >
               <EspressoBarKitchenetteSVG scale={scaleObj(1.35)} />
@@ -2670,7 +2670,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'castle', 'castle')}
               onTouchEnd={(e) => onObjTouch(e, 'castle', 'castle')}
               style={{ left: '50%', top: '22%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Lâu đài pha lê trên mây - Bấm để Bé bay lên cổng thành!"
             >
               <CrystalCastleSVG scale={scaleObj(1.40)} />
@@ -2683,7 +2683,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'rainbow', 'rainbow')}
               onTouchEnd={(e) => onObjTouch(e, 'rainbow', 'rainbow')}
               style={{ left: '72%', top: '30%' }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform ${isRainbowWalking ? 'scale-105' : 'hover:scale-105'}`}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform ${isRainbowWalking ? 'scale-105' : 'hover:shadow-lg hover:scale-105'}`}
               title="Cầu vồng pha lê 7 màu - Bấm để Bé ĐI BỘ qua cầu vồng!"
             >
               <RainbowBridgeArchSVG scale={scaleObj(1.40)} />
@@ -2697,7 +2697,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'climb', 'slide')}
               onTouchEnd={(e) => onObjTouch(e, 'climb', 'slide')}
               style={{ left: '28%', top: '38%' }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform ${isSliding ? 'scale-110' : 'hover:scale-105'}`}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform ${isSliding ? 'scale-110' : 'hover:shadow-lg hover:scale-105'}`}
               title="Cầu trượt mây bồng bềnh - Bấm để Bé TRƯỢT từ đỉnh xuống!"
             >
               <StarryCloudPlatformSVG scale={scaleObj(1.37)} />
@@ -2710,7 +2710,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'fountain', 'fountain')}
               onTouchEnd={(e) => onObjTouch(e, 'fountain', 'fountain')}
               style={{ left: '20%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Đài phun nước thiên thần sao - Bấm để tắm mát lấp lánh!"
             >
               <CelestialAngelFountainSVG scale={scaleObj(1.37)} />
@@ -2723,7 +2723,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'treasure', 'skytreasure')}
               onTouchEnd={(e) => onObjTouch(e, 'treasure', 'skytreasure')}
               style={{ left: '80%', top: '78%' }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform ${isSkyTreasureOpen ? 'scale-110' : 'hover:scale-105'}`}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform ${isSkyTreasureOpen ? 'scale-110' : 'hover:shadow-lg hover:scale-105'}`}
               title="Rương ngọc báu tri thức - Bấm để MỞ rương, vàng bay ra!"
             >
               <div className="relative" key={shakeWrapKey('skytreasure')}>
@@ -2825,7 +2825,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'mast', 'mast')}
               onTouchEnd={(e) => onObjTouch(e, 'mast', 'mast')}
               style={{ left: '50%', top: '25%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Cột buồm Mũ Rơm & Đài quan sát - Bấm để Bé trèo lên hóng gió biển!"
             >
               <PirateMastJollyRogerSVG scale={scaleObj(1.37)} />
@@ -2837,7 +2837,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'cannon', 'cannon')}
               onTouchEnd={(e) => onObjTouch(e, 'cannon', 'cannon')}
               style={{ left: '20%', top: '30%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Khẩu đại bác mạ đồng & Thùng Cola sồi - Bấm để nạp năng lượng!"
             >
               <PirateCannonAndRumBarrelsSVG scale={scaleObj(1.35)} />
@@ -2849,7 +2849,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'tangerine', 'tangerine')}
               onTouchEnd={(e) => onObjTouch(e, 'tangerine', 'tangerine')}
               style={{ left: '82%', top: '30%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Vườn cam Mikan của hoa tiêu Nami - Bấm để ăn cam ngọt lịm!"
             >
               <div key={shakeWrapKey('tangerine')} className={shakeWrapCls('tangerine')}>
@@ -2980,7 +2980,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'hokage', 'hokage')}
               onTouchEnd={(e) => onObjTouch(e, 'hokage', 'hokage')}
               style={{ left: '50%', top: '22%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Vách đá chạm khắc 4 tượng Hokage - Bấm để Bé leo lên đỉnh núi!"
             >
               <HokageRockMonumentSVG scale={scaleObj(1.37)} />
@@ -3004,7 +3004,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'torii', 'torii')}
               onTouchEnd={(e) => onObjTouch(e, 'torii', 'torii')}
               style={{ left: '84%', top: '32%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Cổng Torii đỏ rực & Rừng trúc - Bấm để thắp sáng Ý chí của Lửa!"
             >
               <BambooToriiShrineSVG scale={scaleObj(1.37)} />
@@ -3104,7 +3104,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'candles', 'candles')}
               onTouchEnd={(e) => onObjTouch(e, 'candles', 'candles')}
               style={{ left: '50%', top: '22%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Nến phép thuật bay lơ lửng - Bấm để niệm thần chú Lumos Maxima!"
             >
               <FloatingCandlesGothicHallSVG scale={scaleObj(1.15)} isLit={isCandleLit} />
@@ -3116,7 +3116,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'banners', 'banners')}
               onTouchEnd={(e) => onObjTouch(e, 'banners', 'banners')}
               style={{ left: '82%', top: '25%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Cờ hiệu 4 Nhà: Gryffindor, Ravenclaw, Hufflepuff, Slytherin - Bấm để vinh danh thành tích!"
             >
               <HogwartsHouseBannersSVG scale={scaleObj(1.30)} />
@@ -3154,7 +3154,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'fireplace', 'fireplace')}
               onTouchEnd={(e) => onObjTouch(e, 'fireplace', 'fireplace')}
               style={{ left: '82%', top: '76%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Lò sưởi đá khổng lồ & Ngọn lửa Floo - Bấm để sưởi ấm bập bùng!"
             >
               <HogwartsGreatFireplaceSVG scale={scaleObj(1.40)} />
@@ -3239,7 +3239,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'pole', 'pole')}
               onTouchEnd={(e) => onObjTouch(e, 'pole', 'pole')}
               style={{ left: '84%', top: '28%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Cột điện khu phố & Gương cầu lồi ngã ba - Bấm để ngắm hoàng hôn tuổi thơ!"
             >
               <JapaneseNeighborhoodPoleSVG scale={scaleObj(1.30)} />
@@ -3349,7 +3349,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'lollipop', 'lollipop')}
               onTouchEnd={(e) => onObjTouch(e, 'lollipop', 'lollipop')}
               style={{ left: '80%', top: '30%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Cây kẹo mút khổng lồ bảy sắc - Bấm để thưởng thức kẹo bông gòn ngọt ngào!"
             >
               <GiantLollipopTreeSVG scale={scaleObj(1.40)} />
@@ -3361,7 +3361,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'rainbow', 'river')}
               onTouchEnd={(e) => onObjTouch(e, 'rainbow', 'river')}
               style={{ left: '50%', top: '56%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Suối thác cầu vồng kẹo dẻo - Bấm để Bé bơi lội mát rượi!"
             >
               <RainbowRiverWaterfallSVG scale={scaleObj(1.40)} />
@@ -3373,7 +3373,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               onClick={(e) => onObjClick(e, 'apple', 'apple')}
               onTouchEnd={(e) => onObjTouch(e, 'apple', 'apple')}
               style={{ left: '18%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:shadow-lg hover:scale-105 transition-transform"
               title="Cây táo thần Whispy Woods - Bấm để hái táo ngôi sao may mắn!"
             >
               <div key={shakeWrapKey('apple')} className={shakeWrapCls('apple')}>
