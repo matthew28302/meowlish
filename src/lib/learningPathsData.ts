@@ -21,6 +21,8 @@ export interface PathNode {
 export interface LearningPath {
   id: string;
   examCode: string;
+  /** Nhãn ngắn hiện trên nút chọn định hướng (không cắt chuỗi title). */
+  shortLabel: string;
   title: string;
   badge: string;
   icon: string;
@@ -36,6 +38,7 @@ export const LEARNING_PATHS: Record<string, LearningPath> = {
   toeic: {
     id: 'toeic',
     examCode: 'toeic',
+    shortLabel: 'TOEIC',
     title: 'Lộ Trình TOEIC Quốc Tế (Part 1 - Part 7)',
     badge: 'Mục Tiêu 450 - 800+ TOEIC',
     icon: '🎯',
@@ -166,6 +169,7 @@ export const LEARNING_PATHS: Record<string, LearningPath> = {
   vstep: {
     id: 'vstep',
     examCode: 'vstep',
+    shortLabel: 'VSTEP',
     title: 'Lộ Trình VSTEP Độc Quyền (B1 - B2 - C1)',
     badge: 'Chuẩn Khung 6 Bậc BGD',
     icon: '🇻🇳',
@@ -275,6 +279,7 @@ export const LEARNING_PATHS: Record<string, LearningPath> = {
   ielts: {
     id: 'ielts',
     examCode: 'ielts',
+    shortLabel: 'IELTS',
     title: 'Lộ Trình IELTS Academic & General (5.5 - 7.5+)',
     badge: 'Mục Tiêu Band 5.5 - 7.5+',
     icon: '🇬🇧',
@@ -384,6 +389,7 @@ export const LEARNING_PATHS: Record<string, LearningPath> = {
   toefl: {
     id: 'toefl',
     examCode: 'toefl',
+    shortLabel: 'TOEFL',
     title: 'Lộ Trình TOEFL iBT Quốc Tế (60 - 100+)',
     badge: 'Mục Tiêu 60 - 100+ TOEFL',
     icon: '🇺🇸',
@@ -493,6 +499,7 @@ export const LEARNING_PATHS: Record<string, LearningPath> = {
   it_work: {
     id: 'it_work',
     examCode: 'it_work',
+    shortLabel: 'Tiếng Anh IT',
     title: 'Lộ Trình Tiếng Anh IT & Công Sở Thực Chiến',
     badge: 'Chuyên Ngành IT & Communication',
     icon: '💻',
@@ -665,6 +672,7 @@ export const LEARNING_PATHS: Record<string, LearningPath> = {
   daily_comm: {
     id: 'daily_comm',
     examCode: 'daily_comm',
+    shortLabel: 'Giao Tiếp',
     title: 'Lộ Trình Tiếng Anh Giao Tiếp & Du Lịch Thực Chiến',
     badge: 'Phản Xạ Tự Nhiên & Du Lịch 360°',
     icon: '🌍',

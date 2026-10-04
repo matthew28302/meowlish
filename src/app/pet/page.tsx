@@ -1411,7 +1411,7 @@ export default function PetPage() {
                     </span>
                     {previewHat && (
                       <button
-                        onClick={() => setPreviewHat(null)}
+                        onClick={() => handleUnequip('hat')}
                         className="text-[9px] text-rose-500 hover:text-rose-700 font-black cursor-pointer"
                       >
                         ✕ Tháo
@@ -1426,7 +1426,7 @@ export default function PetPage() {
                     </span>
                     {previewOutfit && (
                       <button
-                        onClick={() => setPreviewOutfit(null)}
+                        onClick={() => handleUnequip('outfit')}
                         className="text-[9px] text-rose-500 hover:text-rose-700 font-black cursor-pointer"
                       >
                         ✕ Tháo
@@ -1441,7 +1441,7 @@ export default function PetPage() {
                     </span>
                     {previewAccessory && (
                       <button
-                        onClick={() => setPreviewAccessory(null)}
+                        onClick={() => handleUnequip('accessory')}
                         className="text-[9px] text-rose-500 hover:text-rose-700 font-black cursor-pointer"
                       >
                         ✕ Tháo

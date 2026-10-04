@@ -298,23 +298,24 @@ export default function HomePage() {
           </div>
 
           {/* Goal Switcher Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 border-t border-slate-100 scrollbar-none">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 border-t border-slate-100 dark:border-slate-800 scrollbar-none custom-scrollbar">
             {Object.values(LEARNING_PATHS).map((path) => {
               const isSelected = path.id === activeTargetCode;
               return (
                 <button
                   key={path.id}
                   onClick={() => handleSelectTarget(path.id)}
-                  className={`px-4 py-3 rounded-2xl font-black text-xs sm:text-sm transition flex items-center gap-2 shrink-0 cursor-pointer border-2 ${
+                  title={path.title}
+                  className={`px-3.5 py-2.5 rounded-2xl font-black text-xs sm:text-sm transition flex items-center gap-2 shrink-0 cursor-pointer border-2 ${
                     isSelected
-                      ? 'bg-slate-900 text-white border-slate-900 shadow-md scale-105'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                      ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-md scale-105'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700'
                   }`}
                 >
                   <span className="text-lg">{path.icon}</span>
-                  <span>{path.title.split(' ')[2] || path.title}</span>
+                  <span className="whitespace-nowrap">{path.shortLabel}</span>
                   {isSelected && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                   )}
                 </button>
               );

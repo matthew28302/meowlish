@@ -166,7 +166,7 @@ export default function RoleplayPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 lg:pb-12 space-y-8 overflow-x-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-teal-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg">
+      <div className="bg-gradient-to-r from-[#7c6cc4] via-[#5f66b3] to-[#42968e] dark:from-[#4c4480] dark:via-[#3d4270] dark:to-[#285f5a] rounded-3xl p-6 sm:p-8 text-white shadow-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2">
