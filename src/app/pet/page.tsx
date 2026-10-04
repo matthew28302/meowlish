@@ -858,7 +858,9 @@ export default function PetPage() {
   return (
     <div className="w-full h-full flex-1 min-h-0 flex flex-col p-2 sm:p-3 gap-2 overflow-y-auto custom-scrollbar select-none pb-24 lg:pb-2 overflow-x-hidden">
       {/* ================= MEOWLISH 2D WORLD NAVIGATOR ================= */}
-      <div className="w-full shrink-0 bg-gradient-to-r from-emerald-900 via-teal-950 to-amber-950 rounded-2xl p-1.5 sm:p-2 border-2 border-emerald-500/50 shadow-lg flex items-center justify-between gap-1.5 overflow-x-auto custom-scrollbar">
+      {/* touch-auto: ghi đè .custom-scrollbar{touch-action:pan-y} — nếu không, mobile
+          KHÔNG vuốt được sang ngang và 3/5 tab nằm ngoài màn hình không mở được. */}
+      <div className="w-full shrink-0 bg-gradient-to-r from-emerald-900 via-teal-950 to-amber-950 rounded-2xl p-1.5 sm:p-2 border-2 border-emerald-500/50 shadow-lg flex items-center justify-between gap-1.5 overflow-x-auto touch-auto custom-scrollbar">
         <div className="flex items-center gap-1.5 min-w-max">
           <button
             onClick={() => {
@@ -994,7 +996,7 @@ export default function PetPage() {
           {/* DEDICATED ACTION TOOLBAR (SEPARATED COMPLETELY OUTSIDE MAP).
               Mobile: một hàng cuộn ngang để vườn vừa khung hình không cuộn;
               desktop (lg+): wrap nhiều hàng như cũ. */}
-          <div className="w-full shrink-0 rounded-2xl p-2 sm:p-2.5 border-2 border-emerald-300/70 bg-gradient-to-b from-white via-white to-emerald-50/70 shadow-[0_5px_0_rgba(5,150,105,0.18),0_14px_24px_-16px_rgba(5,150,105,0.6)] flex flex-row flex-nowrap lg:flex-wrap items-center gap-2 overflow-x-auto lg:overflow-visible custom-scrollbar dark:from-slate-900 dark:via-slate-900">
+          <div className="w-full shrink-0 rounded-2xl p-2 sm:p-2.5 border-2 border-emerald-300/70 bg-gradient-to-b from-white via-white to-emerald-50/70 shadow-[0_5px_0_rgba(5,150,105,0.18),0_14px_24px_-16px_rgba(5,150,105,0.6)] flex flex-row flex-nowrap lg:flex-wrap items-center gap-2 overflow-x-auto touch-auto lg:overflow-visible custom-scrollbar dark:from-slate-900 dark:via-slate-900">
             {/* Left: Modals & Wardrobe */}
             <div className="flex flex-nowrap lg:flex-wrap shrink-0 items-center gap-1.5 [&>button]:shrink-0 [&>button]:whitespace-nowrap">
               <button
@@ -1032,7 +1034,7 @@ export default function PetPage() {
                   sound.playClick();
                   setShowSwitchModal(true);
                 }}
-                className="px-2.5 py-2 min-h-[40px] rounded-2xl border border-slate-200 border-b-[3px] border-b-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[11px] sm:text-xs font-black cursor-pointer flex items-center gap-1 transition hover:-translate-y-0.5 active:translate-y-0.5 active:border-b touch-manipulation dark:border-white/10 dark:bg-slate-900 hover:dark:bg-slate-800 dark:text-slate-300"
+                className="px-2.5 py-2 min-h-[40px] rounded-2xl border border-slate-200 border-b-[3px] border-b-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[12px] sm:text-xs font-black cursor-pointer flex items-center gap-1 transition hover:-translate-y-0.5 active:translate-y-0.5 active:border-b touch-manipulation dark:border-white/10 dark:bg-slate-900 hover:dark:bg-slate-800 dark:text-slate-300"
                 title="Chọn Nuôi Linh Vật Khác"
               >
                 <RefreshCw className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
@@ -1047,7 +1049,7 @@ export default function PetPage() {
                   sound.playClick();
                   setShowFeedModal(true);
                 }}
-                className="px-2.5 sm:px-3 py-1.5 min-h-[36px] bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl border-b-[3px] border-emerald-800/70 text-[11px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-[0_3px_8px_-4px_rgba(6,95,70,0.5)] hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5 active:border-b-0 active:shadow-none"
+                className="px-2.5 sm:px-3 py-1.5 min-h-[36px] bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl border-b-[3px] border-emerald-800/70 text-[12px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-[0_3px_8px_-4px_rgba(6,95,70,0.5)] hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5 active:border-b-0 active:shadow-none"
                 title="Cho thú cưng ăn thực đơn bổ dưỡng"
               >
                 <Utensils className="w-3.5 h-3.5" />
@@ -1060,7 +1062,7 @@ export default function PetPage() {
 
               <button
                 onClick={() => farmRef.current?.tossBall()}
-                className="px-2.5 sm:px-3 py-1.5 min-h-[36px] bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl border-b-[3px] border-amber-600/70 text-[11px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-[0_3px_8px_-4px_rgba(217,119,6,0.5)] hover:-translate-y-0.5 active:translate-y-0.5 active:border-b-0 active:shadow-none touch-manipulation"
+                className="px-2.5 sm:px-3 py-1.5 min-h-[36px] bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl border-b-[3px] border-amber-600/70 text-[12px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-[0_3px_8px_-4px_rgba(217,119,6,0.5)] hover:-translate-y-0.5 active:translate-y-0.5 active:border-b-0 active:shadow-none touch-manipulation"
                 title="Ném bóng cho thú cưng nhặt"
               >
                 <span>🎾</span>
@@ -1069,7 +1071,7 @@ export default function PetPage() {
 
               <button
                 onClick={() => farmRef.current?.callPet()}
-                className="px-2.5 sm:px-3 py-1.5 min-h-[36px] bg-white hover:bg-slate-100 text-slate-800 rounded-2xl border border-slate-300 border-b-[3px] border-b-slate-400/70 text-[11px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 active:border-b hover:scale-100 touch-manipulation dark:bg-slate-900 hover:dark:bg-slate-800 dark:text-slate-200 dark:border-white/10"
+                className="px-2.5 sm:px-3 py-1.5 min-h-[36px] bg-white hover:bg-slate-100 text-slate-800 rounded-2xl border border-slate-300 border-b-[3px] border-b-slate-400/70 text-[12px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 active:border-b hover:scale-100 touch-manipulation dark:bg-slate-900 hover:dark:bg-slate-800 dark:text-slate-200 dark:border-white/10"
                 title="Gọi thú cưng lại gần bạn"
               >
                 <Volume2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-300" />
@@ -1083,7 +1085,7 @@ export default function PetPage() {
                     setFarmState((prev) => ({ ...prev, isSleeping: next }));
                   }
                 }}
-                className={`px-2.5 sm:px-3 py-1.5 min-h-[36px] text-[11px] sm:text-xs font-black rounded-2xl border-b-[3px] transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 ${
+                className={`px-2.5 sm:px-3 py-1.5 min-h-[36px] text-[12px] sm:text-xs font-black rounded-2xl border-b-[3px] transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 ${
                   farmState.isSleeping
                     ? 'bg-sky-500 text-white border-sky-400 ring-2 ring-sky-300'
                     : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700 dark:bg-white dark:text-slate-900 dark:border-white/10'
@@ -1245,7 +1247,7 @@ export default function PetPage() {
                   <h3 className="text-sm sm:text-base md:text-lg font-black leading-tight truncate">
                     Cửa Hàng & Phòng Thử Đồ
                   </h3>
-                  <p className="text-[10px] sm:text-[11px] text-emerald-100 font-medium truncate hidden xs:block">
+                  <p className="text-[12px] text-emerald-100 font-medium truncate hidden xs:block">
                     Chọn món đồ bất kỳ để bé mặc thử ngay lập tức!
                   </p>
                 </div>
@@ -1300,7 +1302,7 @@ export default function PetPage() {
               </div>
 
               {/* Sub-Category Filter Pills */}
-              <div className="flex items-center gap-1 overflow-x-auto text-xs font-bold py-0.5 custom-scrollbar">
+              <div className="flex items-center gap-1 overflow-x-auto touch-auto text-xs font-bold py-0.5 custom-scrollbar">
                 {[
                   { id: 'all', label: 'Tất Cả' },
                   { id: 'hat', label: '🎓 Nón & Mũ' },
@@ -1316,7 +1318,7 @@ export default function PetPage() {
                       sound.playClick();
                       setShopCategory(cat.id);
                     }}
-                    className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[11px] font-black transition cursor-pointer shrink-0 ${
+                    className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[12px] font-black transition cursor-pointer shrink-0 ${
                       shopCategory === cat.id
                         ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
                         : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200 dark:bg-slate-900 dark:text-slate-400 hover:dark:bg-slate-700 dark:border-white/10'
@@ -1336,7 +1338,7 @@ export default function PetPage() {
                     species={petData?.pet_type || 'owl'}
                     animationState="idle"
                     facing="right"
-                    scale={0.75}
+                    scale={0.525}
                     equippedHat={previewHat}
                     equippedOutfit={previewOutfit}
                     equippedAccessory={previewAccessory}
@@ -1344,7 +1346,7 @@ export default function PetPage() {
                 </div>
                 <div className="text-left min-w-0">
                   <div className="text-[9px] font-black text-emerald-800 uppercase tracking-wider dark:text-emerald-200">Đang xem thử</div>
-                  <div className="text-[11px] font-black text-slate-800 truncate max-w-[130px] dark:text-slate-200">
+                  <div className="text-[12px] font-black text-slate-800 max-w-[130px] leading-tight dark:text-slate-200">
                     {previewHatObj?.name || previewOutfitObj?.name || previewAccessoryObj?.name || 'Đồ mặc định'}
                   </div>
                 </div>
@@ -1353,14 +1355,14 @@ export default function PetPage() {
               <div className="flex items-center gap-1 shrink-0">
                 <button
                   onClick={handleRevertPreview}
-                  className="px-2 py-1 rounded-lg bg-white border border-slate-300 text-slate-700 text-[10px] font-bold shadow-xs cursor-pointer active:scale-95 dark:bg-slate-900 dark:border-white/10 dark:text-slate-300"
+                  className="px-2 py-1 rounded-lg bg-white border border-slate-300 text-slate-700 text-[12px] font-bold shadow-xs cursor-pointer active:scale-95 dark:bg-slate-900 dark:border-white/10 dark:text-slate-300"
                   title="Khôi phục"
                 >
                   <RotateCcw className="w-3 h-3" />
                 </button>
                 <button
                   onClick={handleApplyPreview}
-                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black shadow-xs cursor-pointer flex items-center gap-1 active:scale-95"
+                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[12px] font-black shadow-xs cursor-pointer flex items-center gap-1 active:scale-95"
                   title="Mặc lên bé"
                 >
                   <Check className="w-3 h-3" /> Mặc Bé
@@ -1373,13 +1375,13 @@ export default function PetPage() {
               {/* ================= DESKTOP LEFT: LIVE FITTING ROOM PREVIEW STAGE ================= */}
               <div className="hidden md:flex md:w-68 lg:w-76 shrink-0 bg-gradient-to-b from-emerald-50/90 via-teal-50/50 to-slate-50 p-3.5 border-r border-slate-200 flex-col justify-between items-center text-center overflow-hidden dark:from-emerald-950 dark:via-teal-950 dark:to-slate-900 dark:border-white/10">
                 <div className="w-full">
-                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-black uppercase tracking-wider mb-1 dark:bg-emerald-950 dark:text-emerald-200">
+                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[12px] font-black uppercase tracking-wider mb-1 dark:bg-emerald-950 dark:text-emerald-200">
                     <span>🪞</span> Phòng Thử Đồ Trực Tiếp
                   </div>
                   <h4 className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200">
                     {petData?.pet_name || currentPetMeta.name}
                   </h4>
-                  <p className="text-[10px] text-slate-500 font-medium dark:text-slate-400">
+                  <p className="text-[12px] text-slate-500 font-medium dark:text-slate-400">
                     Nhấp vào món đồ bên phải để bé mặc thử ngay!
                   </p>
                 </div>
@@ -1393,7 +1395,7 @@ export default function PetPage() {
                       species={petData?.pet_type || 'owl'}
                       animationState="idle"
                       facing="right"
-                      scale={2.1}
+                      scale={1.47}
                       equippedHat={previewHat}
                       equippedOutfit={previewOutfit}
                       equippedAccessory={previewAccessory}
@@ -1403,9 +1405,9 @@ export default function PetPage() {
 
                 {/* Current Preview Status Chips - Compact Layout */}
                 <div className="w-full space-y-1 bg-white/90 backdrop-blur-xs p-2.5 rounded-xl border border-slate-200 text-xs shadow-xs text-left dark:bg-slate-900/90 dark:border-white/10">
-                  <div className="flex items-center justify-between text-[10px]">
+                  <div className="flex items-center justify-between text-[12px]">
                     <span className="font-bold text-slate-500 dark:text-slate-400">🎓 Nón:</span>
-                    <span className="font-black text-slate-800 truncate max-w-[110px] dark:text-slate-200">
+                    <span className="font-black text-slate-800 max-w-[110px] leading-tight dark:text-slate-200">
                       {previewHatObj ? previewHatObj.name : 'Không đội'}
                     </span>
                     {previewHat && (
@@ -1418,9 +1420,9 @@ export default function PetPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between text-[10px]">
+                  <div className="flex items-center justify-between text-[12px]">
                     <span className="font-bold text-slate-500 dark:text-slate-400">👕 Áo:</span>
-                    <span className="font-black text-slate-800 truncate max-w-[110px] dark:text-slate-200">
+                    <span className="font-black text-slate-800 max-w-[110px] leading-tight dark:text-slate-200">
                       {previewOutfitObj ? previewOutfitObj.name : 'Không mặc'}
                     </span>
                     {previewOutfit && (
@@ -1433,9 +1435,9 @@ export default function PetPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between text-[10px]">
+                  <div className="flex items-center justify-between text-[12px]">
                     <span className="font-bold text-slate-500 dark:text-slate-400">👓 Phụ kiện:</span>
-                    <span className="font-black text-slate-800 truncate max-w-[110px] dark:text-slate-200">
+                    <span className="font-black text-slate-800 max-w-[110px] leading-tight dark:text-slate-200">
                       {previewAccessoryObj ? previewAccessoryObj.name : 'Không đeo'}
                     </span>
                     {previewAccessory && (
@@ -1550,7 +1552,7 @@ export default function PetPage() {
                             <h5 className="font-black text-xs sm:text-sm text-slate-900 leading-tight line-clamp-1 dark:text-slate-100">
                               {item.name}
                             </h5>
-                            <p className="text-[10px] text-slate-500 font-medium line-clamp-1 dark:text-slate-400">
+                            <p className="text-[12px] text-slate-500 font-medium line-clamp-1 dark:text-slate-400">
                               {item.description}
                             </p>
                             {item.benefit && (
@@ -1592,7 +1594,7 @@ export default function PetPage() {
                                   e.stopPropagation();
                                   handleFeed(item);
                                 }}
-                                className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 active:scale-95 ${
+                                className={`w-full py-1 text-[12px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 active:scale-95 ${
                                   isOwned
                                     ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500'
                                     : userCoins >= item.price
@@ -1615,7 +1617,7 @@ export default function PetPage() {
                               </button>
                             ) : item.type === 'decor' ? (
                               isOwned ? (
-                                <div className="w-full py-1 text-[11px] font-black rounded-xl bg-slate-100 text-slate-600 border border-slate-200 text-center dark:bg-slate-800 dark:text-slate-400 dark:border-white/10">
+                                <div className="w-full py-1 text-[12px] font-black rounded-xl bg-slate-100 text-slate-600 border border-slate-200 text-center dark:bg-slate-800 dark:text-slate-400 dark:border-white/10">
                                   ✓ Đã Có Trong Kho
                                 </div>
                               ) : (
@@ -1624,7 +1626,7 @@ export default function PetPage() {
                                     e.stopPropagation();
                                     handlePurchase(item);
                                   }}
-                                  className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 active:scale-95 ${
+                                  className={`w-full py-1 text-[12px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 active:scale-95 ${
                                     userCoins >= item.price
                                       ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500'
                                       : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 hover:dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800'
@@ -1645,7 +1647,7 @@ export default function PetPage() {
                                     e.stopPropagation();
                                     handleChangeHabitat(item.id);
                                   }}
-                                  className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs active:scale-95 ${
+                                  className={`w-full py-1 text-[12px] font-black rounded-xl border transition cursor-pointer shadow-xs active:scale-95 ${
                                     petData?.selected_habitat === item.id
                                       ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800'
                                       : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-700'
@@ -1659,7 +1661,7 @@ export default function PetPage() {
                                     e.stopPropagation();
                                     handlePurchase(item);
                                   }}
-                                  className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 active:scale-95 ${
+                                  className={`w-full py-1 text-[12px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 active:scale-95 ${
                                     userCoins >= item.price
                                       ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500'
                                       : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 hover:dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800'
@@ -1679,7 +1681,7 @@ export default function PetPage() {
                                   e.stopPropagation();
                                   handleEquip(item);
                                 }}
-                                className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs active:scale-95 ${
+                                className={`w-full py-1 text-[12px] font-black rounded-xl border transition cursor-pointer shadow-xs active:scale-95 ${
                                   isActuallyEquipped
                                     ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-950 hover:dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800'
                                     : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-700'
@@ -1693,7 +1695,7 @@ export default function PetPage() {
                                   e.stopPropagation();
                                   handlePurchase(item);
                                 }}
-                                className={`w-full py-1 text-[11px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 active:scale-95 ${
+                                className={`w-full py-1 text-[12px] font-black rounded-xl border transition cursor-pointer shadow-xs flex items-center justify-center gap-1 active:scale-95 ${
                                   userCoins >= item.price
                                     ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500'
                                     : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 hover:dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800'
@@ -1728,7 +1730,7 @@ export default function PetPage() {
                 <span className="text-2xl">🍜</span>
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight dark:text-slate-100">Thực Đơn Thần Kỳ Cho Thú Cưng</h3>
-                  <p className="text-[11px] text-slate-500 font-medium dark:text-slate-400">Bổ sung năng lượng, chỉ số Hạnh phúc và kinh nghiệm EXP!</p>
+                  <p className="text-[12px] text-slate-500 font-medium dark:text-slate-400">Bổ sung năng lượng, chỉ số Hạnh phúc và kinh nghiệm EXP!</p>
                 </div>
               </div>
               <button
@@ -1758,12 +1760,12 @@ export default function PetPage() {
                             Kho: x{invItem.quantity}
                           </span>
                         ) : (
-                          <span className="text-[10px] font-black text-amber-600 shrink-0 dark:text-amber-300">
+                          <span className="text-[12px] font-black text-amber-600 shrink-0 dark:text-amber-300">
                             🪙 {food.price}
                           </span>
                         )}
                       </div>
-                      <div className="text-[10px] text-slate-500 line-clamp-1 mt-0.5 dark:text-slate-400">{food.description}</div>
+                      <div className="text-[12px] text-slate-500 line-clamp-1 mt-0.5 dark:text-slate-400">{food.description}</div>
                       <div className="flex items-center gap-1 mt-1.5 flex-wrap">
                         {food.hungerBoost && (
                           <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1 py-0.2 rounded border border-amber-200 dark:text-amber-300 dark:bg-amber-950 dark:border-amber-800">
@@ -1805,7 +1807,7 @@ export default function PetPage() {
                 <span className="text-2xl">🏡</span>
                 <div>
                   <h3 className="text-base sm:text-lg font-black leading-tight">Chọn Cảnh Quan Thế Giới Thú Cưng</h3>
-                  <p className="text-[11px] text-emerald-100 font-medium">Bao gồm 5 Cảnh quan Anime huyền thoại & 4 Cảnh quan kinh điển!</p>
+                  <p className="text-[12px] text-emerald-100 font-medium">Bao gồm 5 Cảnh quan Anime huyền thoại & 4 Cảnh quan kinh điển!</p>
                 </div>
               </div>
               <button
@@ -1901,23 +1903,23 @@ export default function PetPage() {
                         <div className="flex items-center justify-between mb-1.5">
                           <div className="flex items-center gap-2">
                             <span className="text-3xl">{hab.emoji}</span>
-                            <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                            <span className="text-[12px] font-black px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
                               {hab.badge}
                             </span>
                           </div>
                           {isSelected && (
-                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-indigo-600 text-white">
+                            <span className="text-[12px] font-black px-2 py-0.5 rounded-full bg-indigo-600 text-white">
                               ĐANG CHỌN
                             </span>
                           )}
                           {!isOwned && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
+                            <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
                               CHƯA MỞ
                             </span>
                           )}
                         </div>
                         <div className={`font-black text-xs ${!isOwned ? 'text-slate-600 dark:text-slate-400' : 'text-slate-900 dark:text-slate-100'}`}>{hab.name}</div>
-                        <p className="text-[10px] text-slate-500 mt-1 leading-relaxed dark:text-slate-400">{hab.desc}</p>
+                        <p className="text-[12px] text-slate-500 mt-1 leading-relaxed dark:text-slate-400">{hab.desc}</p>
                       </button>
                     );
                   })}
@@ -1976,18 +1978,18 @@ export default function PetPage() {
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="text-3xl">{hab.emoji}</span>
                           {isSelected && (
-                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">
+                            <span className="text-[12px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">
                               ĐANG CHỌN
                             </span>
                           )}
                           {!isOwned && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
+                            <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
                               CHƯA MỞ
                             </span>
                           )}
                         </div>
                         <div className={`font-black text-xs ${!isOwned ? 'text-slate-600 dark:text-slate-400' : 'text-slate-900 dark:text-slate-100'}`}>{hab.name}</div>
-                        <p className="text-[10px] text-slate-500 mt-1 leading-relaxed dark:text-slate-400">{hab.desc}</p>
+                        <p className="text-[12px] text-slate-500 mt-1 leading-relaxed dark:text-slate-400">{hab.desc}</p>
                       </button>
                     );
                   })}
@@ -2008,7 +2010,7 @@ export default function PetPage() {
                 <span className="text-2xl">🐾</span>
                 <div>
                   <h3 className="text-base sm:text-lg font-black leading-tight">Chọn Bạn Đồng Hành Nuôi Dưỡng</h3>
-                  <p className="text-[11px] text-emerald-100 font-medium">Bao gồm 27 siêu thú cưng Anime, Manga & Linh vật tri thức đỉnh cao!</p>
+                  <p className="text-[12px] text-emerald-100 font-medium">Bao gồm 27 siêu thú cưng Anime, Manga & Linh vật tri thức đỉnh cao!</p>
                 </div>
               </div>
               <button
@@ -2124,7 +2126,7 @@ export default function PetPage() {
                       <h4 className="text-xs sm:text-sm font-black text-slate-800 uppercase tracking-wider dark:text-slate-200">
                         {sec.title}
                       </h4>
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${sec.headerBg} ml-auto`}>
+                      <span className={`text-[12px] font-black px-2 py-0.5 rounded-full ${sec.headerBg} ml-auto`}>
                         {sec.petIds.length} Thú Cưng
                       </span>
                     </div>
@@ -2161,7 +2163,7 @@ export default function PetPage() {
                             )}
 
                             <div className="w-14 h-14 flex items-center justify-center mb-1 relative">
-                              <PixelPetSprite species={pet.id} scale={1.4} animationState="happy" />
+                              <PixelPetSprite species={pet.id} scale={0.98} animationState="happy" />
                               {isLocked && (
                                 <div className="absolute inset-0 bg-slate-950/35 rounded-2xl flex items-center justify-center backdrop-blur-[0.5px]">
                                   <div className="w-7 h-7 rounded-full bg-slate-900/90 border border-amber-400/70 flex items-center justify-center shadow-lg dark:bg-white/90">
@@ -2171,7 +2173,7 @@ export default function PetPage() {
                               )}
                             </div>
                             <div className="font-black text-xs text-slate-900 truncate max-w-full dark:text-slate-100">{pet.name}</div>
-                            <div className="text-[10px] text-slate-500 font-medium truncate max-w-full dark:text-slate-400">{pet.species}</div>
+                            <div className="text-[12px] text-slate-500 font-medium max-w-full leading-snug dark:text-slate-400">{pet.species}</div>
 
                             {isLocked ? (
                               <div className="text-[9px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full mt-1.5 line-clamp-1 border border-rose-200 flex items-center gap-1 shadow-xs dark:text-rose-300 dark:bg-rose-950 dark:border-rose-800">

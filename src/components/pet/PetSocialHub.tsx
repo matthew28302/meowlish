@@ -818,7 +818,7 @@ export default function PetSocialHub({
           </div>
 
           {/* Quick Chat Presets */}
-          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar py-1 shrink-0">
+          <div className="flex items-center gap-1.5 overflow-x-auto touch-auto custom-scrollbar py-1 shrink-0">
             {QUICK_CHAT_PRESETS.slice(0, 5).map((q) => (
               <button
                 key={q.id}

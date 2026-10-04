@@ -256,7 +256,7 @@ body {
 
 /* Small uppercase badge ribbon used on feature cards */
 .badge-arcade {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -678,7 +678,12 @@ main,
 .custom-scrollbar {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-  touch-action: pan-y;
+  /* KHÔNG dùng `pan-y` ở đây. Tailwind v4 đặt utilities trong `@layer utilities`,
+     còn rule này unlayered => unlayered LUÔN thắng cascade, nên `touch-auto` trên
+     mọi thanh cuộn ngang (navbar vườn, chip filter, tab bài học…) bị vô hiệu và
+     mobile KHÔNG vuốt ngang được — 3/5 tab nằm ngoài màn hình không mở nổi.
+     `auto` là mặc định của trình duyệt: vẫn cho vuốt dọc, và cho phép vuốt ngang. */
+  touch-action: auto;
   /* NOTE: no `transform: translateZ(0)` here on purpose — a transformed ancestor
      becomes the containing block for position:fixed descendants, which would
      trap the page modals (they would scroll with the container and their close
@@ -693,6 +698,35 @@ select,
 textarea,
 [role="button"] {
   touch-action: manipulation;
+}
+
+/* ========================================================================= */
+/* A11Y: MỞ RỘNG VÙNG BẤM cho control nhỏ mà KHÔNG đổi kích thước hiển thị   */
+/* ========================================================================= */
+/* Lý do: WCAG 2.5.8 (Target Size Minimum, AA) yêu cầu 24x24 CSS px; Apple  */
+/* HIG chỉ dẫn 44x44 cho ngón tay. Top-bar của app rất chật (streak/exp/coin*/
+/* ~27px cao, avatar 30px, toggle 36px) nên phóng to thật sẽ phá bố cục.    */
+/* Cách này dùng ::after thuộc chính element -> click trong vùng mở rộng vẫn*/
+/* kích hoạt element đó, không cần sửa markup con.                          */
+.tap-target {
+  position: relative;
+}
+.tap-target::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  transform: translate(-50%, -50%);
+}
+/* Vùng mở rộng phải nằm trên chị em cạnh kề để bấm trúng, nhưng không được
+   phủ lên nội dung (nút lồi nhau) — z-index thấp hơn nội dung bên trong. */
+.tap-target > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* ========================================================================= */

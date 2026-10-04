@@ -290,7 +290,7 @@ export default function HomePage() {
                 <div className="text-xs font-black text-emerald-900 dark:text-emerald-200">
                   Tiến Độ Lộ Trình Hiện Tại
                 </div>
-                <div className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-300">
+                <div className="text-[12px] font-extrabold text-emerald-700 dark:text-emerald-300">
                   Hoàn thành {completedInPath} / {currentPath.nodes.length} mốc bài học
                 </div>
               </div>
@@ -298,7 +298,7 @@ export default function HomePage() {
           </div>
 
           {/* Goal Switcher Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 border-t border-slate-100 dark:border-slate-800 scrollbar-none custom-scrollbar">
+          <div className="flex items-center gap-2 overflow-x-auto touch-auto pb-2 pt-1 border-t border-slate-100 dark:border-slate-800 scrollbar-none custom-scrollbar">
             {Object.values(LEARNING_PATHS).map((path) => {
               const isSelected = path.id === activeTargetCode;
               return (
@@ -339,7 +339,7 @@ export default function HomePage() {
               {currentPath.targetScores.map((score, sIdx) => (
                 <span
                   key={sIdx}
-                  className="bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-xl text-[11px] font-black text-white border border-white/25"
+                  className="bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-xl text-[12px] font-black text-white border border-white/25"
                 >
                   {score}
                 </span>
@@ -404,12 +404,12 @@ export default function HomePage() {
                         {node.targetScore}
                       </span>
                       {node.isMockTest && (
-                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 dark:bg-rose-950 dark:text-rose-200 dark:border-rose-800">
+                        <span className="text-[12px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 dark:bg-rose-950 dark:text-rose-200 dark:border-rose-800">
                           🔥 Mốc Cuối Thi Thử
                         </span>
                       )}
                       {isCompleted && (
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">
+                        <span className="text-[12px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">
                           ✓ Đã Đạt Mốc
                         </span>
                       )}
@@ -427,7 +427,7 @@ export default function HomePage() {
                       {node.skills.map((skill, skIdx) => (
                         <span
                           key={skIdx}
-                          className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md dark:text-slate-400 dark:bg-slate-800"
+                          className="text-[12px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md dark:text-slate-400 dark:bg-slate-800"
                         >
                           • {skill}
                         </span>
@@ -696,7 +696,7 @@ export default function HomePage() {
                 <MousePointerClick className="w-4 h-4 text-emerald-500" />
                 Tính Năng Bôi Đen Tra Từ & Lưu Bookmark Tức Thì
               </div>
-              <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full dark:text-slate-400 dark:bg-slate-800">
+              <span className="text-[12px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full dark:text-slate-400 dark:bg-slate-800">
                 💡 Bôi đen bất kỳ từ nào bên dưới để thử nghiệm:
               </span>
             </div>
@@ -751,7 +751,7 @@ export default function HomePage() {
                 <h4 className="font-black text-base text-slate-900 leading-tight dark:text-slate-100">
                   {currentUser?.display_name || 'Học Viên'}
                 </h4>
-                <span className="text-[11px] text-slate-500 font-mono dark:text-slate-400">@{currentUser?.username || 'demo'}</span>
+                <span className="text-[12px] text-slate-500 font-mono dark:text-slate-400">@{currentUser?.username || 'demo'}</span>
               </div>
             </div>
 
@@ -760,13 +760,13 @@ export default function HomePage() {
                 onClick={() => sound.playFlame()}
                 className="p-3 rounded-2xl bg-orange-50 border border-orange-200 text-center cursor-pointer hover:scale-105 transition dark:bg-orange-950 dark:border-orange-800"
               >
-                <span className="text-[11px] text-orange-700 block font-semibold dark:text-orange-300">Chuỗi Học</span>
+                <span className="text-[12px] text-orange-700 block font-semibold dark:text-orange-300">Chuỗi Học</span>
                 <span className="text-lg font-black text-orange-600 flex items-center justify-center gap-1 dark:text-orange-300">
                   🔥 {stats.streak} ngày
                 </span>
               </div>
               <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-center dark:bg-amber-950 dark:border-amber-800">
-                <span className="text-[11px] text-amber-700 block font-semibold dark:text-amber-300">Kinh Nghiệm</span>
+                <span className="text-[12px] text-amber-700 block font-semibold dark:text-amber-300">Kinh Nghiệm</span>
                 <span className="text-lg font-black text-amber-600 flex items-center justify-center gap-1 dark:text-amber-300">
                   ⭐ {stats.exp} EXP
                 </span>
@@ -797,7 +797,7 @@ export default function HomePage() {
                       species={userPet.species || 'owl'}
                       animationState="idle"
                       facing="right"
-                      scale={1.8}
+                      scale={1.26}
                       equippedHat={userPet.equipped_hat}
                       equippedOutfit={userPet.equipped_outfit}
                       equippedAccessory={userPet.equipped_accessory}
@@ -809,14 +809,14 @@ export default function HomePage() {
                       <h4 className="font-black text-sm text-slate-900 truncate dark:text-slate-100">
                         {userPet.name}
                       </h4>
-                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0 dark:bg-emerald-950 dark:text-emerald-200">
+                      <span className="text-[12px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0 dark:bg-emerald-950 dark:text-emerald-200">
                         Lv.{userPet.level}
                       </span>
                     </div>
-                    <p className="text-[11px] text-emerald-700 font-bold truncate dark:text-emerald-300">
+                    <p className="text-[12px] text-emerald-700 font-bold truncate dark:text-emerald-300">
                       {getPetTitle(userPet.level)}
                     </p>
-                    <p className="text-[10px] text-slate-500 font-medium truncate dark:text-slate-400">
+                    <p className="text-[12px] text-slate-500 font-medium truncate dark:text-slate-400">
                       {PETS_CATALOG[userPet.species]?.buff.title}
                       {PETS_CATALOG[userPet.species]?.buff.description
                         ? `: ${PETS_CATALOG[userPet.species].buff.description}`
@@ -827,7 +827,7 @@ export default function HomePage() {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-white/80 border border-emerald-100 rounded-xl p-2 text-center dark:bg-slate-900/80 dark:border-emerald-800">
-                    <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1 dark:text-slate-400">
+                    <div className="flex items-center justify-between text-[12px] font-bold text-slate-500 mb-1 dark:text-slate-400">
                       <span>🍗 No nê</span>
                       <span className="text-emerald-700 font-black dark:text-emerald-300">{userPet.hunger}%</span>
                     </div>
@@ -840,7 +840,7 @@ export default function HomePage() {
                   </div>
 
                   <div className="bg-white/80 border border-pink-100 rounded-xl p-2 text-center dark:bg-slate-900/80">
-                    <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1 dark:text-slate-400">
+                    <div className="flex items-center justify-between text-[12px] font-bold text-slate-500 mb-1 dark:text-slate-400">
                       <span>💖 Vui vẻ</span>
                       <span className="text-pink-600 font-black">{userPet.happiness}%</span>
                     </div>
@@ -891,19 +891,19 @@ export default function HomePage() {
 
             <div className="space-y-2 pt-1">
               <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-emerald-100 text-xs font-bold text-slate-700 dark:bg-slate-900 dark:border-emerald-800 dark:text-slate-300">
-                <span className="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] dark:bg-emerald-950 dark:text-emerald-300">
+                <span className="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-[12px] dark:bg-emerald-950 dark:text-emerald-300">
                   ✓
                 </span>
                 <span>Tra cứu 1 từ trên Cambridge</span>
               </div>
               <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-emerald-100 text-xs font-bold text-slate-700 dark:bg-slate-900 dark:border-emerald-800 dark:text-slate-300">
-                <span className="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] dark:bg-emerald-950 dark:text-emerald-300">
+                <span className="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-[12px] dark:bg-emerald-950 dark:text-emerald-300">
                   ✓
                 </span>
                 <span>Lật 5 Flashcard ôn tập</span>
               </div>
               <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200">
-                <span className="w-5 h-5 rounded-lg bg-amber-400 text-slate-900 flex items-center justify-center text-[10px]">
+                <span className="w-5 h-5 rounded-lg bg-amber-400 text-slate-900 flex items-center justify-center text-[12px]">
                   ⚡
                 </span>
                 <span>Luyện 1 mốc lộ trình (+25 EXP)</span>
@@ -917,7 +917,7 @@ export default function HomePage() {
               <div className="flex items-center gap-1.5 text-xs font-black text-amber-800 uppercase dark:text-amber-200">
                 <Sparkles className="w-4 h-4 text-amber-500 fill-amber-400" /> Từ Vựng Hôm Nay
               </div>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+              <span className="text-[12px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
                 Cambridge Verified
               </span>
             </div>
@@ -930,8 +930,9 @@ export default function HomePage() {
                     sound.playClick();
                     speakText('collaborate', 0.9);
                   }}
-                  className="p-2 hover:bg-amber-100 rounded-xl text-amber-800 transition cursor-pointer hover:dark:bg-amber-950 dark:text-amber-200"
+                  className="tap-target p-2 hover:bg-amber-100 rounded-xl text-amber-800 transition cursor-pointer hover:dark:bg-amber-950 dark:text-amber-200"
                   title="Nghe phát âm"
+                  aria-label={`Nghe phát âm từ collaborate`}
                 >
                   <Volume2 className="w-4 h-4" />
                 </button>
@@ -948,7 +949,7 @@ export default function HomePage() {
               <Link
                 href="/encyclopedia"
                 onClick={() => sound.playClick()}
-                className="text-amber-800 hover:text-amber-900 font-black flex items-center gap-1 dark:text-amber-200 hover:dark:text-amber-200"
+                className="tap-target text-amber-800 hover:text-amber-900 font-black flex items-center gap-1 dark:text-amber-200 hover:dark:text-amber-200"
               >
                 Tra cứu từ điển <ArrowRight className="w-3.5 h-3.5" />
               </Link>
@@ -1028,7 +1029,7 @@ export default function HomePage() {
                       <h5 className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-emerald-700 transition dark:text-slate-100 group-hover:dark:text-emerald-300">
                         {lesson.title}
                       </h5>
-                      <p className="text-[11px] text-slate-500 font-medium dark:text-slate-400">
+                      <p className="text-[12px] text-slate-500 font-medium dark:text-slate-400">
                         {lesson.description}
                       </p>
                     </div>

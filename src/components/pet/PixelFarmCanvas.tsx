@@ -1148,7 +1148,7 @@ export default function PixelFarmCanvas({
           <div>
             <h3 className="text-sm font-black text-amber-300 uppercase tracking-wider flex items-center gap-2">
               Nông Trại Meowlish 2.5D
-              <span className="text-[10px] px-2 py-0.5 bg-emerald-500/40 text-emerald-200 rounded-full font-extrabold border border-emerald-400/40">
+              <span className="text-[12px] px-2 py-0.5 bg-emerald-500/40 text-emerald-200 rounded-full font-extrabold border border-emerald-400/40">
                 HD 60 FPS · SERVER TIMER
               </span>
             </h3>
@@ -1309,7 +1309,7 @@ function LivestockCountdownCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <span
-            className={`text-[11px] font-black uppercase tracking-wider truncate ${
+            className={`text-[12px] font-black uppercase tracking-wider truncate ${
               status === 'ready' ? 'text-amber-950' : 'text-amber-300'
             }`}
           >
@@ -1317,7 +1317,7 @@ function LivestockCountdownCard({
           </span>
           <span
             data-testid={`livestock-badge-${type}`}
-            className={`text-[10px] px-2 py-0.5 rounded-full font-black border whitespace-nowrap ${badgeClass}`}
+            className={`text-[12px] px-2 py-0.5 rounded-full font-black border whitespace-nowrap ${badgeClass}`}
           >
             {badgeText}
           </span>
@@ -1331,7 +1331,7 @@ function LivestockCountdownCard({
         </div>
 
         <div
-          className={`mt-1 flex items-center justify-between gap-2 text-[10px] font-bold ${
+          className={`mt-1 flex items-center justify-between gap-2 text-[12px] font-bold ${
             status === 'ready' ? 'text-amber-950/90' : 'text-emerald-100/90'
           }`}
         >

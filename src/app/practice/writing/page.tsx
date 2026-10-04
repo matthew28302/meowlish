@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useEscapeToClose } from '@/lib/useEscapeToClose';
 import { WRITING_PROMPTS, WritingPrompt } from '@/lib/data/practice';
 import { sound } from '@/lib/soundFx';
 import confetti from '@/lib/confetti';
@@ -113,6 +114,10 @@ export default function WritingPracticePage() {
   useEffect(() => {
     setExamHistory(loadExamHistory());
   }, []);
+
+  // accessibility: Esc đóng được cả 2 modal (trước đây chỉ có nút X + click nền)
+  useEscapeToClose(showHistoryModal, () => setShowHistoryModal(false));
+  useEscapeToClose(showAiModal, () => { if (!isGeneratingAi) setShowAiModal(false); }, !isGeneratingAi);
 
   // Lưu vị trí câu đang làm vào entry lịch sử (kể cả khi chưa submit)
   useEffect(() => {
@@ -734,7 +739,7 @@ export default function WritingPracticePage() {
 
       {/* Topic Filter Selector Bar */}
       <div className="bg-white rounded-2xl p-3 sm:p-4 border-2 border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 dark:bg-slate-900 dark:border-white/10">
-        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar max-w-full">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto touch-auto pb-1 sm:pb-0 custom-scrollbar max-w-full">
           <span className="text-xs font-black text-slate-500 flex items-center gap-1 shrink-0 uppercase tracking-wide dark:text-slate-400">
             <Filter className="w-3.5 h-3.5" /> Chủ đề:
           </span>

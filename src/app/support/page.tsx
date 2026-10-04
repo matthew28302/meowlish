@@ -62,6 +62,19 @@ interface ChatMessage {
   timestamp: string;
 }
 
+/** Các field của form tạo phiếu hỗ trợ cần validate phía client */
+type TicketFieldKey = 'category' | 'name' | 'email' | 'subject' | 'message';
+type TicketFieldErrors = Partial<Record<TicketFieldKey, string>>;
+
+/** Thứ tự ưu tiên khi focus + hiển thị banner tổng hợp (theo thứ tự trên form) */
+const TICKET_FIELD_ORDER: TicketFieldKey[] = ['category', 'name', 'email', 'subject', 'message'];
+
+/** Email phải khớp với regex server-side: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ */
+const TICKET_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Số ký tự tối thiểu cho mô tả chi tiết */
+const TICKET_MESSAGE_MIN = 20;
+
 interface FaqArticle {
   id: string;
   category: 'study' | 'pet' | 'coins' | 'security';
@@ -118,6 +131,14 @@ export default function SupportPage() {
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<TicketFieldErrors>({});
+
+  // Refs để focus vào field đầu tiên bị lỗi khi submit
+  const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const subjectRef = useRef<HTMLInputElement>(null);
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
 
   // History state
   const [myTickets, setMyTickets] = useState<TicketItem[]>([]);
@@ -465,34 +486,94 @@ export default function SupportPage() {
   // ==========================================
   // XỬ LÝ GỬI TICKET HỖ TRỢ
   // ==========================================
+  /** Xóa lỗi của một field cụ thể khi người dùng sửa lại giá trị */
+  const clearFieldError = (field: TicketFieldKey) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  /** Focus vào field đầu tiên đang bị lỗi (sau khi React đã render lỗi) */
+  const focusFirstErrorField = (field: TicketFieldKey) => {
+    requestAnimationFrame(() => {
+      const refs: Partial<Record<TicketFieldKey, React.RefObject<HTMLInputElement | HTMLTextAreaElement | null>>> = {
+        name: nameRef,
+        email: emailRef,
+        subject: subjectRef,
+        message: messageRef,
+      };
+      const target = refs[field]?.current;
+      if (target) {
+        target.focus();
+        target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      } else {
+        // Field không focus được (ví dụ danh mục dạng nút) → focus về nút gửi
+        submitButtonRef.current?.focus();
+      }
+    });
+  };
+
+  /** Validate toàn bộ form, trả về lỗi tiếng Việt theo từng field */
+  const validateTicketForm = (): TicketFieldErrors => {
+    const errors: TicketFieldErrors = {};
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+    const cleanSubject = subject.trim();
+    const cleanMessage = message.trim();
+
+    if (!cleanName) {
+      errors.name = 'Vui lòng nhập họ và tên của bạn.';
+    }
+
+    if (!cleanEmail) {
+      errors.email = 'Vui lòng nhập email để Ban Quản Trị có thể gửi phản hồi cho bạn.';
+    } else if (!TICKET_EMAIL_RE.test(cleanEmail)) {
+      errors.email = 'Email không hợp lệ. Ví dụ đúng: ban@gmail.com';
+    }
+
+    if (!category) {
+      errors.category = 'Vui lòng chọn danh mục yêu cầu.';
+    }
+
+    if (!cleanSubject) {
+      errors.subject = 'Vui lòng nhập tiêu đề phiếu.';
+    }
+
+    if (!cleanMessage) {
+      errors.message = 'Vui lòng mô tả vấn đề của bạn.';
+    } else if (cleanMessage.length < TICKET_MESSAGE_MIN) {
+      errors.message = `Vui lòng mô tả vấn đề rõ ràng hơn (tối thiểu ${TICKET_MESSAGE_MIN} ký tự, hiện mới có ${cleanMessage.length} ký tự).`;
+    }
+
+    return errors;
+  };
+
   const handleSubmitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitError(null);
     setSubmitSuccess(null);
 
-    if (!name.trim()) {
-      setSubmitError('Vui lòng nhập họ và tên của bạn.');
+    // ===== VALIDATE PHÍA CLIENT (thông báo tiếng Việt trong DOM) =====
+    const errors = validateTicketForm();
+    setFieldErrors(errors);
+
+    const errorMessages = TICKET_FIELD_ORDER.map((key) => errors[key]).filter(
+      (msg): msg is string => Boolean(msg)
+    );
+
+    if (errorMessages.length > 0) {
+      const firstErrorField = TICKET_FIELD_ORDER.find((key) => Boolean(errors[key])) as TicketFieldKey;
+      setSubmitError(
+        `Vui lòng sửa ${errorMessages.length} thông tin còn thiếu hoặc chưa hợp lệ trước khi gửi phiếu hỗ trợ. Phiếu chưa được gửi đi.`
+      );
       sound.playWrong();
+      focusFirstErrorField(firstErrorField);
       return;
     }
 
-    if (!email.trim() || !email.includes('@')) {
-      setSubmitError('Vui lòng nhập địa chỉ email hợp lệ để chúng mình có thể phản hồi.');
-      sound.playWrong();
-      return;
-    }
-
-    if (!subject.trim()) {
-      setSubmitError('Vui lòng nhập tiêu đề phiếu hỗ trợ / góp ý.');
-      sound.playWrong();
-      return;
-    }
-
-    if (!message.trim() || message.trim().length < 10) {
-      setSubmitError('Nội dung phản hồi cần ít nhất 10 ký tự để chúng mình hiểu rõ hơn nhé.');
-      sound.playWrong();
-      return;
-    }
+    setSubmitError(null);
 
     setIsSubmitting(true);
     sound.playClick();
@@ -526,6 +607,7 @@ export default function SupportPage() {
         const newId = data.ticketId || '';
         setSubmitSuccess(data.message || `Phiếu hỗ trợ #${newId} đã được gửi thành công!`);
         setCreatedTicketId(newId);
+        setFieldErrors({});
 
         // Reset form nội dung (giữ name & email)
         setSubject('');
@@ -910,7 +992,7 @@ export default function SupportPage() {
             </div>
 
             {/* Quick Prompts Carousel Bar */}
-            <div className="px-4 py-2.5 bg-slate-100/90 border-b border-slate-200 overflow-x-auto flex items-center gap-2 custom-scrollbar dark:bg-slate-800/90 dark:border-white/10">
+            <div className="px-4 py-2.5 bg-slate-100/90 border-b border-slate-200 overflow-x-auto touch-auto flex items-center gap-2 custom-scrollbar dark:bg-slate-800/90 dark:border-white/10">
               <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1 dark:text-slate-400">
                 <Sparkles className="w-3 h-3 text-amber-500" />
                 Gợi ý hỏi nhanh:
@@ -1101,7 +1183,11 @@ export default function SupportPage() {
 
                 {/* Notifications */}
                 {submitSuccess && (
-                  <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs sm:text-sm font-bold space-y-2 animate-in fade-in dark:bg-emerald-950 dark:border-emerald-800 dark:text-emerald-200">
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className="p-4 sm:p-5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs sm:text-sm font-bold space-y-2 animate-in fade-in dark:bg-emerald-950 dark:border-emerald-800 dark:text-emerald-200"
+                  >
                     <div className="flex items-center gap-2 text-emerald-900 font-black dark:text-emerald-200">
                       <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 dark:text-emerald-300" />
                       <span>{submitSuccess}</span>
@@ -1144,46 +1230,85 @@ export default function SupportPage() {
                 )}
 
                 {submitError && (
-                  <div className="p-4 rounded-2xl bg-rose-50 border border-rose-300 text-rose-800 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in dark:bg-rose-950 dark:border-rose-800 dark:text-rose-200">
-                    <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 dark:text-rose-300" />
-                    <span>{submitError}</span>
+                  <div
+                    role="alert"
+                    aria-live="assertive"
+                    className="p-4 rounded-2xl bg-rose-50 border-2 border-rose-400 text-rose-900 text-xs sm:text-sm font-bold flex items-start gap-2.5 animate-in fade-in dark:bg-rose-950 dark:border-rose-700 dark:text-rose-100"
+                  >
+                    <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5 dark:text-rose-300" />
+                    <div className="space-y-1.5 min-w-0">
+                      <p className="leading-relaxed">{submitError}</p>
+                      {Object.keys(fieldErrors).length > 0 && (
+                        <ul className="list-disc pl-4 space-y-1 font-semibold">
+                          {TICKET_FIELD_ORDER.map((key) =>
+                            fieldErrors[key] ? (
+                              <li key={key} className="leading-relaxed">
+                                {fieldErrors[key]}
+                              </li>
+                            ) : null
+                          )}
+                        </ul>
+                      )}
+                    </div>
                   </div>
                 )}
 
-                <form onSubmit={handleSubmitFeedback} className="space-y-4">
+                <form onSubmit={handleSubmitFeedback} noValidate className="space-y-4">
                   {/* Category Selection */}
                   <div>
-                    <label className="block text-xs font-black text-slate-700 mb-2 dark:text-slate-300">
+                    <label
+                      htmlFor="ticket-category-group"
+                      className="block text-xs font-black text-slate-700 mb-2 dark:text-slate-300"
+                    >
                       1. Chọn danh mục yêu cầu:
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {[
-                        { id: 'feedback', label: 'Góp ý tính năng', emoji: '💡', desc: 'Ý tưởng mới cho website' },
-                        { id: 'bug', label: 'Báo lỗi kỹ thuật', emoji: '🐞', desc: 'Gặp trục trặc, lỗi giao diện' },
-                        { id: 'guide', label: 'Thắc mắc học tập', emoji: '📖', desc: 'Cần hỗ trợ về bài học' },
-                        { id: 'account', label: 'Tài khoản & Bảo mật', emoji: '🔒', desc: 'Quên mật khẩu, đổi 2FA' },
-                      ].map((cat) => (
-                        <button
-                          type="button"
-                          key={cat.id}
-                          onClick={() => {
-                            sound.playClick();
-                            setCategory(cat.id as any);
-                          }}
-                          className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col gap-1 ${
-                            category === cat.id
-                              ? 'border-indigo-600 bg-indigo-50/80 text-indigo-950 shadow-xs ring-2 ring-indigo-200 dark:text-indigo-200'
-                              : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:border-white/10 dark:bg-slate-900 dark:text-slate-400 hover:dark:border-white/10'
-                          }`}
-                        >
-                          <div className="flex items-center gap-1.5 font-black text-xs">
-                            <span className="text-base">{cat.emoji}</span>
-                            <span>{cat.label}</span>
-                          </div>
-                          <span className="text-[10px] text-slate-500 dark:text-slate-400">{cat.desc}</span>
-                        </button>
-                      ))}
+                    <div
+                      id="ticket-category-group"
+                      aria-describedby={fieldErrors.category ? 'support-error-category' : undefined}
+                      aria-invalid={fieldErrors.category ? true : undefined}
+                    >
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { id: 'feedback', label: 'Góp ý tính năng', emoji: '💡', desc: 'Ý tưởng mới cho website' },
+                          { id: 'bug', label: 'Báo lỗi kỹ thuật', emoji: '🐞', desc: 'Gặp trục trặc, lỗi giao diện' },
+                          { id: 'guide', label: 'Thắc mắc học tập', emoji: '📖', desc: 'Cần hỗ trợ về bài học' },
+                          { id: 'account', label: 'Tài khoản & Bảo mật', emoji: '🔒', desc: 'Quên mật khẩu, đổi 2FA' },
+                        ].map((cat) => (
+                          <button
+                            type="button"
+                            key={cat.id}
+                            aria-pressed={category === cat.id}
+                            onClick={() => {
+                              sound.playClick();
+                              setCategory(cat.id as any);
+                              clearFieldError('category');
+                            }}
+                            className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col gap-1 ${
+                              category === cat.id
+                                ? 'border-indigo-600 bg-indigo-50/80 text-indigo-950 shadow-xs ring-2 ring-indigo-200 dark:text-indigo-200'
+                                : fieldErrors.category
+                                  ? 'border-rose-400 bg-white text-slate-600 hover:border-rose-500 dark:border-rose-600 dark:bg-slate-900 dark:text-rose-200'
+                                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:border-white/10 dark:bg-slate-900 dark:text-slate-400 hover:dark:border-white/10'
+                            }`}
+                          >
+                            <div className="flex items-center gap-1.5 font-black text-xs">
+                              <span className="text-base">{cat.emoji}</span>
+                              <span>{cat.label}</span>
+                            </div>
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400">{cat.desc}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
+                    {fieldErrors.category && (
+                      <p
+                        id="support-error-category"
+                        className="mt-2 flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-300"
+                      >
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{fieldErrors.category}</span>
+                      </p>
+                    )}
                   </div>
 
                   {/* Priority Selection */}
@@ -1226,37 +1351,87 @@ export default function SupportPage() {
                   {/* Name & Email Row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-black text-slate-700 mb-1.5 dark:text-slate-300">
+                      <label
+                        htmlFor="ticket-name"
+                        className={`block text-xs font-black mb-1.5 dark:text-slate-300 ${
+                          fieldErrors.name ? 'text-rose-700 dark:text-rose-300' : 'text-slate-700'
+                        }`}
+                      >
                         Họ và tên của bạn:
                       </label>
                       <div className="relative">
                         <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                         <input
+                          id="ticket-name"
+                          ref={nameRef}
                           type="text"
                           value={name}
-                          onChange={(e) => setName(e.target.value)}
+                          onChange={(e) => {
+                            setName(e.target.value);
+                            clearFieldError('name');
+                          }}
                           placeholder="Ví dụ: Nguyễn Văn Minh"
-                          className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl pl-10 pr-3 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
+                          aria-invalid={fieldErrors.name ? true : undefined}
+                          aria-describedby={fieldErrors.name ? 'support-error-name' : undefined}
+                          className={`w-full bg-slate-50 border rounded-xl pl-10 pr-3 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition dark:text-slate-100 ${
+                            fieldErrors.name
+                              ? 'border-rose-400 focus:border-rose-500 focus:bg-white ring-2 ring-rose-200 dark:bg-slate-900 dark:border-rose-500 dark:focus:bg-slate-900 dark:ring-rose-900/60'
+                              : 'border-slate-200 focus:border-indigo-500 focus:bg-white dark:border-white/10 dark:bg-slate-900 dark:focus:bg-slate-900'
+                          }`}
                           required
                         />
                       </div>
+                      {fieldErrors.name && (
+                        <p
+                          id="support-error-name"
+                          className="mt-1.5 flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-300"
+                        >
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{fieldErrors.name}</span>
+                        </p>
+                      )}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-black text-slate-700 mb-1.5 dark:text-slate-300">
+                      <label
+                        htmlFor="ticket-email"
+                        className={`block text-xs font-black mb-1.5 dark:text-slate-300 ${
+                          fieldErrors.email ? 'text-rose-700 dark:text-rose-300' : 'text-slate-700'
+                        }`}
+                      >
                         Email nhận xác nhận & phản hồi:
                       </label>
                       <div className="relative">
                         <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                         <input
+                          id="ticket-email"
+                          ref={emailRef}
                           type="email"
                           value={email}
-                          onChange={(e) => setEmail(e.target.value)}
+                          onChange={(e) => {
+                            setEmail(e.target.value);
+                            clearFieldError('email');
+                          }}
                           placeholder="ban@gmail.com"
-                          className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl pl-10 pr-3 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
+                          aria-invalid={fieldErrors.email ? true : undefined}
+                          aria-describedby={fieldErrors.email ? 'support-error-email' : undefined}
+                          className={`w-full bg-slate-50 border rounded-xl pl-10 pr-3 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition dark:text-slate-100 ${
+                            fieldErrors.email
+                              ? 'border-rose-400 focus:border-rose-500 focus:bg-white ring-2 ring-rose-200 dark:bg-slate-900 dark:border-rose-500 dark:focus:bg-slate-900 dark:ring-rose-900/60'
+                              : 'border-slate-200 focus:border-indigo-500 focus:bg-white dark:border-white/10 dark:bg-slate-900 dark:focus:bg-slate-900'
+                          }`}
                           required
                         />
                       </div>
+                      {fieldErrors.email && (
+                        <p
+                          id="support-error-email"
+                          className="mt-1.5 flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-300"
+                        >
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{fieldErrors.email}</span>
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -1295,39 +1470,93 @@ export default function SupportPage() {
 
                   {/* Subject */}
                   <div>
-                    <label className="block text-xs font-black text-slate-700 mb-1.5 dark:text-slate-300">
+                    <label
+                      htmlFor="ticket-subject"
+                      className={`block text-xs font-black mb-1.5 dark:text-slate-300 ${
+                        fieldErrors.subject ? 'text-rose-700 dark:text-rose-300' : 'text-slate-700'
+                      }`}
+                    >
                       Tiêu đề phiếu hỗ trợ:
                     </label>
                     <input
+                      id="ticket-subject"
+                      ref={subjectRef}
                       type="text"
                       value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
+                      onChange={(e) => {
+                        setSubject(e.target.value);
+                        clearFieldError('subject');
+                      }}
                       placeholder="Tóm tắt ngắn gọn vấn đề (vd: Không mở khóa được cảnh quan Vườn Xanh)"
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
+                      aria-invalid={fieldErrors.subject ? true : undefined}
+                      aria-describedby={fieldErrors.subject ? 'support-error-subject' : undefined}
+                      className={`w-full bg-slate-50 border rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition dark:text-slate-100 ${
+                        fieldErrors.subject
+                          ? 'border-rose-400 focus:border-rose-500 focus:bg-white ring-2 ring-rose-200 dark:bg-slate-900 dark:border-rose-500 dark:focus:bg-slate-900 dark:ring-rose-900/60'
+                          : 'border-slate-200 focus:border-indigo-500 focus:bg-white dark:border-white/10 dark:bg-slate-900 dark:focus:bg-slate-900'
+                      }`}
                       required
                     />
+                    {fieldErrors.subject && (
+                      <p
+                        id="support-error-subject"
+                        className="mt-1.5 flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-300"
+                      >
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{fieldErrors.subject}</span>
+                      </p>
+                    )}
                   </div>
 
                   {/* Message Detail */}
                   <div>
-                    <label className="block text-xs font-black text-slate-700 mb-1.5 dark:text-slate-300">
+                    <label
+                      htmlFor="ticket-message"
+                      className={`block text-xs font-black mb-1.5 dark:text-slate-300 ${
+                        fieldErrors.message ? 'text-rose-700 dark:text-rose-300' : 'text-slate-700'
+                      }`}
+                    >
                       Mô tả chi tiết nội dung:
                     </label>
                     <textarea
+                      id="ticket-message"
+                      ref={messageRef}
                       rows={4}
                       value={message}
-                      onChange={(e) => setMessage(e.target.value)}
+                      onChange={(e) => {
+                        setMessage(e.target.value);
+                        clearFieldError('message');
+                      }}
                       placeholder="Mô tả cụ thể các bước bạn thực hiện, đường dẫn trang web gặp sự cố hoặc ý tưởng tính năng mới..."
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl p-3.5 text-xs sm:text-sm text-slate-900 outline-none transition custom-scrollbar resize-none dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
+                      aria-invalid={fieldErrors.message ? true : undefined}
+                      aria-describedby={`support-hint-message${fieldErrors.message ? ' support-error-message' : ''}`}
+                      className={`w-full bg-slate-50 border rounded-xl p-3.5 text-xs sm:text-sm text-slate-900 outline-none transition custom-scrollbar resize-none dark:text-slate-100 ${
+                        fieldErrors.message
+                          ? 'border-rose-400 focus:border-rose-500 focus:bg-white ring-2 ring-rose-200 dark:bg-slate-900 dark:border-rose-500 dark:focus:bg-slate-900 dark:ring-rose-900/60'
+                          : 'border-slate-200 focus:border-indigo-500 focus:bg-white dark:border-white/10 dark:bg-slate-900 dark:focus:bg-slate-900'
+                      }`}
                       required
                     />
+                    <p id="support-hint-message" className="mt-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                      Tối thiểu {TICKET_MESSAGE_MIN} ký tự — hiện tại {message.trim().length} ký tự.
+                    </p>
+                    {fieldErrors.message && (
+                      <p
+                        id="support-error-message"
+                        className="mt-1.5 flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-300"
+                      >
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>{fieldErrors.message}</span>
+                      </p>
+                    )}
                   </div>
 
                   {/* Submit Button */}
                   <button
+                    ref={submitButtonRef}
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-3.5 bg-gradient-to-r from-indigo-600 via-teal-600 to-emerald-600 hover:from-indigo-500 hover:to-emerald-500 text-white font-black text-sm rounded-2xl shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50"
+                    className="w-full min-h-11 py-3.5 scroll-mb-28 bg-gradient-to-r from-indigo-600 via-teal-600 to-emerald-600 hover:from-indigo-500 hover:to-emerald-500 text-white font-black text-sm rounded-2xl shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-2 text-center active:scale-98 disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <>
@@ -1342,6 +1571,10 @@ export default function SupportPage() {
                     )}
                   </button>
                 </form>
+
+                {/* Khoảng đệm cho bottom-nav cố định trên mobile (lg:hidden) để
+                    nút "Tạo Phiếu Hỗ Trợ" không bị đè khi cuộn tới cuối trang. */}
+                <div aria-hidden="true" className="h-16 lg:hidden" />
               </div>
             )}
 
