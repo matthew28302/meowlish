@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { defineConfig } from '@playwright/test';
 
 // Smoke suite runs against the ALREADY-RUNNING dev server

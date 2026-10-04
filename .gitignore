@@ -62,3 +62,12 @@ scratch/
 /om.png
 /register.png
 
+
+.vercel
+
+# Bí mật: chỉ chặn file env thực tế, KHÔNG chặn `.env.example` (file mẫu
+# phải được commit để người khác biết cần đặt biến nào).
+.env
+.env.local
+.env.*.local
+!.env.example
