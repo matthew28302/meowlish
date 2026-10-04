@@ -221,6 +221,75 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
   const containerRef = useRef<HTMLDivElement>(null);
   const moveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isInteractingRef = useRef(false);
+  // Generation counter: mỗi hành động mới tăng gen; timer cũ sai gen thì bỏ qua.
+  // Chặn stale timer bắn muộn (teleport/bounce nhầm vật thể) khi spam click.
+  const actionGenRef = useRef(0);
+  const actionTimersRef = useRef<number[]>([]);
+  const petPosRef = useRef(petPos);
+  useEffect(() => {
+    petPosRef.current = petPos;
+  }, [petPos]);
+  const clearActionTimers = () => {
+    if (moveTimerRef.current) {
+      clearTimeout(moveTimerRef.current);
+      moveTimerRef.current = null;
+    }
+    actionTimersRef.current.forEach((id) => clearTimeout(id));
+    actionTimersRef.current = [];
+  };
+  const later = (fn: () => void, ms: number) => {
+    const g = actionGenRef.current;
+    const id = window.setTimeout(() => {
+      actionTimersRef.current = actionTimersRef.current.filter((x) => x !== id);
+      if (actionGenRef.current !== g) return;
+      fn();
+    }, ms);
+    actionTimersRef.current.push(id);
+    return id;
+  };
+  const resetTransientStates = () => {
+    setIsSwinging(false);
+    setIsSliding(false);
+    setIsRainbowWalking(false);
+    setIsBouncingMushroom(false);
+    setIsBouncingBeanbag(false);
+    setIsBouncingPipes(false);
+    setIsWarpStarActive(false);
+    setIsCoding(false);
+    setFlyingShuriken(null);
+    setIsNinjaTargetHit(false);
+    setIsSkyTreasureOpen(false);
+    setIsSunnyTreasureOpen(false);
+    setIsAnywhereDoorOpen(false);
+    setIsCandleLit(false);
+    setPondSplashId(0);
+    setBloomId(0);
+    setWindGustId(0);
+  };
+  const beginNewAction = () => {
+    actionGenRef.current += 1;
+    clearActionTimers();
+    resetTransientStates();
+    isInteractingRef.current = true;
+  };
+  // Đổi habitat: hủy toàn bộ timer/action cũ để không còn animation rớt lại sai map.
+  useEffect(() => {
+    actionGenRef.current += 1;
+    clearActionTimers();
+    resetTransientStates();
+    isInteractingRef.current = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [habitat]);
+
+  // y-sorting-depth: thứ tự vẽ theo CHÂN vật (feet Y), tiebreak ổn định theo DOM.
+  // Band 5..26 (dưới pet z-40) để pet luôn đọc được khi tương tác; phối cảnh bù bằng depth-scale.
+  const EMERALD_FEET_Z = { windmill: 5, oak: 6, coop: 8, mushroom: 10, villa: 14, flower: 25, pond: 26 } as const;
+  // 2.5D depth-scale: pet xa (y nhỏ) nhỏ lại, gần (y lớn) to ra — bù cho việc pet luôn vẽ trước cảnh.
+  const petDepthScale = 0.92 + (Math.min(84, Math.max(16, petPos.y)) / 84) * 0.14;
+  // billboard-sprites: kẹp speech bubble trong arena (không tràn mép khi pet sát biên).
+  // Dùng CSS `translate` (Tailwind v4 cũng dùng prop này) để cộng hưởng với keyframe bounce (dùng `transform`).
+  const speechShift = petPos.x < 20 ? '-12% 0' : petPos.x > 80 ? '-88% 0' : '-50% 0';
+  const speechTailLeft = petPos.x < 20 ? '12%' : petPos.x > 80 ? '88%' : '50%';
 
   // Synchronize external speech prop
   useEffect(() => {
@@ -234,6 +303,9 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     return () => {
       confetti.reset();
       if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
+      actionTimersRef.current.forEach((id) => clearTimeout(id));
+      actionTimersRef.current = [];
+      actionGenRef.current += 1;
     };
   }, []);
 
@@ -358,7 +430,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           walkTo(chosen.x, chosen.y, () => {
             setAnimState(chosen.anim as PetAnimationState);
             showSpeech(chosen.speech);
-            setTimeout(() => setAnimState(getZoneAt(chosen.x, chosen.y) === 'water' ? 'swim' : 'idle'), 3000);
+            later(() => setAnimState(getZoneAt(chosen.x, chosen.y) === 'water' ? 'swim' : 'idle'), 3000);
           });
           return;
         } else if (habitat === 'sunset_beach') {
@@ -374,7 +446,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           walkTo(chosen.x, chosen.y, () => {
             setAnimState(chosen.anim as PetAnimationState);
             showSpeech(chosen.speech);
-            setTimeout(() => setAnimState('idle'), 3000);
+            later(() => setAnimState('idle'), 3000);
           });
           return;
         } else if (habitat === 'cozy_den') {
@@ -390,7 +462,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           walkTo(chosen.x, chosen.y, () => {
             setAnimState(chosen.anim as PetAnimationState);
             showSpeech(chosen.speech);
-            setTimeout(() => setAnimState('idle'), 3000);
+            later(() => setAnimState('idle'), 3000);
           });
           return;
         } else if (habitat === 'sky_castle') {
@@ -404,7 +476,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           walkTo(chosen.x, chosen.y, () => {
             setAnimState(chosen.anim as PetAnimationState);
             showSpeech(chosen.speech);
-            setTimeout(() => setAnimState('idle'), 3000);
+            later(() => setAnimState('idle'), 3000);
           });
           return;
         } else if (habitat === 'thousand_sunny') {
@@ -420,7 +492,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           walkTo(chosen.x, chosen.y, () => {
             setAnimState(chosen.anim as PetAnimationState);
             showSpeech(chosen.speech);
-            setTimeout(() => setAnimState('idle'), 3000);
+            later(() => setAnimState('idle'), 3000);
           });
           return;
         } else if (habitat === 'konoha_valley') {
@@ -435,7 +507,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           walkTo(chosen.x, chosen.y, () => {
             setAnimState(chosen.anim as PetAnimationState);
             showSpeech(chosen.speech);
-            setTimeout(() => setAnimState('idle'), 3000);
+            later(() => setAnimState('idle'), 3000);
           });
           return;
         } else if (habitat === 'hogwarts_hall') {
@@ -450,7 +522,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           walkTo(chosen.x, chosen.y, () => {
             setAnimState(chosen.anim as PetAnimationState);
             showSpeech(chosen.speech);
-            setTimeout(() => setAnimState('idle'), 3000);
+            later(() => setAnimState('idle'), 3000);
           });
           return;
         } else if (habitat === 'doraemon_field') {
@@ -465,7 +537,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           walkTo(chosen.x, chosen.y, () => {
             setAnimState(chosen.anim as PetAnimationState);
             showSpeech(chosen.speech);
-            setTimeout(() => setAnimState('idle'), 3000);
+            later(() => setAnimState('idle'), 3000);
           });
           return;
         } else if (habitat === 'dream_land') {
@@ -480,7 +552,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           walkTo(chosen.x, chosen.y, () => {
             setAnimState(chosen.anim as PetAnimationState);
             showSpeech(chosen.speech);
-            setTimeout(() => setAnimState('idle'), 3000);
+            later(() => setAnimState('idle'), 3000);
           });
           return;
         }
@@ -504,10 +576,11 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     };
   }, [habitat, species, isSleeping]);
 
-  // Smooth path movement with zone awareness
+  // Smooth path movement with zone awareness (gen-aware: hủy khi action mới đè lên)
   const walkTo = (targetX: number, targetY: number, onArrival?: () => void, isFast = isSpeedFast) => {
     const zone = getZoneAt(targetX, targetY);
-    setFacing((prev) => (targetX < petPos.x ? 'left' : targetX > petPos.x ? 'right' : prev));
+    const cur = petPosRef.current;
+    setFacing((prev) => (targetX < cur.x ? 'left' : targetX > cur.x ? 'right' : prev));
 
     if (zone === 'water') {
       setAnimState('swim');
@@ -517,13 +590,15 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       setAnimState(isFast ? 'run' : 'walk');
     }
 
-    const dist = Math.hypot(targetX - petPos.x, targetY - petPos.y);
+    const dist = Math.hypot(targetX - cur.x, targetY - cur.y);
     const duration = isFast ? Math.max(600, dist * 24) : Math.max(1000, dist * 48);
 
     setPetPos({ x: targetX, y: targetY });
 
     if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
+    const g = actionGenRef.current;
     moveTimerRef.current = setTimeout(() => {
+      if (actionGenRef.current !== g) return;
       const arrivedZone = getZoneAt(targetX, targetY);
       if (arrivedZone === 'water') {
         setAnimState('swim');
@@ -537,7 +612,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           spread: 45,
           origin: { x: targetX / 100, y: targetY / 100 },
         });
-        setTimeout(() => setAnimState('idle'), 2800);
+        later(() => setAnimState('idle'), 2800);
       } else {
         setAnimState('idle');
       }
@@ -562,9 +637,10 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
     sound.playClick();
     setTargetMarker({ x: clampedX, y: clampedY });
-    setTimeout(() => setTargetMarker(null), 1200);
+    later(() => setTargetMarker(null), 1200);
 
-    isInteractingRef.current = true;
+    // Click đất là ý định mới: hủy action cũ đang dở (tránh timer cũ teleport pet về sau)
+    beginNewAction();
     if (isSleeping) {
       setIsSleeping(false);
       try { localStorage.setItem('meowlish_pet_is_sleeping', 'false'); } catch {}
@@ -581,7 +657,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     e.stopPropagation();
     sound.playCelebration();
 
-    setAnimState('happy');
+    const busy = isInteractingRef.current;
     if (isSleeping) {
       setIsSleeping(false);
       try { localStorage.setItem('meowlish_pet_is_sleeping', 'false'); } catch {}
@@ -594,7 +670,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       y: petPos.y - 6 - Math.random() * 4,
     };
     setHearts((prev) => [...prev, newHeart]);
-    setTimeout(() => {
+    later(() => {
       setHearts((prev) => prev.filter((h) => h.id !== newHeart.id));
     }, 1500);
 
@@ -607,13 +683,17 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     showSpeech(happyQuotes[Math.floor(Math.random() * happyQuotes.length)]);
 
     if (onPet) onPet();
-    setTimeout(() => {
-      if (getZoneAt(petPos.x, petPos.y) === 'water') {
-        setAnimState('swim');
-      } else {
-        setAnimState('idle');
-      }
-    }, 1800);
+    // Đang bận chạy action thì chỉ thả tim + speech, KHÔNG đổi anim (tránh đè animation của action)
+    if (!busy) {
+      setAnimState('happy');
+      later(() => {
+        if (getZoneAt(petPosRef.current.x, petPosRef.current.y) === 'water') {
+          setAnimState('swim');
+        } else {
+          setAnimState('idle');
+        }
+      }, 1800);
+    }
   };
 
   const showSpeech = (msg: string) => {
@@ -635,7 +715,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     setTreasureLoot((prev) => [...prev, ...batch]);
     sound.playCelebration();
     confetti({ particleCount: 55, spread: 75, origin: { x: cx / 100, y: cy / 100 } });
-    window.setTimeout(() => {
+    later(() => {
       setTreasureLoot((prev) => prev.filter((l) => !batch.some((b) => b.id === l.id)));
     }, 2200);
   };
@@ -662,7 +742,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Đang đi bộ trên cầu vồng nè! Cao ơi là cao! 🌈🐾');
       }
       if (t < 1) {
-        window.setTimeout(step, 160);
+        later(step, 160);
       } else {
         setIsRainbowWalking(false);
         setAnimState('happy');
@@ -671,7 +751,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       }
     };
     setPetPos({ x: leftX, y: leftY });
-    window.setTimeout(step, 200);
+    later(step, 200);
   };
 
   // Pet TRƯỢT từ đỉnh xuống chân (cầu trượt mây / thác cầu vồng): nhanh + vui
@@ -681,15 +761,15 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     setPetPos({ x: topX, y: topY });
     setAnimState('jump');
     sound.playWhoosh();
-    window.setTimeout(() => {
+    later(() => {
       setPetPos({ x: footX, y: footY });
     }, 120);
-    window.setTimeout(() => {
+    later(() => {
       sound.playCelebration();
       confetti({ particleCount: 40, spread: 60, origin: { x: footX / 100, y: footY / 100 } });
       setAnimState('happy');
       showSpeech('Wheeee! Trượt xuống mát rượi, vui quá đi! 🛝🎉');
-      window.setTimeout(() => {
+      later(() => {
         setIsSliding(false);
         setAnimState('idle');
         if (done) done();
@@ -707,7 +787,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     const baseY = 34;
     const swings = [4, -4, 3, -3, 2, 0];
     swings.forEach((dx, idx) => {
-      window.setTimeout(() => {
+      later(() => {
         setPetPos({ x: baseX + dx, y: baseY + Math.abs(dx) * 0.3 });
         sound.playClick();
         if (idx === 2) {
@@ -716,7 +796,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         }
       }, 350 * (idx + 1));
     });
-    window.setTimeout(() => {
+    later(() => {
       setIsSwinging(false);
       setAnimState('idle');
       if (done) done();
@@ -740,7 +820,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         '✅ All tests passed! +5 EXP',
       ];
       demoLines.forEach((line, idx) => {
-        window.setTimeout(() => {
+        later(() => {
           setCodeLines((prev) => [...prev, line]);
           sound.playClick();
           if (idx === demoLines.length - 1) {
@@ -751,10 +831,10 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           }
         }, 550 * (idx + 1));
       });
-      window.setTimeout(() => {
+      later(() => {
         if (done) done();
         // Giữ popup thêm 2.5s cho bé khoe thành quả rồi tự đóng (không kẹt màn hình)
-        window.setTimeout(() => {
+        later(() => {
           setIsCoding(false);
           setAnimState('idle');
         }, 2500);
@@ -764,12 +844,17 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
   // Perform specific actions tailored to the active habitat
   const handlePerformMapAction = (actionKey: string) => {
-    isInteractingRef.current = true;
+    // Action mới đè lên: hủy toàn bộ timer/animation của action cũ (chống bounce/teleport nhầm vật thể)
+    beginNewAction();
     if (isSleeping) {
       setIsSleeping(false);
       try { localStorage.setItem('meowlish_pet_is_sleeping', 'false'); } catch {}
       onStateChange?.({ isSleeping: false, isSpeedFast });
     }
+    // Lưới an toàn: action lạ hoặc chuỗi nào quên nhả khóa cũng tự nhả sau 30s (đúng gen mới chạy)
+    later(() => {
+      isInteractingRef.current = false;
+    }, 30000);
 
     if (habitat === 'emerald_garden') {
       if (actionKey === 'swim') {
@@ -777,16 +862,16 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(74, 76, () => {
           sound.playWhoosh();
           setPondSplashId(Date.now());
-          window.setTimeout(() => setPondSplashId(0), 3000);
+          later(() => setPondSplashId(0), 3000);
           setPetPos({ x: 84, y: 80 });
           setAnimState('swim');
           sound.playCelebration();
           confetti({ particleCount: 25, spread: 45, origin: { x: 0.8, y: 0.78 } });
           showSpeech('Tõm! Nước bắn tung tóe! Bơi cùng đàn cá Koi mát rượi! 🏊🐟');
-          setTimeout(() => {
+          later(() => {
             setPetPos({ x: 86, y: 78 });
             sound.playPop();
-            setTimeout(() => {
+            later(() => {
               setPetPos({ x: 82, y: 82 });
               isInteractingRef.current = false;
             }, 1800);
@@ -798,17 +883,17 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('climb');
           sound.playSuccess();
           showSpeech('Đang thoăn thoắt trèo từng bậc thang gỗ... 🪜🐾');
-          setTimeout(() => {
+          later(() => {
             setPetPos({ x: 88, y: 16 });
-            setTimeout(() => {
+            later(() => {
               setAnimState('happy');
               sound.playCelebration();
               confetti({ particleCount: 30, spread: 45, origin: { x: 0.88, y: 0.16 } });
               showSpeech('Chạm tới ngọn cây rồi! Hái được quả táo chín mọng ngọt lịm! 🍎✨');
-              setTimeout(() => {
+              later(() => {
                 setAnimState('climb');
                 setPetPos({ x: 88, y: 32 });
-                setTimeout(() => {
+                later(() => {
                   // Leo xong thì ngồi xích đu đung đưa cho vui (xích đu dưới tán cây)
                   setPetPos({ x: 84, y: 34 });
                   rideOakSwing(() => {
@@ -837,15 +922,15 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           confetti({ particleCount: 40, spread: 60, origin: { x: 0.76, y: 0.35 } });
           showSpeech('Boingggg! Nấm bật tung chạm mây luôn! 🍄🚀');
 
-          setTimeout(() => {
+          later(() => {
             setPetPos({ x: 76, y: 26 });
-            setTimeout(() => {
+            later(() => {
               setPetPos({ x: 76, y: 42 });
-              setTimeout(() => {
+              later(() => {
                 setIsBouncingMushroom(false);
                 setAnimState('happy');
                 sound.playSuccess();
-                setTimeout(() => {
+                later(() => {
                   isInteractingRef.current = false;
                   setAnimState('idle');
                 }, 1500);
@@ -861,7 +946,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           sound.playSuccess();
           confetti({ particleCount: 20, spread: 40, origin: { x: 0.48, y: 0.4 } });
           showSpeech('Gà mẹ và đàn gà con mổ thóc tíu tít! Cục tác... đẻ trứng vàng nè! 🐣🥚');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -871,12 +956,12 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(20, 78, () => {
           setAnimState('eat');
           setBloomId(Date.now());
-          window.setTimeout(() => setBloomId(0), 3000);
+          later(() => setBloomId(0), 3000);
           sound.playPop();
           sound.playSuccess();
           confetti({ particleCount: 25, spread: 45, origin: { x: 0.2, y: 0.75 } });
           showSpeech('Hoa nở rộ thơm ngát! Cà rốt giòn ngọt quá chừng! 🥕🌷✨');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -885,12 +970,12 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Chạy ra cối xay gió đón cơn gió mát nào! 💨🏡');
         walkTo(16, 28, () => {
           setWindGustId(Date.now());
-          window.setTimeout(() => setWindGustId(0), 3000);
+          later(() => setWindGustId(0), 3000);
           setAnimState('happy');
           sound.playWhoosh();
           sound.playSuccess();
           showSpeech('Cối xay gió quay tít mù! Gió mát thổi bay tóc nè! 💨😆');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2200);
@@ -902,7 +987,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           sound.playSuccess();
           confetti({ particleCount: 20, spread: 40, origin: { x: 0.18, y: 0.5 } });
           showSpeech('Biệt thự ấm áp, khói bếp bay lên, thơm mùi bánh mới! 🏡🍞');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2200);
@@ -922,16 +1007,16 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(86, 30, () => {
           setAnimState('climb');
           sound.playSuccess();
-          setTimeout(() => {
+          later(() => {
             setPetPos({ x: 86, y: 16 });
-            setTimeout(() => {
+            later(() => {
               setAnimState('happy');
               sound.playCelebration();
               showSpeech('Lên tới chùm dừa rồi! Quả nào quả nấy mọng nước! 🥥✨');
-              setTimeout(() => {
+              later(() => {
                 setAnimState('climb');
                 setPetPos({ x: 86, y: 30 });
-                setTimeout(() => {
+                later(() => {
                   setAnimState('idle');
                   isInteractingRef.current = false;
                 }, 800);
@@ -946,7 +1031,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           sound.playCelebration();
           confetti({ particleCount: 35, spread: 50, origin: { x: 0.5, y: 0.52 } });
           showSpeech('Cú đập bóng ăn điểm tuyệt đỉnh! 🏐🎉');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -957,7 +1042,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('eat');
           sound.playSuccess();
           showSpeech('Nước dừa ngọt lịm mát lạnh tan biến cơn khát! 🌴😋');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -969,7 +1054,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           sound.playCelebration();
           confetti({ particleCount: 30, spread: 50, origin: { x: 0.2, y: 0.76 } });
           showSpeech('Lâu đài cát thật đồ sộ với vỏ ốc và sao biển xinh xắn! 🐚⭐');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -980,7 +1065,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('happy');
           sound.playCelebration();
           showSpeech('Đèn hải đăng sáng rực rỡ, chiếu rọi cả bầu trời! 🗼✨');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -997,16 +1082,16 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('climb');
           sound.playSuccess();
           showSpeech('Đang thoăn thoắt trèo từng bậc thang đồng... 🪜🐾');
-          setTimeout(() => {
+          later(() => {
             setPetPos({ x: 18, y: 18 });
-            setTimeout(() => {
+            later(() => {
               setAnimState('happy');
               sound.playCelebration();
               showSpeech('Tìm thấy cuốn sách bí kíp tiếng Anh công nghệ rồi! 📖✨');
-              setTimeout(() => {
+              later(() => {
                 setAnimState('climb');
                 setPetPos({ x: 18, y: 34 });
-                setTimeout(() => {
+                later(() => {
                   setAnimState('idle');
                   isInteractingRef.current = false;
                 }, 800);
@@ -1023,15 +1108,15 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           confetti({ particleCount: 30, spread: 50, origin: { x: 0.2, y: 0.74 } });
           showSpeech('Boinggg! Đệm lười êm như nhung, nhún sướng quá! 🛋️🎉');
 
-          setTimeout(() => {
+          later(() => {
             setPetPos({ x: 20, y: 60 });
-            setTimeout(() => {
+            later(() => {
               setPetPos({ x: 20, y: 74 });
-              setTimeout(() => {
+              later(() => {
                 setIsBouncingBeanbag(false);
                 setAnimState('happy');
                 sound.playSuccess();
-                setTimeout(() => {
+                later(() => {
                   isInteractingRef.current = false;
                   setAnimState('idle');
                 }, 1500);
@@ -1045,7 +1130,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('eat');
           sound.playSuccess();
           showSpeech('Mùi cafe thơm lừng! Trí tuệ tỉnh táo tập trung học tiếp! ☕😋');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1056,7 +1141,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('happy');
           sound.playCelebration();
           showSpeech('Sprint hoàn thành 100%! Không còn con bug nào nữa! ✅🎉');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1067,7 +1152,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('happy');
           sound.playSuccess();
           showSpeech('Uptime 100%! Server chạy mượt mà không có lỗi! 🚀✨');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1097,7 +1182,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             sound.playCelebration();
             confetti({ particleCount: 40, spread: 55, origin: { x: 0.66, y: 0.25 } });
             showSpeech('Đi hết cầu vồng rồi! Bắt được ngôi sao ước nguyện! ⭐🎉');
-            setTimeout(() => {
+            later(() => {
               isInteractingRef.current = false;
               setAnimState('idle');
             }, 2200);
@@ -1110,10 +1195,10 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('happy');
           sound.playSuccess();
           showSpeech('Cạch! Nắp rương bật mở, ánh sáng tỏa ra! ✨🔓');
-          setTimeout(() => {
+          later(() => {
             burstTreasureLoot(80, 70);
             showSpeech('Kho báu tuôn ra: vàng + kim cương + từ vựng mới! +20 Coins! 💎🪙');
-            setTimeout(() => {
+            later(() => {
               setIsSkyTreasureOpen(false);
               isInteractingRef.current = false;
               setAnimState('idle');
@@ -1125,17 +1210,17 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(50, 44, () => {
           setAnimState('climb');
           sound.playCelebration();
-          setTimeout(() => {
+          later(() => {
             setPetPos({ x: 50, y: 22 });
-            setTimeout(() => {
+            later(() => {
               setAnimState('happy');
               sound.playCelebration();
               confetti({ particleCount: 45, spread: 60, origin: { x: 0.5, y: 0.22 } });
               showSpeech('Đã chạm tới cổng ngọc bích lâu đài mây nguy nga lộng lẫy! 🏰🌈✨');
-              setTimeout(() => {
+              later(() => {
                 setAnimState('climb');
                 setPetPos({ x: 50, y: 44 });
-                setTimeout(() => {
+                later(() => {
                   setAnimState('idle');
                   isInteractingRef.current = false;
                 }, 800);
@@ -1151,7 +1236,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('happy');
           sound.playCelebration();
           showSpeech('Bánh lái xoay tít! Tàu đang lướt sóng thẳng tiến One Piece! 🌊🚀');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1161,17 +1246,17 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(50, 38, () => {
           setAnimState('climb');
           sound.playSuccess();
-          setTimeout(() => {
+          later(() => {
             setPetPos({ x: 50, y: 18 });
-            setTimeout(() => {
+            later(() => {
               setAnimState('happy');
               sound.playCelebration();
               confetti({ particleCount: 35, spread: 50, origin: { x: 0.5, y: 0.18 } });
               showSpeech('Đã đứng trên đỉnh cột buồm Mũ Rơm! Nhìn thấy đảo tiếp theo rồi! 🏴‍☠️✨');
-              setTimeout(() => {
+              later(() => {
                 setAnimState('climb');
                 setPetPos({ x: 50, y: 38 });
-                setTimeout(() => {
+                later(() => {
                   setAnimState('idle');
                   isInteractingRef.current = false;
                 }, 800);
@@ -1186,7 +1271,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           sound.playCelebration();
           confetti({ particleCount: 40, spread: 55, origin: { x: 0.84, y: 0.76 } });
           showSpeech('Gaon Cannon sẵn sàng! Niềm kiêu hãnh của băng Mũ Rơm! 🦁💥');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1198,10 +1283,10 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('happy');
           sound.playSuccess();
           showSpeech('Cạch! Nắp rương bật mở tung! ✨🔓');
-          setTimeout(() => {
+          later(() => {
             burstTreasureLoot(18, 70);
             showSpeech('Vàng bạc châu báu tuôn ra sáng chói mắt! +20 Coins! 💰✨');
-            setTimeout(() => {
+            later(() => {
               setIsSunnyTreasureOpen(false);
               isInteractingRef.current = false;
               setAnimState('idle');
@@ -1214,7 +1299,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('eat');
           sound.playSuccess();
           showSpeech('Cam Mikan ngọt lịm và thơm mát vô cùng! 🍊✨');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1225,7 +1310,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('happy');
           sound.playCelebration();
           showSpeech('Đại bác sẵn sàng! Uống ngụm Cola nạp đầy năng lượng! 🥤🔥');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1238,7 +1323,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('eat');
           sound.playSuccess();
           showSpeech('Xì xụp... Mì ramen xá xíu của bác Teuchi ngon đỉnh của chóp! 🍜🔥');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1249,7 +1334,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('swim');
           sound.playCelebration();
           showSpeech('Nước khoáng nóng bốc hơi nghi ngút, hồi phục 100% Chakra! ♨️✨');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
           }, 2500);
         }, true);
@@ -1258,17 +1343,17 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(50, 38, () => {
           setAnimState('climb');
           sound.playSuccess();
-          setTimeout(() => {
+          later(() => {
             setPetPos({ x: 50, y: 18 });
-            setTimeout(() => {
+            later(() => {
               setAnimState('happy');
               sound.playCelebration();
               confetti({ particleCount: 35, spread: 50, origin: { x: 0.5, y: 0.18 } });
               showSpeech('Đứng trên đỉnh tượng cụ Đệ Tứ ngắm toàn cảnh Làng Lá tuyệt đẹp! 🍃✨');
-              setTimeout(() => {
+              later(() => {
                 setAnimState('climb');
                 setPetPos({ x: 50, y: 38 });
-                setTimeout(() => {
+                later(() => {
                   setAnimState('idle');
                   isInteractingRef.current = false;
                 }, 800);
@@ -1287,26 +1372,26 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
           // Phi tiêu 1 (Kunai) bay từ vị trí Pet sang bia cột gỗ
           setFlyingShuriken({ x: 40, y: 76, rot: 0, type: 'kunai' });
-          setTimeout(() => {
+          later(() => {
             setFlyingShuriken({ x: 23, y: 77, rot: -25, type: 'kunai' });
           }, 40);
 
           // Cắm trúng bia 1
-          setTimeout(() => {
+          later(() => {
             sound.playHit();
             setIsNinjaTargetHit(true);
-            setTimeout(() => setIsNinjaTargetHit(false), 300);
+            later(() => setIsNinjaTargetHit(false), 300);
 
             // Phi tiêu 2 (Shuriken 4 cánh) bay tiếp
-            setTimeout(() => {
+            later(() => {
               sound.playWhoosh();
               setFlyingShuriken({ x: 40, y: 74, rot: 45, type: 'shuriken' });
-              setTimeout(() => {
+              later(() => {
                 setFlyingShuriken({ x: 22, y: 75, rot: 360, type: 'shuriken' });
               }, 40);
 
               // Cắm trúng hồng tâm bia 2
-              setTimeout(() => {
+              later(() => {
                 sound.playHit();
                 sound.playCelebration();
                 setIsNinjaTargetHit(true);
@@ -1319,7 +1404,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                 setAnimState('happy');
                 showSpeech('Trúng ngay tâm bia 100 điểm tuyệt đối! Xuất sắc lắm Nhẫn giả! 🎯🔥✨');
 
-                setTimeout(() => {
+                later(() => {
                   setIsNinjaTargetHit(false);
                   setFlyingShuriken(null);
                   isInteractingRef.current = false;
@@ -1335,7 +1420,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('happy');
           sound.playSuccess();
           showSpeech('Ý chí của Lửa luôn soi sáng con đường thành công của bạn! 🔥🌸');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1348,7 +1433,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('eat');
           sound.playSuccess();
           showSpeech('Gà quay giòn rụm và cốc Bia Bơ béo ngậy ngon tuyệt cú mèo! 🍗✨');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1360,7 +1445,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           sound.playCelebration();
           confetti({ particleCount: 45, spread: 60, origin: { x: 0.2, y: 0.74 } });
           showSpeech('Nón Phân Loại: Tư chất xuất sắc! Cộng 100 điểm cho Nhà của bạn! 🦁✨');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2800);
@@ -1371,7 +1456,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('happy');
           sound.playCelebration();
           showSpeech('Ngọn lửa Floo xanh ngọc bùng lên ấm áp, sẵn sàng du hành! 🪄✨');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1384,7 +1469,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           sound.playCelebration();
           confetti({ particleCount: 35, spread: 50, origin: { x: 0.5, y: 0.24 } });
           showSpeech('Hàng trăm ngọn nến ma thuật bùng sáng lung linh khắp sảnh đường! 🕯️🌟');
-          setTimeout(() => {
+          later(() => {
             setIsCandleLit(false);
             isInteractingRef.current = false;
             setAnimState('idle');
@@ -1402,7 +1487,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             colors: ['#dc2626', '#16a34a', '#2563eb', '#ca8a04'],
           });
           showSpeech('Gryffindor dũng cảm, Ravenclaw trí tuệ, Slytherin tham vọng, Hufflepuff trung thành! 🏰✨');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2600);
@@ -1418,15 +1503,15 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           confetti({ particleCount: 45, spread: 60, origin: { x: 0.5, y: 0.4 } });
           showSpeech('Boing! Đứng trên đỉnh 3 ống bê tông tổ chức liveshow âm nhạc! 🎤🎶');
 
-          setTimeout(() => {
+          later(() => {
             setPetPos({ x: 50, y: 34 });
-            setTimeout(() => {
+            later(() => {
               setPetPos({ x: 50, y: 48 });
-              setTimeout(() => {
+              later(() => {
                 setIsBouncingPipes(false);
                 setAnimState('happy');
                 sound.playSuccess();
-                setTimeout(() => {
+                later(() => {
                   isInteractingRef.current = false;
                   setAnimState('idle');
                 }, 1500);
@@ -1442,7 +1527,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           sound.playCelebration();
           confetti({ particleCount: 40, spread: 55, origin: { x: 0.82, y: 0.68 } });
           showSpeech('Cánh Cửa Thần Kỳ đã mở! Bước qua là đến ngay London học tiếng Anh! 🚪✈️');
-          setTimeout(() => {
+          later(() => {
             setIsAnywhereDoorOpen(false);
             isInteractingRef.current = false;
             setAnimState('idle');
@@ -1454,7 +1539,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('eat');
           sound.playSuccess();
           showSpeech('Bánh rán nhân đậu đỏ ngọt ngào giòn xốp ngon tuyệt cú mèo! 🥞✨');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1465,7 +1550,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('happy');
           sound.playSuccess();
           showSpeech('Cảnh chiều tà tuổi thơ thật yên bình và hoài niệm! 🌇✨');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1481,15 +1566,15 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           confetti({ particleCount: 45, spread: 60, origin: { x: 0.22, y: 0.35 } });
           showSpeech('Warp Star phóng vút qua bầu trời dải ngân hà lấp lánh! ⭐🌌');
 
-          setTimeout(() => {
+          later(() => {
             setPetPos({ x: 22, y: 24 });
-            setTimeout(() => {
+            later(() => {
               setPetPos({ x: 22, y: 42 });
-              setTimeout(() => {
+              later(() => {
                 setIsWarpStarActive(false);
                 setAnimState('happy');
                 sound.playSuccess();
-                setTimeout(() => {
+                later(() => {
                   isInteractingRef.current = false;
                   setAnimState('idle');
                 }, 1500);
@@ -1503,7 +1588,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           setAnimState('eat');
           sound.playSuccess();
           showSpeech('Kẹo mút dâu xoắn 7 màu ngọt ngào tan biến mọi âu lo! 🍭💖');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1515,7 +1600,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             setAnimState('swim');
             sound.playCelebration();
             showSpeech('Tõm xuống suối cầu vồng mát lạnh thơm như kẹo bông gòn! 🌈🏊');
-            setTimeout(() => {
+            later(() => {
               isInteractingRef.current = false;
             }, 1800);
           });
@@ -1527,7 +1612,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           sound.playCelebration();
           confetti({ particleCount: 50, spread: 65, origin: { x: 0.82, y: 0.76 } });
           showSpeech('Trượng Sao phát sáng rực rỡ! Bạn đã được tiếp thêm 100% năng lượng! 🪄💫');
-          setTimeout(() => {
+          later(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
@@ -1537,16 +1622,16 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(20, 76, () => {
           setAnimState('climb');
           sound.playSuccess();
-          setTimeout(() => {
+          later(() => {
             setPetPos({ x: 20, y: 50 });
-            setTimeout(() => {
+            later(() => {
               setAnimState('happy');
               sound.playCelebration();
               showSpeech('Táo Whispy Woods to đùng ngọt lịm! 🍎✨');
-              setTimeout(() => {
+              later(() => {
                 setAnimState('climb');
                 setPetPos({ x: 20, y: 76 });
-                setTimeout(() => {
+                later(() => {
                   setAnimState('idle');
                   isInteractingRef.current = false;
                 }, 800);
@@ -1570,7 +1655,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       onStateChange?.({ isSleeping: false, isSpeedFast });
     }
 
-    isInteractingRef.current = true;
+    beginNewAction();
     // Pet đá bóng đi: tư thế nhảy đá, bóng xuất phát từ chân pet
     setAnimState('jump');
     showSpeech(`${petName} đá quả bóng bay vút đi nè! ⚽💨`);
@@ -1581,12 +1666,12 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     setToyBall({ x: startX, y: startY, targetX: ballX, targetY: ballY, phase: 'flying' });
 
     // Step 2: Bóng bay parabol tới điểm rơi (CSS animate-ball-arc lo vòng cung)
-    setTimeout(() => {
+    later(() => {
       setToyBall((prev) => (prev ? { ...prev, x: ballX, y: ballY } : null));
     }, 30);
 
     // Step 3: Bóng chạm đất sau 650ms, pet chạy nhặt về
-    setTimeout(() => {
+    later(() => {
       setToyBall((prev) => (prev ? { ...prev, phase: 'bouncing' } : null));
 
       // Pet chạy tới nhặt bóng!
@@ -1596,7 +1681,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Bắt được bóng rồi nè bạn ơi! ⚽🎉');
         setToyBall((prev) => (prev ? { ...prev, phase: 'caught' } : null));
         confetti({ particleCount: 25, spread: 40, origin: { x: ballX / 100, y: ballY / 100 } });
-        setTimeout(() => {
+        later(() => {
           setToyBall(null);
           isInteractingRef.current = false;
           setAnimState('idle');
@@ -1615,19 +1700,19 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     setDroppedTreat({ x: treatX, y: treatY, emoji: chosenTreat });
     showSpeech('Mùi thức ăn thơm lừng hấp dẫn quá! 😋');
 
-    isInteractingRef.current = true;
+    beginNewAction();
     if (isSleeping) {
       setIsSleeping(false);
       try { localStorage.setItem('meowlish_pet_is_sleeping', 'false'); } catch {}
       onStateChange?.({ isSleeping: false, isSpeedFast });
     }
 
-    setTimeout(() => {
+    later(() => {
       walkTo(treatX, treatY, () => {
         setAnimState('eat');
         sound.playSuccess();
         showSpeech(`Măm măm ngon tuyệt vời! Cảm ơn bạn! ${chosenTreat}`);
-        setTimeout(() => {
+        later(() => {
           setDroppedTreat(null);
           isInteractingRef.current = false;
           setAnimState('idle');
@@ -1640,7 +1725,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
   const handleCallPet = () => {
     sound.playFlame();
     showSpeech(`${petName} ơi! Lại đây với mình nào! 📢`);
-    isInteractingRef.current = true;
+    beginNewAction();
     if (isSleeping) {
       setIsSleeping(false);
       try { localStorage.setItem('meowlish_pet_is_sleeping', 'false'); } catch {}
@@ -1651,7 +1736,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       setAnimState('happy');
       sound.playCelebration();
       showSpeech('Mình có mặt ngay đây rồi nè! Bạn cần gì nào? 🐾');
-      setTimeout(() => {
+      later(() => {
         isInteractingRef.current = false;
         setAnimState('idle');
       }, 1500);
@@ -1772,7 +1857,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       <div
         ref={containerRef}
         onClick={handleGroundClick}
-        className="relative w-full h-full rounded-3xl overflow-hidden border-4 border-emerald-950/85 ring-[3px] ring-emerald-400/70 shadow-[0_22px_45px_-20px_rgba(4,47,34,0.9)] cursor-crosshair select-none"
+        className="relative w-full h-full rounded-3xl overflow-hidden border-4 border-emerald-950/85 ring-[3px] ring-emerald-400/70 shadow-[0_22px_45px_-20px_rgba(4,47,34,0.9)] cursor-crosshair select-none touch-none"
         style={{ imageRendering: 'pixelated' }}
       >
         {/* Environmental Atmospheric Lighting Overlay */}
@@ -1834,6 +1919,23 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               }}
             />
 
+            {/* Layer 5b (2.5D): vệt nắng xiên cùng hướng + sương xa + cỏ tiền cảnh — absolute, không đổi layout */}
+            <div
+              className="absolute inset-0 pointer-events-none z-0"
+              style={{ background: 'linear-gradient(115deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.05) 22%, rgba(255,255,255,0) 38%)' }}
+            />
+            <div
+              className="absolute inset-x-0 top-[10%] h-10 pointer-events-none z-0 bg-gradient-to-b from-white/25 to-transparent blur-md"
+            />
+            <div className="absolute inset-x-0 bottom-0 h-10 pointer-events-none z-30 overflow-hidden opacity-90">
+              <div className="absolute bottom-0 left-[4%] text-lg">🌱</div>
+              <div className="absolute bottom-0 left-[22%] text-xl">🌿</div>
+              <div className="absolute bottom-0 left-[47%] text-lg">🌱</div>
+              <div className="absolute bottom-0 left-[68%] text-xl">🌿</div>
+              <div className="absolute bottom-0 left-[88%] text-lg">🌱</div>
+              <div className="absolute bottom-0 inset-x-0 h-3 bg-gradient-to-t from-emerald-950/25 to-transparent" />
+            </div>
+
             {/* Clouds drifting over the meadow */}
             <div className="absolute top-3 left-10 text-4xl opacity-50 pointer-events-none animate-pulse z-0" style={{ animationDuration: '6s' }}>☁️</div>
             <div className="absolute top-7 right-20 text-3xl opacity-40 pointer-events-none animate-pulse z-0" style={{ animationDuration: '8s' }}>☁️</div>
@@ -1891,8 +1993,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                 e.stopPropagation();
                 handlePerformMapAction('windmill');
               }}
-              style={{ left: '16%', top: '22%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
+              style={{ left: '16%', top: '22%', zIndex: EMERALD_FEET_Z.windmill }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform hover:scale-105 transition-transform"
               title="Cối xay gió Hà Lan xoay cánh quạt nan gỗ"
             >
               <DutchWindmillSVG scale={scaleObj(1.40)} />
@@ -1912,8 +2014,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                 e.stopPropagation();
                 handlePerformMapAction('swing');
               }}
-              style={{ left: '88%', top: '22%' }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform transition-transform ${isSwinging ? 'animate-bounce' : 'hover:scale-105'}`}
+              style={{ left: '88%', top: '22%', zIndex: EMERALD_FEET_Z.oak }}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform transition-transform ${isSwinging ? 'animate-bounce' : 'hover:scale-105'}`}
               title="Cây đại thụ + Xích đu gỗ - Bấm để Bé ngồi xích đu đung đưa!"
             >
               <GrandOakTreeSVG scale={scaleObj(1.40)} />
@@ -1929,8 +2031,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                 e.stopPropagation();
                 handlePerformMapAction('villa');
               }}
-              style={{ left: '18%', top: '50%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              style={{ left: '18%', top: '50%', zIndex: EMERALD_FEET_Z.villa }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform hover:scale-105 transition-transform"
               title="Biệt thự nông trại mái ngói đỏ"
             >
               <FarmhouseVillaSVG scale={scaleObj(1.40)} />
@@ -1943,8 +2045,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                 e.stopPropagation();
                 handlePerformMapAction('coop');
               }}
-              style={{ left: '48%', top: '40%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
+              style={{ left: '48%', top: '40%', zIndex: EMERALD_FEET_Z.coop }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform hover:scale-105 transition-transform"
               title="Chuồng gà & Đụn rơm - Bấm để cho gà ăn!"
             >
               <ChickenCoopSVG scale={scaleObj(1.40)} />
@@ -1957,8 +2059,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                 e.stopPropagation();
                 handlePerformMapAction('jump');
               }}
-              style={{ left: '76%', top: '48%' }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transition-transform duration-300 ${
+              style={{ left: '76%', top: '48%', zIndex: EMERALD_FEET_Z.mushroom }}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-transform duration-300 ${
                 isBouncingMushroom
                   ? 'scale-y-70 scale-x-125'
                   : 'hover:scale-115'
@@ -1979,8 +2081,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                 e.stopPropagation();
                 handlePerformMapAction('veggie');
               }}
-              style={{ left: '20%', top: '80%' }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer transform transition-transform ${bloomId > 0 ? 'scale-110' : 'hover:scale-105'}`}
+              style={{ left: '20%', top: '80%', zIndex: EMERALD_FEET_Z.flower }}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform transition-transform ${bloomId > 0 ? 'scale-110' : 'hover:scale-105'}`}
               title="Bồn hoa & Luống rau củ 4 mùa bội thu - Bấm để thu hoạch!"
             >
               <VeggiePatchSVG scale={scaleObj(1.40)} />
@@ -2000,8 +2102,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                 e.stopPropagation();
                 handlePerformMapAction('swim');
               }}
-              style={{ left: '80%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              style={{ left: '80%', top: '78%', zIndex: EMERALD_FEET_Z.pond }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform hover:scale-105 transition-transform"
               title="Đầm hồ sen sinh thái - Bấm để Bé nhảy xuống bơi lội mát rượi!"
             >
               <LotusPondSVG scale={scaleObj(1.40)} />
@@ -3311,11 +3413,11 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           {/* Dynamic Speech Bubble over Pet */}
           {currentSpeech && (
             <div
-              className="absolute -top-9 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-xs text-slate-900 px-2.5 py-1 rounded-xl shadow-xl border-2 border-emerald-500 text-[10px] font-black z-40 pointer-events-none animate-bounce w-max max-w-[60vw] sm:max-w-xs text-center leading-snug break-words"
-              style={{ animationDuration: '3s' }}
+              className="absolute -top-9 left-1/2 bg-white/95 backdrop-blur-xs text-slate-900 px-2.5 py-1 rounded-xl shadow-xl border-2 border-emerald-500 text-[10px] font-black z-40 pointer-events-none animate-bounce w-max max-w-[60vw] sm:max-w-xs text-center leading-snug break-words"
+              style={{ animationDuration: '3s', translate: speechShift }}
             >
               <span>{currentSpeech}</span>
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-emerald-500" />
+              <div className="absolute -bottom-1 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-emerald-500" style={{ left: speechTailLeft, transform: 'translateX(-50%)' }} />
             </div>
           )}
 
@@ -3328,7 +3430,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               species={species}
               animationState={animState}
               facing={facing}
-              scale={isMobile ? 1.05 : 1.35}
+              scale={(isMobile ? 1.05 : 1.35) * petDepthScale}
               equippedHat={equippedHat}
               equippedOutfit={equippedOutfit}
               equippedAccessory={equippedAccessory}

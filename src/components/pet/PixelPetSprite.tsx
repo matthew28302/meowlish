@@ -318,7 +318,7 @@ function PixelPetSprite({
           </clipPath>
         </defs>
 
-        {/* Lớp 0: Ground Shadow hoặc Gợn Sóng Nước khi Bơi */}
+        {/* Lớp 0: Ground Shadow hoặc Gợn Sóng Nước khi Bơi (2.5D: quầng mềm + lõi đậm) */}
         {effectiveState === 'swim' ? (
           <g className="pixel-swim-waves-bg">
             {/* Underwater body tint */}
@@ -326,9 +326,14 @@ function PixelPetSprite({
             {/* Back water ripples */}
             <ellipse cx="32" cy="41" rx="26" ry="7" fill="rgba(56, 189, 248, 0.45)" stroke="#38bdf8" strokeWidth="1.2" />
             <ellipse cx="32" cy="42" rx="20" ry="5" fill="none" stroke="#e0f2fe" strokeWidth="0.8" strokeDasharray="4 2" />
+            {/* Vệt nắng lấp lánh trên mặt nước */}
+            <ellipse cx="22" cy="39" rx="7" ry="1.8" fill="#ffffff" opacity="0.5" transform="rotate(-10 22 39)" />
           </g>
         ) : (
-          <ellipse cx="32" cy="58" rx="18" ry="4.5" fill="rgba(0, 0, 0, 0.18)" />
+          <g>
+            <ellipse cx="32" cy="58" rx="18" ry="4.5" fill="rgba(0, 0, 0, 0.14)" />
+            <ellipse cx="32" cy="58" rx="11" ry="2.8" fill="rgba(0, 0, 0, 0.16)" />
+          </g>
         )}
 
         {/* Lớp 1, 2, 3: Thân pet & trang phục (Cắt nửa thân dưới khi bơi) */}

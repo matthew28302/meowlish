@@ -152,8 +152,9 @@ function _Raw_GrandOakTreeSVG({ className = '', scale = 1.4 }: { className?: str
           </linearGradient>
         </defs>
 
-        {/* Tree Shadow */}
-        <ellipse cx="80" cy="172" rx="75" ry="12" fill="rgba(0,0,0,0.3)" />
+        {/* Tree Shadow: 2.5D hai lớp — lõi đậm tiếp đất + quầng mềm (nắng từ trái-trên) */}
+        <ellipse cx="80" cy="172" rx="75" ry="12" fill="rgba(0,0,0,0.18)" />
+        <ellipse cx="72" cy="171" rx="52" ry="7" fill="rgba(0,0,0,0.22)" />
 
         {/* Tree Trunk with Root Flares */}
         <path
@@ -207,10 +208,13 @@ function _Raw_GrandOakTreeSVG({ className = '', scale = 1.4 }: { className?: str
         <ellipse cx="114" cy="48" rx="32" ry="26" fill="url(#leavesFrontGrad)" />
         <ellipse cx="80" cy="32" rx="40" ry="30" fill="url(#leavesFrontGrad)" />
 
-        {/* Highlights */}
+        {/* Highlights (nắng từ trái-trên: sáng trái, tối dần phải = khối 2.5D) */}
         <ellipse cx="40" cy="38" rx="16" ry="10" fill="#4ade80" opacity="0.6" />
-        <ellipse cx="76" cy="22" rx="20" ry="12" fill="#4ade80" opacity="0.7" />
-        <ellipse cx="112" cy="38" rx="16" ry="10" fill="#4ade80" opacity="0.6" />
+        <ellipse cx="76" cy="22" rx="20" ry="12" fill="#bbf7d0" opacity="0.55" />
+        <ellipse cx="112" cy="38" rx="16" ry="10" fill="#4ade80" opacity="0.45" />
+        {/* Rim sáng mặt trên + bóng mặt dưới tán (khối 2.5D: mặt trên/mặt bên) */}
+        <ellipse cx="66" cy="12" rx="26" ry="6" fill="#ffffff" opacity="0.28" />
+        <ellipse cx="92" cy="66" rx="30" ry="7" fill="#14532d" opacity="0.30" />
 
         {/* Ripe Red Apples with Leaves */}
         {[
@@ -415,6 +419,9 @@ function _Raw_LotusPondSVG({ className = '', scale = 1.4 }: { className?: string
         />
 
         {/* Animated Water Ripples */}
+        {/* Vệt nắng phản chiếu mặt nước (cùng hướng nắng trái-trên, chuẩn 2.5D) */}
+        <ellipse cx="52" cy="30" rx="26" ry="6" fill="#ffffff" opacity="0.30" transform="rotate(-12 52 30)" className="animate-pulse" style={{ animationDuration: '3.2s' }} />
+        <ellipse cx="60" cy="34" rx="14" ry="3.5" fill="#ffffff" opacity="0.35" transform="rotate(-12 60 34)" className="animate-pulse" style={{ animationDuration: '2.4s' }} />
         <ellipse cx="90" cy="45" rx="35" ry="12" fill="none" stroke="#bae6fd" strokeWidth="1" opacity="0.6" className="animate-pulse" style={{ animationDuration: '3s' }} />
         <ellipse cx="150" cy="70" rx="30" ry="10" fill="none" stroke="#bae6fd" strokeWidth="1" opacity="0.6" className="animate-pulse" style={{ animationDuration: '4s' }} />
         <ellipse cx="60" cy="75" rx="20" ry="8" fill="none" stroke="#bae6fd" strokeWidth="1" opacity="0.5" className="animate-pulse" style={{ animationDuration: '3.5s' }} />
