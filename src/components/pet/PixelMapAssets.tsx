@@ -3,6 +3,44 @@
 import React from 'react';
 
 // =========================================================================
+// 2.5D CHUNG — HƯỚNG SÁNG NHẤT QUÁN TOÀN BẢN ĐỒ: ĐÈN Ở TRÊN ⇦ TRÁI
+//   * mặt trên / mặt trái  → sáng hơn (viền nắng trắng mỏng)
+//   * mặt phải / mặt dưới  → tối hơn (lớp xám đen cùng tông, không màu mới)
+//   * vật tiếp đất          → bóng AO 2 lớp (quầng mềm + lõi đậm lệch phải)
+// =========================================================================
+const _AO = '#020617'; // bóng trung tính cùng tông dark-mode
+const _RIM = '#ffffff';
+
+/** Bóng tiếp đất 2 lớp: quầng AO loãng + lõi đậm (lệch nhẹ sang phải) */
+function _ao(id: string, cx: number, cy: number, rx: number, ry: number, core = 0.26) {
+  const halo = Math.min(1, core * 1.45);
+  const mid = Math.min(1, core * 0.72);
+  return (
+    <>
+      <defs>
+        <radialGradient id={id} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={_AO} stopOpacity={halo} />
+          <stop offset="52%" stopColor={_AO} stopOpacity={mid} />
+          <stop offset="100%" stopColor={_AO} stopOpacity={0} />
+        </radialGradient>
+      </defs>
+      <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={`url(#${id})`} />
+      <ellipse cx={cx + rx * 0.12} cy={cy + ry * 0.22} rx={rx * 0.58} ry={ry * 0.55} fill={_AO} opacity={core} />
+    </>
+  );
+}
+
+/** Mặt bên / mặt dưới tối hơn của một khối (đèn trên-trái ⇒ mặt phải tối nhất) */
+function _side(d: string, o = 0.18) {
+  return <path d={d} fill={_AO} opacity={o} />;
+}
+
+/** Viền nắng mặt trên / mặt trái của một khối */
+function _rim(d: string, o = 0.2) {
+  return <path d={d} fill={_RIM} opacity={o} />;
+}
+
+// =========================================================================
 // 1. CỐI XAY GIÓ HÀ LAN THẬT (DUTCH WINDMILL WITH WOODEN LATTICE BLADES)
 // =========================================================================
 function _Raw_DutchWindmillSVG({ className = '', scale = 1.4 }: { className?: string; scale?: number }) {
@@ -26,8 +64,8 @@ function _Raw_DutchWindmillSVG({ className = '', scale = 1.4 }: { className?: st
             <stop offset="100%" stopColor="#451a03" />
           </linearGradient>
         </defs>
-        {/* Shadow */}
-        <ellipse cx="70" cy="172" rx="65" ry="12" fill="rgba(0,0,0,0.3)" />
+        {/* Shadow: AO 2 lớp (quầng mềm + lõi đậm lệch phải — đèn trên-trái) */}
+        {_ao('millAO', 70, 171, 68, 13, 0.3)}
 
         {/* Stone Base / Bệ đá xếp lớp */}
         <path d="M 32 170 L 40 100 L 100 100 L 108 170 Z" fill="url(#millBaseGrad)" stroke="#1e293b" strokeWidth="2" />
@@ -74,6 +112,19 @@ function _Raw_DutchWindmillSVG({ className = '', scale = 1.4 }: { className?: st
         <path d="M 44 45 Q 70 15 96 45 Z" fill="url(#millRoofGrad)" stroke="#451a03" strokeWidth="2.5" />
         <circle cx="70" cy="24" r="3.5" fill="#fbbf24" stroke="#b45309" strokeWidth="1" />
 
+        {/* 2.5D — mặt phải sẫm (đèn trên-trái), viền nắng mặt trên, mặt tường trái sáng */}
+        {_side('M 80 170 L 80 100 L 100 100 L 108 170 Z', 0.17)}
+        {_side('M 80 96 L 80 45 L 90 45 L 96 96 Z', 0.15)}
+        {_side('M 72 45 Q 86 32 96 45 L 72 46 Z', 0.16)}
+        {_rim('M 40 100.5 L 100 100.5 L 99 103.5 L 41 103.5 Z', 0.22)}
+        {_rim('M 44.5 96 L 50 45.5 L 55 45.5 L 50 96 Z', 0.14)}
+        {_rim('M 44.5 45 Q 66 20 74 20.5 Q 58 30 47.5 46 Z', 0.2)}
+        {/* Rêu/bụi bám chân tường + bolt sắt trên lan can */}
+        <circle cx="36" cy="166" r="3" fill="#15803d" opacity="0.55" />
+        <circle cx="104" cy="164" r="2.5" fill="#15803d" opacity="0.45" />
+        {[34, 68, 102].map((bx) => (
+          <circle key={bx} cx={bx} cy="99" r="1.2" fill="#451a03" />
+        ))}
         {/* Center Rotor Hub */}
         <circle cx="70" cy="46" r="8" fill="#451a03" stroke="#facc15" strokeWidth="2" />
         <circle cx="70" cy="46" r="3" fill="#facc15" />
@@ -152,9 +203,8 @@ function _Raw_GrandOakTreeSVG({ className = '', scale = 1.4 }: { className?: str
           </linearGradient>
         </defs>
 
-        {/* Tree Shadow: 2.5D hai lớp — lõi đậm tiếp đất + quầng mềm (nắng từ trái-trên) */}
-        <ellipse cx="80" cy="172" rx="75" ry="12" fill="rgba(0,0,0,0.18)" />
-        <ellipse cx="72" cy="171" rx="52" ry="7" fill="rgba(0,0,0,0.22)" />
+        {/* Tree Shadow: 2.5D AO — lõi đậm tiếp đất + quầng mềm loãng (nắng từ trên-trái) */}
+        {_ao('oakAO', 78, 171, 76, 13, 0.26)}
 
         {/* Tree Trunk with Root Flares */}
         <path
@@ -170,6 +220,18 @@ function _Raw_GrandOakTreeSVG({ className = '', scale = 1.4 }: { className?: str
         {/* Tree Knot */}
         <ellipse cx="84" cy="120" rx="3" ry="5" fill="#451a03" stroke="#1c1917" strokeWidth="1" />
         <ellipse cx="84" cy="120" rx="1.5" ry="3" fill="#1c1917" />
+
+        {/* 2.5D — mặt phải thân cây sẫm (đèn trên-trái) + viền nắng trái */}
+        <path
+          d="M 84 175 C 90 145 84 115 86 85 C 90 77 96 77 96 85 C 94 115 105 145 100 174 Z"
+          fill={_AO}
+          opacity="0.2"
+        />
+        <path
+          d="M 60 174 C 55 145 66 115 64 85 C 64 77 70 76 74 77 C 70 110 72 145 70 174 Z"
+          fill="#ffffff"
+          opacity="0.12"
+        />
 
         {/* Sturdy Wooden Climbing Ladder rungs on trunk */}
         {Array.from({ length: 7 }).map((_, i) => (
@@ -216,6 +278,12 @@ function _Raw_GrandOakTreeSVG({ className = '', scale = 1.4 }: { className?: str
         <ellipse cx="66" cy="12" rx="26" ry="6" fill="#ffffff" opacity="0.28" />
         <ellipse cx="92" cy="66" rx="30" ry="7" fill="#14532d" opacity="0.30" />
 
+        {/* 2.5D — tán cây: mặt phải/dưới tối, viền ngọn sáng (đèn trên-trái) */}
+        <ellipse cx="126" cy="64" rx="30" ry="24" fill={_AO} opacity="0.13" />
+        <ellipse cx="94" cy="70" rx="38" ry="22" fill={_AO} opacity="0.1" />
+        <ellipse cx="44" cy="72" rx="26" ry="16" fill={_AO} opacity="0.08" />
+        {_rim('M 24 62 Q 40 34 76 24 Q 60 44 46 70 Z', 0.12)}
+
         {/* Ripe Red Apples with Leaves */}
         {[
           { x: 30, y: 50 },
@@ -259,8 +327,8 @@ function _Raw_FarmhouseVillaSVG({ className = '', scale = 1.4 }: { className?: s
           </linearGradient>
         </defs>
 
-        {/* Shadow */}
-        <ellipse cx="85" cy="126" rx="80" ry="8" fill="rgba(0,0,0,0.3)" />
+        {/* Shadow: AO 2 lớp chạm đất (đèn trên-trái) */}
+        {_ao('villaAO', 85, 125, 82, 9, 0.3)}
 
         {/* Cobblestone Chimney with Animated Smoke */}
         <g>
@@ -297,6 +365,15 @@ function _Raw_FarmhouseVillaSVG({ className = '', scale = 1.4 }: { className?: s
         {/* Roof ridge cap */}
         <line x1="10" y1="58" x2="160" y2="58" stroke="#7f1d1d" strokeWidth="4" strokeLinecap="round" />
         
+        {/* 2.5D — khối nhà: mặt phải tường/mái tối, mặt trái & viền trên nắng (đèn trên-trái) */}
+        <polygon points="85,16 158,58 96,58" fill={_AO} opacity="0.16" />
+        <polygon points="12,58 85,16 85,23 20,53" fill="#ffffff" opacity="0.16" />
+        <rect x="104" y="55" width="41" height="68" fill={_AO} opacity="0.13" />
+        <rect x="133" y="16" width="9" height="28" fill={_AO} opacity="0.18" />
+        <rect x="124" y="16" width="4" height="28" fill="#ffffff" opacity="0.14" />
+        {/* Đá móng + rêu chân tường */}
+        <path d="M 25 123 L 145 123" stroke={_AO} strokeWidth="3" opacity="0.25" />
+
         {/* Attic Round Window */}
         <circle cx="85" cy="38" r="8" fill="#fef08a" stroke="#451a03" strokeWidth="2" />
         <line x1="85" y1="30" x2="85" y2="46" stroke="#451a03" strokeWidth="1.5" />
@@ -474,6 +551,23 @@ function _Raw_LotusPondSVG({ className = '', scale = 1.4 }: { className?: string
           <circle cx="114" cy="78" r="2" fill="#fbcfe8" />
         </g>
 
+        {/* 2.5D GROUND — bờ đá: viền nắng trái-trên, AO trong lòng hồ, nước sâu dần chân phải */}
+        <defs>
+          <clipPath id="lotusBasinClip">
+            <path d="M 16 50 C 20 20, 72 14, 118 16 C 165 18, 204 28, 208 60 C 212 90, 155 102, 108 100 C 54 98, 12 80, 16 50 Z" />
+          </clipPath>
+          <linearGradient id="lotusDepthGrad" x1="0%" y1="0%" x2="75%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.14" />
+            <stop offset="45%" stopColor="#0ea5e9" stopOpacity="0" />
+            <stop offset="100%" stopColor="#020617" stopOpacity="0.3" />
+          </linearGradient>
+        </defs>
+        <g clipPath="url(#lotusBasinClip)">
+          <rect x="0" y="0" width="220" height="110" fill="url(#lotusDepthGrad)" />
+        </g>
+        {_rim('M 13 50 C 18 18 70 11 119 13 C 150 14 176 19 194 27', 0.3)}
+        {_side('M 212 60 C 216 92 158 105 109 103 L 109 106 C 160 108 219 94 215 59 Z', 0.3)}
+
         {/* Wooden Pier Dock (Cầu cảng vươn dài ra hồ) */}
         <g>
           {/* Pilings under water (shadowed) */}
@@ -518,8 +612,8 @@ function _Raw_BouncyMushroomSVG({ className = '', scale = 1 }: { className?: str
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 70 * scale, height: 75 * scale }}>
       <svg viewBox="0 0 70 75" width={70 * scale} height={75 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="35" cy="72" rx="26" ry="4" fill="rgba(0,0,0,0.22)" />
+        {/* Shadow: AO 2 lớp dưới lò xo (đèn trên-trái) */}
+        {_ao('mushAO', 35, 71, 28, 5.5, 0.24)}
 
         {/* Coiled Steel Spring / Lò xo thép nảy */}
         <path
@@ -545,6 +639,13 @@ function _Raw_BouncyMushroomSVG({ className = '', scale = 1 }: { className?: str
         {/* Cap Highlight */}
         <path d="M 16 28 C 20 16, 50 16, 54 28" fill="none" stroke="#ef4444" strokeWidth="2" />
 
+        {/* 2.5D — mặt phải nấm tối, viền nấm trái-trên nắng, thân & lò xo có mặt bên */}
+        <path d="M 35 11.5 C 45 11 56 17 62 36 C 55 40 45 40 35 40 Z" fill={_AO} opacity="0.17" />
+        <path d="M 8 36 C 8 12 22 6.5 38 7 C 24 9.5 13.5 18 12 34 Z" fill="#ffffff" opacity="0.2" />
+        <path d="M 36 36 L 40 36 L 42 50 L 38 50 Z" fill={_AO} opacity="0.2" />
+        <path d="M 28 50 L 31 36 L 33 36 L 30 50 Z" fill="#ffffff" opacity="0.35" />
+        <path d="M 35 68 C 44 67 47 65 47 63" fill="none" stroke="#ffffff" strokeWidth="1.2" opacity="0.4" />
+
         {/* White Circular Spots */}
         <circle cx="20" cy="24" r="3.5" fill="#ffffff" />
         <circle cx="35" cy="18" r="4.5" fill="#ffffff" />
@@ -563,8 +664,8 @@ function _Raw_ChickenCoopSVG({ className = '', scale = 1 }: { className?: string
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 110 * scale, height: 85 * scale }}>
       <svg viewBox="0 0 110 85" width={110 * scale} height={85 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="55" cy="82" rx="48" ry="4" fill="rgba(0,0,0,0.22)" />
+        {/* Shadow: AO 2 lớp dưới chuồng + đụn rơm (đèn trên-trái) */}
+        {_ao('coopAO', 58, 81, 50, 6, 0.26)}
 
         {/* Golden Haystack / Đụn rơm vàng bên cạnh */}
         <ellipse cx="20" cy="74" rx="16" ry="9" fill="#eab308" stroke="#ca8a04" strokeWidth="1.5" />
@@ -580,6 +681,13 @@ function _Raw_ChickenCoopSVG({ className = '', scale = 1 }: { className?: string
         {/* Straw Thatched Roof */}
         <polygon points="36,40 72,16 108,40" fill="#ca8a04" stroke="#854d0e" strokeWidth="2" />
         <polygon points="40,38 72,20 104,38" fill="#eab308" />
+
+        {/* 2.5D — mặt phải chuồng tối, viền mái rơm trái-trên nắng, đụn rơm có khối */}
+        <polygon points="72,16 108,40 74,40" fill={_AO} opacity="0.17" />
+        <polygon points="36,40 72,16 72,22 42,37" fill="#ffffff" opacity="0.2" />
+        <rect x="86" y="38" width="16" height="42" fill={_AO} opacity="0.15" />
+        <ellipse cx="27" cy="72" rx="11" ry="8" fill={_AO} opacity="0.16" />
+        <ellipse cx="15" cy="66" rx="7" ry="6" fill="#ffffff" opacity="0.2" />
 
         {/* Coop Doorway & Ramp */}
         <rect x="52" y="54" width="16" height="26" fill="#451a03" rx="1" />
@@ -613,8 +721,8 @@ function _Raw_VeggiePatchSVG({ className = '', scale = 1 }: { className?: string
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 80 * scale }}>
       <svg viewBox="0 0 140 80" width={140 * scale} height={80 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="70" cy="76" rx="64" ry="4" fill="rgba(0,0,0,0.2)" />
+        {/* Shadow: AO 2 lớp dưới 2 luống rau (đèn trên-trái) */}
+        {_ao('vegAO', 72, 75, 66, 6, 0.24)}
 
         {/* 2 Raised Wooden Garden Beds with Rich Dark Soil */}
         {/* Bed 1 (Top) */}
@@ -644,6 +752,17 @@ function _Raw_VeggiePatchSVG({ className = '', scale = 1 }: { className?: string
         <rect x="10" y="44" width="120" height="28" fill="#5c2c0e" stroke="#381a07" strokeWidth="2" rx="3" />
         <rect x="14" y="47" width="112" height="22" fill="#381a07" rx="2" />
 
+        {/* 2.5D — luống gỗ: mặt đế trước tối, viền trên nắng, mặt phải sẫm (đèn trên-trái) */}
+        <rect x="10" y="32" width="120" height="6" fill={_AO} opacity="0.24" />
+        <rect x="10" y="10" width="120" height="4" fill="#ffffff" opacity="0.16" />
+        <rect x="126" y="10" width="4" height="28" fill={_AO} opacity="0.22" />
+        <rect x="10" y="66" width="120" height="6" fill={_AO} opacity="0.24" />
+        <rect x="10" y="44" width="120" height="4" fill="#ffffff" opacity="0.16" />
+        <rect x="126" y="44" width="4" height="28" fill={_AO} opacity="0.22" />
+        {/* Đất trong luống: chấm hạt + AO góc */}
+        <ellipse cx="60" cy="34" rx="52" ry="4" fill="#000000" opacity="0.14" />
+        <ellipse cx="60" cy="70" rx="52" ry="4" fill="#000000" opacity="0.14" />
+
         {/* Corns & Pumpkins in Bed 2 */}
         {[26, 52].map((x, i) => (
           <g key={i}>
@@ -671,6 +790,8 @@ function _Raw_LighthouseSVG({ className = '', scale = 1 }: { className?: string;
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 80 * scale, height: 160 * scale }}>
       <svg viewBox="0 0 80 160" width={80 * scale} height={160 * scale} className="overflow-visible">
+        {/* Bóng AO dưới vách đá hải đăng (đèn trên-trái) */}
+        {_ao('lightAO', 44, 154, 40, 7, 0.28)}
         {/* Coastal Rock Base */}
         <polygon points="12,155 24,130 56,130 68,155" fill="#475569" stroke="#1e293b" strokeWidth="2" />
 
@@ -679,6 +800,16 @@ function _Raw_LighthouseSVG({ className = '', scale = 1 }: { className?: string;
         {/* Red Stripes */}
         <polygon points="28,110 30,90 50,90 52,110" fill="#dc2626" />
         <polygon points="31,70 33,52 47,52 49,70" fill="#dc2626" />
+
+        {/* 2.5D — tháp hải đăng: mặt phải tối, viền trái nắng, vách đá có mặt bên */}
+        <path d="M 40 50 L 48 50 L 54 130 L 40 130 Z" fill={_AO} opacity="0.18" />
+        <path d="M 32 50 L 35 50 L 29 130 L 26 130 Z" fill="#ffffff" opacity="0.24" />
+        <polygon points="45,130 56,130 68,155 52,155" fill={_AO} opacity="0.2" />
+        <polygon points="12,155 24,130 28,130 17,155" fill="#ffffff" opacity="0.16" />
+        {/* Bults vòng quanh đế + rêu mọc chân đá */}
+        <circle cx="34" cy="140" r="1.6" fill="#1e293b" />
+        <circle cx="46" cy="140" r="1.6" fill="#1e293b" />
+        <path d="M 18 152 Q 24 145 30 150" stroke="#15803d" strokeWidth="2" fill="none" opacity="0.7" />
 
         {/* Gallery Balcony */}
         <rect x="26" y="46" width="28" height="4" fill="#1e293b" rx="1" />
@@ -707,8 +838,8 @@ function _Raw_PalmTreeSVG({ className = '', scale = 1 }: { className?: string; s
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 130 * scale, height: 160 * scale }}>
       <svg viewBox="0 0 130 160" width={130 * scale} height={160 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="40" cy="154" rx="35" ry="6" fill="rgba(0,0,0,0.22)" />
+        {/* Shadow: AO 2 lớp — rễ cây đổ bóng sang phải (đèn trên-trái) */}
+        {_ao('palmAO', 44, 153, 38, 7.5, 0.26)}
 
         {/* Curved Palm Trunk with Segment Rings */}
         <path
@@ -726,6 +857,13 @@ function _Raw_PalmTreeSVG({ className = '', scale = 1 }: { className?: string; s
         <circle cx="85" cy="48" r="4.5" fill="#78350f" stroke="#451a03" strokeWidth="1" />
         <circle cx="92" cy="49" r="4.5" fill="#78350f" stroke="#451a03" strokeWidth="1" />
         <circle cx="89" cy="54" r="4" fill="#78350f" stroke="#451a03" strokeWidth="1" />
+
+        {/* 2.5D — thân dừa: mặt phải tối, viền trái nắng, ngọn lá phải tối (đèn trên-trái) */}
+        <path d="M 94 48 C 76 84 52 112 46 152 L 41 152 C 50 110 74 78 89 45 Z" fill={_AO} opacity="0.22" />
+        <path d="M 38 152 C 45 110 68 80 85 45 L 89 46 C 72 82 50 112 43 152 Z" fill="#ffffff" opacity="0.16" />
+        <path d="M 88 45 C 115 45 135 65 128 85 C 120 65 105 55 88 45 Z" fill={_AO} opacity="0.16" />
+        <path d="M 88 45 C 50 35 10 50 0 75" fill="none" stroke="#0f172a" strokeWidth="1" opacity="0.35" />
+        <path d="M 88 45 C 60 15 30 15 20 30" fill="none" stroke="#bbf7d0" strokeWidth="1.2" opacity="0.4" />
 
         {/* Arching Palm Fronds (Tán lá dừa cong vút) */}
         {/* Frond 1 (Left) */}
@@ -748,6 +886,8 @@ function _Raw_ServerRackSVG({ className = '', scale = 1 }: { className?: string;
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 75 * scale, height: 130 * scale }}>
       <svg viewBox="0 0 75 130" width={75 * scale} height={130 * scale} className="overflow-visible">
+        {/* Bóng AO dưới tủ rack (đèn trên-trái) */}
+        {_ao('rackAO', 41, 125, 37, 6, 0.3)}
         {/* Metal Cabinet Outer Frame */}
         <rect x="5" y="5" width="65" height="120" fill="#0f172a" stroke="#334155" strokeWidth="2.5" rx="3" />
         <rect x="8" y="8" width="59" height="114" fill="#020617" />
@@ -765,6 +905,13 @@ function _Raw_ServerRackSVG({ className = '', scale = 1 }: { className?: string;
             <circle cx="56" cy={21 + i * 18} r="1.2" fill="#22c55e" />
           </g>
         ))}
+
+        {/* 2.5D — mặt phải tủ rack tối, mặt trên/đèn hắt sáng, chân đế chạm sàn */}
+        <rect x="62" y="5" width="8" height="120" fill={_AO} opacity="0.26" />
+        <rect x="5" y="5" width="65" height="4" fill="#ffffff" opacity="0.14" />
+        <rect x="7" y="123" width="61" height="2" fill="#ffffff" opacity="0.08" />
+        <rect x="8" y="125" width="10" height="4" fill="#020617" />
+        <rect x="57" y="125" width="10" height="4" fill="#020617" />
       </svg>
     </div>
   );
@@ -777,6 +924,8 @@ function _Raw_DevWorkstationSVG({ className = '', scale = 1 }: { className?: str
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 100 * scale }}>
       <svg viewBox="0 0 140 100" width={140 * scale} height={100 * scale} className="overflow-visible">
+        {/* Bóng AO dưới 2 chân bàn (đèn trên-trái) */}
+        {_ao('deskAO', 73, 96, 62, 6, 0.26)}
         {/* Desk Surface */}
         <rect x="10" y="60" width="120" height="8" fill="#b45309" stroke="#78350f" strokeWidth="1.5" rx="1" />
         {/* Metal Legs */}
@@ -808,6 +957,16 @@ function _Raw_DevWorkstationSVG({ className = '', scale = 1 }: { className?: str
           <rect x="93" y="50" width="6" height="10" fill="#475569" />
           <rect x="87" y="58" width="18" height="2" fill="#475569" rx="1" />
         </g>
+
+        {/* 2.5D — mặt bàn sáng trên, mặt cạnh trước tối; chân bàn & màn hình có mặt bên */}
+        <rect x="10" y="60" width="120" height="2.5" fill="#ffffff" opacity="0.18" />
+        <rect x="10" y="64" width="120" height="4" fill={_AO} opacity="0.24" />
+        <rect x="120" y="68" width="4" height="28" fill={_AO} opacity="0.3" />
+        <rect x="16" y="68" width="2.5" height="28" fill="#ffffff" opacity="0.14" />
+        <rect x="60" y="18" width="6" height="32" fill={_AO} opacity="0.22" />
+        <rect x="112" y="18" width="6" height="32" fill={_AO} opacity="0.22" />
+        <rect x="22" y="18" width="3" height="32" fill="#ffffff" opacity="0.12" />
+        <rect x="74" y="18" width="3" height="32" fill="#ffffff" opacity="0.12" />
 
         {/* Mechanical RGB Keyboard & Mouse */}
         <rect x="52" y="62" width="28" height="5" fill="#0f172a" stroke="#38bdf8" strokeWidth="0.8" rx="1" />
@@ -877,6 +1036,20 @@ function _Raw_CrystalCastleSVG({ className = '', scale = 1.4 }: { className?: st
         <polygon points="102,75 117,30 132,75" fill="#a5b4fc" stroke="#4f46e5" strokeWidth="1.5" strokeLinejoin="round" />
         <polygon points="114,40 117,30 120,40" fill="url(#goldGrad)" />
 
+        {/* 2.5D — mặt phải khối tháp tối, mặt trái tháp sáng, mây nền có chiều sâu */}
+        <rect x="90" y="65" width="18" height="79" fill={_AO} opacity="0.18" />
+        <rect x="42" y="65" width="6" height="79" fill="#ffffff" opacity="0.14" />
+        <polygon points="75,12 88,65 75,65" fill={_AO} opacity="0.18" />
+        <polygon points="62,65 75,12 75,65" fill="#ffffff" opacity="0.14" />
+        <polygon points="33,30 48,75 33,75" fill={_AO} opacity="0.16" />
+        <polygon points="18,75 33,30 33,75" fill="#ffffff" opacity="0.12" />
+        <polygon points="117,30 132,75 117,75" fill={_AO} opacity="0.18" />
+        <polygon points="102,75 117,30 117,75" fill="#ffffff" opacity="0.1" />
+        <rect x="38" y="75" width="8" height="69" fill={_AO} opacity="0.2" />
+        <rect x="122" y="75" width="8" height="69" fill={_AO} opacity="0.24" />
+        <ellipse cx="75" cy="157" rx="72" ry="8" fill={_AO} opacity="0.12" />
+        <ellipse cx="55" cy="140" rx="46" ry="9" fill="#ffffff" opacity="0.16" />
+
         {/* Floating Crystals */}
         <g className="animate-bounce" style={{ animationDuration: '3.5s' }}>
           <polygon points="15,60 18,50 21,60 18,70" fill="#c7d2fe" />
@@ -903,8 +1076,8 @@ function _Raw_BeachVolleyballSVG({ className = '', scale = 1 }: { className?: st
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 90 * scale }}>
       <svg viewBox="0 0 140 90" width={140 * scale} height={90 * scale} className="overflow-visible">
-        {/* Ground shadow on sand */}
-        <ellipse cx="70" cy="85" rx="62" ry="5" fill="rgba(180, 83, 9, 0.25)" />
+        {/* Ground shadow on sand: AO 2 lớp + quầng cát lún (đèn trên-trái) */}
+        {_ao('volleyAO', 73, 84, 64, 7, 0.26)}
 
         {/* Sand Boundary Lines */}
         <polygon points="12,82 128,82 122,86 18,86" fill="#f59e0b" opacity="0.6" />
@@ -953,6 +1126,20 @@ function _Raw_BeachVolleyballSVG({ className = '', scale = 1 }: { className?: st
         <line x1="110" y1="78" x2="110" y2="85" stroke="#ffffff" strokeWidth="1.5" />
         {/* Lemonade bottle */}
         <rect x="90" y="74" width="3.5" height="8" fill="#facc15" stroke="#ca8a04" strokeWidth="0.6" rx="0.5" />
+        {/* 2.5D GROUND — mặt cát nghiêng: sáng trái-trên → tối phải-dưới, bóng lưới + mặt cột */}
+        <defs>
+          <linearGradient id="sandPlaneGrad" x1="10%" y1="0%" x2="85%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.2" />
+            <stop offset="45%" stopColor="#f59e0b" stopOpacity="0" />
+            <stop offset="100%" stopColor="#020617" stopOpacity="0.3" />
+          </linearGradient>
+        </defs>
+        <polygon points="12,82 128,82 122,86 18,86" fill="url(#sandPlaneGrad)" />
+        <path d="M 20 82 L 120 82 L 115 84.5 L 25 84.5 Z" fill={_AO} opacity="0.16" />
+        <rect x="16" y="16" width="3" height="68" fill={_AO} opacity="0.26" />
+        <rect x="14" y="16" width="1.6" height="68" fill="#ffffff" opacity="0.24" />
+        <rect x="123" y="16" width="3" height="68" fill={_AO} opacity="0.26" />
+        <rect x="121" y="16" width="1.6" height="68" fill="#ffffff" opacity="0.24" />
         <line x1="91" y1="72" x2="91" y2="74" stroke="#ef4444" strokeWidth="1" />
       </svg>
     </div>
@@ -966,8 +1153,8 @@ function _Raw_TikiBarCabanaSVG({ className = '', scale = 1 }: { className?: stri
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 145 * scale, height: 115 * scale }}>
       <svg viewBox="0 0 145 115" width={145 * scale} height={115 * scale} className="overflow-visible">
-        {/* Ground shadow on sand */}
-        <ellipse cx="72" cy="108" rx="66" ry="6" fill="rgba(180, 83, 9, 0.28)" />
+        {/* Ground shadow on sand: AO 2 lớp (đèn trên-trái) */}
+        {_ao('tikiAO', 75, 107, 68, 8, 0.28)}
 
         {/* Leaning Tropical Surfboard (Left side) */}
         <g transform="rotate(-14 22 90)">
@@ -1031,6 +1218,18 @@ function _Raw_TikiBarCabanaSVG({ className = '', scale = 1 }: { className?: stri
           strokeWidth="2"
         />
 
+        {/* 2.5D — quầy: mặt phải tối, mặt trên quầy nắng; mái tranh 2 mặt; trụ nghiêng sáng tối */}
+        <rect x="100" y="62" width="12" height="42" fill={_AO} opacity="0.2" />
+        <rect x="36" y="62" width="4" height="42" fill="#ffffff" opacity="0.12" />
+        <rect x="30" y="56" width="88" height="2.6" fill="#ffffff" opacity="0.18" />
+        <rect x="30" y="61.4" width="88" height="2.6" fill={_AO} opacity="0.22" />
+        <polygon points="74,4 130,34 74,34" fill={_AO} opacity="0.17" />
+        <polygon points="18,34 74,4 74,11 26,31" fill="#ffffff" opacity="0.18" />
+        <rect x="109" y="16" width="3" height="42" fill={_AO} opacity="0.28" />
+        <rect x="36" y="16" width="1.8" height="42" fill="#ffffff" opacity="0.22" />
+        <ellipse cx="46" cy="108" rx="12" ry="4" fill={_AO} opacity="0.2" />
+        <ellipse cx="102" cy="108" rx="12" ry="4" fill={_AO} opacity="0.2" />
+
         {/* Hanging Wooden Sign: TIKI BAR */}
         <rect x="52" y="24" width="44" height="11" fill="#78350f" stroke="#ca8a04" strokeWidth="1" rx="1.5" />
         <text x="74" y="32.5" textAnchor="middle" fill="#fef08a" fontSize="7" fontWeight="bold" fontFamily="sans-serif">
@@ -1048,8 +1247,8 @@ function _Raw_SandcastleBonfireSVG({ className = '', scale = 1 }: { className?: 
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 135 * scale, height: 90 * scale }}>
       <svg viewBox="0 0 130 85" width={130 * scale} height={85 * scale} className="overflow-visible">
-        {/* Ground shadow on sand */}
-        <ellipse cx="65" cy="80" rx="60" ry="5" fill="rgba(180, 83, 9, 0.28)" />
+        {/* Ground shadow on sand: AO 2 lớp (đèn trên-trái) */}
+        {_ao('castleAO', 68, 79, 62, 7, 0.28)}
 
         {/* ================= LEFT: CAMPFIRE / LỬA TRẠI ================= */}
         {/* Stone Fire Ring */}
@@ -1112,6 +1311,24 @@ function _Raw_SandcastleBonfireSVG({ className = '', scale = 1 }: { className?: 
           <line x1="109" y1="32" x2="109" y2="18" stroke="#78350f" strokeWidth="1.2" />
           <polygon points="109,19 123,24 109,29" fill="#ef4444" />
 
+          {/* 2.5D — lâu đài cát: mặt phải các khối tối, viền trên nắng; nền cát phân lớp sáng tối */}
+          <defs>
+            <linearGradient id="sandDuneGrad" x1="15%" y1="0%" x2="85%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.18" />
+              <stop offset="50%" stopColor="#eab308" stopOpacity="0" />
+              <stop offset="100%" stopColor="#020617" stopOpacity="0.3" />
+            </linearGradient>
+          </defs>
+          <rect x="0" y="70" width="130" height="15" fill="url(#sandDuneGrad)" />
+          <ellipse cx="30" cy="77" rx="20" ry="6" fill={_AO} opacity="0.2" />
+          <rect x="94" y="44" width="10" height="34" fill={_AO} opacity="0.2" />
+          <rect x="74" y="44" width="30" height="3" fill="#ffffff" opacity="0.24" />
+          <polygon points="69,32 78,52 69,52" fill={_AO} opacity="0.18" />
+          <polygon points="60,52 69,32 69,52" fill="#ffffff" opacity="0.2" />
+          <polygon points="109,32 118,52 109,52" fill={_AO} opacity="0.22" />
+          <polygon points="100,52 109,32 109,52" fill="#ffffff" opacity="0.16" />
+          <rect x="62" y="52" width="4" height="26" fill="#ffffff" opacity="0.16" />
+
           {/* Starfish and Spiral Conch Shell in the Sand */}
           {/* Pink Starfish */}
           <polygon
@@ -1138,6 +1355,15 @@ function _Raw_FullWidthOceanWavesSVG({ className = '', height = 120 }: { classNa
     <div className={`relative w-full overflow-hidden select-none ${className}`} style={{ height }}>
       {/* Background deep ocean gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0369a1] via-[#0284c7] to-[#38bdf8]" />
+
+      {/* 2.5D GROUND — mặt nước phân lớp: phía xa hơi trắng (haze), chân khung hình tối hơn */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 24%, rgba(255,255,255,0) 52%, rgba(2,6,23,0.10) 78%, rgba(2,6,23,0.26) 100%)',
+        }}
+      />
 
       {/* SVG Waves and Ocean Elements spanning 100% width */}
       <svg
@@ -1299,6 +1525,23 @@ function _Raw_SailboatWavesSVG({ className = '', scale = 1 }: { className?: stri
           strokeLinecap="round"
         />
 
+        {/* 2.5D — mặt sóng: dưới crest tối (khối nước), trên crest có viền nắng (đèn trên-trái) */}
+        <path
+          d="M 0 54 Q 35 44 70 54 Q 105 64 140 54 Q 160 48 175 54 L 175 63 Q 160 57 140 63 Q 105 73 70 63 Q 35 53 0 63 Z"
+          fill={_AO}
+          opacity="0.14"
+        />
+        <path
+          d="M 0 54 Q 35 44 70 54 Q 105 64 140 54 Q 160 48 175 54 L 175 50 Q 158 44 138 50 Q 105 60 70 50 Q 35 40 0 50 Z"
+          fill="#ffffff"
+          opacity="0.14"
+        />
+        <path
+          d="M 0 45 Q 100 36 200 45 Q 300 54 400 45 L 400 50 Q 300 59 200 50 Q 100 41 0 50 Z"
+          fill={_AO}
+          opacity="0.1"
+        />
+
         {/* 2 Soaring White Seagulls */}
         <path d="M 68 18 Q 72 14 76 18 Q 80 14 84 18" fill="none" stroke="#ffffff" strokeWidth="1.5" />
         <path d="M 88 12 Q 91 9 94 12 Q 97 9 100 12" fill="none" stroke="#ffffff" strokeWidth="1.2" />
@@ -1314,8 +1557,8 @@ function _Raw_LibraryBookshelfSVG({ className = '', scale = 1 }: { className?: s
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 130 * scale, height: 145 * scale }}>
       <svg viewBox="0 0 130 145" width={130 * scale} height={145 * scale} className="overflow-visible">
-        {/* Ground shadow */}
-        <ellipse cx="65" cy="140" rx="55" ry="4.5" fill="rgba(0,0,0,0.25)" />
+        {/* Ground shadow: AO 2 lớp (đèn trên-trái) */}
+        {_ao('shelfAO', 68, 139, 57, 6.5, 0.27)}
 
         {/* Dark Oak Bookshelf Cabinet Outer Frame */}
         <rect x="15" y="10" width="95" height="128" fill="#451a03" stroke="#291002" strokeWidth="2.5" rx="3" />
@@ -1383,6 +1626,16 @@ function _Raw_LibraryBookshelfSVG({ className = '', scale = 1 }: { className?: s
         <rect x="50" y="116" width="18" height="16" fill="#854d0e" stroke="#451a03" strokeWidth="1" rx="1" />
         <ellipse cx="80" cy="124" rx="4" ry="8" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" />
 
+        {/* 2.5D — tủ sách: mặt phải cabinet tối, viền trên crown molding nắng, bóng trong từng ngăn */}
+        <rect x="100" y="10" width="10" height="128" fill={_AO} opacity="0.2" />
+        <rect x="15" y="10" width="4" height="128" fill="#ffffff" opacity="0.12" />
+        <polygon points="18,6 107,6 105,8.6 20,8.6" fill="#ffffff" opacity="0.18" />
+        {[47, 77, 107].map((sy) => (
+          <rect key={sy} x="18" y={sy} width="89" height="4" fill={_AO} opacity="0.2" />
+        ))}
+        <rect x="18" y="136" width="89" height="4" fill={_AO} opacity="0.24" />
+        <ellipse cx="65" cy="140" rx="50" ry="5" fill={_AO} opacity="0.2" />
+
         {/* ================= POLISHED BRASS ROLLING LADDER ================= */}
         {/* Brass Rail across top */}
         <line x1="16" y1="22" x2="108" y2="22" stroke="#facc15" strokeWidth="2.5" />
@@ -1443,8 +1696,8 @@ function _Raw_BeanbagLoungeSVG({
         {/* Geometric Rug Fringe */}
         <ellipse cx="65" cy="74" rx="44" ry="12" fill="none" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3 2" />
 
-        {/* Soft Shadow of Beanbag */}
-        <ellipse cx="65" cy="78" rx="46" ry="12" fill="rgba(190, 18, 60, 0.3)" />
+        {/* Soft Shadow of Beanbag: AO 2 lớp trên thảm (đèn trên-trái) */}
+        {_ao('beanAO', 68, 78, 48, 12, 0.3)}
 
         {/* Plush Crimson / Rose Beanbag Main Body */}
         <path
@@ -1477,6 +1730,12 @@ function _Raw_BeanbagLoungeSVG({
           <rect x="91" y="40" width="5" height="10" fill="#38bdf8" stroke="#0284c7" strokeWidth="1" rx="2" />
         </g>
 
+        {/* 2.5D — khối ghế bành: mặt phải tối, viền trái-trên nắng, thảm có chiều sâu */}
+        <path d="M 66 24 C 95 26 114 52 106 72 C 100 81 90 84 80 85 C 93 70 93 45 66 24 Z" fill={_AO} opacity="0.18" />
+        <path d="M 24 72 C 16 52 28 26 65 24 C 45 31 33 50 35 75 Z" fill="#ffffff" opacity="0.16" />
+        <ellipse cx="104" cy="80" rx="24" ry="10" fill={_AO} opacity="0.14" />
+        <ellipse cx="30" cy="66" rx="22" ry="9" fill="#ffffff" opacity="0.35" />
+
         {/* Match Cup on wooden coaster */}
         <ellipse cx="112" cy="74" rx="8" ry="4" fill="#78350f" />
         <rect x="109" y="66" width="6" height="7" fill="#ffffff" stroke="#16a34a" strokeWidth="0.8" rx="1" />
@@ -1493,8 +1752,8 @@ function _Raw_EspressoBarKitchenetteSVG({ className = '', scale = 1 }: { classNa
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 135 * scale, height: 105 * scale }}>
       <svg viewBox="0 0 135 105" width={135 * scale} height={105 * scale} className="overflow-visible">
-        {/* Ground shadow */}
-        <ellipse cx="68" cy="100" rx="60" ry="4.5" fill="rgba(0,0,0,0.22)" />
+        {/* Ground shadow: AO 2 lớp (đèn trên-trái) */}
+        {_ao('espressoAO', 70, 99, 62, 6.5, 0.26)}
 
         {/* Kitchenette Cabinet Base */}
         <rect x="18" y="56" width="100" height="42" fill="#334155" stroke="#1e293b" strokeWidth="2" rx="2" />
@@ -1550,6 +1809,15 @@ function _Raw_EspressoBarKitchenetteSVG({ className = '', scale = 1 }: { classNa
         <circle cx="90" cy="48" r="1" fill="#16a34a" />
         <circle cx="98" cy="44" r="1" fill="#16a34a" />
 
+        {/* 2.5D — quầy cafe: mặt phải tủ/máy tối, mặt trên bục marble & mặt bàn nắng */}
+        <rect x="100" y="56" width="18" height="42" fill={_AO} opacity="0.2" />
+        <rect x="18" y="56" width="4" height="42" fill="#ffffff" opacity="0.12" />
+        <rect x="14" y="50" width="108" height="2.6" fill="#ffffff" opacity="0.22" />
+        <rect x="14" y="55" width="108" height="3" fill={_AO} opacity="0.24" />
+        <rect x="52" y="18" width="14" height="32" fill={_AO} opacity="0.18" />
+        <rect x="22" y="18" width="44" height="3" fill="#ffffff" opacity="0.18" />
+        <ellipse cx="94" cy="53" rx="18" ry="3" fill={_AO} opacity="0.2" />
+
         {/* Potted Monstera Deliciosa Plant on side */}
         <rect x="114" y="38" width="10" height="12" fill="#ea580c" stroke="#9a3412" strokeWidth="1" rx="1" />
         <ellipse cx="119" cy="30" rx="6" ry="8" fill="#16a34a" />
@@ -1566,8 +1834,8 @@ function _Raw_ScrumKanbanWhiteboardSVG({ className = '', scale = 1 }: { classNam
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 135 * scale, height: 95 * scale }}>
       <svg viewBox="0 0 135 95" width={135 * scale} height={95 * scale} className="overflow-visible">
-        {/* Ground shadow */}
-        <ellipse cx="68" cy="90" rx="55" ry="4" fill="rgba(0,0,0,0.22)" />
+        {/* Ground shadow: AO 2 lớp cho 2 chân giá + bánh xe (đèn trên-trái) */}
+        {_ao('kanbanAO', 70, 89, 57, 6, 0.26)}
 
         {/* Twin Aluminum Stand Legs & Wheels */}
         <line x1="26" y1="15" x2="26" y2="88" stroke="#64748b" strokeWidth="3" />
@@ -1619,6 +1887,15 @@ function _Raw_ScrumKanbanWhiteboardSVG({ className = '', scale = 1 }: { classNam
 
         <rect x="94" y="59" width="12" height="10" fill="#bbf7d0" stroke="#16a34a" strokeWidth="0.6" rx="0.5" />
         <text x="100" y="67" textAnchor="middle" fill="#15803d" fontSize="7" fontWeight="bold">✓</text>
+
+        {/* 2.5D — bảng kanban: mặt phải khung tối, viền trên nắng, chân giá có mặt bên */}
+        <rect x="100" y="8" width="14" height="66" fill={_AO} opacity="0.16" />
+        <rect x="20" y="8" width="94" height="3" fill="#ffffff" opacity="0.2" />
+        <rect x="20" y="69" width="94" height="5" fill={_AO} opacity="0.18" />
+        <rect x="27" y="15" width="1.8" height="73" fill={_AO} opacity="0.32" />
+        <rect x="24.6" y="15" width="1.6" height="73" fill="#ffffff" opacity="0.2" />
+        <rect x="109" y="15" width="1.8" height="73" fill={_AO} opacity="0.32" />
+        <rect x="106.6" y="15" width="1.6" height="73" fill="#ffffff" opacity="0.2" />
 
         {/* Bottom Marker Tray with Pens */}
         <rect x="22" y="74" width="90" height="3" fill="#64748b" rx="1" />
@@ -1695,6 +1972,18 @@ function _Raw_CelestialAngelFountainSVG({ className = '', scale = 1 }: { classNa
           <path d="M 84 21 Q 96 26 94 62" stroke="#bae6fd" strokeWidth="2" fill="none" />
           <path d="M 84 21 Q 60 14 46 62" stroke="#bae6fd" strokeWidth="2" fill="none" />
         </g>
+
+        {/* 2.5D — đá cẩm thạch: mặt phải bục/bể tối, viền trên nắng, đáy hồ sâu dần */}
+        <rect x="72" y="64" width="6" height="32" fill={_AO} opacity="0.2" />
+        <rect x="62" y="64" width="3" height="32" fill="#ffffff" opacity="0.3" />
+        <rect x="71" y="44" width="4" height="20" fill={_AO} opacity="0.2" />
+        <rect x="65" y="44" width="2.4" height="20" fill="#ffffff" opacity="0.3" />
+        <path d="M 26 110 L 114 110 L 114 116 L 26 116 Z" fill={_AO} opacity="0.16" />
+        <path d="M 12 110 L 26 90 L 30 90 L 16 110 Z" fill="#ffffff" opacity="0.3" />
+        <path d="M 114 90 L 128 110 L 124 110 L 110 90 Z" fill={_AO} opacity="0.22" />
+        <ellipse cx="70" cy="106" rx="44" ry="7" fill={_AO} opacity="0.16" />
+        <ellipse cx="52" cy="95" rx="22" ry="5" fill="#ffffff" opacity="0.24" />
+        <path d="M 38 64 Q 54 58 70 57 L 70 60 Q 56 62 40 66 Z" fill="#ffffff" opacity="0.3" />
 
         {/* Orbiting Magical Star Sparkles */}
         <circle cx="70" cy="14" r="2.5" fill="#fef08a" className="animate-ping" style={{ animationDuration: '2s' }} />
@@ -1773,6 +2062,14 @@ function _Raw_GemstoneTreasureChestSVG({ className = '', scale = 1 }: { classNam
         <rect x="52" y="36" width="22" height="6" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" rx="1" />
         <line x1="63" y1="36" x2="63" y2="42" stroke="#ca8a04" strokeWidth="0.8" />
 
+        {/* 2.5D — rương: mặt phải thùng/nắp tối, viền trên nắng, strap đồng có mặt bên */}
+        <rect x="86" y="46" width="19" height="40" fill={_AO} opacity="0.2" />
+        <rect x="25" y="46" width="4" height="40" fill="#ffffff" opacity="0.14" />
+        <path d="M 70 14 Q 88 10 95 14 L 107 46 L 90 46 Z" fill={_AO} opacity="0.18" />
+        <path d="M 35 14 Q 65 6 95 14 L 93 18 Q 65 10 38 19 Z" fill="#ffffff" opacity="0.22" />
+        <rect x="95" y="46" width="6" height="40" fill={_AO} opacity="0.22" />
+        <ellipse cx="65" cy="87" rx="52" ry="5" fill={_AO} opacity="0.2" />
+
         {/* Floating Magic Star Sparkles */}
         <circle cx="52" cy="20" r="2.5" fill="#facc15" className="animate-ping" style={{ animationDuration: '1.5s' }} />
         <circle cx="78" cy="16" r="2" fill="#38bdf8" className="animate-ping" style={{ animationDuration: '2s' }} />
@@ -1834,6 +2131,14 @@ function _Raw_RainbowBridgeArchSVG({ className = '', scale = 1 }: { className?: 
           </g>
         ))}
 
+        {/* 2.5D — cầu vồng: bóng cung đổ xuống mây, mây có khối sáng tối (đèn trên-trái) */}
+        <path d="M 24 86 C 24 20 166 20 166 86 L 166 93 C 166 27 24 27 24 93 Z" fill={_AO} opacity="0.12" />
+        <ellipse cx="40" cy="92" rx="22" ry="9" fill={_AO} opacity="0.13" />
+        <ellipse cx="156" cy="92" rx="22" ry="9" fill={_AO} opacity="0.13" />
+        <ellipse cx="30" cy="76" rx="14" ry="7" fill="#ffffff" />
+        <ellipse cx="164" cy="76" rx="14" ry="7" fill="#ffffff" />
+        <path d="M 20 84 C 20 14 170 14 170 84" fill="none" stroke="#ffffff" strokeWidth="1.4" opacity="0.3" />
+
         {/* Glittering Stardust Trail over rainbow */}
         <circle cx="95" cy="18" r="2.5" fill="#ffffff" className="animate-ping" style={{ animationDuration: '1.6s' }} />
         <circle cx="70" cy="24" r="1.8" fill="#fef08a" className="animate-ping" style={{ animationDuration: '2.2s' }} />
@@ -1877,6 +2182,15 @@ function _Raw_StarryCloudPlatformSVG({ className = '', scale = 1 }: { className?
             className="animate-pulse"
           />
         </g>
+
+        {/* 2.5D — bậc mây: đáy mỗi tầng tối, viền trên sáng (đèn trên-trái) + trụ đèn có mặt bên */}
+        <ellipse cx="70" cy="77" rx="52" ry="6" fill={_AO} opacity="0.17" />
+        <ellipse cx="70" cy="57" rx="40" ry="5" fill={_AO} opacity="0.15" />
+        <ellipse cx="70" cy="36" rx="28" ry="4.5" fill={_AO} opacity="0.13" />
+        <ellipse cx="52" cy="64" rx="26" ry="4" fill="#ffffff" />
+        <ellipse cx="55" cy="44" rx="20" ry="3.5" fill="#ffffff" />
+        <rect x="23" y="34" width="1.6" height="36" fill="#ffffff" opacity="0.7" />
+        <rect x="24.4" y="34" width="1.4" height="36" fill={_AO} opacity="0.18" />
 
         {/* Floating Constellation Stars */}
         <circle cx="106" cy="32" r="2.5" fill="#fef08a" className="animate-ping" style={{ animationDuration: '2s' }} />
@@ -1949,6 +2263,18 @@ function _Raw_ThousandSunnyLionFigureheadSVG({ className = '', scale = 1 }: { cl
         {/* White Lion Face Head */}
         <circle cx="75" cy="60" r="30" fill="#f8fafc" stroke="#ca8a04" strokeWidth="2.5" />
 
+        {/* 2.5D — sàn mũi tàu 2 mặt (mặt trái nắng, mặt phải tối) + khối đầu sư tử có hướng sáng */}
+        <polygon points="75,135 115,125 105,95 75,95" fill={_AO} opacity="0.2" />
+        <polygon points="35,125 75,135 75,95 45,95" fill="#ffffff" opacity="0.12" />
+        <defs>
+          <radialGradient id="lionFaceShade" cx="32%" cy="26%" r="80%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.3" />
+            <stop offset="52%" stopColor="#ffffff" stopOpacity="0" />
+            <stop offset="100%" stopColor="#020617" stopOpacity="0.26" />
+          </radialGradient>
+        </defs>
+        <circle cx="75" cy="60" r="29" fill="url(#lionFaceShade)" />
+
         {/* Cute Lion Ears */}
         <circle cx="54" cy="38" r="8" fill="#facc15" stroke="#ca8a04" strokeWidth="1.5" />
         <circle cx="54" cy="38" r="4.5" fill="#fef08a" />
@@ -1989,8 +2315,8 @@ function _Raw_PirateMastJollyRogerSVG({ className = '', scale = 1 }: { className
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 170 * scale, height: 200 * scale }}>
       <svg viewBox="0 0 170 200" width={170 * scale} height={200 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="85" cy="192" rx="45" ry="6" fill="rgba(0,0,0,0.25)" />
+        {/* Shadow: AO 2 lớp dưới cột buồm (đèn trên-trái) */}
+        {_ao('mastAO', 88, 191, 47, 7.5, 0.27)}
 
         {/* Shrouds / Rope Rigging Ladders Left & Right for Pet Climbing */}
         <g stroke="#92400e" strokeWidth="1.5">
@@ -2032,6 +2358,10 @@ function _Raw_PirateMastJollyRogerSVG({ className = '', scale = 1 }: { className
         <rect x="79" y="80" width="12" height="3" fill="#ca8a04" />
         <rect x="79" y="140" width="12" height="3" fill="#ca8a04" />
 
+        {/* 2.5D — cột buồm: mặt phải tối, viền trái nắng (đèn trên-trái) */}
+        <rect x="86" y="25" width="4" height="168" fill={_AO} opacity="0.24" />
+        <rect x="80" y="25" width="1.8" height="168" fill="#ffffff" opacity="0.22" />
+
         {/* Billowing Cream Mainsail (Cánh buồm trắng no gió) */}
         <path
           d="M 35 75 Q 85 92 135 75 Q 130 145 85 140 Q 40 145 35 75 Z"
@@ -2044,6 +2374,21 @@ function _Raw_PirateMastJollyRogerSVG({ className = '', scale = 1 }: { className
         <path d="M 60 77 Q 60 110 58 141" stroke="#fde68a" strokeWidth="1.5" fill="none" />
         <path d="M 85 82 Q 85 110 85 140" stroke="#fde68a" strokeWidth="1.5" fill="none" />
         <path d="M 110 77 Q 110 110 112 141" stroke="#fde68a" strokeWidth="1.5" fill="none" />
+
+        {/* 2.5D — cánh buồm có khối: sáng góc trái-trên, tối góc phải-dưới (gió thổi từ trái) */}
+        <defs>
+          <clipPath id="sunnySailClip">
+            <path d="M 35 75 Q 85 92 135 75 Q 130 145 85 140 Q 40 145 35 75 Z" />
+          </clipPath>
+          <linearGradient id="sunnySailLight" x1="8%" y1="0%" x2="92%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.4" />
+            <stop offset="46%" stopColor="#ffffff" stopOpacity="0" />
+            <stop offset="100%" stopColor="#020617" stopOpacity="0.3" />
+          </linearGradient>
+        </defs>
+        <g clipPath="url(#sunnySailClip)">
+          <rect x="30" y="70" width="110" height="80" fill="url(#sunnySailLight)" />
+        </g>
 
         {/* Straw Hat Jolly Roger Emblem painted on sail */}
         <g transform="translate(85, 110) scale(0.65)">
@@ -2096,8 +2441,8 @@ function _Raw_PirateTreasureChestSVG({ className = '', scale = 1, isOpen = false
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 90 * scale, height: 75 * scale }}>
       <svg viewBox="0 0 90 75" width={90 * scale} height={75 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="45" cy="70" rx="38" ry="5" fill="rgba(0,0,0,0.28)" />
+        {/* Shadow: AO 2 lớp (đèn trên-trái) */}
+        {_ao('pchestAO', 48, 69, 40, 6.5, 0.3)}
 
         {/* Main Chest Base (Thùng gỗ sồi viền đồng) */}
         <rect x="14" y="34" width="62" height="34" fill="#78350f" stroke="#451a03" strokeWidth="2" rx="2" />
@@ -2150,6 +2495,13 @@ function _Raw_PirateTreasureChestSVG({ className = '', scale = 1, isOpen = false
           </g>
         )}
 
+        {/* 2.5D — rương hải tặc: mặt phải tối, viền trên nắng, metal strap có mặt bên */}
+        <rect x="64" y="34" width="12" height="34" fill={_AO} opacity="0.2" />
+        <rect x="14" y="34" width="4" height="34" fill="#ffffff" opacity="0.14" />
+        <path d="M 45 24 Q 62 21 76 34 L 45 34 Z" fill={_AO} opacity="0.16" />
+        <path d="M 14 34 Q 28 20 45 15 Q 34 24 30 34 Z" fill="#ffffff" opacity="0.2" />
+        <rect x="70" y="34" width="7" height="34" fill={_AO} opacity="0.18" />
+
         {/* Animated Glittering Stardust */}
         <circle cx="40" cy="18" r="2" fill="#ffffff" className="animate-ping" style={{ animationDuration: '1.4s' }} />
         <circle cx="58" cy="16" r="1.8" fill="#fef08a" className="animate-ping" style={{ animationDuration: '2s' }} />
@@ -2197,6 +2549,29 @@ function _Raw_PirateHelmAndDeckRailingSVG({ className = '', scale = 1 }: { class
           <circle cx="50" cy="42" r="8" fill="#ca8a04" stroke="#451a03" strokeWidth="1.5" />
           <circle cx="50" cy="42" r="4" fill="#facc15" />
         </g>
+
+        {/* 2.5D — lan can boong & bệ bánh lái: mặt phải tối, viền trên nắng, nan bánh có mặt bên */}
+        <rect x="5" y="72" width="90" height="1.8" fill="#ffffff" opacity="0.22" />
+        <rect x="5" y="75" width="90" height="2" fill={_AO} opacity="0.24" />
+        {Array.from({ length: 7 }).map((_, i) => (
+          <g key={`sh${i}`}>
+            <rect x={14.4} y="77" width="1.6" height="20" fill={_AO} opacity="0.3" />
+            <rect x={12} y="77" width="1.2" height="20" fill="#ffffff" opacity="0.22" />
+          </g>
+        ))}
+        <polygon points="50,75 58,75 62,96 50,96" fill={_AO} opacity="0.22" />
+        <polygon points="42,75 50,75 50,96 38,96" fill="#ffffff" opacity="0.12" />
+        <circle
+          cx="50"
+          cy="42"
+          r="22"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth="1.3"
+          opacity="0.3"
+          strokeDasharray="36 104"
+          transform="rotate(-145 50 42)"
+        />
       </svg>
     </div>
   );
@@ -2209,8 +2584,8 @@ function _Raw_PirateCannonAndRumBarrelsSVG({ className = '', scale = 1 }: { clas
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 110 * scale, height: 80 * scale }}>
       <svg viewBox="0 0 110 80" width={110 * scale} height={80 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="55" cy="76" rx="48" ry="4" fill="rgba(0,0,0,0.22)" />
+        {/* Shadow: AO 2 lớp cho thùng rượu + đại bác (đèn trên-trái) */}
+        {_ao('cannonAO', 58, 75, 50, 6, 0.26)}
 
         {/* Wooden Oak Barrels on Left */}
         <g>
@@ -2246,6 +2621,14 @@ function _Raw_PirateCannonAndRumBarrelsSVG({ className = '', scale = 1 }: { clas
           <circle cx="54" cy="38" r="1.5" fill="#ef4444" className="animate-ping" />
         </g>
 
+        {/* 2.5D — thùng rượu & thân đại bác: mặt phải tối, viền trên nắng (đèn trên-trái) */}
+        <path d="M 24 45 C 28 56 28 66 24 75 L 28 75 C 32 66 32 56 28 45 Z" fill={_AO} opacity="0.22" />
+        <path d="M 12 45 C 8 56 8 66 12 75 L 16 75 C 12 66 12 56 16 45 Z" fill="#ffffff" opacity="0.16" />
+        <polygon points="78,68 88,68 84,52 74,52" fill={_AO} opacity="0.2" />
+        <polygon points="60,52 84,52 83,54.6 61,54.6" fill="#ffffff" opacity="0.2" />
+        <path d="M 50 53 L 102 37 L 102 40 L 50 56 Z" fill={_AO} opacity="0.24" />
+        <path d="M 46 50 L 100 32 L 100 35 L 46 53 Z" fill="#ffffff" opacity="0.22" />
+
         {/* Stack of 3 Cannonballs */}
         <g>
           <circle cx="44" cy="72" r="5" fill="#334155" stroke="#0f172a" strokeWidth="1" />
@@ -2265,8 +2648,8 @@ function _Raw_NamiTangerineTreesSVG({ className = '', scale = 1 }: { className?:
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 110 * scale, height: 110 * scale }}>
       <svg viewBox="0 0 110 110" width={110 * scale} height={110 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="55" cy="104" rx="46" ry="5" fill="rgba(0,0,0,0.22)" />
+        {/* Shadow: AO 2 lớp dưới 2 chậu gỗ (đèn trên-trái) */}
+        {_ao('namiAO', 58, 103, 48, 7, 0.26)}
 
         {/* Wooden Planting Tubs (Chậu gỗ trồng cam) */}
         <polygon points="20,82 48,82 45,102 23,102" fill="#92400e" stroke="#451a03" strokeWidth="1.5" />
@@ -2284,6 +2667,18 @@ function _Raw_NamiTangerineTreesSVG({ className = '', scale = 1 }: { className?:
         <path d="M 76 82 L 76 46" stroke="#78350f" strokeWidth="4" strokeLinecap="round" />
         <ellipse cx="76" cy="38" rx="24" ry="22" fill="#15803d" />
         <ellipse cx="74" cy="34" rx="20" ry="18" fill="#22c55e" />
+
+        {/* 2.5D — chậu gỗ 2 mặt (trái nắng / phải tối), tán cam có khối, thân cây mặt bên */}
+        <polygon points="40,82 48,82 45,102 38,102" fill={_AO} opacity="0.22" />
+        <polygon points="20,82 24,82 27,102 23,102" fill="#ffffff" opacity="0.18" />
+        <polygon points="82,82 90,82 87,102 80,102" fill={_AO} opacity="0.24" />
+        <polygon points="62,82 66,82 69,102 65,102" fill="#ffffff" opacity="0.18" />
+        <path d="M 36 82 L 36 50" stroke={_AO} strokeWidth="1.6" opacity="0.3" />
+        <path d="M 78 82 L 78 46" stroke={_AO} strokeWidth="1.6" opacity="0.3" />
+        <ellipse cx="46" cy="50" rx="16" ry="14" fill={_AO} opacity="0.14" />
+        <ellipse cx="88" cy="46" rx="18" ry="16" fill={_AO} opacity="0.16" />
+        <ellipse cx="26" cy="34" rx="13" ry="9" fill="#4ade80" opacity="0.45" />
+        <ellipse cx="66" cy="30" rx="14" ry="10" fill="#4ade80" opacity="0.45" />
 
         {/* Ripe Orange Tangerines (Quả cam Mikan mọng nước) */}
         {[
@@ -2319,6 +2714,8 @@ function _Raw_HokageRockMonumentSVG({ className = '', scale = 1 }: { className?:
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 220 * scale, height: 110 * scale }}>
       <svg viewBox="0 0 220 110" width={220 * scale} height={110 * scale} className="overflow-visible">
+        {/* Bóng AO chân vách đá (đèn trên-trái) */}
+        {_ao('hokageAO', 118, 106, 108, 9, 0.3)}
         {/* Mountain Rock Base / Vách đá hoa cương */}
         <polygon points="5,108 15,28 60,18 110,14 165,18 208,28 215,108" fill="#78716c" stroke="#44403c" strokeWidth="2.5" />
         <polygon points="12,108 22,34 62,24 110,20 160,24 200,34 208,108" fill="#a8a29e" />
@@ -2391,6 +2788,19 @@ function _Raw_HokageRockMonumentSVG({ className = '', scale = 1 }: { className?:
           <path d="M 11 28 Q 15 32 19 28" stroke="#44403c" strokeWidth="1.2" fill="none" />
         </g>
 
+        {/* 2.5D — vách đá 2 mặt: phải tối, trái nắng, nứt dọc + sương xa phía đỉnh (atmospheric) */}
+        <polygon points="165,18 208,28 215,108 176,108" fill={_AO} opacity="0.18" />
+        <polygon points="5,108 15,28 58,19 52,19 21,33 13,108" fill="#ffffff" opacity="0.13" />
+        <path
+          d="M 40 108 L 46 44 M 92 108 L 94 34 M 142 108 L 140 36 M 188 108 L 182 48"
+          stroke={_AO}
+          strokeWidth="1.5"
+          opacity="0.16"
+          fill="none"
+        />
+        <path d="M 6 105 Q 34 99 62 105 Q 96 111 128 104" stroke="#15803d" strokeWidth="3" opacity="0.45" fill="none" />
+        <rect x="0" y="0" width="220" height="26" fill="#e7e5e4" opacity="0.13" />
+
         {/* Carved Kanji "木ノ葉" (Konoha) on Mountain Foot */}
         <rect x="85" y="92" width="50" height="14" fill="#44403c" rx="2" opacity="0.8" />
         <text x="92" y="102" fontSize="9" fill="#fef08a" fontWeight="black" fontFamily="sans-serif">
@@ -2408,8 +2818,8 @@ function _Raw_IchirakuRamenShopSVG({ className = '', scale = 1 }: { className?: 
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 150 * scale, height: 125 * scale }}>
       <svg viewBox="0 0 150 125" width={150 * scale} height={125 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="75" cy="120" rx="68" ry="5" fill="rgba(0,0,0,0.25)" />
+        {/* Shadow: AO 2 lớp dưới quầy mì (đèn trên-trái) */}
+        {_ao('ramenAO', 78, 119, 70, 7.5, 0.28)}
 
         {/* Wooden Stall Frame (Quầy gỗ thông) */}
         <rect x="18" y="48" width="114" height="68" fill="#92400e" stroke="#451a03" strokeWidth="2" rx="1" />
@@ -2450,6 +2860,16 @@ function _Raw_IchirakuRamenShopSVG({ className = '', scale = 1 }: { className?: 
           </g>
         ))}
 
+        {/* 2.5D — quầy mì 2 mặt: mặt phải tối, mặt trái nắng; mái ngói & quầy có khối */}
+        <rect x="110" y="48" width="18" height="68" fill={_AO} opacity="0.18" />
+        <rect x="18" y="48" width="4" height="68" fill="#ffffff" opacity="0.12" />
+        <polygon points="75,18 142,48 75,48" fill={_AO} opacity="0.17" />
+        <polygon points="8,48 75,18 75,25 16,46" fill="#ffffff" opacity="0.18" />
+        <rect x="12" y="80" width="126" height="2.6" fill="#ffffff" opacity="0.22" />
+        <rect x="12" y="85.4" width="126" height="2.6" fill={_AO} opacity="0.24" />
+        <ellipse cx="38" cy="117" rx="14" ry="5" fill={_AO} opacity="0.22" />
+        <ellipse cx="112" cy="117" rx="14" ry="5" fill={_AO} opacity="0.22" />
+
         {/* Steaming Giant Ramen Bowl on Counter */}
         <g>
           {/* Rising Swirling Steam */}
@@ -2486,6 +2906,8 @@ function _Raw_OnsenHotSpringSVG({ className = '', scale = 1 }: { className?: str
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 180 * scale, height: 105 * scale }}>
       <svg viewBox="0 0 180 105" width={180 * scale} height={105 * scale} className="overflow-visible">
+        {/* Bóng AO quanh bờ suối (đèn trên-trái) */}
+        {_ao('onsenAO', 92, 97, 80, 8, 0.26)}
         {/* Bamboo privacy partition in background */}
         <g stroke="#65a30d" strokeWidth="2">
           {Array.from({ length: 12 }).map((_, i) => (
@@ -2517,6 +2939,23 @@ function _Raw_OnsenHotSpringSVG({ className = '', scale = 1 }: { className?: str
             <stop offset="100%" stopColor="#0f766e" />
           </linearGradient>
         </defs>
+
+        {/* 2.5D GROUND — bờ đá onsen 2 mặt + mặt nước phân lớp sáng tối (đèn trên-trái) */}
+        <defs>
+          <clipPath id="onsenBasinClip">
+            <path d="M 22 50 C 26 28 75 22 112 24 C 150 26 162 38 160 65 C 158 88 122 96 85 94 C 40 92 20 74 22 50 Z" />
+          </clipPath>
+          <linearGradient id="onsenDepthGrad" x1="15%" y1="0%" x2="85%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.22" />
+            <stop offset="48%" stopColor="#5eead4" stopOpacity="0" />
+            <stop offset="100%" stopColor="#020617" stopOpacity="0.34" />
+          </linearGradient>
+        </defs>
+        <path d="M 15 50 C 20 22 75 16 115 18 L 112 24 C 76 22 24 27 21 50 Z" fill="#ffffff" opacity="0.2" />
+        <path d="M 168 65 C 165 92 125 102 85 100 L 85 94 C 122 95 157 87 159 64 Z" fill={_AO} opacity="0.24" />
+        <g clipPath="url(#onsenBasinClip)">
+          <rect x="0" y="0" width="180" height="105" fill="url(#onsenDepthGrad)" />
+        </g>
 
         {/* Gentle Thermal Ripples & Rising Steam */}
         <ellipse cx="85" cy="58" rx="45" ry="16" fill="none" stroke="#ccfbf1" strokeWidth="1" opacity="0.6" />
@@ -2558,6 +2997,8 @@ function _Raw_BambooToriiShrineSVG({ className = '', scale = 1 }: { className?: 
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 110 * scale, height: 130 * scale }}>
       <svg viewBox="0 0 110 130" width={110 * scale} height={130 * scale} className="overflow-visible">
+        {/* Bóng AO dưới 2 chân cổng Torii (đèn trên-trái) */}
+        {_ao('toriiAO', 58, 124, 48, 7, 0.28)}
         {/* Lush Bamboo Stalks on flanks */}
         <g stroke="#15803d" strokeWidth="3">
           <line x1="12" y1="125" x2="12" y2="15" />
@@ -2597,6 +3038,24 @@ function _Raw_BambooToriiShrineSVG({ className = '', scale = 1 }: { className?: 
         <polygon points="54,56 58,56 56,66 53,64" fill="#ffffff" stroke="#94a3b8" strokeWidth="0.5" />
         <polygon points="62,55 66,55 64,64 61,62" fill="#ffffff" stroke="#94a3b8" strokeWidth="0.5" />
 
+        {/* 2.5D — cổng Torii 2 mặt: cột phải tối, cột trái nắng; xà ngang có mặt trên */}
+        <rect x="35" y="32" width="3" height="92" fill={_AO} opacity="0.26" />
+        <rect x="32" y="32" width="1.6" height="92" fill="#ffffff" opacity="0.26" />
+        <rect x="75" y="32" width="3" height="92" fill={_AO} opacity="0.3" />
+        <rect x="72" y="32" width="1.6" height="92" fill="#ffffff" opacity="0.22" />
+        <rect x="26" y="52" width="58" height="1.8" fill="#ffffff" opacity="0.24" />
+        <rect x="26" y="55.2" width="58" height="1.8" fill={_AO} opacity="0.26" />
+        <path d="M 15 24 Q 55 16 95 24" fill="none" stroke="#ffffff" strokeWidth="1.6" opacity="0.22" />
+        <rect x="36" y="118" width="4" height="7" fill="#ffffff" opacity="0.16" />
+        <rect x="76" y="118" width="4" height="7" fill={_AO} opacity="0.3" />
+        {/* Bóng trúc đổ sang phải (đèn trên-trái) */}
+        <g stroke={_AO} strokeWidth="3" opacity="0.22">
+          <line x1="14" y1="125" x2="20" y2="125" />
+          <line x1="24" y1="125" x2="30" y2="125" />
+          <line x1="90" y1="125" x2="96" y2="125" />
+          <line x1="100" y1="125" x2="106" y2="125" />
+        </g>
+
         {/* Stone Pagoda Lantern in front */}
         <g transform="translate(18, 92)">
           <rect x="0" y="12" width="10" height="20" fill="#64748b" stroke="#334155" strokeWidth="1" />
@@ -2618,8 +3077,8 @@ function _Raw_NinjaTrainingPostSVG({ className = '', scale = 1, isHit = false }:
       style={{ width: 85 * scale, height: 100 * scale }}
     >
       <svg viewBox="0 0 85 100" width={85 * scale} height={100 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="42" cy="94" rx="28" ry="4" fill="rgba(0,0,0,0.22)" />
+        {/* Shadow: AO 2 lớp dưới bia tập (đèn trên-trái) */}
+        {_ao('ninjaAO', 45, 93, 30, 5.5, 0.26)}
 
         {/* Heavy Wooden Training Post Log */}
         <rect x="32" y="18" width="22" height="76" fill="#78350f" stroke="#451a03" strokeWidth="2" rx="2" />
@@ -2646,6 +3105,13 @@ function _Raw_NinjaTrainingPostSVG({ className = '', scale = 1, isHit = false }:
           <polygon points="0,-7 3,-2 8,0 3,2 0,7 -3,2 -8,0 -3,-2" fill="#64748b" stroke="#0f172a" strokeWidth="0.8" />
           <circle cx="0" cy="0" r="1.5" fill="#0f172a" />
         </g>
+
+        {/* 2.5D — thân bia tập 2 mặt: phải tối, trái nắng; tâm bia có bóng lệch phải */}
+        <rect x="46" y="18" width="8" height="76" fill={_AO} opacity="0.24" />
+        <rect x="32" y="18" width="3" height="76" fill="#ffffff" opacity="0.2" />
+        <path d="M 33 17 A 11 4 0 0 1 54 17" fill="none" stroke="#ffffff" strokeWidth="1.6" opacity="0.35" />
+        <path d="M 34 56 A 9 9 0 0 0 52 56" fill="none" stroke={_AO} strokeWidth="2" opacity="0.2" />
+        <ellipse cx="43" cy="86" rx="11" ry="4" fill={_AO} opacity="0.22" />
 
         {/* Unrolled Ninja Ninjutsu Scroll leaning on ground */}
         <g>
@@ -2705,6 +3171,20 @@ function _Raw_FloatingCandlesGothicHallSVG({ className = '', scale = 1, isLit = 
           </g>
         ))}
 
+        {/* 2.5D — sảnh Gothic: cột trái ăn nắng, cột phải tối, sàn đá phân lớp */}
+        <defs>
+          <linearGradient id="hallFloorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.1" />
+            <stop offset="100%" stopColor="#020617" stopOpacity="0.34" />
+          </linearGradient>
+        </defs>
+        <rect x="18" y="12" width="3" height="108" fill="#ffffff" opacity="0.4" />
+        <rect x="169" y="12" width="3" height="108" fill={_AO} opacity="0.45" />
+        <rect x="39" y="26" width="2" height="94" fill="#ffffff" opacity="0.3" />
+        <rect x="149" y="26" width="2" height="94" fill={_AO} opacity="0.35" />
+        <rect x="0" y="120" width="190" height="10" fill="url(#hallFloorGrad)" />
+        <path d="M 0 120 L 190 120" stroke="#94a3b8" strokeWidth="1" opacity="0.35" />
+
         {/* Ambient Floating Magic Sparkles */}
         <circle cx="65" cy="38" r="1.8" fill="#ffffff" className="animate-ping" style={{ animationDuration: '2.5s' }} />
         <circle cx="108" cy="32" r="2" fill="#fef08a" className="animate-ping" style={{ animationDuration: '1.8s' }} />
@@ -2721,8 +3201,8 @@ function _Raw_HogwartsGreatFireplaceSVG({ className = '', scale = 1 }: { classNa
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 130 * scale }}>
       <svg viewBox="0 0 140 130" width={140 * scale} height={130 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="70" cy="126" rx="60" ry="5" fill="rgba(0,0,0,0.3)" />
+        {/* Shadow: AO 2 lớp trước lò sưởi (đèn trên-trái) */}
+        {_ao('fireAO', 73, 125, 62, 7, 0.3)}
 
         {/* Carved Medieval Stone Chimney Breast */}
         <rect x="25" y="10" width="90" height="50" fill="#64748b" stroke="#334155" strokeWidth="2.5" />
@@ -2739,6 +3219,20 @@ function _Raw_HogwartsGreatFireplaceSVG({ className = '', scale = 1 }: { classNa
         {/* Massive Fireplace Hearth Opening */}
         <path d="M 20 60 L 120 60 L 120 124 L 20 124 Z" fill="#1e293b" stroke="#0f172a" strokeWidth="3" />
         <path d="M 32 124 L 32 80 Q 70 65 108 80 L 108 124 Z" fill="#0f172a" />
+
+        {/* 2.5D — lò sưởi đá: mặt phải tối, mặt trái nắng, lò rỗng có AO sâu */}
+        <rect x="95" y="10" width="20" height="50" fill={_AO} opacity="0.18" />
+        <rect x="25" y="10" width="5" height="50" fill="#ffffff" opacity="0.16" />
+        <rect x="92" y="60" width="28" height="64" fill={_AO} opacity="0.2" />
+        <rect x="20" y="60" width="5" height="64" fill="#ffffff" opacity="0.12" />
+        <rect x="20" y="60" width="100" height="3" fill="#ffffff" opacity="0.16" />
+        <path
+          d="M 32 124 L 32 80 Q 70 65 108 80 L 108 124"
+          fill="none"
+          stroke="#000000"
+          strokeWidth="3"
+          opacity="0.4"
+        />
 
         {/* Burning Firewood Logs & Andirons */}
         <g>
@@ -2779,14 +3273,19 @@ function _Raw_MagicFeastTableSVG({ className = '', scale = 1 }: { className?: st
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 180 * scale, height: 95 * scale }}>
       <svg viewBox="0 0 180 95" width={180 * scale} height={95 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="90" cy="90" rx="82" ry="5" fill="rgba(0,0,0,0.25)" />
+        {/* Shadow: AO 2 lớp dưới bàn tiệc (đèn trên-trái) */}
+        {_ao('feastAO', 93, 89, 84, 7, 0.28)}
 
         {/* Long Oak Banquet Table Top */}
         <polygon points="10,50 170,50 162,64 18,64" fill="#92400e" stroke="#451a03" strokeWidth="2" />
+        {/* 2.5D: mép dày mặt bàn (mặt dưới tối) + viền nắng mép xa trên-trái */}
+        <path d="M 18 64 L 162 64 L 161 69 L 19 69 Z" fill="#020617" opacity="0.32" />
+        <path d="M 11.5 50.5 L 168.5 50.5 L 168 52.5 L 12 52.5 Z" fill="#ffffff" opacity="0.22" />
         {/* Table Legs with Braces */}
         <rect x="25" y="64" width="8" height="26" fill="#78350f" stroke="#451a03" strokeWidth="1.5" />
+        <path d="M 31 65 L 33 65 L 33 89 L 31 89 Z" fill="#020617" opacity="0.35" />
         <rect x="147" y="64" width="8" height="26" fill="#78350f" stroke="#451a03" strokeWidth="1.5" />
+        <path d="M 153 65 L 155 65 L 155 89 L 153 89 Z" fill="#020617" opacity="0.35" />
         <line x1="29" y1="80" x2="151" y2="80" stroke="#78350f" strokeWidth="3" />
 
         {/* White Linen Table Runner */}
@@ -2794,6 +3293,8 @@ function _Raw_MagicFeastTableSVG({ className = '', scale = 1 }: { className?: st
 
         {/* Golden Roast Turkey Platter in Center */}
         <g>
+          {/* Bóng tiếp đất của đĩa lên mặt bàn (đèn trên-trái) */}
+          <ellipse cx="95" cy="51" rx="17" ry="5" fill="#020617" opacity="0.25" />
           <ellipse cx="90" cy="48" rx="18" ry="7" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1" />
           {/* Roasted golden turkey */}
           <ellipse cx="90" cy="45" rx="13" ry="8" fill="#ca8a04" stroke="#854d0e" strokeWidth="1" />
@@ -2834,18 +3335,25 @@ function _Raw_SortingHatPedestalSVG({ className = '', scale = 1 }: { className?:
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 85 * scale, height: 105 * scale }}>
       <svg viewBox="0 0 85 105" width={85 * scale} height={105 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="42" cy="98" rx="28" ry="4" fill="rgba(0,0,0,0.22)" />
+        {/* Shadow: AO 2 lớp dưới ghế đẩu (đèn trên-trái) */}
+        {_ao('hatAO', 45, 97, 30, 5.5, 0.26)}
 
         {/* Antique 3-Legged Wooden Stool */}
         <ellipse cx="42" cy="72" rx="18" ry="6" fill="#92400e" stroke="#451a03" strokeWidth="1.5" />
+        {/* 2.5D: viền nắng mép ghế trên-trái + mặt dưới tối */}
+        <path d="M 24.5 71 Q 32 67.5 42 67.3" stroke="#ffffff" strokeWidth="1.6" fill="none" opacity="0.35" />
+        <path d="M 24.5 72.5 Q 42 80.5 59.5 72.5 Q 42 76 24.5 72.5 Z" fill="#020617" opacity="0.32" />
         <line x1="30" y1="74" x2="24" y2="98" stroke="#78350f" strokeWidth="2.5" />
         <line x1="42" y1="76" x2="42" y2="98" stroke="#78350f" strokeWidth="2.5" />
         <line x1="54" y1="74" x2="60" y2="98" stroke="#78350f" strokeWidth="2.5" />
 
         {/* Stack of Antique Leatherbound Spellbooks beneath */}
         <rect x="22" y="85" width="20" height="5" fill="#831843" stroke="#500724" strokeWidth="0.8" rx="1" />
+        <path d="M 23 85.5 L 41 85.5 L 41 87 L 23 87 Z" fill="#ffffff" opacity="0.16" />
+        <path d="M 39 85.5 L 41 85.5 L 41 89.5 L 39 89.5 Z" fill="#020617" opacity="0.35" />
         <rect x="20" y="90" width="24" height="6" fill="#1e3a8a" stroke="#172554" strokeWidth="0.8" rx="1" />
+        <path d="M 21 90.5 L 43 90.5 L 43 92 L 21 92 Z" fill="#ffffff" opacity="0.16" />
+        <path d="M 41 90.5 L 43 90.5 L 43 95.5 L 41 95.5 Z" fill="#020617" opacity="0.35" />
 
         {/* The Sentient Sorting Hat (Chiếc Nón Phân Loại) */}
         <g>
@@ -2871,6 +3379,12 @@ function _Raw_SortingHatPedestalSVG({ className = '', scale = 1 }: { className?:
           {/* Bent Tip with Stitch Patches */}
           <polygon points="36,36 42,36 42,41 36,41" fill="#78350f" stroke="#451a03" strokeWidth="0.8" />
           <line x1="37" y1="38" x2="41" y2="38" stroke="#ca8a04" strokeWidth="0.8" />
+
+          {/* 2.5D: bóng mặt dưới vành nón + viền nắng mép trên-trái (đèn trên-trái) */}
+          <path d="M 17 67.5 Q 42 75.5 67 67.5 Q 42 71.5 17 67.5 Z" fill="#020617" opacity="0.3" />
+          <path d="M 18.5 66.5 Q 30 64 42 64.8" stroke="#ffffff" strokeWidth="1.6" fill="none" opacity="0.32" />
+          <path d="M 28.5 65 Q 30.5 44 37.5 30.5" stroke="#ffffff" strokeWidth="2" fill="none" opacity="0.25" />
+          <path d="M 55 66 Q 52 44 51.5 26" stroke="#451a03" strokeWidth="3" fill="none" opacity="0.3" />
         </g>
 
         {/* Magical Sparkles swirling around hat */}
@@ -2888,6 +3402,8 @@ function _Raw_HogwartsHouseBannersSVG({ className = '', scale = 1 }: { className
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 160 * scale, height: 110 * scale }}>
       <svg viewBox="0 0 160 110" width={160 * scale} height={110 * scale} className="overflow-visible">
+        {/* Bóng AO dưới dải cờ (đèn trên-trái) */}
+        {_ao('hhbAO', 82, 104, 70, 5, 0.22)}
         {/* Horizontal Brass Hanging Rod */}
         <line x1="6" y1="15" x2="154" y2="15" stroke="#ca8a04" strokeWidth="3" strokeLinecap="round" />
         <circle cx="6" cy="15" r="3" fill="#facc15" />
@@ -2932,6 +3448,17 @@ function _Raw_HogwartsHouseBannersSVG({ className = '', scale = 1 }: { className
           <text x="10" y="33" fontSize="8" fill="#064e3b" fontWeight="bold">🐍</text>
           <text x="6" y="55" fontSize="5" fill="#e2e8f0" fontWeight="bold">SLYTH</text>
         </g>
+
+        {/* 2.5D: viền nắng mép trái + mặt phải tối cho từng tấm cờ (đèn trên-trái) */}
+        {[14, 48, 82, 116].map((bx) => (
+          <g key={`b2d${bx}`} transform={`translate(${bx}, 16)`}>
+            <polygon points="3,0 6.5,0 6.5,62 3,62" fill="#ffffff" opacity="0.15" />
+            <polygon points="19.5,0 23,0 23,62 19.5,62" fill="#020617" opacity="0.3" />
+            <polygon points="4,0 22,0 22,2 4,2" fill="#ffffff" opacity="0.2" />
+          </g>
+        ))}
+        {/* Viền nắng thanh đồng treo cờ */}
+        <line x1="8" y1="14" x2="152" y2="14" stroke="#ffffff" strokeWidth="1" opacity="0.3" />
       </svg>
     </div>
   );
@@ -2944,8 +3471,8 @@ function _Raw_DoraemonConcretePipesSVG({ className = '', scale = 1 }: { classNam
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 175 * scale, height: 115 * scale }}>
       <svg viewBox="0 0 175 115" width={175 * scale} height={115 * scale} className="overflow-visible">
-        {/* Ground Dirt & Grass Shadow */}
-        <ellipse cx="88" cy="110" rx="80" ry="6" fill="rgba(0,0,0,0.25)" />
+        {/* Ground Dirt & Grass Shadow: AO 2 lớp (đèn trên-trái) */}
+        {_ao('pipeAO', 92, 109, 82, 8, 0.28)}
 
         {/* Tuft of green dandelions and wild weeds at base */}
         {[14, 45, 88, 130, 160].map((gx, i) => (
@@ -2993,6 +3520,16 @@ function _Raw_DoraemonConcretePipesSVG({ className = '', scale = 1 }: { classNam
           <ellipse cx="58" cy="41" rx="10" ry="18" fill="#1e293b" stroke="#0f172a" strokeWidth="2" />
           <ellipse cx="60" cy="41" rx="7" ry="14" fill="#0f172a" />
         </g>
+
+        {/* 2.5D: viền nắng mép trên-trái vành ống + mặt phải thân tối (đèn trên-trái) */}
+        <path d="M 44 41 A 14 23 0 0 1 58 18" stroke="#ffffff" strokeWidth="2" fill="none" opacity="0.45" />
+        <path d="M 12 85 A 14 23 0 0 1 26 62" stroke="#ffffff" strokeWidth="2" fill="none" opacity="0.4" />
+        <path d="M 76 85 A 14 23 0 0 1 90 62" stroke="#ffffff" strokeWidth="2" fill="none" opacity="0.4" />
+        <polygon points="120,18 132,18 127,64 115,64" fill="#020617" opacity="0.26" />
+        <polygon points="92,62 100,62 95,108 87,108" fill="#020617" opacity="0.24" />
+        <polygon points="156,62 164,62 159,108 151,108" fill="#020617" opacity="0.24" />
+        <polygon points="53,60 127,60 127,64 53,64" fill="#020617" opacity="0.2" />
+        <rect x="68" y="16" width="24" height="4" fill="#ffffff" opacity="0.4" rx="1" />
       </svg>
     </div>
   );
@@ -3005,11 +3542,15 @@ function _Raw_AnywhereDoorPropSVG({ className = '', scale = 1, isOpen = false }:
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 95 * scale, height: 135 * scale }}>
       <svg viewBox="0 0 95 135" width={95 * scale} height={135 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="48" cy="130" rx="42" ry="5" fill="rgba(0,0,0,0.24)" />
+        {/* Shadow: AO 2 lớp dưới Cửa Thần Kỳ (đèn trên-trái) */}
+        {_ao('doorAO', 51, 129, 44, 6.5, 0.26)}
 
         {/* Outer Architectural White Casement Frame */}
         <rect x="15" y="15" width="65" height="114" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="3" rx="3" />
+        {/* 2.5D: mặt bên phải khung cửa + mặt trên sáng + viền nắng mép trái (đèn trên-trái) */}
+        <polygon points="80,16 84.5,20.5 84.5,131 80,128" fill="#cbd5e1" />
+        <polygon points="17,16.5 78,16.5 82,20.5 21,20.5" fill="#ffffff" />
+        <line x1="17" y1="20" x2="17" y2="126" stroke="#ffffff" strokeWidth="1.6" opacity="0.5" />
 
         {/* Swirling Cosmic Portal Glow Inside Frame */}
         <rect x="20" y="20" width="55" height="104" fill="url(#portalRainbowGrad)" rx="2" />
@@ -3024,15 +3565,23 @@ function _Raw_AnywhereDoorPropSVG({ className = '', scale = 1, isOpen = false }:
 
         {/* Iconic Pink Door Slab (Cánh Cửa Màu Hồng) */}
         {isOpen ? (
-          <polygon
-            points="20,20 60,30 60,118 20,124"
-            fill="#ec4899"
-            stroke="#be185d"
-            strokeWidth="2.5"
-          />
+          <>
+            <polygon
+              points="20,20 60,30 60,118 20,124"
+              fill="#ec4899"
+              stroke="#be185d"
+              strokeWidth="2.5"
+            />
+            {/* 2.5D: viền nắng mép trên + mặt phải tối của cánh cửa mở */}
+            <polygon points="21,21.5 59,31 59,34 21,24.5" fill="#ffffff" opacity="0.3" />
+            <polygon points="55,31 59,31 59,116 55,116" fill="#020617" opacity="0.2" />
+          </>
         ) : (
           <g>
             <rect x="20" y="20" width="55" height="104" fill="#ec4899" stroke="#be185d" strokeWidth="2.5" rx="2" />
+            {/* 2.5D: viền nắng mép trên + mặt phải tối của cánh cửa đóng */}
+            <rect x="21.5" y="21.5" width="52" height="3.5" fill="#ffffff" opacity="0.3" />
+            <rect x="69" y="22" width="5" height="100" fill="#020617" opacity="0.18" />
             {/* Door Panel Insets */}
             <rect x="26" y="28" width="43" height="40" fill="#f472b6" stroke="#db2777" strokeWidth="1.5" rx="2" />
             <rect x="26" y="76" width="43" height="40" fill="#f472b6" stroke="#db2777" strokeWidth="1.5" rx="2" />
@@ -3075,6 +3624,20 @@ function _Raw_NostalgicWoodenFenceFieldSVG({ className = '', scale = 1 }: { clas
                 stroke="#854d0e"
                 strokeWidth="1.2"
               />
+              {/* 2.5D: mặt phải tối + viền nắng mép trái mỗi thanh rào (đèn trên-trái) */}
+              <polygon
+                points={`${px + 4},12 ${px + 8},18 ${px + 8},${18 + h} ${px + 5},${18 + h} ${px + 5},18`}
+                fill="#020617"
+                opacity="0.28"
+              />
+              <polyline
+                points={`${px + 1},17.5 ${px + 4},13 ${px + 6.5},17`}
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="1"
+                opacity="0.4"
+              />
+              <line x1={px + 1} y1={18} x2={px + 1} y2={18 + h} stroke="#ffffff" strokeWidth="1" opacity="0.4" />
               <circle cx={px + 4} cy={30} r="0.8" fill="#451a03" />
               <circle cx={px + 4} cy={52} r="0.8" fill="#451a03" />
             </g>
@@ -3083,6 +3646,9 @@ function _Raw_NostalgicWoodenFenceFieldSVG({ className = '', scale = 1 }: { clas
 
         {/* Grassy Mounds with blooming dandelion flowers */}
         <path d="M 0 68 Q 45 58 90 68 Q 135 60 180 68 L 180 75 L 0 75 Z" fill="#22c55e" />
+        {/* 2.5D: bóng AO hàng rào đổ về phải trên cỏ + viền nắng mép cỏ (đèn trên-trái) */}
+        {_ao('fenceAO', 98, 69, 76, 5, 0.22)}
+        <path d="M 0 67 Q 45 57.5 90 67" stroke="#ffffff" strokeWidth="1.2" fill="none" opacity="0.25" />
         {[20, 60, 105, 150].map((dx, i) => (
           <circle key={i} cx={dx} cy={64} r="3" fill="#facc15" stroke="#eab308" strokeWidth="0.8" />
         ))}
@@ -3098,8 +3664,8 @@ function _Raw_NobitaBaseballGearSVG({ className = '', scale = 1 }: { className?:
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 100 * scale, height: 75 * scale }}>
       <svg viewBox="0 0 100 75" width={100 * scale} height={75 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="50" cy="70" rx="42" ry="4" fill="rgba(0,0,0,0.22)" />
+        {/* Shadow: AO 2 lớp dưới gậy bóng chày (đèn trên-trái) */}
+        {_ao('batAO', 53, 69, 44, 5.5, 0.26)}
 
         {/* Brown Leather Baseball Mitt Glove */}
         <path
@@ -3108,6 +3674,9 @@ function _Raw_NobitaBaseballGearSVG({ className = '', scale = 1 }: { className?:
           stroke="#451a03"
           strokeWidth="1.5"
         />
+        {/* 2.5D: viền nắng mép găng trên-trái + bóng mặt dưới-phải */}
+        <path d="M 16 47 C 15 38 25 33.5 34 40" stroke="#ffffff" strokeWidth="2" fill="none" opacity="0.32" />
+        <path d="M 38 47 C 43.5 55 39 65.5 31 67.5" stroke="#020617" strokeWidth="3" fill="none" opacity="0.3" />
         {/* White Baseball with Red Seams inside Mitt */}
         <circle cx="28" cy="52" r="7" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1" />
         <path d="M 24 48 Q 28 52 24 56" stroke="#ef4444" strokeWidth="0.8" fill="none" />
@@ -3115,12 +3684,17 @@ function _Raw_NobitaBaseballGearSVG({ className = '', scale = 1 }: { className?:
 
         {/* Wooden Baseball Bat Leaning */}
         <polygon points="32,68 84,20 88,24 38,72" fill="#ca8a04" stroke="#854d0e" strokeWidth="1.5" />
+        {/* 2.5D: mặt dưới gậy tối + viền nắng mép trên-trái (đèn trên-trái) */}
+        <polygon points="38,72 88,24 85.5,27 36,70.5" fill="#020617" opacity="0.32" />
+        <line x1="33" y1="67" x2="84.5" y2="20.5" stroke="#ffffff" strokeWidth="1.4" opacity="0.45" />
         {/* Bat handle tape */}
         <polygon points="32,68 44,57 46,59 34,70" fill="#f8fafc" stroke="#94a3b8" strokeWidth="0.8" />
 
         {/* Plate of Golden Dorayaki Pancakes (Đĩa bánh rán Doraemon) */}
         <g>
           <ellipse cx="74" cy="62" rx="14" ry="5" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1" />
+          {/* 2.5D: mặt đĩa bánh tối hơn */}
+          <path d="M 61 62.5 Q 74 68.5 87 62.5 Q 74 66 61 62.5 Z" fill="#94a3b8" opacity="0.7" />
           {/* Dorayaki pancake 1 */}
           <ellipse cx="74" cy="58" rx="10" ry="4" fill="#a16207" stroke="#713f12" strokeWidth="1" />
           <ellipse cx="74" cy="56" rx="9" ry="3" fill="#ca8a04" />
@@ -3139,12 +3713,21 @@ function _Raw_JapaneseNeighborhoodPoleSVG({ className = '', scale = 1 }: { class
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 80 * scale, height: 160 * scale }}>
       <svg viewBox="0 0 80 160" width={80 * scale} height={160 * scale} className="overflow-visible">
+        {/* Bóng AO dưới chân cột điện (đèn trên-trái) */}
+        {_ao('poleAO', 44, 156, 26, 5.5, 0.3)}
         {/* Concrete Utility Pole Base to Top */}
         <rect x="36" y="10" width="8" height="148" fill="#94a3b8" stroke="#475569" strokeWidth="1.5" />
+        {/* 2.5D: mặt trái sáng / mặt phải tối của trụ (đèn trên-trái) */}
+        <rect x="36.5" y="11" width="2" height="146" fill="#e2e8f0" opacity="0.6" />
+        <rect x="42" y="11" width="1.8" height="146" fill="#475569" opacity="0.6" />
 
         {/* Overhead Crossarms (Xà ngang đỡ dây điện) */}
         <rect x="15" y="24" width="50" height="4" fill="#334155" rx="1" />
+        <rect x="15" y="24" width="26" height="1.2" fill="#94a3b8" opacity="0.55" />
+        <rect x="15" y="27" width="50" height="1.2" fill="#020617" opacity="0.45" />
         <rect x="22" y="44" width="36" height="3" fill="#334155" rx="1" />
+        <rect x="22" y="44" width="18" height="1" fill="#94a3b8" opacity="0.55" />
+        <rect x="22" y="46.2" width="36" height="1" fill="#020617" opacity="0.45" />
 
         {/* Porcelain Insulators & Electric Cables */}
         {[20, 32, 48, 60].map((ix, i) => (
@@ -3156,6 +3739,8 @@ function _Raw_JapaneseNeighborhoodPoleSVG({ className = '', scale = 1 }: { class
 
         {/* Cylindrical Transformer Drum */}
         <rect x="42" y="32" width="16" height="24" fill="#475569" stroke="#1e293b" strokeWidth="1.2" rx="2" />
+        <rect x="42.5" y="33" width="2.5" height="22" fill="#94a3b8" opacity="0.5" />
+        <rect x="54.5" y="33" width="3" height="22" fill="#1e293b" opacity="0.5" />
         <line x1="42" y1="40" x2="58" y2="40" stroke="#334155" strokeWidth="1" />
 
         {/* Orange Convex Safety Mirror (Gương cầu lồi ngã ba) */}
@@ -3177,8 +3762,8 @@ function _Raw_GiantLollipopTreeSVG({ className = '', scale = 1 }: { className?: 
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 140 * scale, height: 170 * scale }}>
       <svg viewBox="0 0 140 170" width={140 * scale} height={170 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="70" cy="164" rx="55" ry="6" fill="rgba(244, 114, 182, 0.25)" />
+        {/* Shadow: AO 2 lớp dưới gốc kẹo (đèn trên-trái) */}
+        {_ao('popAO', 74, 163, 57, 8, 0.28)}
 
         {/* Candy Cane Striped Pretzel Trunk */}
         <path d="M 64 164 L 66 85 L 74 85 L 76 164 Z" fill="#fef3c7" stroke="#ca8a04" strokeWidth="2" />
@@ -3186,6 +3771,9 @@ function _Raw_GiantLollipopTreeSVG({ className = '', scale = 1 }: { className?: 
         {[100, 120, 140].map((sy, i) => (
           <polygon key={i} points={`65,${sy} 75,${sy - 8} 75,${sy - 4} 65,${sy + 4}`} fill="#f43f5e" />
         ))}
+        {/* 2.5D: mặt phải thân kẹo tối + viền nắng mép trái (đèn trên-trái) */}
+        <polygon points="71.5,85 74,85 76,164 73.5,164" fill="#020617" opacity="0.3" />
+        <line x1="65.8" y1="88" x2="64.4" y2="161" stroke="#ffffff" strokeWidth="1.6" opacity="0.6" />
 
         {/* Giant Swirling Rainbow Lollipop Canopy (Tán kẹo mút xoắn ngũ sắc khổng lồ) */}
         <circle cx="70" cy="52" r="45" fill="#ec4899" stroke="#be185d" strokeWidth="2.5" />
@@ -3195,6 +3783,17 @@ function _Raw_GiantLollipopTreeSVG({ className = '', scale = 1 }: { className?: 
         <circle cx="70" cy="52" r="13" fill="#ffffff" />
         <circle cx="70" cy="52" r="6" fill="#f43f5e" />
 
+        {/* 2.5D: khối kẹo bóng — bóng tối phải-dưới + viền nắng trắng mép trên-trái */}
+        <defs>
+          <clipPath id="popCrownClip">
+            <circle cx="70" cy="52" r="45" />
+          </clipPath>
+        </defs>
+        <g clipPath="url(#popCrownClip)">
+          <circle cx="82" cy="64" r="45" fill="#020617" opacity="0.17" />
+          <circle cx="76" cy="58" r="49" fill="none" stroke="#ffffff" strokeWidth="3" opacity="0.4" />
+        </g>
+
         {/* Sugar Glaze Highlights */}
         <ellipse cx="52" cy="32" rx="10" ry="6" fill="#ffffff" opacity="0.6" transform="rotate(-30 52 32)" />
 
@@ -3203,6 +3802,11 @@ function _Raw_GiantLollipopTreeSVG({ className = '', scale = 1 }: { className?: 
           <ellipse cx="44" cy="160" rx="12" ry="8" fill="#10b981" />
           <ellipse cx="94" cy="160" rx="12" ry="8" fill="#a855f7" />
           <ellipse cx="70" cy="162" rx="10" ry="6" fill="#f43f5e" />
+          {/* 2.5D: bóng dưới + viền nắng trên-trái từng búp kẹo */}
+          <path d="M 34 161 Q 44 168 54 161 Q 44 164.5 34 161 Z" fill="#020617" opacity="0.3" />
+          <path d="M 84 161 Q 94 168 104 161 Q 94 164.5 84 161 Z" fill="#020617" opacity="0.3" />
+          <path d="M 61 162.5 Q 70 168 79 162.5 Q 70 165.5 61 162.5 Z" fill="#020617" opacity="0.3" />
+          <ellipse cx="38" cy="156" rx="5" ry="3" fill="#ffffff" opacity="0.35" />
         </g>
 
         {/* Twinkling Star Candies falling */}
@@ -3220,11 +3824,16 @@ function _Raw_KirbyWarpStarSVG({ className = '', scale = 1 }: { className?: stri
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 120 * scale, height: 110 * scale }}>
       <svg viewBox="0 0 120 110" width={120 * scale} height={110 * scale} className="overflow-visible">
+        {/* Bóng AO tiếp đất dưới đám mây (đèn trên-trái) */}
+        {_ao('warpAO', 62, 103, 46, 5, 0.2)}
         {/* Soft Fluffy Cloud Base */}
         <g>
           <ellipse cx="60" cy="92" rx="48" ry="12" fill="#ffffff" opacity="0.9" />
           <ellipse cx="38" cy="88" rx="22" ry="10" fill="#fce7f3" />
           <ellipse cx="82" cy="88" rx="22" ry="10" fill="#fce7f3" />
+          {/* 2.5D: bóng dưới mây + viền nắng mép trên-trái */}
+          <ellipse cx="66" cy="99" rx="40" ry="6" fill="#020617" opacity="0.14" />
+          <ellipse cx="34" cy="84" rx="15" ry="5" fill="#ffffff" />
         </g>
 
         {/* Golden Warp Star (Floating & Glowing) */}
@@ -3233,6 +3842,18 @@ function _Raw_KirbyWarpStarSVG({ className = '', scale = 1 }: { className?: stri
           <polygon
             points="60,14 73,42 104,42 79,62 88,92 60,74 32,92 41,62 16,42 47,42"
             fill="rgba(250, 204, 21, 0.4)"
+          />
+
+          {/* 2.5D: chiều dày ngôi sao (bóng phải-dưới) + viền nắng mép trên-trái */}
+          <polygon
+            points="63,23 74,47 101,47 79,65 87,91 63,75 39,91 47,65 25,47 52,47"
+            fill="#ca8a04"
+            opacity="0.9"
+          />
+          <polygon
+            points="58.5,18.5 69.5,42.5 96.5,42.5 74.5,60.5 82.5,86.5 58.5,70.5 34.5,86.5 42.5,60.5 20.5,42.5 47.5,42.5"
+            fill="#ffffff"
+            opacity="0.55"
           />
 
           {/* Golden 5-Pointed Warp Star */}
@@ -3260,6 +3881,8 @@ function _Raw_RainbowRiverWaterfallSVG({ className = '', scale = 1 }: { classNam
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 180 * scale, height: 105 * scale }}>
       <svg viewBox="0 0 180 105" width={180 * scale} height={105 * scale} className="overflow-visible">
+        {/* Bóng AO bờ suối (đèn trên-trái) */}
+        {_ao('rrwAO', 94, 102, 84, 5, 0.2)}
         {/* Soft Pastel Flowing Water Ribbon bands */}
         <g opacity="0.95">
           <path d="M 10 20 Q 55 45 90 25 Q 135 15 170 35 L 170 55 Q 135 35 90 45 Q 55 65 10 40 Z" fill="#f472b6" />
@@ -3269,13 +3892,26 @@ function _Raw_RainbowRiverWaterfallSVG({ className = '', scale = 1 }: { classNam
           <path d="M 10 68 Q 55 93 90 73 Q 135 63 170 83 L 170 103 Q 135 83 90 93 Q 55 113 10 88 Z" fill="#c084fc" />
         </g>
 
+        {/* 2.5D: viền nắng mép nước trên-trái + bóng mặt dưới dải nước cuối (đèn trên-trái) */}
+        <path d="M 10 20 Q 55 45 90 25 Q 135 15 170 35" stroke="#ffffff" strokeWidth="1.6" fill="none" opacity="0.45" />
+        <path d="M 10 44 Q 55 69 90 49 Q 135 39 170 59" stroke="#ffffff" strokeWidth="1.4" fill="none" opacity="0.3" />
+        <path d="M 10 88 Q 55 113 90 93 Q 135 83 170 103" stroke="#020617" strokeWidth="3" fill="none" opacity="0.18" />
+
         {/* Marshmallow Cloud Foam Crests */}
         {[
           { x: 35, y: 55 },
           { x: 90, y: 65 },
           { x: 145, y: 75 },
         ].map((c, i) => (
-          <ellipse key={i} cx={c.x} cy={c.y} rx="16" ry="6" fill="#ffffff" opacity="0.9" />
+          <g key={i}>
+            <ellipse cx={c.x} cy={c.y} rx="16" ry="6" fill="#ffffff" opacity="0.9" />
+            {/* 2.5D: bóng mềm dưới cụm bọt trắng */}
+            <path
+              d={`M ${c.x - 15} ${c.y + 1} Q ${c.x} ${c.y + 9} ${c.x + 15} ${c.y + 1} Q ${c.x} ${c.y + 5} ${c.x - 15} ${c.y + 1} Z`}
+              fill="#020617"
+              opacity="0.16"
+            />
+          </g>
         ))}
 
         {/* Floating Star Water Lilies */}
@@ -3292,11 +3928,14 @@ function _Raw_WhispyWoodsAppleTreeSVG({ className = '', scale = 1 }: { className
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 150 * scale, height: 160 * scale }}>
       <svg viewBox="0 0 150 160" width={150 * scale} height={160 * scale} className="overflow-visible">
-        {/* Shadow */}
-        <ellipse cx="75" cy="154" rx="60" ry="6" fill="rgba(0,0,0,0.22)" />
+        {/* Shadow: AO 2 lớp dưới thân cây táo (đèn trên-trái) */}
+        {_ao('whispyAO', 78, 153, 62, 8, 0.27)}
 
         {/* Wide Tree Trunk */}
         <path d="M 52 154 C 48 110, 52 80, 50 65 L 100 65 C 98 80, 102 110, 98 154 Z" fill="#a16207" stroke="#713f12" strokeWidth="2.5" />
+        {/* 2.5D: mặt phải thân tối + viền nắng mép trái (đèn trên-trái) */}
+        <path d="M 94 66 L 99.5 66 C 97.5 82 101 112 97.5 153 L 92 153 C 96 112 94 84 94 66 Z" fill="#020617" opacity="0.3" />
+        <path d="M 52.5 150 C 49 112 53 82 51.5 67" stroke="#ffffff" strokeWidth="2" fill="none" opacity="0.4" />
 
         {/* Whispy Woods Kind Cartoon Wooden Face */}
         <ellipse cx="64" cy="98" rx="4" ry="6" fill="#451a03" />
@@ -3314,6 +3953,12 @@ function _Raw_WhispyWoodsAppleTreeSVG({ className = '', scale = 1 }: { className
         <circle cx="45" cy="50" r="28" fill="#15803d" />
         <circle cx="105" cy="50" r="28" fill="#15803d" />
         <circle cx="75" cy="35" r="35" fill="#22c55e" />
+        {/* 2.5D: viền nắng cung trên-trái tán + bóng cung dưới-phải (đèn trên-trái) */}
+        <path d="M 17 50 A 28 28 0 0 1 45 22" stroke="#ffffff" strokeWidth="2.5" fill="none" opacity="0.35" />
+        <path d="M 40 35 A 35 35 0 0 1 75 0" stroke="#ffffff" strokeWidth="2.5" fill="none" opacity="0.3" />
+        <path d="M 105 78 A 28 28 0 0 0 133 50" stroke="#020617" strokeWidth="4.5" fill="none" opacity="0.32" />
+        <path d="M 45 78 A 28 28 0 0 1 17 50" stroke="#020617" strokeWidth="4" fill="none" opacity="0.18" />
+        <path d="M 60 67 Q 75 73 90 67 Q 75 70 60 67 Z" fill="#020617" opacity="0.22" />
 
         {/* Shimmering Star Apples (Quả táo ngôi sao) */}
         {[
@@ -3339,13 +3984,22 @@ function _Raw_StarRodMonumentSVG({ className = '', scale = 1 }: { className?: st
   return (
     <div className={`relative inline-block select-none ${className}`} style={{ width: 100 * scale, height: 130 * scale }}>
       <svg viewBox="0 0 100 130" width={100 * scale} height={130 * scale} className="overflow-visible">
+        {/* Bóng AO tiếp đất dưới bệ mây (đèn trên-trái) */}
+        {_ao('rodAO', 54, 128, 42, 6, 0.24)}
         {/* Cloud Pedestal Base */}
         <ellipse cx="50" cy="120" rx="42" ry="10" fill="#ffffff" stroke="#e0e7ff" strokeWidth="1.5" />
         <ellipse cx="50" cy="112" rx="28" ry="8" fill="#ffffff" />
+        {/* 2.5D: bóng mặt dưới khối mây + bọng tối mép phải (đèn trên-trái) */}
+        <path d="M 14 118 Q 50 132 86 117 Q 52 128 14 118 Z" fill="#020617" opacity="0.16" />
+        <ellipse cx="64" cy="114" rx="20" ry="5" fill="#e0e7ff" opacity="0.8" />
+        {/* Bóng tiếp đất của gậy lên mặt mây */}
+        <ellipse cx="53" cy="111" rx="12" ry="3" fill="#020617" opacity="0.18" />
 
         {/* Star Rod Wand Shaft (Thân gậy sọc kẹo) */}
         <g>
           <rect x="47" y="38" width="6" height="74" fill="#ffffff" stroke="#ca8a04" strokeWidth="1.5" rx="1" />
+          {/* 2.5D: mặt phải thân gậy tối (đèn trên-trái) */}
+          <rect x="50.5" y="39" width="2" height="72" fill="#cbd5e1" opacity="0.9" />
           {/* Red spiral ribbons */}
           <polygon points="47,48 53,44 53,48 47,52" fill="#ef4444" />
           <polygon points="47,62 53,58 53,62 47,66" fill="#ef4444" />
@@ -3355,6 +4009,12 @@ function _Raw_StarRodMonumentSVG({ className = '', scale = 1 }: { className?: st
 
         {/* Spinning Golden Star Tip */}
         <g className="origin-[50px_32px] animate-pulse">
+          {/* 2.5D: chiều dày ngôi sao (bóng phải-dưới) */}
+          <polygon
+            points="52,16 57,28 70,28 59,37 63,50 52,42 41,50 45,37 34,28 47,28"
+            fill="#ca8a04"
+            opacity="0.9"
+          />
           <polygon
             points="50,14 55,26 68,26 57,35 61,48 50,40 39,48 43,35 32,26 45,26"
             fill="#facc15"

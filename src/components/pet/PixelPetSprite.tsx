@@ -55,6 +55,70 @@ export interface PixelPetSpriteProps {
   isSleeping?: boolean;
 }
 
+/**
+ * Shared silhouette outline colour. Kept as an ink token so every species'
+ * outer edge reads the same weight/tone at small scales (light AND dark UI).
+ */
+export const PET_INK = '#1f2937';
+
+/**
+ * Ground line (shadow centre Y) per species.
+ * The sprite footprint must stay untouched, so pets whose limbs end above the
+ * standard base line (y≈56.7) get their contact shadow lifted to sit right
+ * under their feet instead of hovering over a far-away ellipse.
+ * Values are derived from the measured lowest opaque pixel of each species.
+ */
+const GROUND_Y_BY_SPECIES: Record<string, number> = {
+  owl: 49.5,
+  hedwig: 49.5,
+  fawkes: 57.5,
+  kirby: 53,
+  cinnamoroll: 53,
+  chopper: 56.6,
+};
+const DEFAULT_GROUND_Y = 58;
+
+/**
+ * Scoped animation layer.
+ * Keyframe names are fixed (they are not selectors); every CLASS that drives
+ * them is prefixed with the per-instance `uid` so nothing leaks into
+ * globals.css and multiple sprites never fight over the same rule.
+ */
+function buildPetAnimCss(uid: string): string {
+  return [
+    /* idle: gentle breathing, 2s cycle, scales around the feet (y=57) */
+    `@keyframes ppet-breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.018)}}`,
+    `@keyframes ppet-breathe-slow{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.026)}}`,
+    /* eyes: 4s cadence, lid closed for ~120ms */
+    `@keyframes ppet-blink{0%,5%,100%{transform:scaleY(1)}1%,4%{transform:scaleY(0.08)}}`,
+    /* walk / run: hard 2-frame step bob (legs alternate pose each half beat) */
+    `@keyframes ppet-step-walk{0%,49.99%{transform:translateY(0) scaleY(1)}50%,100%{transform:translateY(-1.5px) scaleY(1.012)}}`,
+    `@keyframes ppet-step-run{0%,49.99%{transform:translateY(0) scaleY(1)}50%,100%{transform:translateY(-2.4px) scaleY(1.02)}}`,
+    /* eat: anticipation crouch -> dive to bowl -> chew -> settle */
+    `@keyframes ppet-eat{0%{transform:translateY(0) scaleY(1)}12%{transform:translateY(0.5px) scaleY(0.972)}32%{transform:translateY(1.4px) scaleY(1.03)}56%{transform:translateY(0.3px) scaleY(0.99)}76%{transform:translateY(1px) scaleY(1.014)}100%{transform:translateY(0) scaleY(1)}}`,
+    /* happy: stretch on the way up, squash on landing, overshoot settle */
+    `@keyframes ppet-happy{0%{transform:scale(1,1)}30%{transform:scale(0.97,1.06)}55%{transform:scale(1.04,0.94)}75%{transform:scale(0.985,1.03)}100%{transform:scale(1,1)}}`,
+    /* sniff: curious lean left/right with a small anticipation lift */
+    `@keyframes ppet-sniff{0%,100%{transform:translateY(0) rotate(0deg)}25%{transform:translateY(-0.8px) rotate(1.3deg)}50%{transform:translateY(0) rotate(0deg)}75%{transform:translateY(-0.8px) rotate(-1.3deg)}}`,
+    /* climb: slow reach up then settle back (pairs with the global scuttle) */
+    `@keyframes ppet-climb{0%,100%{transform:translateY(0)}45%{transform:translateY(-2px)}70%{transform:translateY(-0.4px)}}`,
+    /* swim: slow body roll half the speed of the global stroke */
+    `@keyframes ppet-swim{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-1.2px) rotate(1.6deg)}}`,
+    `.${uid}-breathe{animation:ppet-breathe 2s ease-in-out infinite;transform-box:view-box;transform-origin:32px 57px}`,
+    `.${uid}-breathe-slow{animation:ppet-breathe-slow 3.4s ease-in-out infinite;transform-box:view-box;transform-origin:32px 57px}`,
+    `.${uid}-blink{animation:ppet-blink 4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}`,
+    `.${uid}-step-walk{animation:ppet-step-walk 0.46s steps(1,end) infinite;transform-box:view-box;transform-origin:32px 57px}`,
+    `.${uid}-step-run{animation:ppet-step-run 0.3s steps(1,end) infinite;transform-box:view-box;transform-origin:32px 57px}`,
+    `.${uid}-eat{animation:ppet-eat 0.55s ease-in-out infinite;transform-box:view-box;transform-origin:32px 57px}`,
+    `.${uid}-happy{animation:ppet-happy 0.8s ease-out infinite;transform-box:view-box;transform-origin:32px 57px}`,
+    `.${uid}-sniff{animation:ppet-sniff 0.5s ease-in-out infinite;transform-box:view-box;transform-origin:32px 57px}`,
+    `.${uid}-climb{animation:ppet-climb 0.7s ease-in-out infinite;transform-box:view-box;transform-origin:32px 57px}`,
+    `.${uid}-swim{animation:ppet-swim 1.4s ease-in-out infinite;transform-box:view-box;transform-origin:32px 57px}`,
+    /* stickers-style silhouette rim: consistent thin ink edge on every species */
+    `svg [data-pet-body]{filter:drop-shadow(0.5px 0 0 ${PET_INK}) drop-shadow(-0.5px 0 0 ${PET_INK}) drop-shadow(0 0.5px 0 ${PET_INK}) drop-shadow(0 -0.5px 0 ${PET_INK})}`,
+  ].join('');
+}
+
 function PixelPetSprite({
   species = 'owl',
   animationState = 'idle',
@@ -68,13 +132,41 @@ function PixelPetSprite({
 }: PixelPetSpriteProps) {
   const isLeft = facing === 'left';
   const effectiveState = isSleeping ? 'sleep' : animationState;
+  const rawId = useId();
+  const uid = `ppet${rawId.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const outfitClipId = `${uid}-outfit-clip`;
   const outfitFit = getOutfitFit(species);
   const outfitTransform = getOutfitTransform(outfitFit);
-  const outfitClipId = `outfit-clip-${useId().replace(/:/g, '')}`;
   const hatFit = getHatFit(species);
   const hatTransform = getHatTransform(hatFit);
   const glassesFit = getGlassesFit(species);
   const glassesTransform = getGlassesTransform(glassesFit);
+  const groundY = GROUND_Y_BY_SPECIES[species] ?? DEFAULT_GROUND_Y;
+
+  /** Inner body group: breathing / 2-frame step / anticipation-settle beats. */
+  const bodyAnimClass =
+    effectiveState === 'idle'
+      ? `${uid}-breathe`
+      : effectiveState === 'sleep'
+        ? `${uid}-breathe-slow`
+        : effectiveState === 'walk'
+          ? `${uid}-step-walk`
+          : effectiveState === 'run'
+            ? `${uid}-step-run`
+            : effectiveState === 'eat'
+              ? `${uid}-eat`
+              : effectiveState === 'happy'
+                ? `${uid}-happy`
+                : effectiveState === 'sniff'
+                  ? `${uid}-sniff`
+                  : effectiveState === 'climb'
+                    ? `${uid}-climb`
+                    : effectiveState === 'swim'
+                      ? `${uid}-swim`
+                      : '';
+
+  /** Eyes blink on their own cadence; sleeping pets keep their closed lids. */
+  const blinkClass = effectiveState === 'sleep' ? '' : `${uid}-blink`;
 
   // Species-specific 3D movement & life animation classes
   const getAnimClass = () => {
@@ -156,6 +248,9 @@ function PixelPetSprite({
         className={`overflow-visible ${getAnimClass()}`}
       >
         <defs>
+          {/* Scoped keyframes + uid-prefixed classes: breathing/blink/step beats
+              live here so globals.css never gains a new class. */}
+          <style data-pet-anim={uid}>{buildPetAnimCss(uid)}</style>
           {/* Volumetric 3D Shading Gradients */}
           <linearGradient id="doraemonBlue3D" x1="20%" y1="0%" x2="80%" y2="100%">
             <stop offset="0%" stopColor="#38bdf8" />
@@ -331,12 +426,15 @@ function PixelPetSprite({
           </g>
         ) : (
           <g>
-            <ellipse cx="32" cy="58" rx="18" ry="4.5" fill="rgba(0, 0, 0, 0.14)" />
-            <ellipse cx="32" cy="58" rx="11" ry="2.8" fill="rgba(0, 0, 0, 0.16)" />
+            <ellipse cx="32" cy={groundY} rx="18" ry="4.5" fill="rgba(0, 0, 0, 0.14)" />
+            <ellipse cx="32" cy={groundY} rx="11" ry="2.8" fill="rgba(0, 0, 0, 0.16)" />
           </g>
         )}
 
-        {/* Lớp 1, 2, 3: Thân pet & trang phục (Cắt nửa thân dưới khi bơi) */}
+        {/* Lớp 1, 2, 3: Thân pet & trang phục (Cắt nửa thân dưới khi bơi)
+            + LỚP 4/5: phụ kiện trước & mũ — gói trong một nhóm "body" để
+            breathing / 2-frame step / blink chạy được mà không đụng shadow. */}
+        <g data-pet-body className={bodyAnimClass}>
         <g clipPath={effectiveState === 'swim' ? 'url(#swimWaterClip)' : undefined}>
 
                 {/* Lớp 1: Cánh & Phụ Kiện Lưng (Back Accessory) */}
@@ -416,6 +514,7 @@ function PixelPetSprite({
             </g>
 
             {/* Face: Eyes with Sparkling Highlights */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 20 26 Q 23 29 26 26" fill="none" stroke="#111827" strokeWidth="1.8" strokeLinecap="round" />
@@ -429,6 +528,7 @@ function PixelPetSprite({
                 <circle cx="40.3" cy="25" r="0.8" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Pastel Pink Cheek Blush */}
             <ellipse cx="17.5" cy="28.5" rx="2.8" ry="1.6" fill="#fda4af" opacity="0.8" />
@@ -493,6 +593,7 @@ function PixelPetSprite({
             </g>
 
             {/* Eyes & Eyelashes */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 22 31 Q 25 34 28 30" fill="none" stroke="#581c87" strokeWidth="1.8" strokeLinecap="round" />
@@ -511,6 +612,7 @@ function PixelPetSprite({
                 <path d="M 42.5 26 L 45 24 M 36.5 27 L 35 26" stroke="#0f172a" strokeWidth="1.3" strokeLinecap="round" />
               </>
             )}
+            </g>
 
             {/* Pink Nose & Mischievous Smirk */}
             <circle cx="32" cy="32.5" r="0.9" fill="#f43f5e" />
@@ -614,6 +716,7 @@ function PixelPetSprite({
             />
 
             {/* Face: Eyes (Glowing Deep Sky-Blue with Sparkling Manga Catchlights) */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 21.5 25.5 Q 24.5 28.5 27.5 25.5" fill="none" stroke="#0284c7" strokeWidth="1.8" strokeLinecap="round" />
@@ -636,6 +739,7 @@ function PixelPetSprite({
                 <circle cx="38.8" cy="26.7" r="0.4" fill="#e0f2fe" />
               </>
             )}
+            </g>
 
             {/* Soft Rosy Pastel Pink Cheek Blush with Dreamy Highlights */}
             <ellipse cx="17.5" cy="28.5" rx="3.4" ry="1.9" fill="#fbcfe8" opacity="0.95" />
@@ -679,6 +783,7 @@ function PixelPetSprite({
             <ellipse cx="32" cy="29" rx="12" ry="9" fill="#ffffff" />
 
             {/* Eyes with Sparkling Highlights */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 24 29 Q 26 32 28 29" fill="none" stroke="#1e1b4b" strokeWidth="1.8" strokeLinecap="round" />
@@ -695,6 +800,7 @@ function PixelPetSprite({
                 <circle cx="38.8" cy="29.8" r="0.4" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Yellow Button Nose & Mouth */}
             <ellipse cx="32" cy="31" rx="2" ry="1.4" fill="#facc15" stroke="#ca8a04" strokeWidth="0.6" />
@@ -740,6 +846,7 @@ function PixelPetSprite({
             </g>
 
             {/* Eyes */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <line x1="23" y1="24.5" x2="27" y2="24.5" stroke="#78350f" strokeWidth="1.8" strokeLinecap="round" />
@@ -753,6 +860,7 @@ function PixelPetSprite({
                 <circle cx="38.3" cy="23.8" r="0.7" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Brown Nose & Iconic :3 Omega Mouth with Pink Tongue */}
             <ellipse cx="32" cy="26.8" rx="2.2" ry="1.5" fill="#78350f" />
@@ -769,6 +877,7 @@ function PixelPetSprite({
             {/* Big Expressive Frog Eyes Touching in Middle */}
             <circle cx="24" cy="15" r="8" fill="#ffffff" stroke="#16a34a" strokeWidth="1.3" />
             <circle cx="40" cy="15" r="8" fill="#ffffff" stroke="#16a34a" strokeWidth="1.3" />
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <line x1="18" y1="15" x2="30" y2="15" stroke="#111827" strokeWidth="2.2" strokeLinecap="round" />
@@ -782,6 +891,7 @@ function PixelPetSprite({
                 <circle cx="37.5" cy="13.8" r="1.1" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Seamless Rounded Lime-Green Head */}
             <path d="M 16 23 C 14 28, 14 36, 21 38 C 26 39.5, 38 39.5, 43 38 C 50 36, 50 28, 48 23 Z" fill="url(#keroppiGreen3D)" stroke="#16a34a" strokeWidth="1.3" />
@@ -852,6 +962,7 @@ function PixelPetSprite({
             <path d="M 29.5 34.5 Q 32 37 34.5 34.5" fill="none" stroke="#78350f" strokeWidth="1.2" strokeLinecap="round" />
 
             {/* Big Sparkling Manga Eyes */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 21 28 Q 24 31 27 28" fill="none" stroke="#451a03" strokeWidth="1.8" strokeLinecap="round" />
@@ -867,6 +978,7 @@ function PixelPetSprite({
                 <circle cx="40" cy="28" r="0.7" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Rosy Cheeks */}
             <circle cx="19" cy="30" r="2.8" fill="#fda4af" opacity="0.9" />
@@ -921,6 +1033,7 @@ function PixelPetSprite({
             <line x1="30" y1="16.5" x2="34" y2="16.5" stroke="#0f172a" strokeWidth="2" />
 
             {/* Big Goofy & Loving Duck Anime Eyes */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 21 26 Q 25 29 29 26" fill="none" stroke="#0f172a" strokeWidth="2" strokeLinecap="round" />
@@ -939,6 +1052,7 @@ function PixelPetSprite({
                 <circle cx="39.5" cy="26.8" r="0.6" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Soft Rosy Cheeks */}
             <ellipse cx="17.5" cy="29" rx="2.6" ry="1.5" fill="#fda4af" opacity="0.85" />
@@ -1001,6 +1115,7 @@ function PixelPetSprite({
             />
 
             {/* Soulful Apologetic Anime Eyes with Catchlights */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 23 27 Q 26 30 29 27" fill="none" stroke="#0f172a" strokeWidth="1.8" strokeLinecap="round" />
@@ -1017,6 +1132,7 @@ function PixelPetSprite({
                 <circle cx="39.8" cy="27.5" r="0.5" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Rosy Pastel Cheeks */}
             <ellipse cx="19" cy="31" rx="2.6" ry="1.6" fill="#fda4af" opacity="0.85" />
@@ -1070,6 +1186,7 @@ function PixelPetSprite({
             <circle cx="32" cy="39.2" r="0.8" fill="#713f12" />
 
             {/* Eyes Touching at Top Center */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 25.5 16 Q 28.5 19 31.5 16" fill="none" stroke="#0f172a" strokeWidth="1.8" strokeLinecap="round" />
@@ -1086,6 +1203,7 @@ function PixelPetSprite({
                 <circle cx="34" cy="14.5" r="0.6" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Red Shiny Cherry Nose */}
             <circle cx="32" cy="20.5" r="3" fill="#ef4444" stroke="#b91c1c" strokeWidth="0.8" />
@@ -1187,6 +1305,7 @@ function PixelPetSprite({
             <circle cx="32" cy="37.8" r="1" fill="#ef4444" />
 
             {/* Big Sparkling Anime Eyes with Eyelashes */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 25 17 Q 28 20.5 31 17" fill="none" stroke="#0f172a" strokeWidth="1.8" strokeLinecap="round" />
@@ -1219,6 +1338,7 @@ function PixelPetSprite({
                 <line x1="35.5" y1="11.8" x2="35.5" y2="9.8" stroke="#0f172a" strokeWidth="1.1" strokeLinecap="round" />
               </>
             )}
+            </g>
 
             {/* Red Shiny Cherry Nose */}
             <circle cx="32" cy="21.5" r="2.5" fill="#ef4444" stroke="#b91c1c" strokeWidth="0.8" />
@@ -1252,6 +1372,7 @@ function PixelPetSprite({
             <ellipse cx="48" cy="30" rx="4.5" ry="3.5" fill="url(#kirbyPink3D)" stroke="#db2777" strokeWidth="1" transform="rotate(25 48 30)" />
 
             {/* Classic Kirby Anime Eyes (Vertical Black-to-Blue with White Shines) */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 24 26 Q 27 30 30 26" fill="none" stroke="#be123c" strokeWidth="2" strokeLinecap="round" />
@@ -1270,6 +1391,7 @@ function PixelPetSprite({
                 <circle cx="37" cy="29.5" r="0.6" fill="#38bdf8" />
               </>
             )}
+            </g>
 
             {/* Diagonal Oval Rosy Pink Cheek Blush */}
             <ellipse cx="20" cy="31" rx="3.5" ry="2" fill="#f43f5e" opacity="0.9" transform="rotate(-10 20 31)" />
@@ -1308,6 +1430,7 @@ function PixelPetSprite({
             <ellipse cx="32" cy="32.5" rx="9" ry="6" fill="#fff7ed" />
 
             {/* Big Expressive Emerald Green Anime Eyes */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 21 27 Q 24 30 27 27" fill="none" stroke="#431407" strokeWidth="1.8" strokeLinecap="round" />
@@ -1326,6 +1449,7 @@ function PixelPetSprite({
                 <circle cx="41" cy="28" r="0.7" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Pink Nose & Cute :3 Mouth */}
             <polygon points="31,30.5 33,30.5 32,32" fill="#f43f5e" />
@@ -1369,6 +1493,7 @@ function PixelPetSprite({
             <circle cx="39" cy="20.5" r="1.6" fill="#fef3c7" />
 
             {/* Eyes with Sparkling Catchlights */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 22 26 Q 25 29 28 26" fill="none" stroke="#451a03" strokeWidth="1.8" strokeLinecap="round" />
@@ -1384,6 +1509,7 @@ function PixelPetSprite({
                 <circle cx="39.8" cy="27.8" r="0.6" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Black Nose & Cheerful Open Tongue */}
             <ellipse cx="32" cy="29.5" rx="2.2" ry="1.6" fill="#1e1b4b" />
@@ -1421,6 +1547,7 @@ function PixelPetSprite({
             <polygon points="47,26 38,34 40,24" fill="#ffffff" />
 
             {/* Fox Eyes */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 22 26 Q 25 28 28 25" fill="none" stroke="#1e1b4b" strokeWidth="1.8" strokeLinecap="round" />
@@ -1436,6 +1563,7 @@ function PixelPetSprite({
                 <circle cx="38.2" cy="24" r="1" fill="#ffffff" />
               </>
             )}
+            </g>
 
             <circle cx="32" cy="30" r="1.6" fill="#0f172a" />
             <path d="M 30.5 32 Q 32 33.8 33.5 32" fill="none" stroke="#0f172a" strokeWidth="1.2" strokeLinecap="round" />
@@ -1467,6 +1595,7 @@ function PixelPetSprite({
             <ellipse cx="40" cy="26" rx="4.8" ry="3.8" fill="#0f172a" transform="rotate(15 40 26)" />
 
             {/* Big Sparkling Liquid Anime Eyes inside Patches */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <line x1="22" y1="26" x2="26" y2="26" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" />
@@ -1483,6 +1612,7 @@ function PixelPetSprite({
                 <circle cx="38.8" cy="24.8" r="0.6" fill="#ffffff" />
               </>
             )}
+            </g>
 
             <ellipse cx="32" cy="29.5" rx="2" ry="1.4" fill="#0f172a" />
             <path d="M 30.5 32 Q 32 34 33.5 32" fill="none" stroke="#0f172a" strokeWidth="1.2" strokeLinecap="round" />
@@ -1516,6 +1646,7 @@ function PixelPetSprite({
             <circle cx="32" cy="27" r="14" fill="url(#bunnyCream3D)" stroke="#cbd5e1" strokeWidth="1.2" />
 
             {/* Sparkling Ruby Eyes */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 23 27 Q 26 30 29 27" fill="none" stroke="#db2777" strokeWidth="1.8" strokeLinecap="round" />
@@ -1531,6 +1662,7 @@ function PixelPetSprite({
                 <circle cx="40" cy="28" r="0.7" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Pink Nose & Bunny Mouth */}
             <polygon points="31,30.5 33,30.5 32,32" fill="#f43f5e" />
@@ -1559,6 +1691,7 @@ function PixelPetSprite({
             <path d="M 48 26 C 50 36, 47 44, 44 46" fill="none" stroke="#047857" strokeWidth="2.8" strokeLinecap="round" />
 
             {/* Intellectual Golden Owl Eyes */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 18 24 Q 24 29 30 24" fill="none" stroke="#064e3b" strokeWidth="2.2" strokeLinecap="round" />
@@ -1576,6 +1709,7 @@ function PixelPetSprite({
                 <circle cx="41" cy="25.5" r="0.6" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Golden Beak & Talons */}
             <polygon points="30,27 34,27 32,32" fill="#f97316" stroke="#c2410c" strokeWidth="0.8" />
@@ -1658,6 +1792,7 @@ function PixelPetSprite({
             <path d="M 47 24 L 41 25.5 L 44 28.5 Z" fill="#0f172a" />
 
             {/* Sparkling Crimson/Ruby Anime Eyes */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 22 26 Q 25 29 28 26" fill="none" stroke="#0f172a" strokeWidth="2.2" strokeLinecap="round" />
@@ -1676,6 +1811,7 @@ function PixelPetSprite({
                 <circle cx="39.8" cy="27" r="0.5" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Rosy Cheek Blush */}
             <ellipse cx="19" cy="31" rx="2.5" ry="1.5" fill="#fda4af" opacity="0.8" />
@@ -1729,6 +1865,7 @@ function PixelPetSprite({
             <path d="M 28 21 Q 32 19.5 36 21" fill="none" stroke="#78350f" strokeWidth="1" strokeLinecap="round" />
 
             {/* Soulful Glassy Brown Puppy Eyes with Dual Catchlights */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 22 26 Q 25 29 28 26" fill="none" stroke="#1e1b4b" strokeWidth="2" strokeLinecap="round" />
@@ -1745,6 +1882,7 @@ function PixelPetSprite({
                 <circle cx="40" cy="27" r="0.6" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Rosy Pug Cheeks */}
             <ellipse cx="19" cy="31.5" rx="2.5" ry="1.5" fill="#fda4af" opacity="0.8" />
@@ -1817,6 +1955,7 @@ function PixelPetSprite({
             <path d="M 48 26 C 50 36, 47 44, 44 46" fill="none" stroke="#cbd5e1" strokeWidth="2.8" strokeLinecap="round" />
 
             {/* Glowing Amber-Gold Owl Eyes with Starry Dual Catchlights */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 18 24 Q 24 29 30 24" fill="none" stroke="#0f172a" strokeWidth="2.2" strokeLinecap="round" />
@@ -1835,6 +1974,7 @@ function PixelPetSprite({
                 <circle cx="41.5" cy="25.5" r="0.6" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Soft Cheek Blush */}
             <ellipse cx="17.5" cy="29" rx="2.5" ry="1.5" fill="#fda4af" opacity="0.8" />
@@ -1879,6 +2019,7 @@ function PixelPetSprite({
             <ellipse cx="32" cy="32" rx="8.5" ry="5.5" fill="#fed7aa" />
 
             {/* Grumpy-Cute Amber Eyes with Vertical Pupils */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <line x1="21" y1="26" x2="27" y2="26" stroke="#451a03" strokeWidth="2.2" strokeLinecap="round" />
@@ -1897,6 +2038,7 @@ function PixelPetSprite({
                 <circle cx="41" cy="28" r="0.5" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Rosy Cheeks & Whiskers */}
             <ellipse cx="18" cy="31.5" rx="2.5" ry="1.5" fill="#fda4af" opacity="0.8" />
@@ -1934,6 +2076,7 @@ function PixelPetSprite({
             <path d="M 47 26 C 50 36, 47 44, 44 46" fill="none" stroke="url(#fawkesGold3D)" strokeWidth="3" strokeLinecap="round" />
 
             {/* Wise Golden Phoenix Eyes with Diamond Catchlights */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 20 25 Q 24 28 28 25" fill="none" stroke="#0f172a" strokeWidth="2" strokeLinecap="round" />
@@ -1952,6 +2095,7 @@ function PixelPetSprite({
                 <circle cx="41" cy="25.5" r="0.6" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Curved Golden Beak & Talons */}
             <polygon points="30,27 34,27 32,33" fill="#facc15" stroke="#ca8a04" strokeWidth="0.8" />
@@ -1997,6 +2141,7 @@ function PixelPetSprite({
             <ellipse cx="32" cy="32.5" rx="8.5" ry="5.5" fill="#fff7ed" />
 
             {/* Big Expressive Amber-Hazel Kitten Eyes */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <path d="M 21 27 Q 24 30 27 27" fill="none" stroke="#431407" strokeWidth="1.8" strokeLinecap="round" />
@@ -2015,6 +2160,7 @@ function PixelPetSprite({
                 <circle cx="41" cy="28" r="0.7" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Pink Nose & Cute Kitten Mouth */}
             <polygon points="31,30.5 33,30.5 32,32" fill="#f43f5e" />
@@ -2061,6 +2207,7 @@ function PixelPetSprite({
             <polygon points="47,28 41,33 42,25" fill="#f8fafc" />
 
             {/* Sparkling Hazel-Amber Anime Eyes */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <line x1="22" y1="27" x2="27" y2="27" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
@@ -2079,6 +2226,7 @@ function PixelPetSprite({
                 <circle cx="39.8" cy="28.2" r="0.5" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* White Muzzle & Button Nose with Smirk & Tiny Fang */}
             <ellipse cx="32" cy="32.2" rx="5.5" ry="3.8" fill="#ffffff" />
@@ -2128,6 +2276,7 @@ function PixelPetSprite({
             <polygon points="36,33 37,34.5 38,33" fill="#ffffff" />
 
             {/* Golden Reptilian Slit Eyes with Glossy Highlights */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <line x1="23" y1="24.5" x2="28" y2="24.5" stroke="#0f172a" strokeWidth="2.2" strokeLinecap="round" />
@@ -2144,6 +2293,7 @@ function PixelPetSprite({
                 <circle cx="36.8" cy="22.5" r="0.8" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Rosy Blush on Green Cheeks */}
             <ellipse cx="19" cy="30" rx="2.5" ry="1.5" fill="#fda4af" opacity="0.75" />
@@ -2204,6 +2354,7 @@ function PixelPetSprite({
             <path d="M 30 34.5 Q 32 36.5 34 34.5" fill="none" stroke="#0369a1" strokeWidth="1" strokeLinecap="round" />
 
             {/* Eyes */}
+                        <g data-pet-eyes className={blinkClass}>
             {effectiveState === 'sleep' ? (
               <>
                 <line x1="23" y1="24" x2="28" y2="24" stroke="#0284c7" strokeWidth="2.2" strokeLinecap="round" />
@@ -2213,10 +2364,13 @@ function PixelPetSprite({
               <>
                 <circle cx="26" cy="24" r="3.6" fill="#0284c7" />
                 <circle cx="25" cy="23" r="1.3" fill="#ffffff" />
+                <circle cx="27" cy="25.5" r="0.5" fill="#ffffff" />
                 <circle cx="38" cy="24" r="3.6" fill="#0284c7" />
                 <circle cx="37" cy="23" r="1.3" fill="#ffffff" />
+                <circle cx="39" cy="25.5" r="0.5" fill="#ffffff" />
               </>
             )}
+            </g>
 
             {/* Rosy Icy Cheeks */}
             <ellipse cx="20" cy="29" rx="2.5" ry="1.5" fill="#fda4af" opacity="0.8" />
@@ -2709,6 +2863,7 @@ function PixelPetSprite({
         )}
 
         </g>
+        </g>{/* end data-pet-body */}
         {/* ========================================================================= */}
         {/* LỚP 5: GỢN SÓNG NƯỚC & BỌT SÓNG PHÍA TRƯỚC KHI BƠI (FOREGROUND WATER EFFECT) */}
         {/* ========================================================================= */}

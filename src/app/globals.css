@@ -1197,3 +1197,51 @@ textarea,
   -webkit-backface-visibility: hidden;
 }
 
+/* ========================================================================= */
+/* GARDEN OBJECT AFFORDANCE — vật thể tương tác phải "rõ" TRƯỚC khi click   */
+/* Desktop hover: scale 1.03 + glow trắng + cursor pointer.                 */
+/* Touch (hover:none): vòng pulse rất mờ định kỳ gợi ý "bấm được".          */
+/* Dùng CSS `scale`/`filter` — độc lập với `translate`/`transform` Tailwind  */
+/* v4 nên KHÔNG phá vị trí -translate-x-1/2 -translate-y-1/2 của vật thể.    */
+/* ========================================================================= */
+.garden-obj-hit {
+  cursor: pointer;
+}
+.garden-obj-hit:hover {
+  scale: 1.03;
+  filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.95)) brightness(1.08);
+  transition-property: transform, translate, scale, rotate, filter;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+}
+/* Ocean bar spans the arena width — scaling would reveal edge gaps; glow only. */
+.garden-obj-hit[data-testid="garden-ocean"]:hover {
+  scale: 1;
+}
+/* Keyboard: garden objects are role=button + tabIndex=0 → visible focus ring. */
+.garden-obj-hit:focus-visible {
+  outline: 3px solid rgba(251, 191, 36, 0.95);
+  outline-offset: 3px;
+}
+@media (hover: none) {
+  .garden-obj-hit::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.65);
+    pointer-events: none;
+    animation: garden-touch-pulse 2.8s ease-in-out infinite;
+  }
+}
+@keyframes garden-touch-pulse {
+  0%, 100% { opacity: 0.10; transform: scale(1); }
+  50% { opacity: 0.30; transform: scale(1.015); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .garden-obj-hit::after {
+    animation: none;
+    opacity: 0.15;
+  }
+}
+
