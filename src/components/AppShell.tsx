@@ -385,7 +385,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <div className="font-black text-xl text-slate-900 dark:text-slate-100 tracking-tight flex items-center">
                 Meow<span className="text-emerald-600 dark:text-emerald-400">lish</span>
               </div>
-              <div className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
+              <div className="text-[12px] font-bold text-slate-400 dark:text-slate-500">
                 Giao Tiếp Thực Chiến
               </div>
             </div>
@@ -396,7 +396,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6">
           {navGroups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-1.5">
-              <div className="px-3 text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              <div className="px-3 text-[12px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
                 {group.title}
               </div>
               <div className="space-y-1">
@@ -430,7 +430,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         <span>{item.label}</span>
                       </div>
                       {item.badge && (
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                        <span className={`text-[12px] font-black px-2 py-0.5 rounded-full ${
                           isActive ? 'bg-emerald-700 text-emerald-100' : item.badgeColor
                         }`}>
                           {item.badge}
@@ -461,7 +461,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="text-xs font-black text-slate-900 dark:text-slate-100 truncate">
                   {currentUser?.display_name || 'Học Viên'}
                 </div>
-                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                <div className="text-[12px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1">
                   <span>Level {currentUser?.level || 1}</span>
                   <span>•</span>
                   <span className="text-amber-600 dark:text-amber-300">{currentUser?.exp || 0} EXP</span>
@@ -512,13 +512,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   <div
                     onClick={() => sound.playFlame()}
                     title={`Chuỗi học liên tục ${currentUser.streak || 1} ngày!`}
-                    className="flex items-center gap-1 sm:gap-1.5 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full cursor-pointer hover:scale-105 transition active:scale-95 select-none"
+                    className="tap-target flex items-center gap-1 sm:gap-1.5 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full cursor-pointer hover:scale-105 transition active:scale-95 select-none"
                   >
                     <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500 fill-orange-500 animate-flame" />
-                    <span className="text-[11px] sm:text-xs font-black text-orange-700 dark:text-orange-300">
+                    <span className="text-[12px] sm:text-xs font-black text-orange-700 dark:text-orange-300">
                       {currentUser.streak || 1}
                     </span>
-                    <span className="hidden sm:inline text-[10px] font-extrabold text-orange-600 dark:text-orange-400 uppercase">
+                    <span className="hidden sm:inline text-[12px] font-extrabold text-orange-600 dark:text-orange-400 uppercase">
                       ngày
                     </span>
                   </div>
@@ -531,10 +531,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     className="hidden xs:flex items-center gap-1 sm:gap-1.5 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full select-none"
                   >
                     <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 fill-amber-400" />
-                    <span className="text-[11px] sm:text-xs font-black text-amber-800 dark:text-amber-200">
+                    <span className="text-[12px] sm:text-xs font-black text-amber-800 dark:text-amber-200">
                       {currentUser.exp || 0}
                     </span>
-                    <span className="hidden sm:inline text-[10px] font-extrabold text-amber-600 dark:text-amber-400 uppercase">
+                    <span className="hidden sm:inline text-[12px] font-extrabold text-amber-600 dark:text-amber-400 uppercase">
                       EXP
                     </span>
                   </div>
@@ -546,13 +546,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     href="/pet"
                     onClick={() => sound.playClick()}
                     title={`Số dư: ${currentUser.coins || 0} Coins. Bấm để ghé thăm Khu Vườn Thú Cưng!`}
-                    className="flex items-center gap-1 sm:gap-1.5 bg-amber-100/70 dark:bg-amber-950 hover:bg-amber-100 dark:hover:bg-amber-900 border border-amber-300 dark:border-amber-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full cursor-pointer transition select-none hover:scale-105 active:scale-95 shadow-xs"
+                    className="tap-target flex items-center gap-1 sm:gap-1.5 bg-amber-100/70 dark:bg-amber-950 hover:bg-amber-100 dark:hover:bg-amber-900 border border-amber-300 dark:border-amber-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full cursor-pointer transition select-none hover:scale-105 active:scale-95 shadow-xs"
                   >
                     <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 dark:text-amber-300 fill-amber-400 transition-transform hover:scale-110" />
-                    <span className="text-[11px] sm:text-xs font-black text-amber-900 dark:text-amber-200">
+                    <span className="text-[12px] sm:text-xs font-black text-amber-900 dark:text-amber-200">
                       {currentUser.coins || 0}
                     </span>
-                    <span className="hidden sm:inline text-[10px] font-extrabold text-amber-700 dark:text-amber-400 uppercase">
+                    <span className="hidden sm:inline text-[12px] font-extrabold text-amber-700 dark:text-amber-400 uppercase">
                       Coins
                     </span>
                   </Link>
@@ -583,7 +583,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       if (currentUser) setShowAvatarMenu((v) => !v);
                       else setShowAuth(true);
                     }}
-                    className="flex items-center gap-1.5 bg-slate-50 dark:bg-white/10 hover:bg-slate-100 dark:hover:bg-white/15 text-slate-800 dark:text-slate-100 p-1 sm:px-2.5 sm:py-1.5 rounded-2xl text-xs font-bold transition border border-slate-200 dark:border-white/10 cursor-pointer shadow-xs"
+                    className="tap-target flex items-center gap-1.5 bg-slate-50 dark:bg-white/10 hover:bg-slate-100 dark:hover:bg-white/15 text-slate-800 dark:text-slate-100 p-1 sm:px-2.5 sm:py-1.5 rounded-2xl text-xs font-bold transition border border-slate-200 dark:border-white/10 cursor-pointer shadow-xs"
                   >
                     <span className="text-sm">{currentUser?.avatar || '🐱'}</span>
                     <span className="hidden sm:inline max-w-[90px] truncate">
@@ -603,7 +603,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                           <div className="text-sm font-black text-slate-900 dark:text-white truncate">
                             {currentUser.display_name}
                           </div>
-                          <div className="text-[11px] font-mono text-slate-400 truncate">
+                          <div className="text-[12px] font-mono text-slate-400 truncate">
                             @{currentUser.username}
                           </div>
                         </div>
@@ -654,7 +654,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 sound.playClick();
                 setIsEmailVerifyOpen(true);
               }}
-              className="shrink-0 px-2.5 sm:px-3 py-1 bg-white hover:bg-amber-50 text-amber-900 rounded-xl text-[10px] sm:text-[11px] font-black transition cursor-pointer shadow-sm active:scale-95"
+              className="shrink-0 px-2.5 sm:px-3 py-1 bg-white hover:bg-amber-50 text-amber-900 rounded-xl text-[12px] sm:text-[12px] font-black transition cursor-pointer shadow-sm active:scale-95"
             >
               Kích hoạt ngay ✉️
             </button>
@@ -696,7 +696,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   sound.playClick();
                 }
               }}
-              className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[11px] font-extrabold transition cursor-pointer touch-manipulation ${
+              className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[12px] font-extrabold transition cursor-pointer touch-manipulation ${
                 isActive
                   ? 'text-emerald-600 dark:text-emerald-400 scale-105'
                   : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
@@ -717,7 +717,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             sound.playClick();
             setMobileDrawerOpen(true);
           }}
-          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[11px] font-extrabold text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer touch-manipulation select-none ${
+          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[12px] font-extrabold text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer touch-manipulation select-none ${
             mobileDrawerOpen ? 'text-emerald-600' : ''
           }`}
         >
@@ -767,7 +767,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <div className="space-y-5">
                 {navGroups.map((group, gIdx) => (
                   <div key={gIdx} className="space-y-1">
-                    <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">
+                    <div className="text-[12px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">
                       {group.title}
                     </div>
                     <div className="space-y-1">
@@ -806,7 +806,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                               <span>{item.label}</span>
                             </div>
                             {item.badge && (
-                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                              <span className={`text-[12px] font-black px-2 py-0.5 rounded-full ${
                                 isActive ? 'bg-emerald-700 text-emerald-100' : item.badgeColor
                               }`}>
                                 {item.badge}

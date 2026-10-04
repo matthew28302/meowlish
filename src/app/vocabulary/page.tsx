@@ -142,6 +142,36 @@ export default function VocabularyPage() {
 
       {/* Vocabulary Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* Empty state: search không trả kết quả -> nói rõ thay vì để trang trắng */}
+        {filteredWords.length === 0 && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="col-span-full flex flex-col items-center justify-center gap-3 py-16 px-6 text-center bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-3xl"
+          >
+            <span className="text-5xl" aria-hidden="true">🔍</span>
+            <h3 className="text-lg font-black text-slate-900 dark:text-white">
+              Không tìm thấy từ nào phù hợp
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md">
+              Không có từ nào khớp với từ khóa hoặc nhóm đang chọn. Hãy thử:
+            </p>
+            <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 text-left max-w-md list-disc list-inside">
+              <li>Kiểm tra lại chính tả từ khóa (ví dụ: <span className="font-bold">recieve</span> → nhập <span className="font-bold">receive</span>)</li>
+              <li>Bấm <span className="font-bold">Tất Cả Từ Vựng</span> để bỏ giới hạn nhóm đang lọc</li>
+              <li>Hoặc tra cứu trong <span className="font-bold">Bách Khoa Từ Điển</span> (26.500+ mục)</li>
+            </ul>
+            {(searchQuery || activeCategory !== 'all') && (
+              <button
+                type="button"
+                onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}
+                className="mt-1 px-4 py-2.5 min-h-[44px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition cursor-pointer touch-manipulation"
+              >
+                🔄 Xóa tìm kiếm & xem tất cả từ
+              </button>
+            )}
+          </div>
+        )}
         {filteredWords.map((item) => {
           const isSaved = savedIds[item.id];
           return (

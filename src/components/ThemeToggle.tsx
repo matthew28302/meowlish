@@ -31,7 +31,7 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
       title={isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
       aria-label={isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
       aria-pressed={isDark}
-      className={`w-9 h-9 sm:w-10 sm:h-10 inline-flex items-center justify-center rounded-2xl border transition active:scale-95 cursor-pointer shadow-xs shrink-0 ${
+      className={`tap-target w-9 h-9 sm:w-10 sm:h-10 inline-flex items-center justify-center rounded-2xl border transition active:scale-95 cursor-pointer shadow-xs shrink-0 ${
         isDark
           ? 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-white/10'
           : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
