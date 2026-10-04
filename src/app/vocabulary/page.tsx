@@ -33,6 +33,12 @@ export default function VocabularyPage() {
     { id: 'daily-travel', label: '✈️ Daily: Travel & Commute' },
     { id: 'daily-cafe', label: '☕ Daily: Cafe & Dining' },
     { id: 'daily-opinion', label: '💡 Daily: Bày Tỏ Quan Điểm' },
+    { id: 'daily-family', label: '🏠 Daily: Gia Đình & Nhà Cửa' },
+    { id: 'daily-food', label: '🍜 Daily: Ăn Uống & Nấu Nướng' },
+    { id: 'daily-health', label: '💪 Daily: Sức Khỏe & Thể Chất' },
+    { id: 'daily-shopping', label: '🛍️ Daily: Mua Sắm & Tiền Bạc' },
+    { id: 'daily-fun', label: '🎬 Daily: Phim Nhạc & Giải Trí' },
+    { id: 'daily-weather', label: '🌦️ Daily: Thời Tiết & Bốn Mùa' },
     { id: 'it-interview', label: '🎯 IT: Tech Interview' },
   ];
 
