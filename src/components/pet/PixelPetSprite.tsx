@@ -123,6 +123,7 @@ function PixelPetSprite({
   species = 'owl',
   animationState = 'idle',
   facing = 'right',
+  // 70% of the original 3.5 baseline (vừa vặn hơn trong map 2.5D)
   scale = 2.45,
   equippedHat,
   equippedOutfit,

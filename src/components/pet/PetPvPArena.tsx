@@ -481,7 +481,7 @@ export default function PetPvPArena({
                     </span>
                   </div>
                   <div className="w-20 h-20 mx-auto flex items-center justify-center my-1 group-hover:scale-110 transition-transform">
-                    <PixelPetSprite species={rival.species} scale={1.5} animationState="happy" />
+                    <PixelPetSprite species={rival.species} scale={1.05} animationState="happy" />
                   </div>
                   <h4 className="font-black text-sm text-center text-white mt-1">{rival.name}</h4>
                   <p className="text-[11px] text-center text-indigo-300/80 font-medium">{rival.title}</p>
@@ -622,7 +622,7 @@ export default function PetPvPArena({
               <div className="transform hover:scale-110 transition-transform">
                 <PixelPetSprite
                   species={playerSpecies}
-                  scale={2.2}
+                  scale={1.54}
                   animationState={playerActionAnim as any}
                   facing="right"
                 />
@@ -654,7 +654,7 @@ export default function PetPvPArena({
               <div className="transform hover:scale-110 transition-transform">
                 <PixelPetSprite
                   species={selectedRival.species}
-                  scale={2.2}
+                  scale={1.54}
                   animationState={rivalActionAnim as any}
                   facing="left"
                 />

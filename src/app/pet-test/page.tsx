@@ -128,7 +128,7 @@ export default function PetTestPage() {
             <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800 flex items-center justify-center" style={{ width: 130, height: 130 }}>
               <PixelPetSprite
                 species={c.species}
-                scale={1.8}
+                scale={1.26}
                 equippedHat={c.hat}
                 equippedOutfit={c.outfit}
                 equippedAccessory={c.acc}
@@ -146,10 +146,10 @@ export default function PetTestPage() {
           <div key={s} className="flex flex-col items-center bg-slate-800/60 p-3 rounded-xl border border-slate-700/60">
             <div className="text-white text-xs font-semibold mb-2">{s}</div>
             <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800 flex items-center justify-center" style={{ width: 110, height: 110 }}>
-              <PixelPetSprite species={s} scale={1.5} animationState="idle" />
+              <PixelPetSprite species={s} scale={1.05} animationState="idle" />
             </div>
             <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800 flex items-center justify-center mt-2" style={{ width: 110, height: 110 }}>
-              <PixelPetSprite species={s} scale={1.5} animationState="sleep" />
+              <PixelPetSprite species={s} scale={1.05} animationState="sleep" />
             </div>
           </div>
         ))}

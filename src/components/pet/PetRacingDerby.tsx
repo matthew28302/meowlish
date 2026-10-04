@@ -372,7 +372,7 @@ export default function PetRacingDerby({
               )}
               <PixelPetSprite
                 species={racer.species}
-                scale={1.25}
+                scale={0.875}
                 animationState={raceState === 'racing' ? 'run' : 'idle'}
                 facing="right"
               />
