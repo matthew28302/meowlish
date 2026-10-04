@@ -167,6 +167,33 @@ export default function PetPage() {
   }, []);
 
   // Load user and pet data
+  // Nguồn thật cho loài/cảnh quan đang dùng là localStorage (lựa chọn của user).
+  // Server — đặc biệt multi-instance stale read trên production — có thể trả
+  // giá trị cũ (vd pet_type 'owl' dù user đã đổi). Ép mọi pet object từ server
+  // về đúng lựa chọn local trước khi đưa vào state (giữ đúng ngữ nghĩa cũ).
+  const reconcilePetWithLocal = (pet: any) => {
+    if (!pet || typeof window === 'undefined') return pet;
+    try {
+      const savedHab = localStorage.getItem('pet_selected_habitat');
+      const savedSpecies = localStorage.getItem('pet_selected_species');
+      if (savedHab && (!pet.selected_habitat || pet.selected_habitat === 'emerald_garden')) {
+        pet.selected_habitat = savedHab;
+      } else if (pet.selected_habitat) {
+        localStorage.setItem('pet_selected_habitat', pet.selected_habitat);
+      }
+      if (savedSpecies && (!pet.pet_type || pet.pet_type === 'owl')) {
+        pet.pet_type = savedSpecies;
+        pet.meta = PETS_CATALOG[savedSpecies] || pet.meta;
+        // Tên đi theo loài (server stale có thể trả cả tên cũ) — lấy từ catalog
+        if (PETS_CATALOG[savedSpecies]) pet.pet_name = PETS_CATALOG[savedSpecies].name;
+      } else if (pet.pet_type) {
+        localStorage.setItem('pet_selected_species', pet.pet_type);
+        if (!pet.meta) pet.meta = PETS_CATALOG[pet.pet_type] || PETS_CATALOG.owl;
+      }
+    } catch {}
+    return pet;
+  };
+
   const loadPetData = async () => {
     const user = getStoredUser();
     setCurrentUser(user);
@@ -179,20 +206,8 @@ export default function PetPage() {
       if (res.ok) {
         const data = await res.json();
         if (data.pet) {
+          reconcilePetWithLocal(data.pet);
           try {
-            const savedHab = typeof window !== 'undefined' ? localStorage.getItem('pet_selected_habitat') : null;
-            const savedSpecies = typeof window !== 'undefined' ? localStorage.getItem('pet_selected_species') : null;
-            if (savedHab && (!data.pet.selected_habitat || data.pet.selected_habitat === 'emerald_garden')) {
-              data.pet.selected_habitat = savedHab;
-            } else if (data.pet.selected_habitat && typeof window !== 'undefined') {
-              localStorage.setItem('pet_selected_habitat', data.pet.selected_habitat);
-            }
-            if (savedSpecies && (!data.pet.pet_type || data.pet.pet_type === 'owl')) {
-              data.pet.pet_type = savedSpecies;
-              data.pet.meta = PETS_CATALOG[savedSpecies] || data.pet.meta;
-            } else if (data.pet.pet_type && typeof window !== 'undefined') {
-              localStorage.setItem('pet_selected_species', data.pet.pet_type);
-            }
             if (typeof window !== 'undefined') {
               localStorage.setItem('meowlish_pet_cache', JSON.stringify(data.pet));
             }
@@ -277,6 +292,7 @@ export default function PetPage() {
       });
       if (res.ok) {
         const data = await res.json();
+        reconcilePetWithLocal(data.pet);
         setPetData((prev: any) => ({ ...prev, ...data.pet }));
       }
     } catch {}
@@ -305,6 +321,7 @@ export default function PetPage() {
       });
       if (res.ok) {
         const data = await res.json();
+        reconcilePetWithLocal(data.pet);
         setPetData((prev: any) => ({ ...prev, ...data.pet }));
         if (data.user?.coins !== undefined) {
           setUserCoins(data.user.coins);
@@ -379,6 +396,7 @@ export default function PetPage() {
       });
       if (res.ok) {
         const data = await res.json();
+        reconcilePetWithLocal(data.pet);
         setPetData((prev: any) => ({ ...prev, ...data.pet }));
       } else {
         const errData = await res.json().catch(() => null);
@@ -432,6 +450,7 @@ export default function PetPage() {
       });
       if (res.ok) {
         const data = await res.json();
+        reconcilePetWithLocal(data.pet);
         setPetData((prev: any) => {
           const updated = { ...prev, ...data.pet };
           try {
@@ -529,6 +548,7 @@ export default function PetPage() {
       });
       if (res.ok) {
         const data = await res.json();
+        reconcilePetWithLocal(data.pet);
         const updated = {
           ...data.pet,
           meta: chosenMeta,
