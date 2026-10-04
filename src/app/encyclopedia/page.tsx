@@ -419,7 +419,7 @@ export default function EncyclopediaPage() {
                   setActiveLevel(lvl);
                   setCurrentPage(1);
                 }}
-                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer text-[11px] ${
+                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer text-[12px] ${
                   activeLevel === lvl
                     ? 'bg-slate-900 text-white shadow-xs dark:bg-white dark:text-slate-900'
                     : 'text-slate-500 hover:text-slate-900 bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:bg-white/10'
@@ -457,7 +457,7 @@ export default function EncyclopediaPage() {
                       Sắc thái: {aiResult.tone}
                     </span>
                     {aiResult.source === 'cache' && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 font-bold dark:text-amber-200 dark:bg-amber-900">
+                      <span className="text-[12px] font-mono px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 font-bold dark:text-amber-200 dark:bg-amber-900">
                         ⚡ SQLite Cache 0.1ms
                       </span>
                     )}
@@ -528,10 +528,10 @@ export default function EncyclopediaPage() {
                       <div key={kIdx} className="p-3 bg-white rounded-xl border border-slate-200 text-xs space-y-1 shadow-xs dark:bg-slate-900 dark:border-white/10">
                         <div className="font-bold text-indigo-700 flex items-center justify-between dark:text-indigo-300">
                           <span>{kp.en}</span>
-                          <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400">→ {kp.vi}</span>
+                          <span className="text-[12px] font-medium text-slate-600 dark:text-slate-400">→ {kp.vi}</span>
                         </div>
                         {kp.explanation && (
-                          <div className="text-[11px] text-slate-500 italic dark:text-slate-400">
+                          <div className="text-[12px] text-slate-500 italic dark:text-slate-400">
                             {kp.explanation}
                           </div>
                         )}
@@ -548,7 +548,7 @@ export default function EncyclopediaPage() {
                   <div className="space-y-1.5">
                     {aiResult.alternativeTranslations.map((alt: any, aIdx: number) => (
                       <div key={aIdx} className="flex items-start gap-2">
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md font-bold text-[10px] shrink-0 dark:bg-slate-800 dark:text-slate-300">
+                        <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md font-bold text-[12px] shrink-0 dark:bg-slate-800 dark:text-slate-300">
                           {alt.style}
                         </span>
                         <span className="font-medium text-slate-800 dark:text-slate-200">&quot;{alt.text}&quot;</span>
@@ -571,7 +571,7 @@ export default function EncyclopediaPage() {
                       {aiResult.partOfSpeech}
                     </span>
                     {aiResult.source === 'cache' && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 font-bold dark:text-amber-200 dark:bg-amber-900">
+                      <span className="text-[12px] font-mono px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 font-bold dark:text-amber-200 dark:bg-amber-900">
                         ⚡ SQLite Cache 0.1ms
                       </span>
                     )}
@@ -674,7 +674,7 @@ export default function EncyclopediaPage() {
                           → {eg.vi}
                         </div>
                         {eg.context && (
-                          <div className="text-[10px] text-slate-400 font-bold">
+                          <div className="text-[12px] text-slate-400 font-bold">
                             Ngữ cảnh: {eg.context}
                           </div>
                         )}
@@ -729,7 +729,7 @@ export default function EncyclopediaPage() {
                   <CheckCircle2 className="w-3.5 h-3.5" /> Kết quả trực tiếp từ Cambridge English-Vietnamese
                 </span>
                 {crawledResult.source === 'cache' && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 font-bold dark:text-amber-200 dark:bg-amber-900">
+                  <span className="text-[12px] font-mono px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 font-bold dark:text-amber-200 dark:bg-amber-900">
                     ⚡ SQLite Cache 0.1ms
                   </span>
                 )}
@@ -861,10 +861,10 @@ export default function EncyclopediaPage() {
                         <h3 className="text-lg font-black text-slate-900 group-hover:text-emerald-700 transition-colors dark:text-slate-100 group-hover:dark:text-emerald-300">
                           {item.word}
                         </h3>
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800">
+                        <span className="text-[12px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800">
                           {item.level || 'B1'}
                         </span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-white/10">
+                        <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-white/10">
                           {item.categoryLabel?.split(' ')[0] || '📖'}
                         </span>
                       </div>
@@ -906,7 +906,7 @@ export default function EncyclopediaPage() {
                       {item.collocations.slice(0, 3).map((col: string, cIdx: number) => (
                         <span
                           key={cIdx}
-                          className="text-[10px] px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 font-bold border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-white/10"
+                          className="text-[12px] px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 font-bold border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-white/10"
                         >
                           {col}
                         </span>
@@ -917,7 +917,7 @@ export default function EncyclopediaPage() {
 
                 {/* Bottom Actions */}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs dark:border-white/10">
-                  <span className="text-[11px] font-bold text-slate-500 group-hover:text-emerald-700 flex items-center gap-1 transition-colors dark:text-slate-400 group-hover:dark:text-emerald-300">
+                  <span className="text-[12px] font-bold text-slate-500 group-hover:text-emerald-700 flex items-center gap-1 transition-colors dark:text-slate-400 group-hover:dark:text-emerald-300">
                     Chi tiết & ví dụ <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                   </span>
                   <button

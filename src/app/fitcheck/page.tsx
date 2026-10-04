@@ -30,20 +30,20 @@ export default function FitCheckPage() {
     <div className="min-h-screen bg-slate-200 p-3">
       <style>{`*{animation:none !important;transition:none !important}`}</style>
       <h1 className="text-lg font-black mb-2">OUTFIT FIT MATRIX</h1>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {CASES.map(({ species, outfit }) => (
           <div
             key={`${species}-${outfit}`}
             data-fit-case={`${species}-${outfit}`}
             className="bg-white rounded-lg p-1 border border-slate-300"
           >
-            <div className="text-[9px] font-bold text-center text-slate-700 truncate">
+            <div className="text-[12px] leading-tight font-bold text-center text-slate-700 break-words hyphens-auto">
               {species} + {outfit}
             </div>
             <div className="flex justify-center items-end">
               <PixelPetSprite
                 species={species}
-                scale={1.4}
+                scale={0.98}
                 animationState="idle"
                 equippedOutfit={outfit}
               />
