@@ -1034,17 +1034,9 @@ export default function PetPage() {
                 <span>Cho Ăn</span>
               </button>
 
-              {mapActionButtons.map((btn) => (
-                <button
-                  key={btn.key}
-                  onClick={() => farmRef.current?.performMapAction(btn.key)}
-                  className={`px-2.5 sm:px-3 py-1.5 min-h-[36px] ${btn.bg} text-white rounded-2xl border-b-[3px] border-black/20 text-[11px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1 shadow-[0_3px_8px_-4px_rgba(0,0,0,0.45)] hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5 active:border-b-0 active:shadow-none`}
-                  title={`Lệnh cho Bé thực hiện hành động ${btn.label}`}
-                >
-                  <span>{btn.emoji}</span>
-                  <span>{btn.label}</span>
-                </button>
-              ))}
+              {/* Map action buttons removed: every pet action is now triggered by
+                  clicking its object directly on the map (see PixelFarmGame).
+                  mapActionButtons catalog kept below as reference. */}
 
               <button
                 onClick={() => farmRef.current?.tossBall()}
@@ -1080,19 +1072,6 @@ export default function PetPage() {
               >
                 <span>💤</span>
                 <span>{farmState.isSleeping ? 'Thức Dậy' : 'Đi Ngủ'}</span>
-              </button>
-
-              <button
-                onClick={() => farmRef.current?.toggleSpeed()}
-                className={`px-2.5 py-1.5 min-h-[36px] text-[11px] sm:text-xs font-black rounded-2xl border-b-[3px] transition cursor-pointer flex items-center gap-1 hover:-translate-y-0.5 active:translate-y-0.5 ${
-                  farmState.isSpeedFast
-                    ? 'bg-orange-500 text-white border-orange-400'
-                    : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-white/10 hover:dark:bg-slate-700'
-                }`}
-                title="Tốc độ di chuyển: Đi dạo hoặc Chạy nhanh"
-              >
-                <Zap className={`w-3.5 h-3.5 ${farmState.isSpeedFast ? 'text-amber-200 fill-amber-200' : 'text-slate-400'}`} />
-                <span>{farmState.isSpeedFast ? 'Nhanh' : 'Chậm'}</span>
               </button>
             </div>
           </div>

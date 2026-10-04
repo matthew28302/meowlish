@@ -20,12 +20,52 @@ import {
   Zap,
   Play,
   X,
-  Loader2
+  Loader2,
+  History
 } from 'lucide-react';
 import MascotCompanion from '@/components/MascotCompanion';
 import { getStoredUser } from '@/lib/auth';
 
 const SESSION_KEY = 'session_writing_practice_v2';
+// Lịch sử các bộ đề AI đã tạo (thay thế session đơn dùng một lần): lưu đề +
+// đáp án từng câu để làm tiếp, làm lại hoặc xóa.
+const HISTORY_KEY = 'writing_exam_history_v1';
+const MAX_HISTORY = 20;
+
+interface ExamAnswerSnapshot {
+  selected: string[];
+  available: string[];
+  typed: string;
+  submitted: boolean;
+  correct: boolean;
+}
+
+interface ExamHistoryEntry {
+  id: string;
+  topic: string;
+  createdAt: number;
+  prompts: WritingPrompt[];
+  answers: Record<string, ExamAnswerSnapshot>;
+  currentIdx: number;
+}
+
+function loadExamHistory(): ExamHistoryEntry[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveExamHistory(entries: ExamHistoryEntry[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
+  } catch {}
+}
 
 export default function WritingPracticePage() {
   const [promptsList, setPromptsList] = useState<WritingPrompt[]>(WRITING_PROMPTS);
@@ -63,6 +103,27 @@ export default function WritingPracticePage() {
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiTopicInput, setAiTopicInput] = useState('');
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+
+  // Exam history (localStorage, persistent): resume / restart / delete
+  const [examHistory, setExamHistory] = useState<ExamHistoryEntry[]>([]);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
+
+  // Nạp lịch sử đề đã tạo khi mở trang
+  useEffect(() => {
+    setExamHistory(loadExamHistory());
+  }, []);
+
+  // Lưu vị trí câu đang làm vào entry lịch sử (kể cả khi chưa submit)
+  useEffect(() => {
+    if (!activeHistoryId) return;
+    const next = loadExamHistory().map((e) =>
+      e.id === activeHistoryId ? { ...e, currentIdx } : e
+    );
+    saveExamHistory(next);
+    setExamHistory(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIdx]);
 
   // Clean up confetti on unmount
   useEffect(() => {
@@ -416,6 +477,22 @@ export default function WritingPracticePage() {
     setIsSubmitted(true);
     setIsCorrect(correct);
 
+    // Lưu đáp án vào lịch sử đề đang làm (để thoát ra vào lại làm tiếp)
+    if (activeHistoryId && prompt?.id) {
+      persistAnswerToHistory(
+        activeHistoryId,
+        prompt.id,
+        {
+          selected: useFreeType ? [] : [...selectedTokens],
+          available: [...availableTokens],
+          typed: typedInput,
+          submitted: true,
+          correct,
+        },
+        currentIdx
+      );
+    }
+
     if (correct) {
       sound.playSuccess();
       confetti({
@@ -503,22 +580,19 @@ export default function WritingPracticePage() {
           setAiTopicInput('');
           sound.playCelebration();
 
-          // Save AI set directly to sessionStorage
-          if (typeof window !== 'undefined') {
-            const sessionData = {
-              promptId: aiPrompts[0].id,
-              currentIdx: 0,
-              categoryFilter,
-              selectedTokens: [],
-              availableTokens: [...aiPrompts[0].scrambledWords].sort(() => Math.random() - 0.5),
-              typedInput: '',
-              useFreeType: false,
-              isSubmitted: false,
-              isCorrect: false,
-              promptsList: aiPrompts,
-            };
-            sessionStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
-          }
+          // Lưu bộ đề vào lịch sử (thay thế session đơn): để làm tiếp/làm lại
+          const entry: ExamHistoryEntry = {
+            id: `exam-${Date.now()}`,
+            topic: aiTopicInput.trim(),
+            createdAt: Date.now(),
+            prompts: aiPrompts,
+            answers: {},
+            currentIdx: 0,
+          };
+          const nextHistory = [entry, ...loadExamHistory()].slice(0, MAX_HISTORY);
+          saveExamHistory(nextHistory);
+          setExamHistory(nextHistory);
+          setActiveHistoryId(entry.id);
         }
       }
     } catch (err) {
@@ -526,6 +600,65 @@ export default function WritingPracticePage() {
     } finally {
       setIsGeneratingAi(false);
     }
+  };
+
+  // Lưu đáp án câu hiện tại vào entry lịch sử đang làm (nếu có)
+  const persistAnswerToHistory = (
+    entryId: string,
+    promptId: string,
+    snapshot: ExamAnswerSnapshot,
+    idx: number
+  ) => {
+    const next = loadExamHistory().map((e) =>
+      e.id === entryId
+        ? { ...e, answers: { ...e.answers, [promptId]: snapshot }, currentIdx: idx }
+        : e
+    );
+    saveExamHistory(next);
+    setExamHistory(next);
+  };
+
+  // Mở đề từ lịch sử để làm tiếp (giữ nguyên đáp án đã điền)
+  const handleResumeEntry = (entry: ExamHistoryEntry, restart = false) => {
+    sound.playClick();
+    isRestoringRef.current = true;
+    setCategoryFilter('all'); // đề lịch sử chứa đủ loại — reset filter để thấy hết câu
+    setPromptsList(entry.prompts);
+    const idx = restart ? 0 : Math.min(entry.currentIdx, entry.prompts.length - 1);
+    setCurrentIdx(idx);
+    const snap = restart ? undefined : entry.answers[entry.prompts[idx]?.id];
+    if (snap) {
+      setSelectedTokens(snap.selected);
+      setAvailableTokens(snap.available);
+      setTypedInput(snap.typed);
+      setIsSubmitted(snap.submitted);
+      setIsCorrect(snap.correct);
+    } else {
+      const words = [...(entry.prompts[idx]?.scrambledWords || [])].sort(() => Math.random() - 0.5);
+      setSelectedTokens([]);
+      setAvailableTokens(words);
+      setTypedInput('');
+      setIsSubmitted(false);
+      setIsCorrect(false);
+    }
+    if (restart) {
+      const next = loadExamHistory().map((e) =>
+        e.id === entry.id ? { ...e, answers: {}, currentIdx: 0 } : e
+      );
+      saveExamHistory(next);
+      setExamHistory(next);
+    }
+    setActiveHistoryId(entry.id);
+    setShowHistoryModal(false);
+  };
+
+  // Xóa 1 đề khỏi lịch sử
+  const handleDeleteEntry = (entryId: string) => {
+    sound.playClick();
+    const next = loadExamHistory().filter((e) => e.id !== entryId);
+    saveExamHistory(next);
+    setExamHistory(next);
+    if (activeHistoryId === entryId) setActiveHistoryId(null);
   };
 
   return (
@@ -544,6 +677,7 @@ export default function WritingPracticePage() {
               Sắp xếp khối từ chuẩn xác, hỗ trợ kéo thả vị trí linh hoạt hoặc gõ tự do theo ngữ cảnh IT công sở.
             </p>
           </div>
+          <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-2 w-full sm:w-auto shrink-0">
           <button
             onClick={() => setShowAiModal(true)}
             className="btn-3d btn-3d-amber w-full sm:w-auto px-4 py-2.5 text-xs font-black text-slate-950 shadow-md cursor-pointer flex items-center justify-center gap-1.5 shrink-0 dark:text-slate-200"
@@ -551,6 +685,19 @@ export default function WritingPracticePage() {
             <Zap className="w-4 h-4" />
             <span>✨ Tạo Đề AI Tự Do</span>
           </button>
+          <button
+            onClick={() => {
+              sound.playClick();
+              setExamHistory(loadExamHistory());
+              setShowHistoryModal(true);
+            }}
+            className="btn-3d btn-3d-white w-full sm:w-auto px-4 py-2.5 text-xs font-black text-slate-800 shadow-md cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+            title="Xem lại các bộ đề đã tạo và làm tiếp"
+          >
+            <History className="w-4 h-4 text-emerald-600" />
+            <span>Lịch Sử Đề Thi{examHistory.length > 0 ? ` (${examHistory.length})` : ''}</span>
+          </button>
+          </div>
         </div>
       </div>
 
@@ -866,6 +1013,97 @@ export default function WritingPracticePage() {
       </div>
 
       {/* AI Practice Prompt Generator Modal */}
+      {/* History Modal: các bộ đề AI đã tạo + làm tiếp / làm lại / xóa */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-[calc(100vw-24px)] sm:w-full border-2 border-slate-200 shadow-2xl space-y-4 relative dark:bg-slate-900 dark:border-white/10 max-h-[85dvh] overflow-y-auto custom-scrollbar">
+            <button
+              onClick={() => setShowHistoryModal(false)}
+              className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 cursor-pointer touch-manipulation dark:bg-slate-800 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+              title="Đóng"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="space-y-1 pr-6">
+              <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-xs font-black dark:bg-emerald-950 dark:text-emerald-200">
+                <History className="w-3.5 h-3.5" /> LỊCH SỬ ĐỀ THI
+              </div>
+              <h3 className="text-xl font-black text-slate-900 dark:text-slate-100">
+                Các Bộ Đề Đã Tạo
+              </h3>
+              <p className="text-xs text-slate-500 font-medium dark:text-slate-400">
+                Mỗi lần tạo đề được lưu lại kèm đáp án đã điền — bấm vào để làm tiếp bất cứ lúc nào.
+              </p>
+            </div>
+
+            {examHistory.length === 0 ? (
+              <div className="py-8 text-center space-y-2">
+                <div className="text-4xl">📝</div>
+                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                  Chưa có bộ đề nào. Bấm “Tạo Đề AI Tự Do” để tạo đề đầu tiên!
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {examHistory.map((entry) => {
+                  const doneCount = Object.keys(entry.answers || {}).length;
+                  const total = entry.prompts?.length || 0;
+                  const correctCount = Object.values(entry.answers || {}).filter((a) => a.correct).length;
+                  return (
+                    <div
+                      key={entry.id}
+                      className={`p-3.5 rounded-2xl border-2 space-y-2.5 transition ${
+                        activeHistoryId === entry.id
+                          ? 'border-emerald-400 bg-emerald-50/60 dark:bg-emerald-950/40 dark:border-emerald-700'
+                          : 'border-slate-200 dark:border-slate-700/70 bg-slate-50/60 dark:bg-slate-800/50'
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <div className="text-sm font-black text-slate-900 dark:text-white truncate">
+                          {entry.topic}
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-semibold mt-0.5">
+                          {new Date(entry.createdAt).toLocaleString('vi-VN')} • {doneCount}/{total} câu đã làm
+                          {doneCount > 0 && ` • ✅ ${correctCount} đúng`}
+                          {activeHistoryId === entry.id && ' • Đang làm'}
+                        </div>
+                      </div>
+                      {/* Progress bar */}
+                      <div className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                        <div
+                          className="h-full bg-emerald-500 rounded-full transition-all"
+                          style={{ width: total > 0 ? `${Math.round((doneCount / total) * 100)}%` : '0%' }}
+                        />
+                      </div>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          onClick={() => handleResumeEntry(entry, false)}
+                          className="py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-black transition cursor-pointer flex items-center justify-center gap-1 active:scale-95"
+                        >
+                          <Play className="w-3.5 h-3.5" /> Làm tiếp
+                        </button>
+                        <button
+                          onClick={() => handleResumeEntry(entry, true)}
+                          className="py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-[11px] font-black transition cursor-pointer flex items-center justify-center gap-1 active:scale-95"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" /> Làm lại
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEntry(entry.id)}
+                          className="py-2 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400 text-[11px] font-black transition cursor-pointer active:scale-95"
+                        >
+                          Xóa
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {showAiModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150 dark:bg-white/60">
           <div className="bg-white rounded-3xl p-5 sm:p-8 max-w-md w-[calc(100vw-24px)] sm:w-full border-2 border-slate-200 shadow-2xl space-y-5 relative dark:bg-slate-900 dark:border-white/10">
