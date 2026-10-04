@@ -30,10 +30,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Căn Bản",
     "meaningVi": "một (mạo từ không xác định trước phụ âm)",
     "detailedExplanation": "Mạo từ bất định dùng trước danh từ đếm được số ít bắt đầu bằng một phụ âm (a book, a car, a developer).",
-    "collocations": [
-      "common a",
-      "use a in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "I am a software engineer.",
@@ -58,10 +55,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Căn Bản",
     "meaningVi": "một (mạo từ không xác định trước nguyên âm: u, e, o, a, i)",
     "detailedExplanation": "Mạo từ bất định dùng trước danh từ đếm được số ít bắt đầu bằng nguyên âm hoặc âm câm (an apple, an hour, an API).",
-    "collocations": [
-      "common an",
-      "use an in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We need to design an intuitive interface.",
@@ -86,10 +80,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Căn Bản",
     "meaningVi": "hoặc, hay là (liên từ lựa chọn)",
     "detailedExplanation": "Dùng để nối các từ, cụm từ hoặc mệnh đề chỉ sự lựa chọn giữa hai hay nhiều phương án.",
-    "collocations": [
-      "common or",
-      "use or in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "Would you prefer coffee or tea?",
@@ -114,10 +105,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Căn Bản",
     "meaningVi": "thì, là, ở (dạng số nhiều của động từ to be: you/we/they are)",
     "detailedExplanation": "Động từ to be ở thì hiện tại đơn, dùng với các chủ ngữ số nhiều (we, you, they) hoặc danh từ số nhiều.",
-    "collocations": [
-      "common are",
-      "use are in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "They are working on the production deployment.",
@@ -142,10 +130,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Căn Bản",
     "meaningVi": "có thể (khả năng, cho phép); lon, hộp thiếc",
     "detailedExplanation": "Động từ khuyết thiếu diễn tả khả năng, năng lực hoặc sự xin phép làm điều gì đó; Danh từ: lon nước, lon đồ hộp.",
-    "collocations": [
-      "common can",
-      "use can in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "Can you help me review this pull request?",
@@ -170,10 +155,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Căn Bản",
     "meaningVi": "tôi, mình, tớ (đại từ nhân xưng ngôi thứ nhất số ít)",
     "detailedExplanation": "Đại từ nhân xưng làm chủ ngữ ngôi thứ nhất số ít, luôn luôn được viết hoa trong tiếng Anh.",
-    "collocations": [
-      "common i",
-      "use i in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "I am learning English for my career advancement.",
@@ -198,10 +180,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Căn Bản",
     "meaningVi": "thì, là, ở (dạng to be đi với chủ ngữ I: I am)",
     "detailedExplanation": "Động từ to be ở thì hiện tại đơn đi kèm với đại từ ngôi thứ nhất số ít I.",
-    "collocations": [
-      "common am",
-      "use am in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "I am ready for the interview.",
@@ -226,10 +205,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Đời Sống",
     "meaningVi": "vừa vặn, phù hợp; khoẻ khoắn, cân đối",
     "detailedExplanation": "Tính từ: khoẻ khoắn, phù hợp; Động từ: vừa vặn kích cỡ hoặc thích hợp với vị trí công việc (cultural fit).",
-    "collocations": [
-      "common fit",
-      "use fit in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "He is a great cultural fit for our engineering team.",
@@ -254,10 +230,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Căn Bản",
     "meaningVi": "để cho, cho phép (Let me know, Let us go)",
     "detailedExplanation": "Động từ cho phép ai đó làm gì (let + sb + do sth); Câu rủ: Let's = Let us (chúng ta hãy).",
-    "collocations": [
-      "common let",
-      "use let in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "Please let me know if you need any clarification.",
@@ -282,10 +255,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Căn Bản",
     "meaningVi": "sẽ (thì tương lai đơn); ý chí, quyết tâm, di chúc",
     "detailedExplanation": "Động từ khuyết thiếu diễn tả hành động sẽ xảy ra trong tương lai hoặc quyết định tức thì tại thời điểm nói.",
-    "collocations": [
-      "common will",
-      "use will in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We will release the update by Friday.",
@@ -310,10 +280,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Lịch Thiệp",
     "meaningVi": "có thể (xin phép lịch sự); tháng Năm",
     "detailedExplanation": "Động từ khuyết thiếu diễn đạt sự xin phép trang trọng (May I ask...) hoặc khả năng không chắc chắn (It may rain).",
-    "collocations": [
-      "common may",
-      "use may in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "May I ask a question regarding the database schema?",
@@ -338,10 +305,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Căn Bản",
     "meaningVi": "làm, thực hiện; trợ động từ trong câu hỏi và phủ định",
     "detailedExplanation": "Động từ chỉ hành động thực hiện việc gì; Trợ động từ dùng tạo câu hỏi hoặc phủ định ở thì hiện tại đơn.",
-    "collocations": [
-      "common do",
-      "use do in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "What do you think about this solution?",
@@ -366,10 +330,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Căn Bản",
     "meaningVi": "vì vậy, cho nên; đến mức như thế, rất",
     "detailedExplanation": "Liên từ chỉ kết quả (vì thế, do đó); Trạng từ chỉ mức độ (so good, so fast).",
-    "collocations": [
-      "common so",
-      "use so in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "The build failed, so we rolled back to the previous version.",
@@ -394,10 +355,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Giao Tiếp",
     "meaningVi": "hướng về phía, tiến tới, đối với",
     "detailedExplanation": "Giới từ chỉ hướng chuyển động hoặc thái độ hướng tới mục tiêu/đối tượng nào đó.",
-    "collocations": [
-      "common toward",
-      "use toward in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We are making great progress toward our quarterly milestones.",
@@ -417,10 +375,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Giao Tiếp",
     "meaningVi": "về phía, hướng tới (biến thể phổ biến trong tiếng Anh Anh)",
     "detailedExplanation": "Biến thể ngữ pháp đồng nghĩa với \"toward\", rất hay gặp trong văn cảnh công sở và đời sống.",
-    "collocations": [
-      "common towards",
-      "use towards in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "The team worked collaboratively towards the common deadline.",
@@ -440,10 +395,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Tech",
     "meaningVi": "trang (sách, tài liệu, trang web)",
     "detailedExplanation": "Danh từ: một mặt của tờ giấy, hoặc trang web (web page, landing page); Động từ: gửi tin nhắn nhắn gọi.",
-    "collocations": [
-      "common page",
-      "use page in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "The landing page loads in less than 500 milliseconds.",
@@ -463,10 +415,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Căn Bản",
     "meaningVi": "miễn phí; tự do; rảnh rỗi (không bận)",
     "detailedExplanation": "Tính từ: không mất tiền (free of charge), không bận rộn (Are you free tomorrow?), tự do.",
-    "collocations": [
-      "common free",
-      "use free in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "Are you free for a quick 10-minute call this afternoon?",
@@ -491,10 +440,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Căn Bản",
     "meaningVi": "về (chủ đề gì); khoảng chừng, xấp xỉ",
     "detailedExplanation": "Giới từ chỉ chủ đề (talk about work); Trạng từ chỉ ước lượng số lượng/thời gian (about 2 hours).",
-    "collocations": [
-      "common about",
-      "use about in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We had an insightful discussion about system architecture.",
@@ -519,10 +465,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Email",
     "meaningVi": "về vấn đề, hồi đáp (tiêu đề email: Re: Meeting)",
     "detailedExplanation": "Từ viết tắt gốc Latin (in re) dùng trong thư từ, email công sở để chỉ chủ đề đang được phản hồi.",
-    "collocations": [
-      "common re",
-      "use re in sentence"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "Re: Sprint 24 Planning - Please find the agenda attached.",
@@ -542,11 +485,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "vi dệt; tấm vi",
     "detailedExplanation": "vi dệt; tấm vi; súc giấy, cuộn giấy lớn; (động vật học) mạng; (động vật học) t (lông chim)",
-    "collocations": [
-      "common web",
-      "web in context",
-      "use web"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "web paper",
@@ -571,11 +510,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "khúc gỗ mới đốn, khúc gỗ mới xẻ",
     "detailedExplanation": "khúc gỗ mới đốn, khúc gỗ mới xẻ; (hàng hải) máy đo tốc độ (tàu); (như) log-book; người đần, người ngu, người ngớ ngẩn",
-    "collocations": [
-      "common log",
-      "log in context",
-      "use log"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "in the log",
@@ -595,11 +530,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "miếng (thức ăn...); mảnh mẫu",
     "detailedExplanation": "miếng (thức ăn...); mảnh mẫu; một chút, một tí; đoạn ngắn (của một vai kịch nói, trong sách...); (một) góc phong cảnh (thực hoặc vẽ)",
-    "collocations": [
-      "common bit",
-      "bit in context",
-      "use bit"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a dainty bit",
@@ -629,11 +560,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "tiếng rít (của đạn bay); tiếng xé vải",
     "detailedExplanation": "tiếng rít (của đạn bay); tiếng xé vải; (nghĩa bóng) sức sống, nghị lực; rít, vèo (như đạn bay)",
-    "collocations": [
-      "common zip",
-      "zip in context",
-      "use zip"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to zip past",
@@ -653,11 +580,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "con rệp",
     "detailedExplanation": "con rệp; (từ Mỹ,nghĩa Mỹ) sâu bọ; (từ Mỹ,nghĩa Mỹ),  (thông tục) lỗi kỹ thuật, thiếu sót về kỹ thuật; (từ lóng) ý nghĩ điên rồ; sự điên rồ",
-    "collocations": [
-      "common bug",
-      "bug in context",
-      "use bug"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to go bugs",
@@ -677,11 +600,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "sắt bịt đầu (dây giày...)",
     "detailedExplanation": "sắt bịt đầu (dây giày...); mép khuy giày ủng; thẻ ghi tên và địa chỉ (buộc vào va li...); mảnh (vải, giấy, da...) buộc lòng thòng",
-    "collocations": [
-      "common tag",
-      "tag in context",
-      "use tag"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "price tag",
@@ -711,11 +630,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "Ngôn ngữ vấn đáp do IBM soạn thảo được sử dụng rộng rãi trong máy tính lớn và hệ thống máy tính mini SQL đang được trang bị trong các mạng khách/chủ như là một phương pháp làm cho các máy tính cá nhân có khả năng thâm nhập vào các tài nguyên của các cơ sở dữ liệu hợp tác",
     "detailedExplanation": "Ngôn ngữ vấn đáp do IBM soạn thảo được sử dụng rộng rãi trong máy tính lớn và hệ thống máy tính mini SQL đang được trang bị trong các mạng khách/chủ như là một phương pháp làm cho các máy tính cá nhân có khả năng thâm nhập vào các tài nguyên của các cơ sở dữ liệu hợp tác",
-    "collocations": [
-      "common sql",
-      "sql in context",
-      "use sql"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'sql' in communication.",
@@ -735,11 +650,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "cừu đực (chưa thiến)",
     "detailedExplanation": "cừu đực (chưa thiến); (hàng hải) mũi nhọn (của tàu chiến để đâm thủng hông tàu địch); tàu chiến có mũi nhọn; (kỹ thuật) đấm nện; búa đóng cọc, búa đập, búa thuỷ động; sức nện của búa đóng cọc",
-    "collocations": [
-      "common ram",
-      "ram in context",
-      "use ram"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to ram one's clothes into a bag",
@@ -764,11 +675,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "(vt của Application Programming Interface)giao diện chương trình ứng dụng",
     "detailedExplanation": "(vt của Application Programming Interface)giao diện chương trình ứng dụng",
-    "collocations": [
-      "common api",
-      "api in context",
-      "use api"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'api' in communication.",
@@ -788,11 +695,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "Một tập các giao thức dùng cho quá trình phát truyền và sửa lỗi đối với các dữ liệu, cho phép chuyển dữ liệu từ máy tính được ghép với mạng Internet sang các máy tính khác",
     "detailedExplanation": "Một tập các giao thức dùng cho quá trình phát truyền và sửa lỗi đối với các dữ liệu, cho phép chuyển dữ liệu từ máy tính được ghép với mạng Internet sang các máy tính khác",
-    "collocations": [
-      "common tcp",
-      "tcp in context",
-      "use tcp"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'tcp' in communication.",
@@ -812,11 +715,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "số nhiều renes",
     "detailedExplanation": "số nhiều renes; (giải phẫu) học thận; (tin học) viết tắt của rename : đặt tên lại",
-    "collocations": [
-      "common ren",
-      "ren in context",
-      "use ren"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'ren' in communication.",
@@ -836,11 +735,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "trạng thái nghiêng; mặt nghiêng",
     "detailedExplanation": "trạng thái nghiêng; mặt nghiêng; mép vải; dải; mép vải nhét khe cửa; (số nhiều) hàng rào bao quanh trường đấu; trường đấu, vũ đài",
-    "collocations": [
-      "common list",
-      "list in context",
-      "use list"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to have a list",
@@ -870,11 +765,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "số nhiều của datum",
     "detailedExplanation": "số nhiều của datum; ((thường) dùng như số ít) số liệu, dữ kiện; tài liệu, cứ liệu (cung cấp những điều cần thiết)",
-    "collocations": [
-      "common data",
-      "data in context",
-      "use data"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'data' in communication.",
@@ -894,11 +785,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "người dùng, người hay dùng",
     "detailedExplanation": "người dùng, người hay dùng",
-    "collocations": [
-      "common user",
-      "user in context",
-      "use user"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "telephone user",
@@ -918,11 +805,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "kiểu mẫu",
     "detailedExplanation": "kiểu mẫu; kiểu; chữ in; (sinh vật học) đại diện điển hình (của một nhóm phân loại)",
-    "collocations": [
-      "common type",
-      "type in context",
-      "use type"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a fine type of patriotism",
@@ -952,11 +835,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "bộ luật, luật",
     "detailedExplanation": "bộ luật, luật; điều lệ, luật lệ, quy tắc; đạo lý (của một xã hội, của một giai cấp); mã, mật mã; viết bằng mã, viết bằng mật mã (bức điện)",
-    "collocations": [
-      "common code",
-      "code in context",
-      "use code"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "labour code",
@@ -986,11 +865,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "cái giũa",
     "detailedExplanation": "cái giũa; (từ lóng) thằng cha láu cá, thằng cha quay quắt; lấy thúng úp voi; lấy gậy chọc trời; giũa",
-    "collocations": [
-      "common file",
-      "file in context",
-      "use file"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a deep (an old) file",
@@ -1020,11 +895,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "đuốc, cây đuốc",
     "detailedExplanation": "đuốc, cây đuốc; mắt xích, vòng xích, khâu xích; mắt dây đạc (= 0, 20 m); (số nhiều) khuy cửa tay",
-    "collocations": [
-      "common link",
-      "link in context",
-      "use link"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'link' in communication.",
@@ -1044,11 +915,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "(động vật học) vỏ (tôm, cua); mai (rùa)",
     "detailedExplanation": "(động vật học) vỏ (tôm, cua); mai (rùa); sự thử thách; sự thử, sự làm thử; sự sát hạch; bài kiểm tra",
-    "collocations": [
-      "common test",
-      "test in context",
-      "use test"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to put on test",
@@ -1078,11 +945,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "<tin>(vt của HyperText Markup Language) Ngôn ngữ Đánh dấu Siêu văn bản",
     "detailedExplanation": "<tin>(vt của HyperText Markup Language) Ngôn ngữ Đánh dấu Siêu văn bản",
-    "collocations": [
-      "common html",
-      "html in context",
-      "use html"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'html' in communication.",
@@ -1102,11 +965,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "cảng",
     "detailedExplanation": "cảng; (nghĩa bóng) nơi ẩn náu; nơi tỵ nạn; (Ê-cốt) cổng thành; (hàng hải) cửa tàu (để ra vào, bốc xếp hàng hoá...)",
-    "collocations": [
-      "common port",
-      "port in context",
-      "use port"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "close port",
@@ -1136,11 +995,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "sự nghỉ ngơi; lúc nghỉ ngơi; giấc ngủ",
     "detailedExplanation": "sự nghỉ ngơi; lúc nghỉ ngơi; giấc ngủ; sự yên tâm, sự yên lòng, sự thanh thản, sự thư thái (trong tâm hồn); sự yên nghỉ (người chết); sự ngừng lại",
-    "collocations": [
-      "common rest",
-      "rest in context",
-      "use rest"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a day of rest",
@@ -1170,11 +1025,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "lõi, hạch (quả táo, quả lê...)",
     "detailedExplanation": "lõi, hạch (quả táo, quả lê...); điểm trung tâm, nòng cốt, hạt nhân; lõi dây thừng; (kỹ thuật) nòng, lõi, ruột",
-    "collocations": [
-      "common core",
-      "core in context",
-      "use core"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "the core of a subject",
@@ -1204,11 +1055,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "chủ nhà",
     "detailedExplanation": "chủ nhà; chủ tiệc; chủ khách sạn, chủ quán trọ; (sinh vật học) cây chủ, vật chủ",
-    "collocations": [
-      "common host",
-      "host in context",
-      "use host"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a host of people",
@@ -1238,11 +1085,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "đường mòn, đường nhỏ",
     "detailedExplanation": "đường mòn, đường nhỏ; con đường, đường đi, đường lối",
-    "collocations": [
-      "common path",
-      "path in context",
-      "use path"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "mountain path",
@@ -1272,11 +1115,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "nhiệm vụ, nghĩa vụ, phận sự",
     "detailedExplanation": "nhiệm vụ, nghĩa vụ, phận sự; bài làm, bài tập; công tác, công việc; lời quở trách, lời phê bình, lời mắng nhiếc",
-    "collocations": [
-      "common task",
-      "task in context",
-      "use task"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a difficult task",
@@ -1306,11 +1145,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "vậy nặng, gánh nặng",
     "detailedExplanation": "vậy nặng, gánh nặng; vật gánh, vật chở, vật đội (trên lưng súc vật, trên xe, tàu...); trách nhiệm nặng nề; điều lo lắng, nỗi buồn phiền; (kỹ thuật) sự tải; tải; trọng tải (của một con tàu...)",
-    "collocations": [
-      "common load",
-      "load in context",
-      "use load"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to carry a heavy load",
@@ -1340,11 +1175,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "(thể dục,thể thao) đĩa",
     "detailedExplanation": "(thể dục,thể thao) đĩa; đĩa hát; đĩa, vật hình đĩa, bộ phận hình đĩa",
-    "collocations": [
-      "common disk",
-      "disk in context",
-      "use disk"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'disk' in communication.",
@@ -1364,11 +1195,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "(thương nghiệp) đồ hộp Mỹ",
     "detailedExplanation": "(thương nghiệp) đồ hộp Mỹ",
-    "collocations": [
-      "common spam",
-      "spam in context",
-      "use spam"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'spam' in communication.",
@@ -1388,11 +1215,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "vô hiệu, không có hiệu lực",
     "detailedExplanation": "vô hiệu, không có hiệu lực; vô dụng, vô giá trị; không có cá tính, không biểu lộ tâm tính; (toán học) bằng không, không",
-    "collocations": [
-      "common null",
-      "null in context",
-      "use null"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "null and void",
@@ -1412,11 +1235,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "Một hệ điều hành được dùng trong nhiều loại máy tính khác nhau, từ các máy tính lớn cho đến các máy tính lớn cho đến các máy tính cá nhân, nó có khả năng đa nhiệm phù hợp một cách lý tưỏng đối với các ứng dụng nhiều người dùng",
     "detailedExplanation": "Một hệ điều hành được dùng trong nhiều loại máy tính khác nhau, từ các máy tính lớn cho đến các máy tính lớn cho đến các máy tính cá nhân, nó có khả năng đa nhiệm phù hợp một cách lý tưỏng đối với các ứng dụng nhiều người dùng",
-    "collocations": [
-      "common unix",
-      "unix in context",
-      "use unix"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'unix' in communication.",
@@ -1436,11 +1255,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "món tóc, mớ tóc; mớ bông, mớ len",
     "detailedExplanation": "món tóc, mớ tóc; mớ bông, mớ len; (số nhiều) mái tóc, tóc; khoá; chốt (để giữ bánh xe, ghi...)",
-    "collocations": [
-      "common lock",
-      "lock in context",
-      "use lock"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "hoary locks",
@@ -1470,11 +1285,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "vòng; thòng lọng; cái khâu, cái móc, khuyết áo)",
     "detailedExplanation": "vòng; thòng lọng; cái khâu, cái móc, khuyết áo); đường nhánh, đường vòng (đường xe lửa, đường dây điện báo ((cũng) loop line); (vật lý) bụng (sóng); (điện học) cuộn; mạch",
-    "collocations": [
-      "common loop",
-      "loop in context",
-      "use loop"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "coupling loop",
@@ -1499,11 +1310,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "cái móc, cái mác",
     "detailedExplanation": "cái móc, cái mác; bản lề cửa; (từ lóng) cái neo; lưỡi câu ((cũng) fish hook)",
-    "collocations": [
-      "common hook",
-      "hook in context",
-      "use hook"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'hook' in communication.",
@@ -1523,11 +1330,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "(Tech) bai (8 bit)",
     "detailedExplanation": "(Tech) bai (8 bit)",
-    "collocations": [
-      "common byte",
-      "byte in context",
-      "use byte"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'byte' in communication.",
@@ -1547,11 +1350,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "cái nĩa (để xiên thức ăn)",
     "detailedExplanation": "cái nĩa (để xiên thức ăn); cái chĩa (dùng để gảy rơm...); chạc cây; chỗ ngã ba (đường, sông)",
-    "collocations": [
-      "common fork",
-      "fork in context",
-      "use fork"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "where the road forks",
@@ -1571,11 +1370,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "món thịt băm",
     "detailedExplanation": "món thịt băm; (nghĩa bóng) bình mới rượu cũ (đồ cũ sửa lại với hình thức mới); mớ lộn xộn, mớ linh tinh; làm hỏng việc, làm cho việc trở bên be bét rối tinh",
-    "collocations": [
-      "common hash",
-      "hash in context",
-      "use hash"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'hash' in communication.",
@@ -1595,11 +1390,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "đống",
     "detailedExplanation": "đống; (thông tục) rất nhiều; (số nhiều dùng như phó từ) nhiều, lắm; điếng người, sửng sốt, rụng rời, mất vía",
-    "collocations": [
-      "common heap",
-      "heap in context",
-      "use heap"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a heap of sand",
@@ -1629,11 +1420,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "địa phương",
     "detailedExplanation": "địa phương; bộ phận, cục bộ; (toán học) (thuộc) quỹ tích; người dân địa phương; người làm nghề tự do ở địa phương; người giảng đạo ở địa phương",
-    "collocations": [
-      "common local",
-      "local in context",
-      "use local"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "local authorities",
@@ -1663,11 +1450,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "ngón tay trỏ ((cũng) index finger)",
     "detailedExplanation": "ngón tay trỏ ((cũng) index finger); chỉ số; sự biểu thị; kim (trên đồng hồ đo...); bảng mục lục (các đề mục cuối sách); bản liệt kê",
-    "collocations": [
-      "common index",
-      "index in context",
-      "use index"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a library index",
@@ -1692,11 +1475,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "cái bàn",
     "detailedExplanation": "cái bàn; bàn ăn; thức ăn bày bàn, mâm cỗ, cỗ bàn; những người ngồi quanh bàn, những người ngồi ăn",
-    "collocations": [
-      "common table",
-      "table in context",
-      "use table"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "at table",
@@ -1726,11 +1505,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "đồng ruộng, cánh đồng",
     "detailedExplanation": "đồng ruộng, cánh đồng; mỏ, khu khai thác; bâi chiến trường; nơi hành quân; trận đánh; sân (bóng đá,  crickê)",
-    "collocations": [
-      "common field",
-      "field in context",
-      "use field"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to hold the field",
@@ -1760,11 +1535,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "sự việc, sự kiện",
     "detailedExplanation": "sự việc, sự kiện; sự kiện quan trọng; (thể dục,thể thao) cuộc đấu, cuộc thi; trường hợp, khả năng có thể xảy ra",
-    "collocations": [
-      "common event",
-      "event in context",
-      "use event"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "in the event of success",
@@ -1789,11 +1560,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "sự sai lầm, sự sai sót, lỗi; ý kiến sai lầm; tình trạng sai lầm",
     "detailedExplanation": "sự sai lầm, sự sai sót, lỗi; ý kiến sai lầm; tình trạng sai lầm; (kỹ thuật) sai số; độ sai; sự vi phạm; (rađiô) sự mất thích ứng",
-    "collocations": [
-      "common error",
-      "error in context",
-      "use error"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to commit (make) an error",
@@ -1818,11 +1585,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "sự xây dựng",
     "detailedExplanation": "sự xây dựng; kiểu kiến trúc; khổ người tầm vóc; xây, xây dựng, xây cất; dựng nên, lập nên, làm nên",
-    "collocations": [
-      "common build",
-      "build in context",
-      "use build"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "man of strong build",
@@ -1852,11 +1615,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "cái cho vào",
     "detailedExplanation": "cái cho vào; lực truyền vào (máy...); dòng điện truyền vào (máy...); (kỹ thuật) tài liệu viết bằng ký hiệu (cung cấp vào máy tính điện tử); sự cung cấp tài liệu (cho máy tính điện tử); (Ê-cốt) số tiền cúng",
-    "collocations": [
-      "common input",
-      "input in context",
-      "use input"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'input' in communication.",
@@ -1876,11 +1635,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "khối, tảng, súc (đá, gỗ...)",
     "detailedExplanation": "khối, tảng, súc (đá, gỗ...); cái thớt, đon kê, tấm gỗ kê để chặt đầu (người bị tử hình); khuôn (mũ); đầu giả (để trưng bày mũ, tóc giả...); khuôn nhà lớn, nhà khối (ở giữa bốn con đường)",
-    "collocations": [
-      "common block",
-      "block in context",
-      "use block"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to block the enemy's plant",
@@ -1910,11 +1665,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "miếng vá",
     "detailedExplanation": "miếng vá; miếng băng dính, miếng thuốc cao (trên vết thương...); miếng bông che mắt đau; nốt ruồi giả (để tô điểm trên mặt)",
-    "collocations": [
-      "common patch",
-      "patch in context",
-      "use patch"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a patch of potatoes",
@@ -1944,11 +1695,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "câu hỏi, câu chất vấn; thắc mắc",
     "detailedExplanation": "câu hỏi, câu chất vấn; thắc mắc; ((viết tắt),  qu.) thử hỏi, chẳng biết; dấu chấm hỏi; (+ whether,  if) hỏi, hỏi xem, chất vấn",
-    "collocations": [
-      "common query",
-      "query in context",
-      "use query"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "query (qu.), has the letter been answered?",
@@ -1968,11 +1715,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "sự dàn trận, sự bày binh bố trận",
     "detailedExplanation": "sự dàn trận, sự bày binh bố trận; lực lượng quân đội; dãy sắp xếp ngay ngắn; hàng ngũ chỉnh tề; (pháp lý) danh sách hội thẩm",
-    "collocations": [
-      "common array",
-      "array in context",
-      "use array"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "an array of bottles and glasses",
@@ -2002,11 +1745,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "phạm vi, tầm xa (kiến thức); dịp; nơi phát huy",
     "detailedExplanation": "phạm vi, tầm xa (kiến thức); dịp; nơi phát huy; (hàng hải) chiều dài dây neo (khi tàu bỏ neo); (quân sự) tầm tên lửa; (từ hiếm,nghĩa hiếm) mục tiêu, mục đích, ý định",
-    "collocations": [
-      "common scope",
-      "scope in context",
-      "use scope"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "that is beyond my scope",
@@ -2036,11 +1775,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "vỏ; bao; mai",
     "detailedExplanation": "vỏ; bao; mai; vỏ tàu; tường nhà; quan tài trong; thuyền đua",
-    "collocations": [
-      "common shell",
-      "shell in context",
-      "use shell"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to retire into one's shell",
@@ -2070,11 +1805,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "nơi giấu, nơi trữ (lương thực, đạn dược... nhất là các nhà thám hiểm để dùng sau này)",
     "detailedExplanation": "nơi giấu, nơi trữ (lương thực, đạn dược... nhất là các nhà thám hiểm để dùng sau này); lương thực, vật dụng giấu kín; thức ăn dự trữ (của động vật qua đông); giấu kín, trữ",
-    "collocations": [
-      "common cache",
-      "cache in context",
-      "use cache"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to make a cache",
@@ -2094,11 +1825,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "đồ thị",
     "detailedExplanation": "đồ thị; (toán học) mạch; vẽ đồ thị; minh hoạ bằng đồ thị; máy in thạch",
-    "collocations": [
-      "common graph",
-      "graph in context",
-      "use graph"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'graph' in communication.",
@@ -2118,11 +1845,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "dây kéo (buộc vào ngựa để kéo xe)",
     "detailedExplanation": "dây kéo (buộc vào ngựa để kéo xe); đang thắng cương (đen & bóng); (xem) kick; ((thường) số nhiều) dấu, vết, vết tích",
-    "collocations": [
-      "common trace",
-      "trace in context",
-      "use trace"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "the traces of an ancient civilization",
@@ -2152,11 +1875,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "cây rơm, đụn rơm",
     "detailedExplanation": "cây rơm, đụn rơm; Xtec (đơn vị đo gỗ bằng khoảng 3 mét khối); đống (than, củi); (thông tục) một số lượng lớn, nhiều",
-    "collocations": [
-      "common stack",
-      "stack in context",
-      "use stack"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to have stacks of work",
@@ -2176,11 +1895,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "lớn, khổng lồ (về kích thước, khả năng...)",
     "detailedExplanation": "lớn, khổng lồ (về kích thước, khả năng...); <tin> một lệnh đơn độc, dùng trong chương trình máy tính, thay thế cho một chuỗi các lệnh hoặc phím gõ",
-    "collocations": [
-      "common macro",
-      "macro in context",
-      "use macro"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'macro' in communication.",
@@ -2200,11 +1915,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "(Tech) chỉnh lỗi, gỡ rối",
     "detailedExplanation": "(Tech) chỉnh lỗi, gỡ rối",
-    "collocations": [
-      "common debug",
-      "debug in context",
-      "use debug"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'debug' in communication.",
@@ -2224,11 +1935,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "đuôi sam",
     "detailedExplanation": "đuôi sam; hàng (người, xe ô tô ở ngã tư khi có đèn đỏ...) xếp nối đuôi; ((thường) + up) xếp hàng nối đuôi nhau; tết (tóc thành đuôi sam)",
-    "collocations": [
-      "common queue",
-      "queue in context",
-      "use queue"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to stand in a queue",
@@ -2253,11 +1960,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💻 IT: Code & Dev",
     "meaningVi": "dấu hiệu, biểu hiện",
     "detailedExplanation": "dấu hiệu, biểu hiện; vật kỷ niệm, vật lưu niệm; bằng chứng, chứng; vả lại; ngoài ra; thêm vào đó",
-    "collocations": [
-      "common token",
-      "token in context",
-      "use token"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "as a token of our gratitude",
@@ -2287,11 +1990,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "cuộc biểu tình",
     "detailedExplanation": "cuộc biểu tình; <tin> giới thiệu, chương trình giới thiệu",
-    "collocations": [
-      "common demo",
-      "demo in context",
-      "use demo"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'demo' in communication.",
@@ -2311,11 +2010,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "thiên anh hùng ca, thiên sử thi",
     "detailedExplanation": "thiên anh hùng ca, thiên sử thi; có tính chất anh hùng ca, có tính chất sử thi; có thể viết thành anh hùng ca, có thể viết thành sử thi",
-    "collocations": [
-      "common epic",
-      "epic in context",
-      "use epic"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'epic' in communication.",
@@ -2335,11 +2030,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "độ nghiêng, độ dốc",
     "detailedExplanation": "độ nghiêng, độ dốc; chỗ nạc; gầy còm; nạc, không dính mỡ (thịt)",
-    "collocations": [
-      "common lean",
-      "lean in context",
-      "use lean"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a lean year",
@@ -2369,11 +2060,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "chuyện, câu chuyện",
     "detailedExplanation": "chuyện, câu chuyện; truyện; cốt truyện, tình tiết (một truyện, một vở kịch...); tiểu sử, quá khứ (của một người)",
-    "collocations": [
-      "common story",
-      "story in context",
-      "use story"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "they all tell the same story",
@@ -2403,11 +2090,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "(đánh bài) Pôke, bài xì",
     "detailedExplanation": "(đánh bài) Pôke, bài xì; que cời; giùi khắc nung; cứng như khúc gỗ, thẳng đuồn đuỗn",
-    "collocations": [
-      "common poker",
-      "poker in context",
-      "use poker"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'poker' in communication.",
@@ -2427,11 +2110,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "nhanh nhẹn, nhanh nhẩu, lẹ làng, lanh lợi",
     "detailedExplanation": "nhanh nhẹn, nhanh nhẩu, lẹ làng, lanh lợi",
-    "collocations": [
-      "common agile",
-      "agile in context",
-      "use agile"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'agile' in communication.",
@@ -2451,11 +2130,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "sự chạy nhanh, sự chạy nước rút; nước rút",
     "detailedExplanation": "sự chạy nhanh, sự chạy nước rút; nước rút; chạy nước rút, chạy hết tốc lực",
-    "collocations": [
-      "common sprint",
-      "sprint in context",
-      "use sprint"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'sprint' in communication.",
@@ -2475,11 +2150,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "sự giải thoát, sự thoát khỏi (điều lo lắng, sầu muộn, bệnh tật...)",
     "detailedExplanation": "sự giải thoát, sự thoát khỏi (điều lo lắng, sầu muộn, bệnh tật...); sự thả, sự phóng thích; sự phát hành (cuốn sách, bản tin); sự đưa ra bàn (một loại ô tô mới...); giấy biên lai, giấy biên nhận",
-    "collocations": [
-      "common release",
-      "release in context",
-      "use release"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a release of war prisoners",
@@ -2509,11 +2180,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "xem block",
     "detailedExplanation": "xem block",
-    "collocations": [
-      "common blocker",
-      "blocker in context",
-      "use blocker"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'blocker' in communication.",
@@ -2533,11 +2200,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "bản đồ chỉ dẫn đường sá; bản đồ đường bộ",
     "detailedExplanation": "bản đồ chỉ dẫn đường sá; bản đồ đường bộ",
-    "collocations": [
-      "common roadmap",
-      "roadmap in context",
-      "use roadmap"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'roadmap' in communication.",
@@ -2557,10 +2220,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "dự trữ",
     "detailedExplanation": "dự trữ; phần đơn hàng chưa thực hiện được",
-    "collocations": [
-      "common backlog",
-      "backlog in context"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'backlog' in communication.",
@@ -2580,11 +2240,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "(raddiô) sự nối tiếp",
     "detailedExplanation": "(raddiô) sự nối tiếp; (điện học) sự hoàn ngược",
-    "collocations": [
-      "common feedback",
-      "feedback in context",
-      "use feedback"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'feedback' in communication.",
@@ -2604,11 +2260,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "'estimeit/",
     "detailedExplanation": "'estimeit/; sự đánh giá, sự ước lượng; số lượng ước đoán; bản kê giá cả (thầu khoán)",
-    "collocations": [
-      "common estimate",
-      "estimate in context",
-      "use estimate"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'estimate' in communication.",
@@ -2628,11 +2280,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "tốc độ, tốc lực",
     "detailedExplanation": "tốc độ, tốc lực",
-    "collocations": [
-      "common velocity",
-      "velocity in context",
-      "use velocity"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "initial velocity",
@@ -2657,11 +2305,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "nghi thức, nghi lễ",
     "detailedExplanation": "nghi thức, nghi lễ; sự khách sáo, sự kiểu cách; (xem) stand; tự nhiên không khách sáo",
-    "collocations": [
-      "common ceremony",
-      "ceremony in context",
-      "use ceremony"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "there is no need for ceremony between friends",
@@ -2681,11 +2325,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "vật chướng ngại, trở lực",
     "detailedExplanation": "vật chướng ngại, trở lực; sự cản trở, sự trở ngại",
-    "collocations": [
-      "common obstacle",
-      "obstacle in context",
-      "use obstacle"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'obstacle' in communication.",
@@ -2705,11 +2345,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "cột kilômét cọc",
     "detailedExplanation": "cột kilômét cọc; (nghĩa bóng) sự kiện quan trọng, mốc lịch sử, giai đoạn quan trọng (trong đời ai)",
-    "collocations": [
-      "common milestone",
-      "milestone in context",
-      "use milestone"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'milestone' in communication.",
@@ -2729,11 +2365,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "sự lớn lên (của cây cối); độ lớn lên",
     "detailedExplanation": "sự lớn lên (của cây cối); độ lớn lên; tiền lãi, tiền lời; (toán học) lượng gia, số gia",
-    "collocations": [
-      "common increment",
-      "increment in context",
-      "use increment"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "increment of a function",
@@ -2753,11 +2385,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "sự nhắc đi nhắc lại",
     "detailedExplanation": "sự nhắc đi nhắc lại; tính lặp đi lặp lại",
-    "collocations": [
-      "common iteration",
-      "iteration in context",
-      "use iteration"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'iteration' in communication.",
@@ -2777,11 +2405,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "(như) committal",
     "detailedExplanation": "(như) committal; trát bắt giam; sự phạm (tội...); (từ Mỹ,nghĩa Mỹ) sự đưa (quân) đi đánh",
-    "collocations": [
-      "common commitment",
-      "commitment in context",
-      "use commitment"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'commitment' in communication.",
@@ -2801,11 +2425,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "sự đánh giá; sự ước lượng",
     "detailedExplanation": "sự đánh giá; sự ước lượng; sự kính mến, sự quý trọng",
-    "collocations": [
-      "common estimation",
-      "estimation in context",
-      "use estimation"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to hold someone in estimation",
@@ -2825,11 +2445,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "sự lọc; sự tinh chế (dầu, đường); sự luyện tinh (kim loại)",
     "detailedExplanation": "sự lọc; sự tinh chế (dầu, đường); sự luyện tinh (kim loại); sự tinh tế, sự tế nhị, sự tao nhã, sự lịch sự, sự sành sỏi; cái hay, cái đẹp, cái tinh tuý, cái tao nhã; thủ đoạn tinh vi, phương pháp tinh vi, lập luận tế nhị, sự phân biệt tinh vi",
-    "collocations": [
-      "common refinement",
-      "refinement in context",
-      "use refinement"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "all the refinements of the age",
@@ -2854,11 +2470,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "khắc phục",
     "detailedExplanation": "khắc phục",
-    "collocations": [
-      "common workaround",
-      "workaround in context",
-      "use workaround"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'workaround' in communication.",
@@ -2878,11 +2490,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "người giữ tiền đặt cược",
     "detailedExplanation": "người giữ tiền đặt cược",
-    "collocations": [
-      "common stakeholder",
-      "stakeholder in context",
-      "use stakeholder"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'stakeholder' in communication.",
@@ -2902,11 +2510,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "⏱️ IT: Scrum & Agile",
     "meaningVi": "hồi tưởng quá khứ, nhìn lại dĩ vãng",
     "detailedExplanation": "hồi tưởng quá khứ, nhìn lại dĩ vãng; (pháp lý) có hiệu lực trở về trước (đạo luật); ngó lại sau, nhìn lại sau (cái nhìn); ở đằng sau (phong cảnh)",
-    "collocations": [
-      "common retrospective",
-      "retrospective in context",
-      "use retrospective"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'retrospective' in communication.",
@@ -2926,11 +2530,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "sự làm việc; việc, công việc, công tác",
     "detailedExplanation": "sự làm việc; việc, công việc, công tác; việc làm; nghề nghiệp; đồ làm ra, sản phẩm; tác phẩm",
-    "collocations": [
-      "common work",
-      "work in context",
-      "use work"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to be at work",
@@ -2960,11 +2560,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "cuộc gặp gỡ (của những người đi săn ở một nơi đã hẹn trước, của những nhà thể thao để thi đấu)",
     "detailedExplanation": "cuộc gặp gỡ (của những người đi săn ở một nơi đã hẹn trước, của những nhà thể thao để thi đấu); gặp, gặp gỡ; đi đón; (từ Mỹ,nghĩa Mỹ) xin giới thiệu, làm quen (với người nào)",
-    "collocations": [
-      "common meet",
-      "meet in context",
-      "use meet"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to meet someone in the street",
@@ -2994,11 +2590,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "gậy, ba toong",
     "detailedExplanation": "gậy, ba toong; gậy quyền (gậy biểu thị chức vị quyền lực); cán, cột; chỗ dựa, chỗ nương tựa",
-    "collocations": [
-      "common staff",
-      "staff in context",
-      "use staff"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to be the staff of someone",
@@ -3028,11 +2620,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "bản báo cáo; biên bản",
     "detailedExplanation": "bản báo cáo; biên bản; bản tin, bản dự báo; phiếu thành tích học tập (hằng tháng hoặc từng học kỳ của học sinh); tin đồn; tiếng tăm, danh tiếng",
-    "collocations": [
-      "common report",
-      "report in context",
-      "use report"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to give a report on...",
@@ -3062,11 +2650,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "sự giúp đỡ",
     "detailedExplanation": "sự giúp đỡ; nhiệm vụ; chức vụ; lễ nghi",
-    "collocations": [
-      "common office",
-      "office in context",
-      "use office"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "by the good offices of...",
@@ -3096,11 +2680,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "người lao động, người làm việc",
     "detailedExplanation": "người lao động, người làm việc; thợ, công nhân; (số nhiều) giai cấp công nhân, nhân dân lao động; (động vật học) ong thợ",
-    "collocations": [
-      "common worker",
-      "worker in context",
-      "use worker"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'worker' in communication.",
@@ -3120,11 +2700,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "sự làm việc, sự làm",
     "detailedExplanation": "sự làm việc, sự làm; sự lên men, sự để lên men (rượu, bia); (kỹ thuật) sự hoạt động, sự chuyển vận, sự vận hành, sự dùng (máy móc); sự khai thác (mỏ)",
-    "collocations": [
-      "common working",
-      "working in context",
-      "use working"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "working clothes",
@@ -3154,11 +2730,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "(chính trị) cuộc mít tinh, cuộc biểu tình",
     "detailedExplanation": "(chính trị) cuộc mít tinh, cuộc biểu tình; cuộc gặp gỡ, cuộc hội họp, hội nghị",
-    "collocations": [
-      "common meeting",
-      "meeting in context",
-      "use meeting"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to address a meeting",
@@ -3183,11 +2755,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "sĩ quan",
     "detailedExplanation": "sĩ quan; nhân viên chính quyền, nhân viên, viên chức; cảnh sát; giám đốc; thư ký; thủ quỹ (một công ty, một hội)",
-    "collocations": [
-      "common officer",
-      "officer in context",
-      "use officer"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "staff officer",
@@ -3217,11 +2785,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "(Tech) nguyên cảo; nguyên đồ; đồ trang sức; đồ nghệ thuật",
     "detailedExplanation": "(Tech) nguyên cảo; nguyên đồ; đồ trang sức; đồ nghệ thuật",
-    "collocations": [
-      "common artwork",
-      "artwork in context",
-      "use artwork"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'artwork' in communication.",
@@ -3241,11 +2805,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "(từ Mỹ,nghĩa Mỹ),  (thể dục,thể thao) buổi luyện tập",
     "detailedExplanation": "(từ Mỹ,nghĩa Mỹ),  (thể dục,thể thao) buổi luyện tập",
-    "collocations": [
-      "common workout",
-      "workout in context",
-      "use workout"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'workout' in communication.",
@@ -3265,11 +2825,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "(ngôn ngữ học) gián tiếp",
     "detailedExplanation": "(ngôn ngữ học) gián tiếp",
-    "collocations": [
-      "common reported",
-      "reported in context",
-      "use reported"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "reported speech",
@@ -3289,11 +2845,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "xưởng",
     "detailedExplanation": "xưởng",
-    "collocations": [
-      "common workshop",
-      "workshop in context",
-      "use workshop"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'workshop' in communication.",
@@ -3313,11 +2865,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "người báo cáo",
     "detailedExplanation": "người báo cáo; phóng viên nhà báo",
-    "collocations": [
-      "common reporter",
-      "reporter in context",
-      "use reporter"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'reporter' in communication.",
@@ -3337,11 +2885,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "bài làm ở nhà (cho học sinh)",
     "detailedExplanation": "bài làm ở nhà (cho học sinh); công việc làm ở nhà",
-    "collocations": [
-      "common homework",
-      "homework in context",
-      "use homework"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'homework' in communication.",
@@ -3361,11 +2905,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "sách bài tập",
     "detailedExplanation": "sách bài tập",
-    "collocations": [
-      "common workbook",
-      "workbook in context",
-      "use workbook"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'workbook' in communication.",
@@ -3385,10 +2925,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "thân xe",
     "detailedExplanation": "thân xe",
-    "collocations": [
-      "common bodywork",
-      "bodywork in context"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'bodywork' in communication.",
@@ -3408,11 +2945,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "pháo hoa, pháo bông; cuộc đốt pháo hoa",
     "detailedExplanation": "pháo hoa, pháo bông; cuộc đốt pháo hoa; sự sắc sảo; sự nổi nóng; đánh ai nảy đom đóm mắt",
-    "collocations": [
-      "common fireworks",
-      "fireworks in context",
-      "use fireworks"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'fireworks' in communication.",
@@ -3432,11 +2965,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "công việc giấy tờ",
     "detailedExplanation": "công việc giấy tờ",
-    "collocations": [
-      "common paperwork",
-      "paperwork in context",
-      "use paperwork"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'paperwork' in communication.",
@@ -3456,11 +2985,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "giấy chấm công",
     "detailedExplanation": "giấy chấm công",
-    "collocations": [
-      "common worksheet",
-      "worksheet in context",
-      "use worksheet"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'worksheet' in communication.",
@@ -3480,11 +3005,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "nhóm làm việc",
     "detailedExplanation": "nhóm làm việc",
-    "collocations": [
-      "common workgroup",
-      "workgroup in context",
-      "use workgroup"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'workgroup' in communication.",
@@ -3504,11 +3025,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "cột cờ",
     "detailedExplanation": "cột cờ",
-    "collocations": [
-      "common flagstaff",
-      "flagstaff in context",
-      "use flagstaff"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'flagstaff' in communication.",
@@ -3528,10 +3045,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "bộ máy đồng hồ",
     "detailedExplanation": "bộ máy đồng hồ; đều đặn, máy móc như một cái máy; như bộ máy đồng hồ",
-    "collocations": [
-      "common clockwork",
-      "clockwork in context"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "like clockwork",
@@ -3556,11 +3070,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "theo như đưa tin, tường trình",
     "detailedExplanation": "theo như đưa tin, tường trình",
-    "collocations": [
-      "common reportedly",
-      "reportedly in context",
-      "use reportedly"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'reportedly' in communication.",
@@ -3580,11 +3090,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "💼 Công Sở & Họp",
     "meaningVi": "trạm làm việc",
     "detailedExplanation": "trạm làm việc",
-    "collocations": [
-      "common workstation",
-      "workstation in context",
-      "use workstation"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'workstation' in communication.",
@@ -3604,11 +3110,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "thuế, cước",
     "detailedExplanation": "thuế, cước; (nghĩa bóng) gánh nặng; sự thử thách, sự đòi hỏi lớn; đánh thuế, đánh cước; (nghĩa bóng) đè nặng lên, bắt phải cố gắng",
-    "collocations": [
-      "common tax",
-      "tax in context",
-      "use tax"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a tax on one's strength",
@@ -3638,11 +3140,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "lưới, mạng (tóc, nhện...)",
     "detailedExplanation": "lưới, mạng (tóc, nhện...); cạm, bẫy; vải màn; vải lưới; mạng lưới",
-    "collocations": [
-      "common net",
-      "net in context",
-      "use net"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to cast (throw) a net",
@@ -3672,11 +3170,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "sự đặt giá, sự trả giá (trong một cuộc bán đấu giá)",
     "detailedExplanation": "sự đặt giá, sự trả giá (trong một cuộc bán đấu giá); sự bỏ thầu; (thông tục) sự mời; sự xướng bài (bài brit)",
-    "collocations": [
-      "common bid",
-      "bid in context",
-      "use bid"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "he bids 300d for the bicycle",
@@ -3706,11 +3200,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "viết tắt của Chief Executive Officer",
     "detailedExplanation": "viết tắt của Chief Executive Officer; Người lãnh đạo cao nhất trong một công ty hoặc một tổ chức, chịu trách nhiệm thực hiện hàng ngày các chính sách của hội đồng quản trị; danh từ, viết tắt của Chief Executive Officer; Người lãnh đạo cao nhất trong một công ty hoặc một tổ chức, chịu trách nhiệm thực hiện hàng ngày các chính sách của hội đồng quản trị",
-    "collocations": [
-      "common ceo",
-      "ceo in context",
-      "use ceo"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'ceo' in communication.",
@@ -3730,11 +3220,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "quả chà là",
     "detailedExplanation": "quả chà là; (thực vật học) cây chà là; ngày tháng; niên hiệu, niên kỷ; (thương nghiệp) kỳ, kỳ hạn",
-    "collocations": [
-      "common date",
-      "date in context",
-      "use date"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "what's the date today?",
@@ -3764,11 +3250,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "chiều, chiều hôm",
     "detailedExplanation": "chiều, chiều hôm; bằng phẳng; ngang bằng, ngang; (pháp lý); (thương nghiệp) cùng",
-    "collocations": [
-      "common even",
-      "even in context",
-      "use even"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "of even date",
@@ -3798,11 +3280,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "trò chơi (như bóng đá, quần vợt, bài lá...)",
     "detailedExplanation": "trò chơi (như bóng đá, quần vợt, bài lá...); (thương nghiệp) dụng cụ để chơi (các trò chơi); (số nhiều) cuộc thi điền kinh, cuộc thi đấu; ván (bài, cờ...)",
-    "collocations": [
-      "common game",
-      "game in context",
-      "use game"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to win four games in the first set",
@@ -3832,11 +3310,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "giá",
     "detailedExplanation": "giá; chi phí, phí tổn; sự phí (thì giờ, sức lực); (pháp lý) (số nhiều) án phí",
-    "collocations": [
-      "common cost",
-      "cost in context",
-      "use cost"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "the cost of living",
@@ -3866,11 +3340,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "thoải mái, thanh thản, không lo lắng; thanh thoát, ung dung",
     "detailedExplanation": "thoải mái, thanh thản, không lo lắng; thanh thoát, ung dung; dễ, dễ dàng; dễ dãi, dễ tính; dễ thuyết phục; (thương nghiệp) ít người mua, ế ẩm",
-    "collocations": [
-      "common easy",
-      "easy in context",
-      "use easy"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "easy manners",
@@ -3900,11 +3370,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "cộng với",
     "detailedExplanation": "cộng với; cộng, thêm vào; (toán học); (vật lý) dương (số...); (thương nghiệp) ở bên có của tài khoản",
-    "collocations": [
-      "common plus",
-      "plus in context",
-      "use plus"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "3 plus 4",
@@ -3924,11 +3390,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "khoảng giữa, trung độ, trung gian, trung dung",
     "detailedExplanation": "khoảng giữa, trung độ, trung gian, trung dung; (toán học) giá trị trung bình; số trung bình; (số nhiều) ((thường) dùng như số ít) phương tiện, kế, biện pháp, cách; (số nhiều) của, của cải, tài sản, khả năng (kinh tế)",
-    "collocations": [
-      "common mean",
-      "mean in context",
-      "use mean"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "the happy mean; the holden mean",
@@ -3958,11 +3420,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "kho",
     "detailedExplanation": "kho; quỹ; (số nhiều) tiền của; (số nhiều) quỹ công trái nhà nước",
-    "collocations": [
-      "common fund",
-      "fund in context",
-      "use fund"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a fund of humour",
@@ -3987,11 +3445,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "gỗ tùng, gỗ thông",
     "detailedExplanation": "gỗ tùng, gỗ thông; tấm ván cây; số lượng; sự chia bài, lượt chia bài, ván bài",
-    "collocations": [
-      "common deal",
-      "deal in context",
-      "use deal"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a great deal of",
@@ -4021,11 +3475,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "nợ",
     "detailedExplanation": "nợ; món nợ không hy vọng được trả; mang công mắc nợ; mắc nợ ai",
-    "collocations": [
-      "common debt",
-      "debt in context",
-      "use debt"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'debt' in communication.",
@@ -4045,11 +3495,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "sự tôn kính, lòng kính trọng (người trên)",
     "detailedExplanation": "sự tôn kính, lòng kính trọng (người trên); bổn phận, nhiệm vụ, trách nhiệm; phận sự, chức vụ, công việc, phần việc làm; phiên làm, phiên trực nhật; thuế (hải quan...)",
-    "collocations": [
-      "common duty",
-      "duty in context",
-      "use duty"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "in duty to...",
@@ -4079,11 +3525,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "dây đai, đay buộc; ((nghĩa bóng)) mối quan hệ, mối ràng buộc",
     "detailedExplanation": "dây đai, đay buộc; ((nghĩa bóng)) mối quan hệ, mối ràng buộc; giao kèo, khế ước, lời cam kết; (tài chính) phiếu nợ, bông; (số nhiều) gông cùm, xiềng xích, sự tù tội",
-    "collocations": [
-      "common bond",
-      "bond in context",
-      "use bond"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to enter in to a bond to",
@@ -4113,11 +3555,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "tiền lương, tiền công",
     "detailedExplanation": "tiền lương, tiền công; (từ cổ,nghĩa cổ) phần thưởng; hậu quả; tiến hành; (từ cổ,nghĩa cổ) đánh cuộc",
-    "collocations": [
-      "common wage",
-      "wage in context",
-      "use wage"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to earn (get) good wages",
@@ -4147,11 +3585,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "(thương nghiệp) bít tất dài",
     "detailedExplanation": "(thương nghiệp) bít tất dài; (số nhiều) ống vòi; lắp ống, lắp vòi; tưới nước bằng vòi",
-    "collocations": [
-      "common hose",
-      "hose in context",
-      "use hose"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "rubber hoses",
@@ -4171,11 +3605,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "sự ghi để nhớ",
     "detailedExplanation": "sự ghi để nhớ; (ngoại giao) giác thư, bị vong lục; (pháp lý) bản ghi điều khoản (của giao kèo); (thương nghiệp) bản sao, thư báo",
-    "collocations": [
-      "common memo",
-      "memo in context",
-      "use memo"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to make a memoranda of something",
@@ -4195,11 +3625,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "cái diều",
     "detailedExplanation": "cái diều; (động vật học) diều hâu; (nghĩa bóng) kẻ tham tàn; kẻ bịp bợm, quân bạc bịp; (thương nghiệp),  (từ lóng) văn tự giả; hối phiếu giả",
-    "collocations": [
-      "common kite",
-      "kite in context",
-      "use kite"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'kite' in communication.",
@@ -4219,11 +3645,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "(khoáng chất) Opan",
     "detailedExplanation": "(khoáng chất) Opan; (thương nghiệp) kính trắng đục",
-    "collocations": [
-      "common opal",
-      "opal in context",
-      "use opal"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'opal' in communication.",
@@ -4243,10 +3665,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "tiền lời, đổi tiền (thu được trong việc đổi chác tiền bạc)",
     "detailedExplanation": "tiền lời, đổi tiền (thu được trong việc đổi chác tiền bạc); nghề đổi tiền; (tài chính) giá tiền chênh lệch (giá trị chênh lệch giữa hai loại tiền)",
-    "collocations": [
-      "common agio",
-      "agio in context"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'agio' in communication.",
@@ -4266,10 +3685,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "(từ Mỹ,nghĩa Mỹ) con thỏ",
     "detailedExplanation": "(từ Mỹ,nghĩa Mỹ) con thỏ; (thương nghiệp) da lông thỏ",
-    "collocations": [
-      "common cony",
-      "cony in context"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "cony skin",
@@ -4289,11 +3705,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "giá trị",
     "detailedExplanation": "giá trị; (thương nghiệp); (tài chính) giá cả, giá; (vật lý) năng suất; (văn học) nghĩa, ý nghĩa",
-    "collocations": [
-      "common value",
-      "value in context",
-      "use value"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "of a great value",
@@ -4323,11 +3735,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "kho dữ trữ, kho; hàng trong kho",
     "detailedExplanation": "kho dữ trữ, kho; hàng trong kho; (tài chính) vốn; cổ phân; (thực vật học) thân chính; (thực vật học) gốc ghép",
-    "collocations": [
-      "common stock",
-      "stock in context",
-      "use stock"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "stock in hand",
@@ -4357,11 +3765,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "nhãn (hàng hoá)",
     "detailedExplanation": "nhãn (hàng hoá); loại hàng; dấu sắt nung (đóng vào vai tội nhân); vết dấu sắt nung; vết nhơ, vết nhục",
-    "collocations": [
-      "common brand",
-      "brand in context",
-      "use brand"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "he was branded as a war criminal",
@@ -4381,11 +3785,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "sự hợp nhất, sự kết hợp, sự liên kết; liên minh, liên hiệp",
     "detailedExplanation": "sự hợp nhất, sự kết hợp, sự liên kết; liên minh, liên hiệp; sự nhất trí, sự cộng đồng, sự đoàn kết, sự hoà hợp; hiệp hội, liên hiệp; đồng minh; liên bang; sự kết hôn, hôn nhân",
-    "collocations": [
-      "common union",
-      "union in context",
-      "use union"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "the union of several co-operatives",
@@ -4415,11 +3815,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "cho phép để cho",
     "detailedExplanation": "cho phép để cho; thừa nhận, công nhận, chấp nhận; cho, cấp cho, trợ cấp, cấp phát; (thương nghiệp); (tài chính) trừ bớt; thêm",
-    "collocations": [
-      "common allow",
-      "allow in context",
-      "use allow"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "allow me to help you",
@@ -4449,11 +3845,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "sự thử",
     "detailedExplanation": "sự thử; (pháp lý) việc xét xử, sự xử án; điều thử thách; nỗi gian nan; (tài chính)",
-    "collocations": [
-      "common trial",
-      "trial in context",
-      "use trial"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to give something a trial",
@@ -4483,11 +3875,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "mảnh, mẩu, miếng, viên, cục, khúc...",
     "detailedExplanation": "mảnh, mẩu, miếng, viên, cục, khúc...; bộ phận, mảnh rời; (thương nghiệp) đơn vị, cái, chiếc, tấm cuộn (vải); thùng (rượu...); bức (tranh); bài (thơ); bản (nhạc); vở (kịch)",
-    "collocations": [
-      "common piece",
-      "piece in context",
-      "use piece"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a piece of paper",
@@ -4517,11 +3905,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "tiền thưởng",
     "detailedExplanation": "tiền thưởng; tiền các; lợi tức chia thêm (cho người có cổ phần; (từ Mỹ,nghĩa Mỹ) cho người có bảo hiểm)",
-    "collocations": [
-      "common bonus",
-      "bonus in context",
-      "use bonus"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'bonus' in communication.",
@@ -4541,11 +3925,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "sự kiểm tra (sổ sách)",
     "detailedExplanation": "sự kiểm tra (sổ sách); sự thanh toán các khoản (theo kỳ hạn) giữa tá điền và địa chủ; kiểm tra (sổ sách)",
-    "collocations": [
-      "common audit",
-      "audit in context",
-      "use audit"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "audit ale",
@@ -4565,11 +3945,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "khoảng giữa, trung độ, trung gian, trung dung",
     "detailedExplanation": "khoảng giữa, trung độ, trung gian, trung dung; (toán học) giá trị trung bình; số trung bình; (số nhiều) ((thường) dùng như số ít) phương tiện, kế, biện pháp, cách; (số nhiều) của, của cải, tài sản, khả năng (kinh tế)",
-    "collocations": [
-      "common meant",
-      "meant in context",
-      "use meant"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "the happy mean; the holden mean",
@@ -4599,11 +3975,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "hợp đồng cho thuê",
     "detailedExplanation": "hợp đồng cho thuê; đem cho thuê; cho thuê theo hợp đồng; lại hoạt động, lại vui sống (sau khi ốm nặng hay sau khi một việc lo buồn)",
-    "collocations": [
-      "common lease",
-      "lease in context",
-      "use lease"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to take a house on a lease of several years",
@@ -4628,11 +4000,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "mười hai tá, gốt ((cũng) small gross)",
     "detailedExplanation": "mười hai tá, gốt ((cũng) small gross); gộp cả, tính tổng quát, nói chung; to béo, phì nộm, béo phị (người); thô và béo ngậy (thức ăn)",
-    "collocations": [
-      "common gross",
-      "gross in context",
-      "use gross"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "great gross",
@@ -4662,11 +4030,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "sản lượng, hoa lợi (thửa ruộng); hiệu suất (máy...)",
     "detailedExplanation": "sản lượng, hoa lợi (thửa ruộng); hiệu suất (máy...); (tài chính) lợi nhuận, lợi tức; (kỹ thuật) sự cong, sự oằn; (nông nghiệp) sản xuất, sản ra, mang lại",
-    "collocations": [
-      "common yield",
-      "yield in context",
-      "use yield"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "in full yield",
@@ -4696,11 +4060,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "sự ghi nợ",
     "detailedExplanation": "sự ghi nợ; món nợ khoản nợ; (kế toán) bên nợ; ghi (một món nợ) vào sổ nợ (debit against,  to) ghi (một món nợ) vào sổ ai",
-    "collocations": [
-      "common debit",
-      "debit in context",
-      "use debit"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to put to the debit of somebody",
@@ -4720,11 +4080,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "(kiến trúc) hốc thường (thường để đặt tượng...)",
     "detailedExplanation": "(kiến trúc) hốc thường (thường để đặt tượng...); (nghĩa bóng) chỗ thích hợp; quyền được người ta tưởng nhớ đến công lao; đặt (tượng) vào hốc tường",
-    "collocations": [
-      "common niche",
-      "niche in context",
-      "use niche"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "thg to niche oneself",
@@ -4744,11 +4100,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "phần (phải đóng góp hoặc được chia)",
     "detailedExplanation": "phần (phải đóng góp hoặc được chia); chỉ tiêu",
-    "collocations": [
-      "common quota",
-      "quota in context",
-      "use quota"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'quota' in communication.",
@@ -4768,11 +4120,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "sự kiểm điểm (hàng hoá, tên...)",
     "detailedExplanation": "sự kiểm điểm (hàng hoá, tên...); nhãn (ghi tên hàng); biển (khắc tên cây ở vường bách thảo...); (pháp lý) bản đối chiếu, vật đối chiếu; (thương nghiệp) số tính toán (chục, tá, trăm...)",
-    "collocations": [
-      "common tally",
-      "tally in context",
-      "use tally"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "what you say doesn't tally with what he told me",
@@ -4792,10 +4140,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "(thương nghiệp),  (thông tục) (như) approval,  approbation",
     "detailedExplanation": "(thương nghiệp),  (thông tục) (như) approval,  approbation; nếu không ưng ý xin trả về (hàng hoá gửi đi)",
-    "collocations": [
-      "common appro",
-      "appro in context"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'appro' in communication.",
@@ -4815,10 +4160,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "chỗ phình, chỗ phồng, chỗ lồi ra",
     "detailedExplanation": "chỗ phình, chỗ phồng, chỗ lồi ra; (thương nghiệp),  (thông tục) sự tăng tạm thời (số lượng, chất lượng); sự nêu giá; (hàng hải) đáy tàu; the bulge (từ Mỹ,nghĩa Mỹ),  (từ lóng) thế lợi, ưu thế",
-    "collocations": [
-      "common bulge",
-      "bulge in context"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to have the bulge on somebody",
@@ -4838,10 +4180,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "(từ Mỹ,nghĩa Mỹ) con thỏ",
     "detailedExplanation": "(từ Mỹ,nghĩa Mỹ) con thỏ; (thương nghiệp) da lông thỏ",
-    "collocations": [
-      "common coney",
-      "coney in context"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "cony skin",
@@ -4861,11 +4200,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "sự đi du lịch; cuộc du hành",
     "detailedExplanation": "sự đi du lịch; cuộc du hành; sự chạy đi chạy lại; đường chạy (của máy,  pittông...); đi du lịch; du hành; (thương nghiệp) đi mời hàng, đi chào hàng",
-    "collocations": [
-      "common travel",
-      "travel in context",
-      "use travel"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to go on a travel",
@@ -4895,11 +4230,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "sự trở lại, sự trở về, sự quay trở lại",
     "detailedExplanation": "sự trở lại, sự trở về, sự quay trở lại; vé khứ hồi ((cũng) return ticket); sự gửi trả lại, sự trả lại (một vật gì); vật được trả lại; ((thường) số nhiều) (thương nghiệp) hàng hoá gửi trả lại; sách báo ế; hàng ế",
-    "collocations": [
-      "common return",
-      "return in context",
-      "use return"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to reply by return of post",
@@ -4929,11 +4260,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "sự tin, lòng tin",
     "detailedExplanation": "sự tin, lòng tin; danh tiếng; danh vọng, uy tín; nguồn vẻ vang; sự vẻ vang; thế lực, ảnh hưởng",
-    "collocations": [
-      "common credit",
-      "credit in context",
-      "use credit"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to give credit to a story",
@@ -4963,11 +4290,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "chợ",
     "detailedExplanation": "chợ; thị trường, nơi tiêu thụ; khách hàng; giá thị trường; tình hình thị trường; làm hỏng việc, làm lỡ việc; hỏng kế hoạch, tính sai",
-    "collocations": [
-      "common market",
-      "market in context",
-      "use market"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to go to market",
@@ -4997,11 +4320,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "tương lai",
     "detailedExplanation": "tương lai; tương lai; (số nhiều) (thương nghiệp) hàng hoá bán sẽ giao sau; hợp đông về hàng hoá bán giao sau",
-    "collocations": [
-      "common future",
-      "future in context",
-      "use future"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "future tense",
@@ -5031,11 +4350,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "(pháp lý) hồ sơ",
     "detailedExplanation": "(pháp lý) hồ sơ; biên bản; sự ghi chép; (số nhiều) văn thư; (thương nghiệp) sổ sách",
-    "collocations": [
-      "common record",
-      "record in context",
-      "use record"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to be on record",
@@ -5065,11 +4380,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "hàng năm, năm một, từng năm",
     "detailedExplanation": "hàng năm, năm một, từng năm; sống một năm (cây); xuất bản hàng năm (sách); (thực vật học) cây một năm",
-    "collocations": [
-      "common annual",
-      "annual in context",
-      "use annual"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "annual report",
@@ -5094,11 +4405,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "tác dụng, lực",
     "detailedExplanation": "tác dụng, lực; sự môi giới, sự trung gian; (thương nghiệp) đại lý, phân điểm, chi nhánh; cơ quan, sở, hãng, hãng thông tấn",
-    "collocations": [
-      "common agency",
-      "agency in context",
-      "use agency"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "through (by) the agency of...",
@@ -5123,11 +4430,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "thu nhập, doanh thu, lợi tức",
     "detailedExplanation": "thu nhập, doanh thu, lợi tức",
-    "collocations": [
-      "common income",
-      "income in context",
-      "use income"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "national income",
@@ -5157,11 +4460,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "chín, thành thực, trưởng thành",
     "detailedExplanation": "chín, thành thực, trưởng thành; cẩn thận, chín chắn, kỹ càng; (thương nghiệp) đến kỳ hạn phải thanh toán; mân kỳ (hoá đơn); làm cho chín, làm cho chín chắn, làm cho hoàn thiện (kế hoạch...)",
-    "collocations": [
-      "common mature",
-      "mature in context",
-      "use mature"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "mature years",
@@ -5191,11 +4490,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "lời khuyên, lời chỉ bảo",
     "detailedExplanation": "lời khuyên, lời chỉ bảo; ((thường) số nhiều) tin tức; theo những tin tức cuối cùng chúng tôi nhận được; (số nhiều) (thương nghiệp) thư thông báo ((cũng) letter of advice)",
-    "collocations": [
-      "common advice",
-      "advice in context",
-      "use advice"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to act on advice",
@@ -5225,11 +4520,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "nghề, nghề nghiệp",
     "detailedExplanation": "nghề, nghề nghiệp; sự nghiệp (của một người); đời hoạt động; quá trình phát triển (của một đảng phái, một nguyên tắc); tốc lực; sự chạy nhanh; sự lao nhanh; đà lao nhanh; (định ngữ),  (từ Mỹ,nghĩa Mỹ) nhà nghề, chuyên nghiệp (ngoại giao...)",
-    "collocations": [
-      "common career",
-      "career in context",
-      "use career"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to choose a career",
@@ -5259,11 +4550,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "ngân sách, ngân quỹ",
     "detailedExplanation": "ngân sách, ngân quỹ; túi (đầy), bao (đầy); (nghĩa rộng) đống, kho, cô khối; dự thảo ngân sách; ghi vào ngân sách",
-    "collocations": [
-      "common budget",
-      "budget in context",
-      "use budget"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "budget of news",
@@ -5288,11 +4575,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "sự bán lẻ",
     "detailedExplanation": "sự bán lẻ; bán lẻ; bán lẻ; thuật lại, kể lại chi tiết; truyền đi, phao, loan (tin đồn)",
-    "collocations": [
-      "common retail",
-      "retail in context",
-      "use retail"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "retail price",
@@ -5322,11 +4605,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "nhận, chấp nhận, chấp thuận",
     "detailedExplanation": "nhận, chấp nhận, chấp thuận; thừa nhận; đảm nhận (công việc...); (thương nghiệp) chịu trách nhiệm về; nhận thanh toán (hoá đơn, hối phiếu...)",
-    "collocations": [
-      "common accept",
-      "accept in context",
-      "use accept"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to accept a proposal",
@@ -5356,11 +4635,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "cành cây",
     "detailedExplanation": "cành cây; nhánh (sông); ngả (đường)...; chi (của một dòng họ...); chi nhánh (ngân hàng...); ngành (sản xuất; mậu dịch...); (xem) root",
-    "collocations": [
-      "common branch",
-      "branch in context",
-      "use branch"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a branch of a river",
@@ -5385,11 +4660,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎯 Từ Vựng TOEIC",
     "meaningVi": "góc (tường, nhà, phố...)",
     "detailedExplanation": "góc (tường, nhà, phố...); nơi kín đáo, xó xỉnh; chỗ ẩn náu, chỗ giấu giếm; nơi, phương; (thương nghiệp) sự đầu cơ, sự lũng đoạn thị trường",
-    "collocations": [
-      "common corner",
-      "corner in context",
-      "use corner"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "the corner of the street",
@@ -5419,11 +4690,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "cái, con, người...",
     "detailedExplanation": "cái, con, người...; ấy, này (người, cái, con...); duy nhất (người, vật...); (trước một từ so sánh) càng",
-    "collocations": [
-      "common the",
-      "the in context",
-      "use the"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "the house",
@@ -5453,11 +4720,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "và, cùng, với",
     "detailedExplanation": "và, cùng, với; nếu dường như, tuồng như là; còn; (không dịch)",
-    "collocations": [
-      "common and",
-      "and in context",
-      "use and"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to buy and sell",
@@ -5487,11 +4750,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "thay cho, thế cho, đại diện cho",
     "detailedExplanation": "thay cho, thế cho, đại diện cho; ủng hộ, về phe, về phía; để, với mục đích là; để lấy, để được",
-    "collocations": [
-      "common for",
-      "for in context",
-      "use for"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to sit for Hanoi",
@@ -5521,11 +4780,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "anh, chị, ông, bà, ngài, ngươi, mày; các anh, các chị, các ông, các bà, các ngài, các người, chúng mày",
     "detailedExplanation": "anh, chị, ông, bà, ngài, ngươi, mày; các anh, các chị, các ông, các bà, các ngài, các người, chúng mày; ai, người ta",
-    "collocations": [
-      "common you",
-      "you in context",
-      "use you"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "you all know that...",
@@ -5555,11 +4810,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "không",
     "detailedExplanation": "không; hẳn là, chắc là; (xem) but; (xem) half",
-    "collocations": [
-      "common not",
-      "not in context",
-      "use not"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "I did not say so",
@@ -5589,11 +4840,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "tất cả, hết thảy, toàn bộ, suốt trọn, mọi",
     "detailedExplanation": "tất cả, hết thảy, toàn bộ, suốt trọn, mọi; tất cả, tất thảy, hết thảy, toàn thể, toàn bộ; (xem) above; (xem) after",
-    "collocations": [
-      "common all",
-      "all in context",
-      "use all"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "all my life",
@@ -5623,11 +4870,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "mới, mới mẻ, mới lạ",
     "detailedExplanation": "mới, mới mẻ, mới lạ; khác hẳn; tân tiến, tân thời, hiện đại; mới nổi (gia đình, người)",
-    "collocations": [
-      "common new",
-      "new in context",
-      "use new"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "the new year",
@@ -5657,11 +4900,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "thì, là",
     "detailedExplanation": "thì, là; có, tồn tại, ở, sống; trở nên, trở thành; xảy ra, diễn ra",
-    "collocations": [
-      "common was",
-      "was in context",
-      "use was"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "the earth is round",
@@ -5691,11 +4930,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "có",
     "detailedExplanation": "có; (+ from) nhận được, biết được; ăn; uống; hút; hưởng; bị",
-    "collocations": [
-      "common has",
-      "has in context",
-      "use has"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to have nothing to do",
@@ -5725,11 +4960,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "nhưng, nhưng mà",
     "detailedExplanation": "nhưng, nhưng mà; nếu không; không còn cách nào khác; mà lại không; chỉ, chỉ là, chỉ mới",
-    "collocations": [
-      "common but",
-      "but in context",
-      "use but"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "we tried to do it but couldn't",
@@ -5759,11 +4990,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "của chúng ta, của chúng tôi, của chúng mình",
     "detailedExplanation": "của chúng ta, của chúng tôi, của chúng mình; của trẫm (vua chúa...); thượng đế; Đức Chúa Giê-xu (đối với người theo đạo Thiên chúa)",
-    "collocations": [
-      "common our",
-      "our in context",
-      "use our"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "in our opinion",
@@ -5783,11 +5010,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "một",
     "detailedExplanation": "một; như thế không thay đổi; (xem) all; kết hôn, lấy nhau",
-    "collocations": [
-      "common one",
-      "one in context",
-      "use one"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "room one",
@@ -5817,11 +5040,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "ngoài, ở ngoài, ra ngoài",
     "detailedExplanation": "ngoài, ở ngoài, ra ngoài; ra; hẳn, hoàn toàn hết; không nắm chính quyền",
-    "collocations": [
-      "common out",
-      "out in context",
-      "use out"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to be out in the rain",
@@ -5851,11 +5070,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "sự dùng; cách dùng",
     "detailedExplanation": "sự dùng; cách dùng; quyền dùng, quyền sử dụng; năng lực sử dụng; thói quen, tập quán",
-    "collocations": [
-      "common use",
-      "use in context",
-      "use use"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to put to use",
@@ -5885,11 +5100,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "một, một (người, vật) nào đó (trong câu hỏi)",
     "detailedExplanation": "một, một (người, vật) nào đó (trong câu hỏi); tuyệt không, không tí nào (ý phủ định); bất cứ (ý khẳng định); một, một người nào đó, một vật nào đó (trong câu hỏi)",
-    "collocations": [
-      "common any",
-      "any in context",
-      "use any"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "have you any book(s)?",
@@ -5919,11 +5130,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "thấy, trông thấy, nhìn thấy; xem, quan sát, xem xét",
     "detailedExplanation": "thấy, trông thấy, nhìn thấy; xem, quan sát, xem xét; xem, đọc (trang báo chí); hiểu rõ, nhận ra; trải qua, từng trải, đã qua",
-    "collocations": [
-      "common see",
-      "see in context",
-      "use see"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "seeing is believing",
@@ -5953,11 +5160,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "của nó, của hắn, của ông ấy, của anh ấy",
     "detailedExplanation": "của nó, của hắn, của ông ấy, của anh ấy; cái của nó, cái của hắn, cái của ông ấy, cái của anh ấy",
-    "collocations": [
-      "common his",
-      "his in context",
-      "use his"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "his hat",
@@ -5982,11 +5185,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "ai, người nào, kẻ nào, người như thế nào",
     "detailedExplanation": "ai, người nào, kẻ nào, người như thế nào; (những) người mà; hắn, họ",
-    "collocations": [
-      "common who",
-      "who in context",
-      "use who"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "who came?",
@@ -6016,11 +5215,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "bây giờ, lúc này, giờ đây, hiện nay, ngày nay",
     "detailedExplanation": "bây giờ, lúc này, giờ đây, hiện nay, ngày nay; ngay bây giờ, ngay tức khắc, lập tức; lúc ấy, lúc đó, lúc bấy giờ (trong lúc kể chuyện); trong tình trạng đó, trong hoàn cảnh ấy, trong tình thế ấy",
-    "collocations": [
-      "common now",
-      "now in context",
-      "use now"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "just (even, but) now",
@@ -6050,11 +5245,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "được, có được, kiếm được, lấy được",
     "detailedExplanation": "được, có được, kiếm được, lấy được; nhận được, xin được, hỏi được; tìm ra, tính ra; mua",
-    "collocations": [
-      "common get",
-      "get in context",
-      "use get"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to get a living",
@@ -6084,11 +5275,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "thế nào, như thế nào; sao, ra sao, làm sao",
     "detailedExplanation": "thế nào, như thế nào; sao, ra sao, làm sao; bao nhiêu; giá bao nhiêu; làm sao, biết bao, xiếc bao, biết bao nhiêu, sao mà... đến thế; rằng, là",
-    "collocations": [
-      "common how",
-      "how in context",
-      "use how"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "he doesn't know how to behave",
@@ -6118,11 +5305,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "của cái đó, của điều đó, của con vật đó",
     "detailedExplanation": "của cái đó, của điều đó, của con vật đó; cái của điều đó, cái của con vật đó",
-    "collocations": [
-      "common its",
-      "its in context",
-      "use its"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'its' in communication.",
@@ -6142,11 +5325,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "con cù, con quay",
     "detailedExplanation": "con cù, con quay; (thân mật) bạn tri kỷ, bạn nối khố; ngủ say; chóp, đỉnh, ngọn, đầu",
-    "collocations": [
-      "common top",
-      "top in context",
-      "use top"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "the top sleeps; the top is asleep",
@@ -6176,11 +5355,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "có",
     "detailedExplanation": "có; (+ from) nhận được, biết được; ăn; uống; hút; hưởng; bị",
-    "collocations": [
-      "common had",
-      "had in context",
-      "use had"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to have nothing to do",
@@ -6210,11 +5385,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "ban ngày",
     "detailedExplanation": "ban ngày; ngày; ngày lễ, ngày kỷ niệm; (số nhiều) thời kỳ, thời đại, thời buổi",
-    "collocations": [
-      "common day",
-      "day in context",
-      "use day"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "the sun gives us light during the day",
@@ -6244,11 +5415,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "hai, đôi",
     "detailedExplanation": "hai, đôi; số hai; đôi, cặp; quân hai (quân bài); con hai (súc sắc...)",
-    "collocations": [
-      "common two",
-      "two in context",
-      "use two"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "he is two",
@@ -6278,11 +5445,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "mua",
     "detailedExplanation": "mua; (nghĩa bóng) trã bằng giá; đạt được, được (cái gì bằng một sự hy sinh nào đó); mua chuộc, đút lót, hối lộ (ai); mua lại (cái gì mình đã bán đi)",
-    "collocations": [
-      "common buy",
-      "buy in context",
-      "use buy"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to buy in coal for the winter",
@@ -6307,11 +5470,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "nó, cô ấy, bà ấy, chị ấy...",
     "detailedExplanation": "nó, cô ấy, bà ấy, chị ấy...; của nó, của cô ấy, của bà ấy, của chị ấy...",
-    "collocations": [
-      "common her",
-      "her in context",
-      "use her"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "give it her",
@@ -6341,11 +5500,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "((thường) + up,  together) cộng",
     "detailedExplanation": "((thường) + up,  together) cộng; thêm vào, làm tăng thêm; nói thêm; (+ in) kế vào, tính vào, gộp vào",
-    "collocations": [
-      "common add",
-      "add in context",
-      "use add"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "add some more hot water to your tea",
@@ -6375,11 +5530,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "tháng giêng (January)",
     "detailedExplanation": "tháng giêng (January); viết tắt; tháng giêng (January)",
-    "collocations": [
-      "common jan",
-      "jan in context",
-      "use jan"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'jan' in communication.",
@@ -6399,11 +5550,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "nó, bà ấy, chị ấy, cô ấy...",
     "detailedExplanation": "nó, bà ấy, chị ấy, cô ấy...; nó (chỉ tàu, xe... đã được nhân cách hoá), tàu ấy, xe ấy; người đàn bà, chị; đàn bà, con gái",
-    "collocations": [
-      "common she",
-      "she in context",
-      "use she"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "she sings beautifully",
@@ -6433,11 +5580,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "giới tính",
     "detailedExplanation": "giới tính; giới đàn ông, giới phụ nữ; vấn đề sinh lý, vấn đề dục tính; (từ Mỹ,nghĩa Mỹ) sự giao cấu",
-    "collocations": [
-      "common sex",
-      "sex in context",
-      "use sex"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "without distinction of age and sex",
@@ -6467,11 +5610,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "bộ",
     "detailedExplanation": "bộ; (toán học) tập hợp; (thể dục,thể thao) ván, xéc (quần vợt...); bọn, đám, đoàn, lũ, giới",
-    "collocations": [
-      "common set",
-      "set in context",
-      "use set"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a set of chair",
@@ -6501,11 +5640,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "bản đồ",
     "detailedExplanation": "bản đồ; (toán học) bản đồ; ảnh tượng; (từ lóng) mặt; (thông tục) không quan trọng",
-    "collocations": [
-      "common map",
-      "map in context",
-      "use map"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to map out one's time",
@@ -6530,11 +5665,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "đường, đường đi, lối đi",
     "detailedExplanation": "đường, đường đi, lối đi; đoạn đường, quãng đường, khoảng cách; phía, phương, hướng, chiều; cách, phương pháp, phương kế, biện pháp",
-    "collocations": [
-      "common way",
-      "way in context",
-      "use way"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "way in",
@@ -6564,11 +5695,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "tắt",
     "detailedExplanation": "tắt; đi, đi rồi; ra khỏi, đứt, rời; xa cách",
-    "collocations": [
-      "common off",
-      "off in context",
-      "use off"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "is the lamp off?",
@@ -6598,11 +5725,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "xe ô tô; xe",
     "detailedExplanation": "xe ô tô; xe; (từ Mỹ,nghĩa Mỹ) toa (xe lửa, xe điện); giỏ khí cầu; (từ Mỹ,nghĩa Mỹ) buồng thang máy",
-    "collocations": [
-      "common car",
-      "car in context",
-      "use car"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to go by car",
@@ -6632,11 +5755,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "của chính mình, của riêng mình",
     "detailedExplanation": "của chính mình, của riêng mình; độc lập cho bản thân mình; tự mình chịu trách nhiệm; với phương tiện của bản thân mình; (xem) man; (thông tục) trả thù",
-    "collocations": [
-      "common own",
-      "own in context",
-      "use own"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "I saw it with my own eyes",
@@ -6666,11 +5785,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "giới hạn",
     "detailedExplanation": "giới hạn; đầu, đầu mút (dây...); đuôi; đáy (thùng...) đoạn cuối; mẩu thừa, mẩu còn lại; sự kết thúc",
-    "collocations": [
-      "common end",
-      "end in context",
-      "use end"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "candle ends",
@@ -6700,11 +5815,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "☕ Đời Sống & Chào Hỏi",
     "meaningVi": "nó, hắn, ông ấy, anh ấy",
     "detailedExplanation": "nó, hắn, ông ấy, anh ấy",
-    "collocations": [
-      "common him",
-      "him in context",
-      "use him"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'him' in communication.",
@@ -6724,11 +5835,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(viết tắt) của general information",
     "detailedExplanation": "(viết tắt) của general information; bản tin (phát cho tất cả sĩ quan các cấp trước khi bước vào chiến dịch)",
-    "collocations": [
-      "common gen",
-      "gen in context",
-      "use gen"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'gen' in communication.",
@@ -6748,11 +5855,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(hoá học) chất gien",
     "detailedExplanation": "(hoá học) chất gien",
-    "collocations": [
-      "common gel",
-      "gel in context",
-      "use gel"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'gel' in communication.",
@@ -6772,11 +5875,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(Amateur Athletic Association) Hội thể thao không chuyên",
     "detailedExplanation": "(Amateur Athletic Association) Hội thể thao không chuyên; (American Automobile Association) Hiệp hội xe hơi Mỹ",
-    "collocations": [
-      "common aaa",
-      "aaa in context",
-      "use aaa"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'aaa' in communication.",
@@ -6796,11 +5895,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "hệ thống điện thoại gọi đường dài cho người thuê bao (subscriber trunk dialling)",
     "detailedExplanation": "hệ thống điện thoại gọi đường dài cho người thuê bao (subscriber trunk dialling)",
-    "collocations": [
-      "common std",
-      "std in context",
-      "use std"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'std' in communication.",
@@ -6820,11 +5915,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "hình thái ghép",
     "detailedExplanation": "hình thái ghép; ba; tripartite; ba bên",
-    "collocations": [
-      "common tri",
-      "tri in context",
-      "use tri"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'tri' in communication.",
@@ -6844,11 +5935,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(từ lóng) bạn",
     "detailedExplanation": "(từ lóng) bạn; ((thường) + up) đánh bạn, kết bạn",
-    "collocations": [
-      "common pal",
-      "pal in context",
-      "use pal"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to pal up with (to) someone",
@@ -6868,11 +5955,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "chiếu",
     "detailedExplanation": "chiếu; thảm chùi chân; (thể dục,thể thao) đệm (cho đồ vật...); miếng vải lót cốc (đĩa...) (cho khỏi nóng hay để trang hoàng)",
-    "collocations": [
-      "common mat",
-      "mat in context",
-      "use mat"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'mat' in communication.",
@@ -6892,11 +5975,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "giũ, trở (cỏ, để phơi khô)",
     "detailedExplanation": "giũ, trở (cỏ, để phơi khô)",
-    "collocations": [
-      "common ted",
-      "ted in context",
-      "use ted"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'ted' in communication.",
@@ -6916,11 +5995,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(như) gymnasium",
     "detailedExplanation": "(như) gymnasium; thể dục",
-    "collocations": [
-      "common gym",
-      "gym in context",
-      "use gym"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'gym' in communication.",
@@ -6940,11 +6015,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "vỏ dà, vỏ thuộc da",
     "detailedExplanation": "vỏ dà, vỏ thuộc da; màu nâu; màu da rám nắng; màu vỏ dà, màu nâu",
-    "collocations": [
-      "common tan",
-      "tan in context",
-      "use tan"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "this leather tans easily",
@@ -6964,11 +6035,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(âm nhạc) nốt cao",
     "detailedExplanation": "(âm nhạc) nốt cao",
-    "collocations": [
-      "common alt",
-      "alt in context",
-      "use alt"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "in alt",
@@ -6988,11 +6055,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(động vật học) ác là",
     "detailedExplanation": "(động vật học) ác là; bánh pa-tê; bánh nướng nhân ngọt; (xem) humble; có dính dáng đến việc ấy, có nhúng tay vào việc ấy",
-    "collocations": [
-      "common pie",
-      "pie in context",
-      "use pie"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "meat pie",
@@ -7022,11 +6085,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "Mạng lưới phát thanh Columbia (Columbia Broadcasting System)",
     "detailedExplanation": "Mạng lưới phát thanh Columbia (Columbia Broadcasting System)",
-    "collocations": [
-      "common cbs",
-      "cbs in context",
-      "use cbs"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'cbs' in communication.",
@@ -7046,11 +6105,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "cái cung",
     "detailedExplanation": "cái cung; vĩ (viôlông); cầu vồng; cái nơ con bướm",
-    "collocations": [
-      "common bow",
-      "bow in context",
-      "use bow"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "ro draw (bend) the bow",
@@ -7080,11 +6135,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "ngài, tướng công (tiếng tôn xưng đối với các tước công trở xuống, các nhân vật cao cấp ở Mỹ, các đại biểu hạ nghị viện Anh trong các cuộc họp...) vt của honourable",
     "detailedExplanation": "ngài, tướng công (tiếng tôn xưng đối với các tước công trở xuống, các nhân vật cao cấp ở Mỹ, các đại biểu hạ nghị viện Anh trong các cuộc họp...) vt của honourable",
-    "collocations": [
-      "common hon",
-      "hon in context",
-      "use hon"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'hon' in communication.",
@@ -7104,11 +6155,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "atmosphere",
     "detailedExplanation": "atmosphere; viết tắt; atmosphere",
-    "collocations": [
-      "common atm",
-      "atm in context",
-      "use atm"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'atm' in communication.",
@@ -7128,11 +6175,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "lái (tàu, thuyền)",
     "detailedExplanation": "lái (tàu, thuyền)",
-    "collocations": [
-      "common cox",
-      "cox in context",
-      "use cox"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'cox' in communication.",
@@ -7152,11 +6195,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "người tù",
     "detailedExplanation": "người tù; viết tắt của convict",
-    "collocations": [
-      "common vic",
-      "vic in context",
-      "use vic"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'vic' in communication.",
@@ -7176,11 +6215,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "xe tắc xi; xe ngựa thuê",
     "detailedExplanation": "xe tắc xi; xe ngựa thuê; (ngành đường sắt) buồng lái; cabin, buồng lái (ở xe vận tải); đi xe tắc xi; đi xe ngựa thuê",
-    "collocations": [
-      "common cab",
-      "cab in context",
-      "use cab"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'cab' in communication.",
@@ -7200,11 +6235,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(động vật học) vật mẹ",
     "detailedExplanation": "(động vật học) vật mẹ; ma quỷ; đập (ngăn nước); nước ngăn lại, bể nước",
-    "collocations": [
-      "common dam",
-      "dam in context",
-      "use dam"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to dam up one's emotion",
@@ -7224,11 +6255,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(từ Mỹ,nghĩa Mỹ) bít tất",
     "detailedExplanation": "(từ Mỹ,nghĩa Mỹ) bít tất",
-    "collocations": [
-      "common sox",
-      "sox in context",
-      "use sox"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'sox' in communication.",
@@ -7248,11 +6275,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "chậu, bồn",
     "detailedExplanation": "chậu, bồn; (thông tục) bồn tắm; sự tắm rửa; (ngành mỏ) goòng (chở than); (hàng hải) xuồng tập (để tập lái)",
-    "collocations": [
-      "common tub",
-      "tub in context",
-      "use tub"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'tub' in communication.",
@@ -7272,11 +6295,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "((thường) số nhiều) tro; tàn (thuốc lá)",
     "detailedExplanation": "((thường) số nhiều) tro; tàn (thuốc lá); (số nhiều) tro hoả táng; đốt ra tro, đốt sạch; tiêu tan, tan thành mây khói (hy vọng...)",
-    "collocations": [
-      "common ash",
-      "ash in context",
-      "use ash"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to reduce (burn) something to ashes",
@@ -7296,11 +6315,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "vòi (nước)",
     "detailedExplanation": "vòi (nước); nút thùng rượu; loại, hạng (rượu); quán rượu, tiệm rượu",
-    "collocations": [
-      "common tap",
-      "tap in context",
-      "use tap"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to turn the tap on",
@@ -7330,11 +6345,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(động vật học) con ong",
     "detailedExplanation": "(động vật học) con ong; nhà thơ; người bận nhiều việc; (từ Mỹ,nghĩa Mỹ) buổi vui chơi tập thể, buổi lao động tập thể",
-    "collocations": [
-      "common bee",
-      "bee in context",
-      "use bee"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to keep bees",
@@ -7354,11 +6365,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "cử nhân quản trị kinh doanh (Master of Business  Administration)",
     "detailedExplanation": "cử nhân quản trị kinh doanh (Master of Business  Administration)",
-    "collocations": [
-      "common mba",
-      "mba in context",
-      "use mba"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'mba' in communication.",
@@ -7378,11 +6385,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "hồ",
     "detailedExplanation": "hồ; hầm khai thác, nơi khai thác; hầm bẫy, hố bẫy (thú rừng...) ((cũng) pifall); (như) cockpit",
-    "collocations": [
-      "common pit",
-      "pit in context",
-      "use pit"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to dig a pit for someone",
@@ -7412,11 +6415,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(từ lóng) đồng nửa xu (Anh)",
     "detailedExplanation": "(từ lóng) đồng nửa xu (Anh); (viết tắt) của magneto",
-    "collocations": [
-      "common mag",
-      "mag in context",
-      "use mag"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'mag' in communication.",
@@ -7436,11 +6435,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "sân chơi (recreation ground)",
     "detailedExplanation": "sân chơi (recreation ground); viết tắt; sân chơi (recreation ground)",
-    "collocations": [
-      "common rec",
-      "rec in context",
-      "use rec"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'rec' in communication.",
@@ -7460,11 +6455,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "tấn",
     "detailedExplanation": "tấn; ton (đơn vị dung tích tàu bè bằng 2, 831 m3); ton (đơn vị trọng tải của tàu bè bằng 1, 12 m3); (thông tục) rất nhiều",
-    "collocations": [
-      "common ton",
-      "ton in context",
-      "use ton"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "long ton; gross ton",
@@ -7494,11 +6485,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "Một khuôn thức tệp đồ họa màu ánh xạ bit dùng cho máy tính loại tương thích-IBM",
     "detailedExplanation": "Một khuôn thức tệp đồ họa màu ánh xạ bit dùng cho máy tính loại tương thích-IBM",
-    "collocations": [
-      "common gif",
-      "gif in context",
-      "use gif"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'gif' in communication.",
@@ -7518,11 +6505,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(thông tục) ((viết tắt) của brassière) cái nịt vú, cái yếm",
     "detailedExplanation": "(thông tục) ((viết tắt) của brassière) cái nịt vú, cái yếm",
-    "collocations": [
-      "common bra",
-      "bra in context",
-      "use bra"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'bra' in communication.",
@@ -7542,11 +6525,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "Fi (chữ cái Hy lạp)",
     "detailedExplanation": "Fi (chữ cái Hy lạp)",
-    "collocations": [
-      "common phi",
-      "phi in context",
-      "use phi"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'phi' in communication.",
@@ -7566,11 +6545,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "bò cái",
     "detailedExplanation": "bò cái; voi cái; tê giác cái; cá voi cái; chó biển cái; (từ Mỹ,nghĩa Mỹ),  (từ lóng) đàn bà con gái; mãi mãi, lâu dài, vô tận",
-    "collocations": [
-      "common cow",
-      "cow in context",
-      "use cow"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "to milk the cow",
@@ -7600,11 +6575,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "Giờ Trung Âu (Central European Time)",
     "detailedExplanation": "Giờ Trung Âu (Central European Time)",
-    "collocations": [
-      "common cet",
-      "cet in context",
-      "use cet"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'cet' in communication.",
@@ -7624,11 +6595,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "ác ma (thần thoại Ba-tư)",
     "detailedExplanation": "ác ma (thần thoại Ba-tư)",
-    "collocations": [
-      "common div",
-      "div in context",
-      "use div"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'div' in communication.",
@@ -7648,11 +6615,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(động vật học) cá chép đỏ",
     "detailedExplanation": "(động vật học) cá chép đỏ",
-    "collocations": [
-      "common ide",
-      "ide in context",
-      "use ide"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'ide' in communication.",
@@ -7672,11 +6635,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "(thiên văn học) cung Sư t",
     "detailedExplanation": "(thiên văn học) cung Sư t",
-    "collocations": [
-      "common leo",
-      "leo in context",
-      "use leo"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'leo' in communication.",
@@ -7696,11 +6655,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "tự tay mình làm (Do It Yourself)",
     "detailedExplanation": "tự tay mình làm (Do It Yourself)",
-    "collocations": [
-      "common diy",
-      "diy in context",
-      "use diy"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'diy' in communication.",
@@ -7720,11 +6675,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🎓 Từ Vựng VSTEP",
     "meaningVi": "hươu cái, hoãng cái; nai cái",
     "detailedExplanation": "hươu cái, hoãng cái; nai cái; thỏ cái; thỏ rừng cái",
-    "collocations": [
-      "common doe",
-      "doe in context",
-      "use doe"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'doe' in communication.",
@@ -7744,11 +6695,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🏗️ IT: Kiến Trúc",
     "meaningVi": "mây, đám mây",
     "detailedExplanation": "mây, đám mây; đám (khói, bụi); đàn, đoàn, bầy (ruồi, muỗi đang bay, ngựa đang phi...); (nghĩa bóng) bóng mây, bóng đen; sự buồn rầu; điều bất hạnh",
-    "collocations": [
-      "common cloud",
-      "cloud in context",
-      "use cloud"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a cloud of dust",
@@ -7778,11 +6725,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🏗️ IT: Kiến Trúc",
     "meaningVi": "sự uỷ nhiệm, sự uỷ quyền",
     "detailedExplanation": "sự uỷ nhiệm, sự uỷ quyền; người đại diện, người thay mặt, người được uỷ nhiệm (làm thay việc gì); giấy uỷ nhiệm bầu thay; sự bầu thay; (định ngữ) do uỷ nhiệm, do uỷ quyền",
-    "collocations": [
-      "common proxy",
-      "proxy in context",
-      "use proxy"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "by proxy",
@@ -7807,11 +6750,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🏗️ IT: Kiến Trúc",
     "meaningVi": "người hầu; người hầu bàn",
     "detailedExplanation": "người hầu; người hầu bàn; khay bưng thức ăn; (thể dục,thể thao) người giao bóng (quần vợt...); người phụ lễ",
-    "collocations": [
-      "common server",
-      "server in context",
-      "use server"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'server' in communication.",
@@ -7831,11 +6770,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🏗️ IT: Kiến Trúc",
     "meaningVi": "lưới, đồ dùng kiểu lưới",
     "detailedExplanation": "lưới, đồ dùng kiểu lưới; mạng lưới, hệ thống; (kỹ thuật) hệ thống mắc cáo; (raddiô) mạng lưới truyền thanh",
-    "collocations": [
-      "common network",
-      "network in context",
-      "use network"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a network purse",
@@ -7865,11 +6800,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🏗️ IT: Kiến Trúc",
     "meaningVi": "đám, bó, cụm; đàn, bầy",
     "detailedExplanation": "đám, bó, cụm; đàn, bầy; mọc thành đám, mọc thành cụm (cây cối); ra thành cụm (hoa quả); tụ họp lại, tụm lại; thu gộp, góp lại, hợp lại, bó lại",
-    "collocations": [
-      "common cluster",
-      "cluster in context",
-      "use cluster"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "a cluster of people",
@@ -7899,11 +6830,7 @@ export const ENCYCLOPEDIA_DATA: EncyclopediaEntry[] = [
     "categoryLabel": "🏗️ IT: Kiến Trúc",
     "meaningVi": "Một hệ thống các mạng máy tính được liên kết với nhau trên phạm vi toàn thế giới",
     "detailedExplanation": "Một hệ thống các mạng máy tính được liên kết với nhau trên phạm vi toàn thế giới",
-    "collocations": [
-      "common internet",
-      "internet in context",
-      "use internet"
-    ],
+    "collocations": [],
     "exampleSentences": [
       {
         "en": "We often encounter 'internet' in communication.",

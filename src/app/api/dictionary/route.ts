@@ -3,6 +3,7 @@ import { ENCYCLOPEDIA_DATA } from '@/lib/data/encyclopedia';
 import { crawlCambridgeDictionary } from '@/lib/cambridgeCrawler';
 import { translateWordWithAI, isSingleWordOrTerm } from '@/lib/groqTranslator';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import { cleanCollocations } from '@/lib/collocations';
 
 export async function GET(request: Request) {
   try {
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
           categoryLabel: '⚡ AI Dịch Thuật Thông Minh (Groq LPU)',
           meaningVi: aiData.meaningVi,
           detailedExplanation: aiData.detailedExplanation,
-          collocations: aiData.collocations,
+          collocations: cleanCollocations(clean, aiData.collocations),
           exampleSentences: aiData.exampleSentences,
           proTips: aiData.proTips,
           synonyms: aiData.synonyms,
@@ -81,7 +82,10 @@ export async function GET(request: Request) {
         categoryLabel: '🏛️ Cambridge English-Vietnamese (Crawled)',
         meaningVi: primarySense.viTrans,
         detailedExplanation: primarySense.enDef,
-        collocations: [`${clean} in communication`, `standard usage of ${clean}`],
+        // Không tự sinh collocations từ tên từ: "X in communication" /
+        // "standard usage of X" là placeholder, không mang thông tin và làm mất
+        // uy tín từ điển. Lọc thêm cả placeholder do template import sinh ra.
+        collocations: cleanCollocations(clean, (cambridgeData as { collocations?: unknown }).collocations),
         exampleSentences: primarySense.examples.map((eg) => ({
           en: eg,
           vi: 'Ví dụ chính thức trích xuất từ Cambridge Dictionary',
@@ -115,7 +119,7 @@ export async function GET(request: Request) {
         categoryLabel: '⚡ AI Dịch Thuật Thông Minh (Groq LPU)',
         meaningVi: aiData.meaningVi,
         detailedExplanation: aiData.detailedExplanation,
-        collocations: aiData.collocations,
+        collocations: cleanCollocations(clean, aiData.collocations),
         exampleSentences: aiData.exampleSentences,
         proTips: aiData.proTips,
         synonyms: aiData.synonyms,

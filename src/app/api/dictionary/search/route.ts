@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import { cleanCollocations } from '@/lib/collocations';
 
 export async function GET(request: Request) {
   try {
@@ -97,7 +98,12 @@ export async function GET(request: Request) {
         categoryLabel: r.categoryLabel,
         meaningVi: r.meaningVi,
         detailedExplanation: r.detailedExplanation,
-        collocations: collocations.length > 0 ? collocations : [`${r.word} in context`],
+        // KHÔNG tự sinh placeholder khi rỗng. Trước đây fallback `["<word> in
+        // context"]` khiến MỌI từ trong từ điển (26.416 mục) hiện một chip vô
+        // nghĩa; UI đã ẩn khối collocations khi mảng rỗng nên để rỗng là đúng.
+        // `cleanCollocations` lọc phòng thủ để dữ liệu cũ (đã nạp trước, hoặc
+        // được khôi phục lại từ S3) cũng không còn chip rác.
+        collocations: cleanCollocations(r.word, collocations),
         exampleSentences: examples.map((eg: any) => ({
           en: eg.en,
           vi: eg.vi,

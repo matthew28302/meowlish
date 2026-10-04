@@ -276,7 +276,11 @@ for (const w of words20k) {
         { en: `We often encounter '${w}' in communication.`, vi: `Chúng ta thường gặp từ '${w}' trong giao tiếp.` }
       ],
       audioUrl: `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(w)}&type=2`,
-      collocations: [`common ${w}`, `${w} in context`, `use ${w}`]
+      // KHÔNG sinh collocations từ template: `common X` / `X in context` /
+      // `use X` là placeholder vô nghĩa (hiển thị dính chữ trong UI và làm mất
+      // uy tín từ điển). Nguồn Cambridge không có collocations nên để rỗng —
+      // UI đã ẩn khi rỗng.
+      collocations: []
     });
   }
 }
@@ -306,7 +310,8 @@ for (const [w, raw] of dictMap.entries()) {
         { en: `We often encounter '${w}' in communication.`, vi: `Chúng ta thường gặp từ '${w}' trong giao tiếp.` }
       ],
       audioUrl: `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(w)}&type=2`,
-      collocations: [`common ${w}`, `${w} in context`]
+      // Xem giải thích ở khối trên: không sinh collocations từ template.
+      collocations: []
     });
   }
 }
