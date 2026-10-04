@@ -145,31 +145,44 @@ export default function GrammarPage() {
   };
 
   return (
-    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 lg:pb-8 flex flex-col lg:h-full space-y-6 lg:overflow-y-auto custom-scrollbar overflow-x-hidden">
-      {/* Header Banner */}
-      <div className="shrink-0 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
+    // `overflow-x-clip` thay vì `overflow-x-hidden`: hidden làm `overflow-y:
+    // visible` tự tính thành `auto` (spec CSS) => root trở thành scroll
+    // container, cộng `overscroll-behavior-y: contain` của .custom-scrollbar chặn
+    // scroll chaining, nên mobile KHÔNG cuộn được dù nội dung dài 6967px.
+    // `clip` không kích hoạt quy tắc đó và vẫn cắt tràn ngang.
+    //
+    // KHÔNG còn `lg:h-full lg:overflow-y-auto` ở đây: root từng là scroll
+    // container thứ 2 lồng trong <main> của AppShell → 3 tầng cuộn (main +
+    // grid + 2 cột), và vì root bị co về `h-full` nên <main> không còn gì để
+    // cuộn => wheel/touch trên desktop làm trang ĐỨNG YÊN. Nay root cao theo
+    // nội dung (`shrink-0`) để <main> (AppShell) là nơi duy nhất cuộn trang.
+    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 lg:pb-8 flex flex-col shrink-0 space-y-5 overflow-x-clip">
+      {/* Header Banner — rút gọn chiều cao (mục tiêu <= 140px @1440) nhưng GIỮ NGUYÊN cả 2 hành động. */}
+      <div className="shrink-0 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-3xl p-4 sm:p-5 text-white shadow-lg relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-white/10 to-transparent pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold dark:bg-slate-900/20">
-              <BookOpen className="w-3.5 h-3.5 text-amber-300" /> Ngữ Pháp Lego Trực Quan & Giới Từ Thực Chiến
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+          <div className="min-w-0 space-y-1.5">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-bold dark:bg-slate-900/20">
+              <BookOpen className="w-3.5 h-3.5 text-amber-300 shrink-0" /> Ngữ Pháp Lego Trực Quan & Giới Từ Thực Chiến
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight leading-tight">
               Học Ngữ Pháp Giao Tiếp Không Buồn Ngủ
             </h1>
-            <p className="text-emerald-100 text-xs sm:text-sm max-w-2xl leading-relaxed">
-              Khám phá cấu trúc câu qua các khối màu Lego trực quan, công tắc chuyển thì động, và cẩm nang Kim Tự Tháp Giới Từ In - On - At chuyên sâu cho IT & công sở.
+            <p className="text-emerald-100 text-xs max-w-2xl leading-snug">
+              Cấu trúc câu bằng khối Lego trực quan, công thức chuyển thì và cẩm nang giới từ In-On-At cho IT & công sở.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+          {/* 2 hành động: nút mở Cẩm Nang + chip gợi ý bôi đen. Xếp DỌC ở lg để
+              nhường chiều ngang cho tiêu đề (1 dòng) — giữ nguyên nội dung. */}
+          <div className="flex flex-col items-stretch gap-2 shrink-0 w-full sm:w-auto md:w-auto">
             {/* Action button to open Preposition Master Pyramid */}
             <button
               onClick={() => {
                 sound.playClick();
                 setShowPrepositionGuide(true);
               }}
-              className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-4 py-3 rounded-2xl shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center justify-center gap-2 text-xs uppercase tracking-wider"
+              className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-4 py-2.5 min-h-[44px] rounded-2xl shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center justify-center gap-2 text-xs uppercase tracking-wider"
             >
               <span className="text-base">🔺</span> Cẩm Nang Giới Từ In-On-At
               <span className="bg-rose-500 text-white text-[12px] leading-tight font-black px-2 py-0.5 min-h-[24px] inline-flex items-center rounded-full ml-1 animate-pulse">
@@ -177,15 +190,17 @@ export default function GrammarPage() {
               </span>
             </button>
 
-            <div className="bg-white/10 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 text-[12px] text-center font-medium dark:bg-slate-900/10">
+            <div className="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/20 text-[12px] text-center font-medium dark:bg-slate-900/10">
               💡 Bôi đen bất kỳ từ nào để tra nghĩa & phát âm!
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main layout: Sidebar Lesson Selector + Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:flex-1 lg:min-h-0 lg:overflow-y-auto pb-6">
+      {/* Main layout: Sidebar Lesson Selector + Main Content
+          KHÔNG có `lg:overflow-y-auto` ở đây: grid không còn là scroll container
+          thứ 2, nội dung bài học chảy theo trang (cuộn 1 chỗ duy nhất: <main>). */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-6">
         {/* Mobile Active Lesson Bar & Dropdown Toggle */}
         <div className="lg:hidden bg-white dark:bg-slate-900 border-2 border-emerald-500/40 rounded-2xl p-3.5 shadow-sm space-y-2.5">
           <div className="flex items-center justify-between gap-3">
@@ -212,7 +227,7 @@ export default function GrammarPage() {
                 sound.playClick();
                 setIsMobileListOpen(!isMobileListOpen);
               }}
-              className="shrink-0 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-xs active:scale-95 transition cursor-pointer"
+              className="shrink-0 px-3.5 py-2 min-h-[44px] min-w-[44px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition cursor-pointer"
             >
               <span>{isMobileListOpen ? 'Thu gọn' : 'Đổi bài'}</span>
               {isMobileListOpen ? (
@@ -229,9 +244,16 @@ export default function GrammarPage() {
           )}
         </div>
 
-        {/* Lesson List Sidebar (Hidden by default on mobile unless toggled open) */}
+        {/* Lesson List Sidebar (Hidden by default on mobile unless toggled open)
+            `lg:self-start` là BẮT BUỘC cho sticky: grid item mặc định `stretch`
+            sẽ bị kéo cao bằng cột nội dung (4202px) => sticky vô hiệu.
+            `lg:max-h-[calc(100dvh-6rem)]` giới hạn chiều cao rail theo scrollport
+            thật của <main> (100dvh − header 64px − 16px top − 16px bottom; nếu
+            dùng -2rem thì rail dài hơn scrollport 33px và bài cuối bị khuất),
+            DANH SÁCH bên trong tự cuộn — nên người dùng luôn nhìn thấy bộ lọc +
+            danh sách, không bị bóp còn 6%. */}
         <div
-          className={`lg:col-span-4 flex-col lg:h-full lg:min-h-0 space-y-3 ${
+          className={`lg:col-span-4 self-start flex-col space-y-3 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-6rem)] ${
             isMobileListOpen ? 'flex' : 'hidden lg:flex'
           }`}
         >
@@ -300,8 +322,12 @@ export default function GrammarPage() {
             </div>
           </div>
 
-          {/* Lessons List */}
-          <div className="lg:flex-1 lg:overflow-y-auto space-y-2 lg:pr-1 pb-6 custom-scrollbar">
+          {/* Lessons List — nguồn cuộn thứ 2 (duy nhất) và CHỈ ở lg.
+              KHÔNG dùng `.custom-scrollbar` ở đây: class đó kèm
+              `overscroll-behavior-y: contain` sẽ chặn scroll chaining, kéo tới
+              đáy danh sách là trang đứng yên (đúng triệu chứng "kéo chỉ hiện
+              1 phần nhỏ"). `overflow-y-auto` trần giữ scroll chaining về <main>. */}
+          <div className="space-y-2 pb-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
             {filteredLessons.length === 0 ? (
               <div className="text-center py-10 px-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <div className="text-3xl mb-2">🔍</div>
@@ -368,8 +394,10 @@ export default function GrammarPage() {
           </div>
         </div>
 
-        {/* Selected Lesson Content */}
-        <div className="lg:col-span-8 lg:overflow-y-auto lg:h-full lg:pr-2 space-y-6 pb-6">
+        {/* Selected Lesson Content — bỏ `lg:overflow-y-auto lg:h-full`: cột này cao
+            4202px nên bị nhốt trong khung 487px (chỉ thấy 12%). Nay cao theo nội
+            dung và trôi theo trang; cuộn 1 chỗ duy nhất là <main> của AppShell. */}
+        <div className="lg:col-span-8 space-y-6 pb-6">
           {/* Section 1: Lego Grammar Blocks */}
           <div className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -447,8 +475,9 @@ export default function GrammarPage() {
                             sound.playClick();
                             speakText(block.word);
                           }}
-                          className="opacity-70 hover:opacity-100 p-0.5 rounded cursor-pointer"
+                          className="tap-target opacity-70 hover:opacity-100 p-0.5 rounded cursor-pointer"
                           title="Nghe phát âm khối này"
+                          aria-label={`Nghe phát âm khối ${block.word}`}
                         >
                           <Volume2 className="w-3.5 h-3.5" />
                         </button>
@@ -689,8 +718,9 @@ export default function GrammarPage() {
                           sound.playClick();
                           speakText(item.text);
                         }}
-                        className="text-slate-400 hover:text-emerald-500 cursor-pointer transition p-1"
+                        className="tap-target text-slate-400 hover:text-emerald-500 cursor-pointer transition p-1"
                         title="Nghe phát âm"
+                        aria-label={`Nghe phát âm ${item.text}`}
                       >
                         <Volume2 className="w-3.5 h-3.5" />
                       </button>
@@ -910,12 +940,21 @@ export default function GrammarPage() {
                             key={oIdx}
                             disabled={isSubmitted}
                             onClick={() => handleAnswerQuiz(qIdx, oIdx)}
-                            className={`p-3 rounded-xl border-2 text-xs text-left transition cursor-pointer ${btnStyle}`}
+                            // Đáp án 1 dòng = 44px, 2 dòng = 49px (mục tiêu ~48):
+                            // `py-1.5` + `min-h-[44px]` + `items-center` (bọc trong
+                            // 1 span để chữ vẫn xuống dòng tự nhiên nhưng canh
+                            // giữa theo chiều cao). Trước đây `p-3` khiến nút
+                            // 60px cho đáp án ngắn — thấy "đeo", khó bấm đúng ý.
+                            // `break-words` + không set height cứng => đáp án dài
+                            // 3 dòng KHÔNG bị cắt chữ.
+                            className={`flex items-center py-1.5 px-3 min-h-[44px] rounded-xl border-2 text-xs text-left leading-snug break-words transition cursor-pointer ${btnStyle}`}
                           >
-                            <span className="font-mono mr-1.5 opacity-60 font-bold">
-                              {String.fromCharCode(65 + oIdx)}.
+                            <span className="min-w-0">
+                              <span className="font-mono mr-1.5 opacity-60 font-bold">
+                                {String.fromCharCode(65 + oIdx)}.
+                              </span>
+                              {opt}
                             </span>
-                            {opt}
                           </button>
                         );
                       })}
