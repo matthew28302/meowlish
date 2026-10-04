@@ -2015,12 +2015,25 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                 handlePerformMapAction('swing');
               }}
               style={{ left: '88%', top: '22%', zIndex: EMERALD_FEET_Z.oak }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform transition-transform ${isSwinging ? 'animate-bounce' : 'hover:scale-105'}`}
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform transition-transform hover:scale-105"
               title="Cây đại thụ + Xích đu gỗ - Bấm để Bé ngồi xích đu đung đưa!"
             >
               <GrandOakTreeSVG scale={scaleObj(1.40)} />
               {isSwinging && (
-                <div className="absolute top-[62%] left-1/2 -translate-x-1/2 text-sm animate-bounce pointer-events-none">🍎🍎</div>
+                <>
+                  {/* Ghế xích đu đung đưa (con lắc) — cây đứng yên, chỉ ghế + Bé chuyển động */}
+                  <div
+                    className="absolute pointer-events-none"
+                    style={{ left: '19.5%', top: '36%', width: '13%', height: '36%' }}
+                  >
+                    <div className="animate-swing-pendulum relative w-full h-full">
+                      <div className="absolute top-0 left-[15%] w-[2px] h-[94%] bg-amber-900/80" />
+                      <div className="absolute top-0 right-[15%] w-[2px] h-[94%] bg-amber-900/80" />
+                      <div className="absolute bottom-0 left-0 right-0 h-[10%] min-h-[3px] rounded bg-amber-800 border border-amber-950" />
+                    </div>
+                  </div>
+                  <div className="absolute top-[62%] left-1/2 -translate-x-1/2 text-sm animate-bounce pointer-events-none">🍎🍎</div>
+                </>
               )}
             </div>
 

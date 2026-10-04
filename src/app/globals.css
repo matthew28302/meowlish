@@ -1089,3 +1089,13 @@ textarea,
   scrollbar-color: #334155 #0f172a;
 }
 
+/* Garden swing pendulum — tree stays rooted, only the seat swings */
+@keyframes swing-pendulum {
+  0%, 100% { transform: rotate(10deg); }
+  50% { transform: rotate(-10deg); }
+}
+.animate-swing-pendulum {
+  transform-origin: top center;
+  animation: swing-pendulum 0.9s ease-in-out infinite;
+}
+
