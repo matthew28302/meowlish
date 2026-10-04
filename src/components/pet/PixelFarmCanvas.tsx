@@ -647,84 +647,100 @@ export default function PixelFarmCanvas({
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
 
-      // --- LAYER 1: SKY, SUN, DISTANT HILLS ---
-      // Morning Sky Gradient
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, 180);
-      skyGrad.addColorStop(0, '#7dd3fc');
-      skyGrad.addColorStop(0.6, '#bae6fd');
-      skyGrad.addColorStop(1, '#e0f2fe');
+      // --- LAYER 1: BẦU TRỜI SỚM MAI DỊU MẮT + ĐỒI XA CÓ CHIỀU SÂU ---
+      // Trời chuyển tông nhạt dần về chân trời (tạo phối cảnh xa)
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, 182);
+      skyGrad.addColorStop(0, '#8ecae6');
+      skyGrad.addColorStop(0.55, '#cdeffd');
+      skyGrad.addColorStop(1, '#fdf6e3');
       ctx.fillStyle = skyGrad;
-      ctx.fillRect(0, 0, canvasWidth, 180);
+      ctx.fillRect(0, 0, canvasWidth, 182);
 
-      // Warm Golden Sun
-      ctx.fillStyle = '#fef08a';
+      // Ông mặt trời ấm áp + quầng sáng mềm
+      ctx.fillStyle = 'rgba(255, 230, 109, 0.28)';
       ctx.beginPath();
-      ctx.arc(canvasWidth - 90, 45, 28, 0, Math.PI * 2);
+      ctx.arc(canvasWidth - 92, 46, 46, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = 'rgba(254, 240, 138, 0.3)';
+      ctx.fillStyle = 'rgba(255, 236, 150, 0.5)';
       ctx.beginPath();
-      ctx.arc(canvasWidth - 90, 45, 42, 0, Math.PI * 2);
+      ctx.arc(canvasWidth - 92, 46, 35, 0, Math.PI * 2);
       ctx.fill();
-
-      // Soft Floating Clouds
-      drawPuffyCloud(ctx, 120 + ((frame * 0.15) % (canvasWidth + 200)) - 100, 40, 0.9);
-      drawPuffyCloud(ctx, 420 + ((frame * 0.1) % (canvasWidth + 200)) - 100, 30, 0.75);
-      drawPuffyCloud(ctx, 650 + ((frame * 0.12) % (canvasWidth + 200)) - 100, 55, 0.85);
-
-      // Distant Rolling Mountain Hills
-      ctx.fillStyle = '#86efac';
+      ctx.fillStyle = '#ffe66d';
       ctx.beginPath();
-      ctx.moveTo(0, 180);
-      ctx.quadraticCurveTo(180, 110, 360, 150);
-      ctx.quadraticCurveTo(580, 100, canvasWidth, 170);
-      ctx.lineTo(canvasWidth, 180);
-      ctx.lineTo(0, 180);
-      ctx.closePath();
+      ctx.arc(canvasWidth - 92, 46, 26, 0, Math.PI * 2);
       ctx.fill();
-
-      // Midground Green Hills with Tree Silhouettes
-      ctx.fillStyle = '#4ade80';
-      ctx.beginPath();
-      ctx.moveTo(0, 180);
-      ctx.quadraticCurveTo(240, 135, 520, 175);
-      ctx.quadraticCurveTo(720, 140, canvasWidth, 180);
-      ctx.lineTo(canvasWidth, 180);
-      ctx.lineTo(0, 180);
-      ctx.closePath();
-      ctx.fill();
-
-      // Distant Trees on Hilltops
-      for (let tx = 40; tx < canvasWidth; tx += 65) {
-        ctx.fillStyle = '#22c55e';
+      // Tia nắng nhẹ
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+      ctx.lineWidth = 2;
+      for (let r = 0; r < 8; r++) {
+        const a = (r / 8) * Math.PI * 2 + frame * 0.002;
         ctx.beginPath();
-        ctx.arc(tx, 145 + Math.sin(tx * 0.05) * 10, 10, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.moveTo(canvasWidth - 92 + Math.cos(a) * 32, 46 + Math.sin(a) * 32);
+        ctx.lineTo(canvasWidth - 92 + Math.cos(a) * 38, 46 + Math.sin(a) * 38);
+        ctx.stroke();
       }
 
-      // --- LAYER 2: LUSH EMERALD PASTURE GROUND ---
+      // Mây trắng trôi chậm, có bóng mềm bên dưới
+      drawFarmCloud(ctx, 120 + ((frame * 0.12) % (canvasWidth + 220)) - 110, 42, 0.95);
+      drawFarmCloud(ctx, 430 + ((frame * 0.08) % (canvasWidth + 220)) - 110, 30, 0.7);
+      drawFarmCloud(ctx, 660 + ((frame * 0.1) % (canvasWidth + 220)) - 110, 58, 0.85);
+
+      // Dãy núi xa (nhạt) + đồi gần (đậm hơn) → chiều sâu 2.5D
+      ctx.fillStyle = '#b8e6c3';
+      ctx.beginPath();
+      ctx.moveTo(0, 182);
+      ctx.quadraticCurveTo(150, 118, 330, 152);
+      ctx.quadraticCurveTo(560, 108, canvasWidth, 168);
+      ctx.lineTo(canvasWidth, 182);
+      ctx.lineTo(0, 182);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#8fd8a8';
+      ctx.beginPath();
+      ctx.moveTo(0, 182);
+      ctx.quadraticCurveTo(230, 138, 510, 172);
+      ctx.quadraticCurveTo(710, 142, canvasWidth, 182);
+      ctx.lineTo(canvasWidth, 182);
+      ctx.lineTo(0, 182);
+      ctx.closePath();
+      ctx.fill();
+
+      // Hàng cây xa mờ trên chân đồi
+      for (let tx = 30; tx < canvasWidth; tx += 58) {
+        const ty = 158 + Math.sin(tx * 0.05) * 7;
+        ctx.fillStyle = 'rgba(46, 125, 75, 0.55)';
+        ctx.beginPath();
+        ctx.arc(tx, ty, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(46, 125, 75, 0.35)';
+        ctx.fillRect(tx - 1.5, ty + 6, 3, 8);
+      }
+
+      // --- LAYER 2: ĐỒNG CỎ CHUYỂN TÔNG THEO CHIỀU DỌC (xa sáng → gần đậm) ---
       const grassGrad = ctx.createLinearGradient(0, 170, 0, canvasHeight);
-      grassGrad.addColorStop(0, '#52a42b');
-      grassGrad.addColorStop(0.3, '#62b534');
-      grassGrad.addColorStop(0.7, '#489624');
-      grassGrad.addColorStop(1, '#347218');
+      grassGrad.addColorStop(0, '#a8e063');
+      grassGrad.addColorStop(0.35, '#83cc5e');
+      grassGrad.addColorStop(0.7, '#5cae4e');
+      grassGrad.addColorStop(1, '#478f3e');
       ctx.fillStyle = grassGrad;
       ctx.fillRect(0, 170, canvasWidth, canvasHeight - 170);
 
       // --- 2.5D: ĐỘ SÂU CỦA NỀN ĐẤT ---
       // Sương mù chân trời (horizon haze) tạo không khí xa
       const hazeGrad = ctx.createLinearGradient(0, 168, 0, 250);
-      hazeGrad.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+      hazeGrad.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
       hazeGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
       ctx.fillStyle = hazeGrad;
       ctx.fillRect(0, 168, canvasWidth, 84);
 
       // Các dải cỏ theo chiều sâu: xa thì sáng, gần thì tối dần (mô phỏng phối cảnh)
       const depthBands = [
-        { y: 238, color: 'rgba(11, 62, 20, 0.05)' },
-        { y: 296, color: 'rgba(11, 62, 20, 0.08)' },
-        { y: 354, color: 'rgba(11, 62, 20, 0.12)' },
-        { y: 412, color: 'rgba(11, 62, 20, 0.16)' },
-        { y: 470, color: 'rgba(11, 62, 20, 0.22)' },
+        { y: 238, color: 'rgba(27, 77, 32, 0.05)' },
+        { y: 296, color: 'rgba(27, 77, 32, 0.08)' },
+        { y: 354, color: 'rgba(27, 77, 32, 0.11)' },
+        { y: 412, color: 'rgba(27, 77, 32, 0.15)' },
+        { y: 470, color: 'rgba(27, 77, 32, 0.20)' },
       ];
       depthBands.forEach((band) => {
         ctx.fillStyle = band.color;
@@ -737,13 +753,12 @@ export default function PixelFarmCanvas({
         ctx.fill();
       });
 
-      // Detailed Grass Tufts & Wildflowers
-      for (let gx = 30; gx < canvasWidth - 30; gx += 55) {
-        for (let gy = 190; gy < canvasHeight - 30; gy += 45) {
+      // Cỏ non + hoa dại thưa (dịu mắt, không rối)
+      for (let gx = 30; gx < canvasWidth - 30; gx += 62) {
+        for (let gy = 196; gy < canvasHeight - 40; gy += 52) {
           const shiftX = (gy * 13) % 35;
-          // Grass blades
-          ctx.strokeStyle = '#3e841f';
-          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = 'rgba(52, 120, 45, 0.8)';
+          ctx.lineWidth = 1.4;
           ctx.beginPath();
           ctx.moveTo(gx + shiftX, gy);
           ctx.lineTo(gx + shiftX - 3, gy - 6);
@@ -751,129 +766,136 @@ export default function PixelFarmCanvas({
           ctx.lineTo(gx + shiftX + 3, gy - 7);
           ctx.stroke();
 
-          // Tiny blooming daisy flowers
-          if ((gx + gy) % 9 === 0) {
+          // Hoa cúc dại điểm xuyết
+          if ((gx + gy) % 11 === 0) {
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(gx + shiftX + 6, gy - 5, 2.2, 0, Math.PI * 2);
+            ctx.arc(gx + shiftX + 8, gy - 5, 2.4, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#facc15';
+            ctx.fillStyle = '#fbbf24';
             ctx.beginPath();
-            ctx.arc(gx + shiftX + 6, gy - 5, 1, 0, Math.PI * 2);
+            ctx.arc(gx + shiftX + 8, gy - 5, 1.1, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          // Cỏ ba lá may mắn
+          if ((gx * 7 + gy) % 23 === 0) {
+            ctx.fillStyle = 'rgba(34, 150, 70, 0.85)';
+            ctx.beginPath();
+            ctx.arc(gx + shiftX - 8, gy - 3, 2.2, 0, Math.PI * 2);
+            ctx.arc(gx + shiftX - 5, gy - 3, 2.2, 0, Math.PI * 2);
+            ctx.arc(gx + shiftX - 6.5, gy - 5.5, 2.2, 0, Math.PI * 2);
             ctx.fill();
           }
         }
       }
 
-      // --- 2.5D: MẶT ĐẤT PHÍA TRƯỚC (khối nền nổi) được vẽ sau ao sen ---
-      // Cobblestone / Sandy Farm Paths
-      // Bóng đổ của lối đi (khối nổi slightly above ground)
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.16)';
-      ctx.beginPath();
-      ctx.ellipse(canvasWidth * 0.48, canvasHeight * 0.58 + 12, 132, 220, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#e2ba86';
-      ctx.beginPath();
-      ctx.ellipse(canvasWidth * 0.48, canvasHeight * 0.58, 125, 215, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#d4a26e';
-      ctx.beginPath();
-      ctx.ellipse(canvasWidth * 0.48, canvasHeight * 0.58, 95, 185, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // --- ĐƯỜNG MÒN UỐN LƯỢN nối 2 chuồng ra tiền cảnh ---
+      drawWindingTrail(ctx, canvasWidth, canvasHeight, frame);
 
-      // Shaded Cobblestone Stepping Stones
-      for (let step = 0; step < 7; step++) {
-        const sy = 220 + step * 40;
-        const sx = canvasWidth * 0.48 + Math.sin(step * 0.8) * 18;
-        ctx.fillStyle = '#a88661';
-        ctx.beginPath();
-        ctx.ellipse(sx, sy, 18, 10, step * 0.2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#ebd2b2';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-
-      // --- LAYER 3: LOTUS POND (Ao Sen Thơ Mộng) ---
+      // --- LAYER 3: AO SEN THƠ MỘNG (bờ cỏ + nước trong + lá sen) ---
       ctx.save();
       const pondX = 95;
       const pondY = 430;
-      // Pond Bank
-      ctx.fillStyle = '#caa376';
+      // Bóng đổ mềm của ao trên cỏ
+      ctx.fillStyle = 'rgba(27, 77, 32, 0.22)';
+      ctx.beginPath();
+      ctx.ellipse(pondX + 6, pondY + 8, 88, 52, -0.15, 0, Math.PI * 2);
+      ctx.fill();
+      // Bờ ao đất + viền cỏ
+      ctx.fillStyle = '#d9b98f';
       ctx.beginPath();
       ctx.ellipse(pondX, pondY, 82, 50, -0.15, 0, Math.PI * 2);
       ctx.fill();
+      ctx.strokeStyle = '#7fbf6a';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.ellipse(pondX, pondY, 82, 50, -0.15, 0, Math.PI * 2);
+      ctx.stroke();
 
-      // Clear Turquoise Water
+      // Mặt nước trong xanh chuyển tông
       const waterGrad = ctx.createLinearGradient(pondX - 60, pondY - 30, pondX + 60, pondY + 30);
-      waterGrad.addColorStop(0, '#38bdf8');
-      waterGrad.addColorStop(0.5, '#0284c7');
+      waterGrad.addColorStop(0, '#7dd3fc');
+      waterGrad.addColorStop(0.5, '#38bdf8');
       waterGrad.addColorStop(1, '#0369a1');
       ctx.fillStyle = waterGrad;
       ctx.beginPath();
-      ctx.ellipse(pondX, pondY, 74, 44, -0.15, 0, Math.PI * 2);
+      ctx.ellipse(pondX, pondY, 72, 42, -0.15, 0, Math.PI * 2);
+      ctx.fill();
+      // Vệt sáng mặt nước
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.beginPath();
+      ctx.ellipse(pondX - 22, pondY - 14, 26, 8, -0.3, 0, Math.PI * 2);
       ctx.fill();
 
-      // Animated Water Ripple
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+      // Gợn sóng lan tỏa
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.lineWidth = 2;
       const ripple = (frame * 0.04) % 18;
       ctx.beginPath();
       ctx.arc(pondX - 8, pondY, 14 + ripple, 0, Math.PI * 2);
       ctx.stroke();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.beginPath();
+      ctx.arc(pondX + 10, pondY + 6, 8 + ripple * 0.6, 0, Math.PI * 2);
+      ctx.stroke();
 
-      // Water Lily Pads & Pink Lotus Blossom 🪷
+      // Lá sen + hoa sen hồng
       drawLilyPad(ctx, pondX - 30, pondY - 10, 11);
       drawLilyPad(ctx, pondX + 28, pondY + 10, 13);
       drawLotusFlower(ctx, pondX - 10, pondY + 12);
+      drawLotusFlower(ctx, pondX + 34, pondY - 8);
 
-      // Rustic Wooden Pier
-      ctx.fillStyle = '#78350f';
-      ctx.fillRect(pondX + 42, pondY - 32, 28, 12);
-      ctx.fillStyle = '#92400e';
-      ctx.fillRect(pondX + 42, pondY - 30, 28, 3);
-      ctx.fillRect(pondX + 42, pondY - 24, 28, 3);
+      // Cầu gỗ nhỏ + cỏ lau bên bờ
+      ctx.fillStyle = '#8a5a2b';
+      ctx.fillRect(pondX + 44, pondY - 32, 28, 11);
+      ctx.fillStyle = '#a8713a';
+      ctx.fillRect(pondX + 44, pondY - 30, 28, 3);
+      ctx.fillRect(pondX + 44, pondY - 24, 28, 3);
+      ctx.strokeStyle = '#4d7c0f';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(pondX - 72, pondY - 18);
+      ctx.quadraticCurveTo(pondX - 76, pondY - 34, pondX - 70, pondY - 40);
+      ctx.moveTo(pondX - 64, pondY - 16);
+      ctx.quadraticCurveTo(pondX - 64, pondY - 32, pondX - 58, pondY - 36);
+      ctx.stroke();
+      ctx.fillStyle = '#a16207';
+      ctx.beginPath();
+      ctx.ellipse(pondX - 70, pondY - 42, 3, 6, 0.2, 0, Math.PI * 2);
+      ctx.ellipse(pondX - 58, pondY - 38, 3, 6, -0.2, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
 
-      // --- 2.5D: MẶT ĐẤT PHÍA TRƯỚC (thân khối đất nổi ở gần người xem) ---
+      // --- 2.5D: MẶT ĐẤT PHÍA TRƯỚC + HÀNG RÀO ĐÁ TIỀN CẢNH ---
       drawForegroundLedge(ctx, canvasWidth, canvasHeight);
+      drawStoneRow(ctx, canvasWidth, canvasHeight);
 
-      // --- LAYER 4: WOODEN FENCES & CHARMING BARNS ---
-      // --- 2.5D: HÀNG RÀO PHÂN CÁCH (bóng đổ + nắp cột nổi) ---
-      const fenceX = canvasWidth * 0.45;
-      const fenceBottom = canvasHeight - 48;
-
-      // Bóng đổ lệch xuống trái (ánh sáng tới từ mặt trời phía bên phải)
-      ctx.strokeStyle = 'rgba(15, 23, 42, 0.22)';
-      ctx.lineWidth = 7;
+      // --- LAYER 4: HÀNG RÀO GỖ + 2 CHUỒNG RIÊNG CÓ MÁI ---
+      // Hàng rào gỗ chạy ngang sau lưng đàn vật (2 khoảnh: gà / bò)
+      drawWoodFenceRun(ctx, 108, 372, 196);
+      drawWoodFenceRun(ctx, 468, 752, 196);
+      // Cột phân cách 2 khoảnh ở giữa
+      ctx.fillStyle = 'rgba(27, 77, 32, 0.25)';
       ctx.beginPath();
-      ctx.moveTo(fenceX - 7, 146);
-      ctx.lineTo(fenceX - 7, fenceBottom + 5);
-      ctx.stroke();
-
-      // Thân cột/rào chính
-      ctx.strokeStyle = '#78350f';
-      ctx.lineWidth = 5;
+      ctx.ellipse(421, 232, 12, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#7c4a1e';
+      ctx.fillRect(415, 188, 12, 44);
+      ctx.fillStyle = '#a8713a';
+      ctx.fillRect(415, 188, 5, 44);
+      ctx.fillStyle = '#c98f4e';
       ctx.beginPath();
-      ctx.moveTo(fenceX, 140);
-      ctx.lineTo(fenceX, fenceBottom);
-      ctx.stroke();
+      ctx.ellipse(421, 187, 8, 3.5, 0, 0, Math.PI * 2);
+      ctx.fill();
 
-      // Nắp cột 3D (mặt trên sáng, có bóng nhỏ dưới chân)
-      for (let fy = 150; fy < fenceBottom - 8; fy += 38) {
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.18)';
-        ctx.beginPath();
-        ctx.ellipse(fenceX - 3, fy + 15, 11, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#78350f';
-        ctx.fillRect(fenceX - 6, fy, 12, 15);
-        ctx.fillStyle = '#b45309';
-        ctx.fillRect(fenceX - 4, fy + 2, 8, 11);
-        ctx.fillStyle = '#d97706';
-        ctx.beginPath();
-        ctx.ellipse(fenceX, fy + 1, 6, 2.5, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      // Cụm cây có bóng đổ (phải xa + trái gần ao)
+      drawFarmTree(ctx, 792, 208, 1.0, frame);
+      drawFarmTree(ctx, 748, 226, 0.7, frame + 20);
+      drawFarmTree(ctx, 52, 218, 0.62, frame + 40);
+
+      // Bồn hoa cạnh 2 chuồng
+      drawFlowerBed(ctx, 330, 172, ['#ef4444', '#f472b6', '#facc15']);
+      drawFlowerBed(ctx, 560, 172, ['#ffffff', '#f472b6', '#fb923c']);
 
       // COZY CHICKEN BARN (Chuồng Gà Meowlish)
       drawCozyChickenCoop(ctx, 45, 55);
@@ -1330,20 +1352,264 @@ function LivestockCountdownCard({
 }
 
 /**
- * Helper: Draw Soft Puffy Cloud
+ * Helper: Draw Soft Puffy Cloud (giữ lại cho tương thích)
  */
 function drawPuffyCloud(ctx: CanvasRenderingContext2D, x: number, y: number, scale = 1.0) {
+  drawFarmCloud(ctx, x, y, scale);
+}
+
+/**
+ * Helper 2.5D: Mây nông trại — trắng mềm, có bóng đổ nhẹ bên dưới
+ */
+function drawFarmCloud(ctx: CanvasRenderingContext2D, x: number, y: number, scale = 1.0) {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(scale, scale);
+  // Bóng mềm dưới mây
+  ctx.fillStyle = 'rgba(148, 184, 220, 0.35)';
+  ctx.beginPath();
+  ctx.ellipse(16, 10, 30, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Thân mây trắng
   ctx.fillStyle = '#ffffff';
   ctx.beginPath();
-  ctx.arc(0, 0, 18, 0, Math.PI * 2);
-  ctx.arc(16, -6, 15, 0, Math.PI * 2);
-  ctx.arc(32, 0, 17, 0, Math.PI * 2);
+  ctx.arc(0, 0, 17, 0, Math.PI * 2);
+  ctx.arc(16, -7, 15, 0, Math.PI * 2);
+  ctx.arc(33, -1, 16, 0, Math.PI * 2);
   ctx.arc(16, 6, 14, 0, Math.PI * 2);
   ctx.closePath();
   ctx.fill();
+  // Điểm sáng trên đỉnh mây
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.beginPath();
+  ctx.ellipse(14, -8, 12, 5, -0.15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+/**
+ * Helper 2.5D: Đường mòn uốn lượn nối 2 chuồng ra tiền cảnh
+ */
+function drawWindingTrail(ctx: CanvasRenderingContext2D, width: number, height: number, frame: number) {
+  ctx.save();
+  // Bóng đổ mềm của đường
+  ctx.fillStyle = 'rgba(27, 77, 32, 0.20)';
+  ctx.beginPath();
+  ctx.moveTo(288, 186);
+  ctx.bezierCurveTo(360, 250, 300, 330, 372, 400);
+  ctx.bezierCurveTo(410, 440, 420, 470, 430, height - 44);
+  ctx.lineTo(386, height - 44);
+  ctx.bezierCurveTo(376, 470, 366, 440, 330, 402);
+  ctx.bezierCurveTo(258, 332, 318, 252, 246, 188);
+  ctx.closePath();
+  ctx.fill();
+  // Nền cát
+  ctx.fillStyle = '#ecd9a8';
+  ctx.beginPath();
+  ctx.moveTo(280, 182);
+  ctx.bezierCurveTo(352, 246, 292, 326, 364, 396);
+  ctx.bezierCurveTo(402, 436, 412, 466, 422, height - 48);
+  ctx.lineTo(382, height - 48);
+  ctx.bezierCurveTo(372, 466, 362, 436, 326, 398);
+  ctx.bezierCurveTo(254, 328, 314, 248, 242, 184);
+  ctx.closePath();
+  ctx.fill();
+  // Lòng đường sáng hơn
+  ctx.fillStyle = '#f6e8c4';
+  ctx.beginPath();
+  ctx.moveTo(282, 188);
+  ctx.bezierCurveTo(344, 250, 296, 328, 360, 394);
+  ctx.bezierCurveTo(394, 432, 402, 462, 410, height - 52);
+  ctx.lineTo(394, height - 52);
+  ctx.bezierCurveTo(386, 462, 378, 432, 344, 396);
+  ctx.bezierCurveTo(280, 330, 328, 252, 264, 190);
+  ctx.closePath();
+  ctx.fill();
+  // Đá lát uốn theo đường
+  const stones = 7;
+  for (let i = 0; i < stones; i++) {
+    const t = i / (stones - 1);
+    const sx = 302 + Math.sin(t * 5.2) * 34 + t * 96;
+    const sy = 210 + t * 250;
+    const wobble = Math.sin(frame * 0.02 + i) * 0.8;
+    ctx.fillStyle = '#c9a06a';
+    ctx.beginPath();
+    ctx.ellipse(sx, sy, 13, 7, wobble * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#f6e8c4';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/**
+ * Helper 2.5D: Hàng rào gỗ chạy ngang (2 thanh + cọc có nắp)
+ */
+function drawWoodFenceRun(ctx: CanvasRenderingContext2D, x0: number, x1: number, y: number) {
+  ctx.save();
+  // Bóng đổ dưới chân rào
+  ctx.fillStyle = 'rgba(27, 77, 32, 0.22)';
+  ctx.fillRect(x0 - 4, y + 22, x1 - x0 + 8, 7);
+  // 2 thanh ngang
+  ctx.fillStyle = '#a8713a';
+  ctx.fillRect(x0, y, x1 - x0, 7);
+  ctx.fillRect(x0, y + 13, x1 - x0, 7);
+  ctx.fillStyle = '#c98f4e';
+  ctx.fillRect(x0, y, x1 - x0, 2.5);
+  ctx.fillRect(x0, y + 13, x1 - x0, 2.5);
+  // Cọc đứng
+  for (let px = x0 + 6; px <= x1; px += 52) {
+    ctx.fillStyle = 'rgba(27, 77, 32, 0.2)';
+    ctx.beginPath();
+    ctx.ellipse(px, y + 27, 9, 3.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#7c4a1e';
+    ctx.fillRect(px - 5, y - 8, 10, 34);
+    ctx.fillStyle = '#a8713a';
+    ctx.fillRect(px - 5, y - 8, 4, 34);
+    ctx.fillStyle = '#c98f4e';
+    ctx.beginPath();
+    ctx.ellipse(px, y - 8, 6.5, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#7c4a1e';
+    ctx.fillRect(px - 1, y + 2, 2, 4);
+  }
+  ctx.restore();
+}
+
+/**
+ * Helper 2.5D: Cụm cây có bóng đổ (thân + 3 tầng tán + táo điểm)
+ */
+function drawFarmTree(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, frame: number) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  // Bóng đổ lệch theo nắng (nắng bên phải → bóng lệch trái)
+  ctx.fillStyle = 'rgba(27, 77, 32, 0.28)';
+  ctx.beginPath();
+  ctx.ellipse(-12, 46, 44, 11, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Thân cây
+  const trunk = ctx.createLinearGradient(-8, 0, 8, 0);
+  trunk.addColorStop(0, '#6b3f17');
+  trunk.addColorStop(0.5, '#8a5a2b');
+  trunk.addColorStop(1, '#5d3410');
+  ctx.fillStyle = trunk;
+  ctx.beginPath();
+  ctx.moveTo(-8, 46);
+  ctx.quadraticCurveTo(-5, 20, -7, 0);
+  ctx.lineTo(7, 0);
+  ctx.quadraticCurveTo(5, 20, 8, 46);
+  ctx.closePath();
+  ctx.fill();
+  // Tán lá 3 tầng (xanh dịu)
+  const sway = Math.sin(frame * 0.03 + x) * 1.5;
+  const leaf = (cx: number, cy: number, r: number, c: string) => {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.arc(cx + sway, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  leaf(-18, -18, 22, '#3d8b4f');
+  leaf(18, -18, 22, '#3d8b4f');
+  leaf(0, -32, 26, '#4da65e');
+  leaf(-10, -40, 14, '#7ccf8a');
+  leaf(8, -44, 12, '#8fd8a0');
+  // Táo đỏ điểm xuyết
+  ctx.fillStyle = '#e05252';
+  [[-14, -28], [4, -34], [16, -22]].forEach(([ax, ay]) => {
+    ctx.beginPath();
+    ctx.arc(ax + sway, ay, 3.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.beginPath();
+    ctx.arc(ax + sway - 1, ay - 1, 1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e05252';
+  });
+  ctx.restore();
+}
+
+/**
+ * Helper 2.5D: Bồn hoa tròn (đất + viền đá + hoa tulip/cúc)
+ */
+function drawFlowerBed(ctx: CanvasRenderingContext2D, x: number, y: number, colors: string[]) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(27, 77, 32, 0.2)';
+  ctx.beginPath();
+  ctx.ellipse(x, y + 12, 52, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Đất
+  ctx.fillStyle = '#8a5a2b';
+  ctx.beginPath();
+  ctx.ellipse(x, y + 6, 48, 13, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#6f4420';
+  ctx.beginPath();
+  ctx.ellipse(x, y + 8, 40, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Viền đá nhỏ
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2;
+    const sx = x + Math.cos(a) * 48;
+    const sy = y + 6 + Math.sin(a) * 13;
+    ctx.fillStyle = i % 2 ? '#d6d3d1' : '#a8a29e';
+    ctx.beginPath();
+    ctx.ellipse(sx, sy, 5, 4, a, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Hoa: thân + bông
+  const spots = [-30, -15, 0, 15, 30];
+  spots.forEach((dx, i) => {
+    const fx = x + dx;
+    const fy = y - 4 - (i % 2) * 4;
+    ctx.strokeStyle = '#3d8b4f';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(fx, y + 4);
+    ctx.quadraticCurveTo(fx + 2, fy + 8, fx, fy);
+    ctx.stroke();
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.beginPath();
+    ctx.arc(fx - 3, fy - 3, 3.5, 0, Math.PI * 2);
+    ctx.arc(fx + 3, fy - 3, 3.5, 0, Math.PI * 2);
+    ctx.arc(fx, fy + 1, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath();
+    ctx.arc(fx, fy - 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
+/**
+ * Helper 2.5D: Hàng rào đá tiền cảnh nằm trên mép khối đất
+ */
+function drawStoneRow(ctx: CanvasRenderingContext2D, width: number, height: number) {
+  const top = height - 46;
+  ctx.save();
+  for (let i = 0; i < 15; i++) {
+    const sx = 26 + i * ((width - 52) / 14) + (i % 2 ? 6 : -4);
+    const sy = top + (i % 3) * 3;
+    const r = 10 + (i % 3) * 2.5;
+    ctx.fillStyle = 'rgba(27, 77, 32, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(sx - 3, sy + 6, r, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    const g = ctx.createLinearGradient(sx - r, sy - r, sx + r, sy + r);
+    g.addColorStop(0, '#e7e5e4');
+    g.addColorStop(1, '#a8a29e');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.ellipse(sx, sy, r, r * 0.72, (i % 2 ? 0.12 : -0.1), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.beginPath();
+    ctx.ellipse(sx - r * 0.3, sy - r * 0.3, r * 0.32, r * 0.2, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 }
 
@@ -1476,6 +1742,32 @@ function drawCozyChickenCoop(ctx: CanvasRenderingContext2D, x: number, y: number
     ctx.fillRect(49 + step * 8, 131 + step * 7, 18, 2);
   }
 
+  // Cửa sổ tròn + hộp hoa bên hông chuồng gà
+  ctx.fillStyle = '#fef9c3';
+  ctx.beginPath();
+  ctx.arc(22, 70, 11, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#451a03';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(11, 70);
+  ctx.lineTo(33, 70);
+  ctx.moveTo(22, 59);
+  ctx.lineTo(22, 81);
+  ctx.stroke();
+  // Hộp hoa dưới cửa sổ
+  ctx.fillStyle = '#7c4a1e';
+  ctx.fillRect(10, 82, 24, 8);
+  ['#ef4444', '#facc15', '#f472b6'].forEach((c, i) => {
+    ctx.fillStyle = c;
+    ctx.beginPath();
+    ctx.arc(14 + i * 8, 80, 3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
   // Wooden Signboard: "CHUỒNG GÀ MEOWLISH"
   ctx.fillStyle = '#fef3c7';
   ctx.beginPath();
@@ -1569,6 +1861,38 @@ function drawCozyDairyBarn(ctx: CanvasRenderingContext2D, x: number, y: number) 
   ctx.fillRect(20, 112, 130, 18);
   ctx.fillStyle = '#eab308';
   ctx.fillRect(24, 108, 122, 7); // golden hay
+
+  // Cửa sổ gác mái hình tròn + chong chóng gió trên nóc
+  ctx.fillStyle = '#fef9c3';
+  ctx.beginPath();
+  ctx.arc(140, 62, 10, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#450a0a';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.strokeStyle = '#991b1b';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(130, 62);
+  ctx.lineTo(150, 62);
+  ctx.moveTo(140, 52);
+  ctx.lineTo(140, 72);
+  ctx.stroke();
+  // Chong chóng gió
+  ctx.strokeStyle = '#44403c';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(85, 0);
+  ctx.lineTo(85, -10);
+  ctx.stroke();
+  ctx.fillStyle = '#fbbf24';
+  ctx.save();
+  ctx.translate(85, -13);
+  ctx.rotate(0.6);
+  ctx.fillRect(-8, -1.5, 16, 3);
+  ctx.rotate(Math.PI / 2);
+  ctx.fillRect(-8, -1.5, 16, 3);
+  ctx.restore();
 
   // Wooden Signboard: "CHUỒNG BÒ MEOWLISH"
   ctx.fillStyle = '#fef3c7';

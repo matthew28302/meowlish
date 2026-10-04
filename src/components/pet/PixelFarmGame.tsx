@@ -195,6 +195,23 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
   const [flyingShuriken, setFlyingShuriken] = useState<{ x: number; y: number; rot: number; type: 'kunai' | 'shuriken' } | null>(null);
   const [isNinjaTargetHit, setIsNinjaTargetHit] = useState<boolean>(false);
 
+  // ===== Sân Vườn Linh Vật: trạng thái tương tác thật cho mọi vật thể =====
+  // Rương báu trên mây (sky_castle) mở nắp + vàng bay ra
+  const [isSkyTreasureOpen, setIsSkyTreasureOpen] = useState<boolean>(false);
+  const [treasureLoot, setTreasureLoot] = useState<{ id: number; x: number; y: number; emoji: string }[]>([]);
+  // Máy tính dev: pet ngồi code, popup overlay gõ phím + dòng code chạy + EXP vui
+  const [isCoding, setIsCoding] = useState<boolean>(false);
+  const [codeLines, setCodeLines] = useState<string[]>([]);
+  const [codeExp, setCodeExp] = useState<number>(0);
+  // Cầu vồng: pet đi bộ dọc vòng cung / Cầu trượt mây: pet trượt từ đỉnh xuống
+  const [isRainbowWalking, setIsRainbowWalking] = useState<boolean>(false);
+  const [isSliding, setIsSliding] = useState<boolean>(false);
+  // Xích đu cây sồi: pet ngồi đung đưa / Ao sen: tia nước bắn / Bồn hoa: hoa nở rộ
+  const [isSwinging, setIsSwinging] = useState<boolean>(false);
+  const [pondSplashId, setPondSplashId] = useState<number>(0);
+  const [bloomId, setBloomId] = useState<number>(0);
+  const [windGustId, setWindGustId] = useState<number>(0);
+
   // Floating hearts when petted
   const [hearts, setHearts] = useState<{ id: number; x: number; y: number }[]>([]);
 
@@ -604,6 +621,147 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     if (onSpeechChange) onSpeechChange(msg);
   };
 
+  // ===== Helpers tương tác thật (dùng sound có sẵn, chữ tiếng Việt) =====
+  // Vàng bạc đá quý bay ra từ rương + confetti + thông báo (tối thiểu hiệu ứng,
+  // không gọi API lạ để tránh lỗi trang; coins thật do server cộng khi thu hoạch).
+  const burstTreasureLoot = (cx: number, cy: number) => {
+    const emojis = ['🪙', '💰', '💎', '✨', '🪙', '💎', '🌟', '🪙'];
+    const batch = emojis.map((emoji, i) => ({
+      id: Date.now() + i,
+      x: cx + (Math.random() * 14 - 7),
+      y: cy - 4 - Math.random() * 6,
+      emoji,
+    }));
+    setTreasureLoot((prev) => [...prev, ...batch]);
+    sound.playCelebration();
+    confetti({ particleCount: 55, spread: 75, origin: { x: cx / 100, y: cy / 100 } });
+    window.setTimeout(() => {
+      setTreasureLoot((prev) => prev.filter((l) => !batch.some((b) => b.id === l.id)));
+    }, 2200);
+  };
+
+  // Pet ĐI BỘ dọc vòng cung cầu vồng: nội suy bezier từ chân trái -> đỉnh -> chân phải
+  const walkRainbowArc = (leftX: number, leftY: number, topX: number, topY: number, rightX: number, rightY: number, done?: () => void) => {
+    setIsRainbowWalking(true);
+    setAnimState('walk');
+    sound.playFlame();
+    const steps = 12;
+    let i = 0;
+    const step = () => {
+      i += 1;
+      const t = Math.min(1, i / steps);
+      // Quadratic bezier: P0(left) -> Pc(top*2 - mid) -> P2(right). Đơn giản: x lerp, y parabola
+      const x = leftX + (rightX - leftX) * t;
+      const baseY = leftY + (rightY - leftY) * t;
+      const arcH = (leftY - topY) * 4 * t * (1 - t);
+      setPetPos({ x, y: baseY - arcH });
+      setFacing(rightX >= leftX ? 'right' : 'left');
+      if (i === Math.floor(steps / 2)) {
+        sound.playCelebration();
+        confetti({ particleCount: 30, spread: 50, origin: { x: topX / 100, y: topY / 100 } });
+        showSpeech('Đang đi bộ trên cầu vồng nè! Cao ơi là cao! 🌈🐾');
+      }
+      if (t < 1) {
+        window.setTimeout(step, 160);
+      } else {
+        setIsRainbowWalking(false);
+        setAnimState('happy');
+        sound.playSuccess();
+        if (done) done();
+      }
+    };
+    setPetPos({ x: leftX, y: leftY });
+    window.setTimeout(step, 200);
+  };
+
+  // Pet TRƯỢT từ đỉnh xuống chân (cầu trượt mây / thác cầu vồng): nhanh + vui
+  const slideDownRide = (topX: number, topY: number, footX: number, footY: number, label: string, done?: () => void) => {
+    setIsSliding(true);
+    showSpeech(label);
+    setPetPos({ x: topX, y: topY });
+    setAnimState('jump');
+    sound.playWhoosh();
+    window.setTimeout(() => {
+      setPetPos({ x: footX, y: footY });
+    }, 120);
+    window.setTimeout(() => {
+      sound.playCelebration();
+      confetti({ particleCount: 40, spread: 60, origin: { x: footX / 100, y: footY / 100 } });
+      setAnimState('happy');
+      showSpeech('Wheeee! Trượt xuống mát rượi, vui quá đi! 🛝🎉');
+      window.setTimeout(() => {
+        setIsSliding(false);
+        setAnimState('idle');
+        if (done) done();
+      }, 1600);
+    }, 750);
+  };
+
+  // Xích đu cây sồi: pet ngồi đung đưa qua lại 3 nhịp
+  const rideOakSwing = (done?: () => void) => {
+    setIsSwinging(true);
+    setAnimState('happy');
+    sound.playFlame();
+    showSpeech('Ngồi xích đu gỗ đung đưa, gió thổi mát rượi! 🍃🪵');
+    const baseX = 84;
+    const baseY = 34;
+    const swings = [4, -4, 3, -3, 2, 0];
+    swings.forEach((dx, idx) => {
+      window.setTimeout(() => {
+        setPetPos({ x: baseX + dx, y: baseY + Math.abs(dx) * 0.3 });
+        sound.playClick();
+        if (idx === 2) {
+          confetti({ particleCount: 20, spread: 40, origin: { x: 0.84, y: 0.3 } });
+          showSpeech('Đung đưa cao ơi là cao, táo rơi lộp độp nè! 🍎😆');
+        }
+      }, 350 * (idx + 1));
+    });
+    window.setTimeout(() => {
+      setIsSwinging(false);
+      setAnimState('idle');
+      if (done) done();
+    }, 350 * (swings.length + 2));
+  };
+
+  // Máy tính dev: pet ngồi vào, popup "đang code" gõ phím + dòng code chạy + EXP vui
+  const startCodingSession = (done?: () => void) => {
+    showSpeech('Ngồi vào bàn làm việc gõ code fix bug nào! 💻⚡');
+    walkTo(50, 36, () => {
+      setAnimState('happy');
+      setIsCoding(true);
+      setCodeLines([]);
+      setCodeExp(0);
+      sound.playClick();
+      const demoLines = [
+        '> npm run dev ... ✅ server 3000',
+        'const hello = "Xin chào!" 🇻🇳',
+        'function hocTiengAnh() { return "fun"; }',
+        'git add . && git commit "fix bug" 🐛',
+        '✅ All tests passed! +5 EXP',
+      ];
+      demoLines.forEach((line, idx) => {
+        window.setTimeout(() => {
+          setCodeLines((prev) => [...prev, line]);
+          sound.playClick();
+          if (idx === demoLines.length - 1) {
+            setCodeExp(5);
+            sound.playCelebration();
+            confetti({ particleCount: 30, spread: 50, origin: { x: 0.5, y: 0.3 } });
+            showSpeech('Code compile thành công 100%! Bé được +5 EXP vui vẻ! ✅🚀');
+          }
+        }, 550 * (idx + 1));
+      });
+      window.setTimeout(() => {
+        if (done) done();
+        // Giữ popup thêm 2.5s cho bé khoe thành quả rồi tự đóng (không kẹt màn hình)
+        window.setTimeout(() => {
+          setIsCoding(false);
+          setAnimState('idle');
+        }, 2500);
+      }, 550 * (demoLines.length + 2));
+    }, true);
+  };
+
   // Perform specific actions tailored to the active habitat
   const handlePerformMapAction = (actionKey: string) => {
     isInteractingRef.current = true;
@@ -617,13 +775,17 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       if (actionKey === 'swim') {
         showSpeech('Đi ra cầu ván nhảy xuống hồ sen mát rượi thôi! 🏊🪷');
         walkTo(74, 76, () => {
-          sound.playSuccess();
+          sound.playWhoosh();
+          setPondSplashId(Date.now());
+          window.setTimeout(() => setPondSplashId(0), 3000);
           setPetPos({ x: 84, y: 80 });
           setAnimState('swim');
           sound.playCelebration();
-          showSpeech('Bơi lội tung tăng cùng đàn cá Koi, mát lạnh sảng khoái quá! 🏊✨');
+          confetti({ particleCount: 25, spread: 45, origin: { x: 0.8, y: 0.78 } });
+          showSpeech('Tõm! Nước bắn tung tóe! Bơi cùng đàn cá Koi mát rượi! 🏊🐟');
           setTimeout(() => {
             setPetPos({ x: 86, y: 78 });
+            sound.playPop();
             setTimeout(() => {
               setPetPos({ x: 82, y: 82 });
               isInteractingRef.current = false;
@@ -647,12 +809,24 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                 setAnimState('climb');
                 setPetPos({ x: 88, y: 32 });
                 setTimeout(() => {
-                  setAnimState('idle');
-                  isInteractingRef.current = false;
+                  // Leo xong thì ngồi xích đu đung đưa cho vui (xích đu dưới tán cây)
+                  setPetPos({ x: 84, y: 34 });
+                  rideOakSwing(() => {
+                    setAnimState('idle');
+                    isInteractingRef.current = false;
+                  });
                 }, 800);
-              }, 2500);
+              }, 2200);
             }, 800);
           }, 400);
+        }, true);
+      } else if (actionKey === 'swing') {
+        showSpeech('Chạy ra xích đu gỗ dưới tán cây đại thụ nào! 🪵🍃');
+        walkTo(84, 34, () => {
+          rideOakSwing(() => {
+            setAnimState('idle');
+            isInteractingRef.current = false;
+          });
         }, true);
       } else if (actionKey === 'jump') {
         showSpeech('Chạy ra nấm lò xo ma thuật bật nhảy thôi! 🍄💨');
@@ -683,23 +857,55 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Lại chuồng gà rải thóc cho gà ăn nhé! 🌾🐔');
         walkTo(48, 44, () => {
           setAnimState('eat');
+          sound.playPop();
           sound.playSuccess();
-          showSpeech('Gà mẹ và đàn gà con mổ thóc tíu tít vui quá! 🐣✨');
+          confetti({ particleCount: 20, spread: 40, origin: { x: 0.48, y: 0.4 } });
+          showSpeech('Gà mẹ và đàn gà con mổ thóc tíu tít! Cục tác... đẻ trứng vàng nè! 🐣🥚');
           setTimeout(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
         }, true);
       } else if (actionKey === 'veggie') {
-        showSpeech('Ra luống rau thu hoạch cà rốt nào! 🥕🌾');
+        showSpeech('Ra bồn hoa & luống rau thu hoạch nào! 🥕🌷');
         walkTo(20, 78, () => {
           setAnimState('eat');
+          setBloomId(Date.now());
+          window.setTimeout(() => setBloomId(0), 3000);
+          sound.playPop();
           sound.playSuccess();
-          showSpeech('Cà rốt giòn ngọt quá chừng! 🥕✨');
+          confetti({ particleCount: 25, spread: 45, origin: { x: 0.2, y: 0.75 } });
+          showSpeech('Hoa nở rộ thơm ngát! Cà rốt giòn ngọt quá chừng! 🥕🌷✨');
           setTimeout(() => {
             isInteractingRef.current = false;
             setAnimState('idle');
           }, 2500);
+        }, true);
+      } else if (actionKey === 'windmill') {
+        showSpeech('Chạy ra cối xay gió đón cơn gió mát nào! 💨🏡');
+        walkTo(16, 28, () => {
+          setWindGustId(Date.now());
+          window.setTimeout(() => setWindGustId(0), 3000);
+          setAnimState('happy');
+          sound.playWhoosh();
+          sound.playSuccess();
+          showSpeech('Cối xay gió quay tít mù! Gió mát thổi bay tóc nè! 💨😆');
+          setTimeout(() => {
+            isInteractingRef.current = false;
+            setAnimState('idle');
+          }, 2200);
+        }, true);
+      } else if (actionKey === 'villa') {
+        showSpeech('Về biệt thự mái ngói đỏ nghỉ chân nào! 🏡✨');
+        walkTo(18, 55, () => {
+          setAnimState('happy');
+          sound.playSuccess();
+          confetti({ particleCount: 20, spread: 40, origin: { x: 0.18, y: 0.5 } });
+          showSpeech('Biệt thự ấm áp, khói bếp bay lên, thơm mùi bánh mới! 🏡🍞');
+          setTimeout(() => {
+            isInteractingRef.current = false;
+            setAnimState('idle');
+          }, 2200);
         }, true);
       }
     } else if (habitat === 'sunset_beach') {
@@ -782,13 +988,9 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       }
     } else if (habitat === 'cozy_den') {
       if (actionKey === 'code') {
-        showSpeech('Ngồi vào bàn làm việc gõ code fix bug nào! 💻⚡');
-        walkTo(50, 36, () => {
-          setAnimState('happy');
-          sound.playCelebration();
-          showSpeech('Code compile thành công 100%! All tests passed! ✅🚀');
+        startCodingSession(() => {
           isInteractingRef.current = false;
-        }, true);
+        });
       } else if (actionKey === 'climb') {
         showSpeech('Trèo thang kệ sách lấy tài liệu thuật toán! 📚🧗');
         walkTo(18, 34, () => {
@@ -877,43 +1079,46 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(20, 74, () => {
           setAnimState('swim');
           sound.playCelebration();
-          showSpeech('Những giọt nước lấp lánh ánh sao rơi quanh mình kìa! ⛲⭐');
+          confetti({ particleCount: 25, spread: 45, origin: { x: 0.2, y: 0.7 } });
+          showSpeech('Tõm! Nước sao bắn tung tóe mát lạnh! Những giọt sao rơi quanh mình! ⛲⭐');
           isInteractingRef.current = false;
         }, true);
       } else if (actionKey === 'climb') {
-        showSpeech('Bước lên bậc thang mây bồng bềnh dạo chơi! ☁️✨');
-        walkTo(28, 38, () => {
-          setAnimState('jump');
-          sound.playSuccess();
-          showSpeech('Nhún nhảy nhẹ tênh trên từng đám mây ngũ sắc! ☁️🐾');
-          setTimeout(() => {
+        showSpeech('Trèo lên đỉnh bậc thang mây rồi trượt xuống nào! ☁️🛝');
+        walkTo(24, 30, () => {
+          slideDownRide(24, 28, 32, 46, 'Lên đỉnh mây rồi... trượt xuống thôi! Wheee! ☁️🛝', () => {
             isInteractingRef.current = false;
-            setAnimState('idle');
-          }, 2500);
+          });
         }, true);
       } else if (actionKey === 'rainbow') {
-        showSpeech('Chạy ra cầu vồng bật nhảy hái sao băng! 🌈⭐');
-        walkTo(65, 30, () => {
-          setAnimState('jump');
-          sound.playCelebration();
-          confetti({ particleCount: 35, spread: 50, origin: { x: 0.65, y: 0.3 } });
-          showSpeech('Bắt được một ngôi sao ước nguyện rực rỡ! ⭐🎉');
-          setTimeout(() => {
-            isInteractingRef.current = false;
-            setAnimState('idle');
-          }, 2800);
+        showSpeech('Chạy ra chân cầu vồng, đi bộ qua vòng cung nè! 🌈🐾');
+        walkTo(56, 36, () => {
+          walkRainbowArc(56, 36, 66, 20, 76, 36, () => {
+            sound.playCelebration();
+            confetti({ particleCount: 40, spread: 55, origin: { x: 0.66, y: 0.25 } });
+            showSpeech('Đi hết cầu vồng rồi! Bắt được ngôi sao ước nguyện! ⭐🎉');
+            setTimeout(() => {
+              isInteractingRef.current = false;
+              setAnimState('idle');
+            }, 2200);
+          });
         }, true);
       } else if (actionKey === 'treasure') {
         showSpeech('Mở rương kho báu tri thức trên mây! 💎✨');
         walkTo(80, 74, () => {
+          setIsSkyTreasureOpen(true);
           setAnimState('happy');
-          sound.playCelebration();
-          confetti({ particleCount: 40, spread: 60, origin: { x: 0.8, y: 0.74 } });
-          showSpeech('Kho báu chứa đầy kim cương tri thức và từ vựng mới! 💎🌟');
+          sound.playSuccess();
+          showSpeech('Cạch! Nắp rương bật mở, ánh sáng tỏa ra! ✨🔓');
           setTimeout(() => {
-            isInteractingRef.current = false;
-            setAnimState('idle');
-          }, 2500);
+            burstTreasureLoot(80, 70);
+            showSpeech('Kho báu tuôn ra: vàng + kim cương + từ vựng mới! +20 Coins! 💎🪙');
+            setTimeout(() => {
+              setIsSkyTreasureOpen(false);
+              isInteractingRef.current = false;
+              setAnimState('idle');
+            }, 2600);
+          }, 700);
         }, true);
       } else if (actionKey === 'castle') {
         showSpeech('Bay lên Cổng Thành Thần Tiên Lâu Đài Pha Lê! 🏰✨');
@@ -991,14 +1196,17 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(18, 76, () => {
           setIsSunnyTreasureOpen(true);
           setAnimState('happy');
-          sound.playCelebration();
-          confetti({ particleCount: 50, spread: 70, origin: { x: 0.18, y: 0.76 } });
-          showSpeech('Vàng bạc châu báu sáng chói mắt! Bội thu rồi bạn ơi! 💰✨');
+          sound.playSuccess();
+          showSpeech('Cạch! Nắp rương bật mở tung! ✨🔓');
           setTimeout(() => {
-            setIsSunnyTreasureOpen(false);
-            isInteractingRef.current = false;
-            setAnimState('idle');
-          }, 3000);
+            burstTreasureLoot(18, 70);
+            showSpeech('Vàng bạc châu báu tuôn ra sáng chói mắt! +20 Coins! 💰✨');
+            setTimeout(() => {
+              setIsSunnyTreasureOpen(false);
+              isInteractingRef.current = false;
+              setAnimState('idle');
+            }, 2600);
+          }, 700);
         }, true);
       } else if (actionKey === 'tangerine') {
         showSpeech('Lại vườn cam của Nami hái quả mọng nước nào! 🍊😋');
@@ -1301,14 +1509,16 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           }, 2500);
         }, true);
       } else if (actionKey === 'rainbow' || actionKey === 'swim') {
-        showSpeech('Bơi lội dưới dòng suối thác cầu vồng kẹo ngọt! 🌈🏊');
-        walkTo(50, 78, () => {
-          setAnimState('swim');
-          sound.playCelebration();
-          showSpeech('Nước suối cầu vồng mát lạnh thơm như kẹo bông gòn! 🌈✨');
-          setTimeout(() => {
-            isInteractingRef.current = false;
-          }, 2500);
+        showSpeech('Leo lên đỉnh thác cầu vồng rồi trượt xuống suối kẹo! 🌈🛝');
+        walkTo(50, 44, () => {
+          slideDownRide(50, 42, 52, 76, 'Lên đỉnh thác rồi... trượt xuống thôi! Wheee! 🌈🛝', () => {
+            setAnimState('swim');
+            sound.playCelebration();
+            showSpeech('Tõm xuống suối cầu vồng mát lạnh thơm như kẹo bông gòn! 🌈🏊');
+            setTimeout(() => {
+              isInteractingRef.current = false;
+            }, 1800);
+          });
         }, true);
       } else if (actionKey === 'star_rod') {
         showSpeech('Chạm tay vào Trượng Sao Star Rod ước nguyện! 🪄⭐');
@@ -1348,9 +1558,9 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     }
   };
 
-  // Toss Toy Ball (Fetch Minigame with 3D arc flight from bottom-center)
+  // Ném Bóng: chỉ ném QUẢ BÓNG (pet đá bóng, không ném vợt) — bóng bay parabol, pet chạy nhặt
   const handleTossBall = () => {
-    sound.playSuccess();
+    sound.playWhoosh();
     const ballX = 30 + Math.random() * 40;
     const ballY = 42 + Math.random() * 26;
 
@@ -1361,25 +1571,29 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     }
 
     isInteractingRef.current = true;
-    showSpeech(`${petName} ơi, nhặt bóng mau nào! 🎾`);
+    // Pet đá bóng đi: tư thế nhảy đá, bóng xuất phát từ chân pet
+    setAnimState('jump');
+    showSpeech(`${petName} đá quả bóng bay vút đi nè! ⚽💨`);
 
-    // Step 1: Start ball at bottom-center (user's hand position)
-    setToyBall({ x: 50, y: 105, targetX: ballX, targetY: ballY, phase: 'flying' });
+    const startX = Math.max(10, Math.min(90, petPos.x));
+    const startY = Math.max(24, petPos.y - 4);
+    // Step 1: Bóng bắt đầu ngay chân pet (vợt ở lại tay — không có vợt bay theo)
+    setToyBall({ x: startX, y: startY, targetX: ballX, targetY: ballY, phase: 'flying' });
 
-    // Step 2: Smooth parabolic arc flight to (ballX, ballY)
+    // Step 2: Bóng bay parabol tới điểm rơi (CSS animate-ball-arc lo vòng cung)
     setTimeout(() => {
       setToyBall((prev) => (prev ? { ...prev, x: ballX, y: ballY } : null));
     }, 30);
 
-    // Step 3: Ball lands on the ground after 650ms flight
+    // Step 3: Bóng chạm đất sau 650ms, pet chạy nhặt về
     setTimeout(() => {
       setToyBall((prev) => (prev ? { ...prev, phase: 'bouncing' } : null));
 
-      // Pet sprints over to fetch the ball!
+      // Pet chạy tới nhặt bóng!
       walkTo(ballX, ballY, () => {
         setAnimState('happy');
         sound.playCelebration();
-        showSpeech('Bắt được bóng rồi nè bạn ơi! 🎾🎉');
+        showSpeech('Bắt được bóng rồi nè bạn ơi! ⚽🎉');
         setToyBall((prev) => (prev ? { ...prev, phase: 'caught' } : null));
         confetti({ particleCount: 25, spread: 40, origin: { x: ballX / 100, y: ballY / 100 } });
         setTimeout(() => {
@@ -1672,45 +1886,48 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
             {/* Dutch Windmill with Rotating Lattice Sails (Top-Left) */}
             <div
+              data-testid="garden-windmill"
               onClick={(e) => {
                 e.stopPropagation();
-                walkTo(16, 28, () => {
-                  setAnimState('happy');
-                  sound.playSuccess();
-                  showSpeech('Cối xay gió Hà Lan đón gió mát quay tít mù! 💨🏡');
-                  setTimeout(() => setAnimState('idle'), 2000);
-                });
+                handlePerformMapAction('windmill');
               }}
               style={{ left: '16%', top: '22%' }}
               className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
               title="Cối xay gió Hà Lan xoay cánh quạt nan gỗ"
             >
               <DutchWindmillSVG scale={scaleObj(1.40)} />
+              {windGustId > 0 && (
+                <div key={windGustId} className="absolute -top-2 left-1/2 -translate-x-1/2 text-xl animate-bounce pointer-events-none">💨</div>
+              )}
             </div>
 
             {/* Grand Oak Tree with Climbing Ladder & Swing (Top-Right) */}
             <div
+              data-testid="garden-swing"
               onClick={(e) => {
                 e.stopPropagation();
-                handlePerformMapAction('climb');
+                handlePerformMapAction('swing');
+              }}
+              onTouchEnd={(e) => {
+                e.stopPropagation();
+                handlePerformMapAction('swing');
               }}
               style={{ left: '88%', top: '22%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
-              title="Cây đại thụ - Bấm để Bé leo thang hái táo!"
+              className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform transition-transform ${isSwinging ? 'animate-bounce' : 'hover:scale-105'}`}
+              title="Cây đại thụ + Xích đu gỗ - Bấm để Bé ngồi xích đu đung đưa!"
             >
               <GrandOakTreeSVG scale={scaleObj(1.40)} />
+              {isSwinging && (
+                <div className="absolute top-[62%] left-1/2 -translate-x-1/2 text-sm animate-bounce pointer-events-none">🍎🍎</div>
+              )}
             </div>
 
             {/* Farmhouse Villa with Smoking Chimney (Center-Left) */}
             <div
+              data-testid="garden-villa"
               onClick={(e) => {
                 e.stopPropagation();
-                walkTo(18, 55, () => {
-                  setAnimState('happy');
-                  sound.playSuccess();
-                  showSpeech('Biệt thự nông trại mái ngói đỏ đón nắng ấm áp! 🏡✨');
-                  setTimeout(() => setAnimState('idle'), 2000);
-                });
+                handlePerformMapAction('villa');
               }}
               style={{ left: '18%', top: '50%' }}
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
@@ -1721,6 +1938,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
             {/* Chicken Coop with Golden Haystack (Center) */}
             <div
+              data-testid="garden-coop"
               onClick={(e) => {
                 e.stopPropagation();
                 handlePerformMapAction('coop');
@@ -1734,6 +1952,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
             {/* Bouncy Mushroom Trampoline (Center-Right) */}
             <div
+              data-testid="garden-mushroom"
               onClick={(e) => {
                 e.stopPropagation();
                 handlePerformMapAction('jump');
@@ -1749,30 +1968,46 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               <BouncyMushroomSVG scale={scaleObj(1.40)} />
             </div>
 
-            {/* Veggie Garden Beds (Bottom-Left) */}
+            {/* Veggie Garden Beds (Bottom-Left) — bồn hoa + luống rau */}
             <div
+              data-testid="garden-flower"
               onClick={(e) => {
                 e.stopPropagation();
                 handlePerformMapAction('veggie');
               }}
+              onTouchEnd={(e) => {
+                e.stopPropagation();
+                handlePerformMapAction('veggie');
+              }}
               style={{ left: '20%', top: '80%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer transform hover:scale-105 transition-transform"
-              title="Luống rau củ 4 mùa bội thu"
+              className={`absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer transform transition-transform ${bloomId > 0 ? 'scale-110' : 'hover:scale-105'}`}
+              title="Bồn hoa & Luống rau củ 4 mùa bội thu - Bấm để thu hoạch!"
             >
               <VeggiePatchSVG scale={scaleObj(1.40)} />
+              {bloomId > 0 && (
+                <div key={bloomId} className="absolute -top-3 left-1/2 -translate-x-1/2 text-lg animate-bounce pointer-events-none">🌷✨🥕</div>
+              )}
             </div>
 
-            {/* Lotus Pond with Pier, Lily Pads & Koi (Bottom-Right) */}
+            {/* Lotus Pond with Pier, Lily Pads & Koi (Bottom-Right) — ao sen */}
             <div
+              data-testid="garden-pond"
               onClick={(e) => {
+                e.stopPropagation();
+                handlePerformMapAction('swim');
+              }}
+              onTouchEnd={(e) => {
                 e.stopPropagation();
                 handlePerformMapAction('swim');
               }}
               style={{ left: '80%', top: '78%' }}
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
-              title="Đầm hồ sen sinh thái - Bấm để Bé bơi lội mát rượi!"
+              title="Đầm hồ sen sinh thái - Bấm để Bé nhảy xuống bơi lội mát rượi!"
             >
               <LotusPondSVG scale={scaleObj(1.40)} />
+              {pondSplashId > 0 && (
+                <div key={pondSplashId} className="absolute top-[30%] left-1/2 -translate-x-1/2 text-2xl animate-bounce pointer-events-none">💦🐟</div>
+              )}
             </div>
 
             {/* Fluttering Butterflies */}
@@ -2001,17 +2236,23 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               <LibraryBookshelfSVG scale={scaleObj(1.37)} />
             </div>
 
-            {/* Dual-Monitor Developer Workstation (Top-Center) */}
+            {/* Dual-Monitor Developer Workstation (Top-Center) — máy tính ngồi code */}
             <div
+              data-testid="garden-computer"
               onClick={(e) => {
+                e.stopPropagation();
+                handlePerformMapAction('code');
+              }}
+              onTouchEnd={(e) => {
                 e.stopPropagation();
                 handlePerformMapAction('code');
               }}
               style={{ left: '50%', top: '28%' }}
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
-              title="Dàn máy dual monitor - Bấm để Bé gõ code fix bug!"
+              title="Dàn máy dual monitor - Bấm để Bé NGỒI code, nhận EXP!"
             >
               <DevWorkstationSVG scale={scaleObj(1.40)} />
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-black bg-white/90 text-slate-800 px-1.5 py-px rounded-full border border-indigo-300 pointer-events-none whitespace-nowrap">💻 Ngồi code +EXP</div>
             </div>
 
             {/* Enterprise 42U Server Rack (Top-Right) */}
@@ -2123,30 +2364,42 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               <CrystalCastleSVG scale={scaleObj(1.40)} />
             </div>
 
-            {/* Rainbow Crystal Arch (Upper-Right) */}
+            {/* Rainbow Crystal Arch (Upper-Right) — cầu vồng đi bộ được */}
             <div
+              data-testid="garden-rainbow"
               onClick={(e) => {
                 e.stopPropagation();
                 handlePerformMapAction('rainbow');
               }}
+              onTouchEnd={(e) => {
+                e.stopPropagation();
+                handlePerformMapAction('rainbow');
+              }}
               style={{ left: '72%', top: '30%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
-              title="Cầu vồng pha lê 7 màu - Bấm để Bé bật nhảy hái sao!"
+              className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform transition-transform ${isRainbowWalking ? 'scale-105' : 'hover:scale-105'}`}
+              title="Cầu vồng pha lê 7 màu - Bấm để Bé ĐI BỘ qua cầu vồng!"
             >
               <RainbowBridgeArchSVG scale={scaleObj(1.40)} />
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-black bg-white/90 text-slate-800 px-1.5 py-px rounded-full border border-pink-300 pointer-events-none whitespace-nowrap">🌈 Đi bộ qua cầu</div>
             </div>
 
-            {/* Ascending Starry Cloud Stepping Stones (Upper-Left) */}
+            {/* Ascending Starry Cloud Stepping Stones (Upper-Left) — cầu trượt mây */}
             <div
+              data-testid="garden-slide"
               onClick={(e) => {
                 e.stopPropagation();
                 handlePerformMapAction('climb');
               }}
+              onTouchEnd={(e) => {
+                e.stopPropagation();
+                handlePerformMapAction('climb');
+              }}
               style={{ left: '28%', top: '38%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
-              title="Bậc thang mây bồng bềnh đưa lên cung điện - Bấm để dạo chơi nhún nhảy!"
+              className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform transition-transform ${isSliding ? 'scale-110' : 'hover:scale-105'}`}
+              title="Cầu trượt mây bồng bềnh - Bấm để Bé TRƯỢT từ đỉnh xuống!"
             >
               <StarryCloudPlatformSVG scale={scaleObj(1.37)} />
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-black bg-white/90 text-slate-800 px-1.5 py-px rounded-full border border-sky-300 pointer-events-none whitespace-nowrap">🛝 Trượt xuống</div>
             </div>
 
             {/* Celestial Marble Angel Fountain (Bottom-Left) */}
@@ -2162,17 +2415,27 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               <CelestialAngelFountainSVG scale={scaleObj(1.37)} />
             </div>
 
-            {/* Gemstone Treasure Chest (Bottom-Right) */}
+            {/* Gemstone Treasure Chest (Bottom-Right) — rương báu mở nắp */}
             <div
+              data-testid="garden-treasure"
               onClick={(e) => {
                 e.stopPropagation();
                 handlePerformMapAction('treasure');
               }}
+              onTouchEnd={(e) => {
+                e.stopPropagation();
+                handlePerformMapAction('treasure');
+              }}
               style={{ left: '80%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
-              title="Rương ngọc báu tri thức - Bấm để Bé mở rương nhận báu vật!"
+              className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform transition-transform ${isSkyTreasureOpen ? 'scale-110' : 'hover:scale-105'}`}
+              title="Rương ngọc báu tri thức - Bấm để MỞ rương, vàng bay ra!"
             >
-              <GemstoneTreasureChestSVG scale={scaleObj(1.37)} />
+              <div className="relative">
+                <GemstoneTreasureChestSVG scale={scaleObj(1.37)} />
+                {isSkyTreasureOpen && (
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-2xl animate-bounce pointer-events-none">✨💎🪙</div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -2885,8 +3148,9 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               </div>
             )}
 
-            {/* Flying / Bouncing Ball */}
+            {/* Flying / Bouncing Ball — chỉ QUẢ BÓNG bay (không có vợt) */}
             <div
+              data-testid="toy-ball"
               className="absolute z-30 pointer-events-none -translate-x-1/2 -translate-y-1/2"
               style={{
                 left: `${toyBall.x}%`,
@@ -2906,7 +3170,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                     : 'scale-90 animate-pulse'
                 }`}
               >
-                🎾
+                ⚽
               </div>
             </div>
           </>
@@ -2946,6 +3210,56 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                 <div className="absolute inset-0 blur-xs text-amber-300 opacity-60">✴️</div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Vàng bạc đá quý bay ra từ rương báu */}
+        {treasureLoot.map((l) => (
+          <div
+            key={l.id}
+            data-testid="treasure-loot"
+            className="absolute z-40 pointer-events-none -translate-x-1/2 -translate-y-1/2 text-xl animate-bounce drop-shadow-lg"
+            style={{ left: `${l.x}%`, top: `${l.y}%` }}
+          >
+            {l.emoji}
+          </div>
+        ))}
+
+        {/* Popup overlay "Bé đang code" — nằm gọn trong arena, không gây cuộn trang */}
+        {isCoding && (
+          <div
+            data-testid="coding-overlay"
+            className="absolute inset-0 z-50 grid place-items-center pointer-events-none p-2"
+          >
+            <div className="pointer-events-auto w-[86%] max-w-[330px] max-h-[86%] overflow-hidden rounded-2xl border-2 border-indigo-400 bg-slate-950/95 shadow-2xl">
+              <div className="flex items-center justify-between gap-2 px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600">
+                <span className="text-[11px] font-black text-white">💻 Bé đang code... gõ phím lách cách!</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    sound.playClick();
+                    setIsCoding(false);
+                    setAnimState('idle');
+                    isInteractingRef.current = false;
+                  }}
+                  className="w-6 h-6 grid place-items-center rounded-full bg-white/20 text-white text-xs font-black hover:bg-white/30 cursor-pointer"
+                  title="Đóng cửa sổ code"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="px-3 py-2 font-mono text-[10px] leading-relaxed text-emerald-300 min-h-[96px]">
+                {codeLines.length === 0 && <span className="text-slate-400">_ đang mở máy...</span>}
+                {codeLines.map((line, i) => (
+                  <div key={i} className="truncate">{line}</div>
+                ))}
+                <span className="inline-block w-2 h-3 bg-emerald-300 animate-pulse align-middle">▍</span>
+              </div>
+              <div className="flex items-center justify-between px-3 py-1.5 border-t border-white/10 text-[10px] font-black">
+                <span className="text-amber-300">⭐ +{codeExp} EXP vui vẻ</span>
+                <span className="text-slate-300">⌨️ lách cách... vui tai!</span>
+              </div>
+            </div>
           </div>
         )}
 
