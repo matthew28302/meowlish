@@ -123,7 +123,7 @@ function PixelPetSprite({
   species = 'owl',
   animationState = 'idle',
   facing = 'right',
-  scale = 3.5,
+  scale = 2.45,
   equippedHat,
   equippedOutfit,
   equippedAccessory,
