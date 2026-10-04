@@ -105,17 +105,17 @@ function MascotCompanion({
       </div>
 
       {/* Speech Bubble */}
-      <div className="relative bg-white border-2 border-emerald-200 rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm max-w-[calc(100vw-5.5rem)] sm:max-w-md min-w-0 flex-1 text-xs sm:text-sm text-slate-700">
-        <div className="flex items-center gap-1.5 font-black text-emerald-700 text-[11px] sm:text-xs mb-0.5">
+      <div className="relative bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-800 rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm max-w-[calc(100vw-5.5rem)] sm:max-w-md min-w-0 flex-1 text-xs sm:text-sm text-slate-700 dark:text-slate-200">
+        <div className="flex items-center gap-1.5 font-black text-emerald-700 dark:text-emerald-300 text-[11px] sm:text-xs mb-0.5">
           <MessageCircleHeart className="w-3.5 h-3.5 text-rose-500 shrink-0" />
           <span>Cú Lexi đồng hành</span>
         </div>
-        <p className="leading-snug text-slate-700 font-medium break-words">
+        <p className="leading-snug text-slate-700 dark:text-slate-200 font-medium break-words">
           {extraSpeech || message}
         </p>
 
         {/* Triangle arrow */}
-        <div className="absolute -left-2 top-4 sm:top-5 w-3 h-3 bg-white border-l-2 border-b-2 border-emerald-200 transform rotate-45" />
+        <div className="absolute -left-2 top-4 sm:top-5 w-3 h-3 bg-white dark:bg-slate-800 border-l-2 border-b-2 border-emerald-200 dark:border-emerald-800 transform rotate-45" />
       </div>
     </div>
   );

@@ -31,6 +31,8 @@ import {
   Pencil,
 } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
+import { initTheme } from '@/lib/theme';
+import ThemeToggle from './ThemeToggle';
 import { AuthUser, getCurrentUser, setStoredUser, clearStoredUser, removeSavedAccount } from '@/lib/auth';
 import AuthModal from './AuthModal';
 import EmailVerifyModal from './EmailVerifyModal';
@@ -62,6 +64,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [disabledNotice, setDisabledNotice] = useState<string | null>(null);
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
+
+  // Đồng bộ theme (dark class) ngay khi AppShell mount — khớp với FOUC script trong layout
+  useEffect(() => {
+    initTheme();
+  }, []);
 
   // Đóng menu avatar khi đổi trang
   useEffect(() => {
@@ -285,7 +292,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       title: 'HỌC TẬP',
       items: [
         { href: '/', label: 'Lộ Trình Học', icon: Compass },
-        { href: '/encyclopedia', label: 'Bách Khoa Từ Điển', icon: Library, badge: '26.5k', badgeColor: 'bg-emerald-100 text-emerald-800' },
+        { href: '/encyclopedia', label: 'Bách Khoa Từ Điển', icon: Library, badge: '26.5k', badgeColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200' },
         { href: '/grammar', label: 'Ngữ Pháp Lego', icon: BookOpen },
         { href: '/vocabulary', label: 'Từ Vựng Giao Tiếp', icon: Sparkles },
       ],
@@ -293,7 +300,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     {
       title: 'PHÒNG LUYỆN TẬP',
       items: [
-        { href: '/practice/speaking', label: 'Luyện Nói AI Voice', icon: Mic, badge: 'AI', badgeColor: 'bg-amber-100 text-amber-900' },
+        { href: '/practice/speaking', label: 'Luyện Nói AI Voice', icon: Mic, badge: 'AI', badgeColor: 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200' },
         { href: '/practice/writing', label: 'Luyện Viết Phản Xạ', icon: PenTool },
         { href: '/practice/listening', label: 'Luyện Nghe Tốc Độ', icon: Headphones },
         { href: '/practice/roleplay', label: 'Đóng Vai Scrum', icon: Gamepad2 },
@@ -302,7 +309,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     {
       title: 'THÚ CƯNG & KHU VƯỜN',
       items: [
-        { href: '/pet', label: 'Khu Vườn Thú Cưng', icon: Heart, badge: 'Hot', badgeColor: 'bg-rose-100 text-rose-800' },
+        { href: '/pet', label: 'Khu Vườn Thú Cưng', icon: Heart, badge: 'Hot', badgeColor: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200' },
       ],
     },
     {
@@ -315,7 +322,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     {
       title: 'HỖ TRỢ & HƯỚNG DẪN',
       items: [
-        { href: '/support', label: 'Hướng Dẫn & Góp Ý', icon: HelpCircle, badge: 'Mới', badgeColor: 'bg-emerald-100 text-emerald-800' },
+        { href: '/support', label: 'Hướng Dẫn & Góp Ý', icon: HelpCircle, badge: 'Mới', badgeColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200' },
       ],
     },
   ];
@@ -345,7 +352,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="h-dvh w-full bg-[#f8fafc] text-slate-900 flex overflow-hidden relative">
+    <div className="h-dvh w-full bg-[#f8fafc] dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex overflow-hidden relative">
       {/* Thông báo bảo mật khi tài khoản bị vô hiệu hóa */}
       {disabledNotice && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] max-w-md w-[calc(100%-32px)] bg-rose-600 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -363,9 +370,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* 1. DESKTOP FIXED SIDEBAR (Standard Duolingo/Notion App Layout) */}
-      <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 z-40 bg-white border-r-2 border-slate-100 shadow-xs select-none">
+      <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 z-40 bg-white dark:bg-slate-900 border-r-2 border-slate-100 dark:border-white/10 shadow-xs select-none">
         {/* Logo Brand */}
-        <div className="p-5 border-b border-slate-100">
+        <div className="p-5 border-b border-slate-100 dark:border-white/10">
           <Link
             href="/"
             onClick={() => sound.playClick()}
@@ -375,10 +382,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               🐱
             </div>
             <div>
-              <div className="font-black text-xl text-slate-900 tracking-tight flex items-center">
-                Meow<span className="text-emerald-600">lish</span>
+              <div className="font-black text-xl text-slate-900 dark:text-slate-100 tracking-tight flex items-center">
+                Meow<span className="text-emerald-600 dark:text-emerald-400">lish</span>
               </div>
-              <div className="text-[11px] font-bold text-slate-400">
+              <div className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
                 Giao Tiếp Thực Chiến
               </div>
             </div>
@@ -389,7 +396,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6">
           {navGroups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-1.5">
-              <div className="px-3 text-[11px] font-black uppercase tracking-wider text-slate-400">
+              <div className="px-3 text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
                 {group.title}
               </div>
               <div className="space-y-1">
@@ -415,11 +422,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                         isActive
                           ? 'bg-emerald-500 text-white font-black shadow-md shadow-emerald-500/25 border-b-4 border-emerald-600'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border-b-2 border-transparent'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-white/5 border-b-2 border-transparent'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-700'}`} />
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700'}`} />
                         <span>{item.label}</span>
                       </div>
                       {item.badge && (
@@ -438,26 +445,26 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Footer User Profile Card */}
-        <div className="p-3.5 border-t border-slate-100 bg-slate-50/70">
+        <div className="p-3.5 border-t border-slate-100 dark:border-white/10 bg-slate-50/70 dark:bg-white/5">
           <div
             onClick={() => {
               sound.playClick();
               setShowAuth(true);
             }}
-            className="flex items-center justify-between p-2.5 rounded-2xl bg-white border border-slate-200 shadow-xs hover:border-emerald-400 cursor-pointer transition"
+            className="flex items-center justify-between p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-xs hover:border-emerald-400 cursor-pointer transition"
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center text-lg shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-lg shrink-0">
                 {currentUser?.avatar || '🐱'}
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-black text-slate-900 truncate">
+                <div className="text-xs font-black text-slate-900 dark:text-slate-100 truncate">
                   {currentUser?.display_name || 'Học Viên'}
                 </div>
-                <div className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1">
                   <span>Level {currentUser?.level || 1}</span>
                   <span>•</span>
-                  <span className="text-amber-600">{currentUser?.exp || 0} EXP</span>
+                  <span className="text-amber-600 dark:text-amber-300">{currentUser?.exp || 0} EXP</span>
                 </div>
               </div>
             </div>
@@ -469,7 +476,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* 2. MAIN CONTENT STAGE (Offset on desktop for the sidebar) */}
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64 h-dvh overflow-hidden">
         {/* Top Status Header (Single Minimal Row with Zero Clutter) */}
-        <header className="shrink-0 z-30 bg-white lg:bg-white/90 lg:backdrop-blur-md border-b border-slate-100 shadow-xs">
+        <header className="shrink-0 z-30 bg-white dark:bg-slate-900 lg:bg-white/90 lg:dark:bg-slate-900/90 lg:backdrop-blur-md border-b border-slate-100 dark:border-white/10 shadow-xs">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16 gap-4">
               {/* Left: Mobile hamburger & Page Title */}
@@ -482,17 +489,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     sound.playClick();
                     setMobileDrawerOpen(true);
                   }}
-                  className="lg:hidden w-11 h-11 flex items-center justify-center rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-800 cursor-pointer shadow-xs border border-slate-200 shrink-0 touch-manipulation select-none"
+                  className="lg:hidden w-11 h-11 flex items-center justify-center rounded-2xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 active:scale-95 text-slate-800 dark:text-slate-100 cursor-pointer shadow-xs border border-slate-200 dark:border-white/10 shrink-0 touch-manipulation select-none"
                   title="Mở menu"
                 >
-                  <Menu className="w-6 h-6 text-slate-700" />
+                  <Menu className="w-6 h-6 text-slate-700 dark:text-slate-200" />
                 </button>
 
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="lg:hidden w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white text-base shrink-0">
                     🐱
                   </div>
-                  <h1 className="text-xs sm:text-base font-black text-slate-900 tracking-tight truncate max-w-[110px] xs:max-w-[170px] sm:max-w-none">
+                  <h1 className="text-xs sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate max-w-[110px] xs:max-w-[170px] sm:max-w-none">
                     {getPageTitle()}
                   </h1>
                 </div>
@@ -505,13 +512,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   <div
                     onClick={() => sound.playFlame()}
                     title={`Chuỗi học liên tục ${currentUser.streak || 1} ngày!`}
-                    className="flex items-center gap-1 sm:gap-1.5 bg-orange-50 border border-orange-200 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full cursor-pointer hover:scale-105 transition active:scale-95 select-none"
+                    className="flex items-center gap-1 sm:gap-1.5 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full cursor-pointer hover:scale-105 transition active:scale-95 select-none"
                   >
                     <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500 fill-orange-500 animate-flame" />
-                    <span className="text-[11px] sm:text-xs font-black text-orange-700">
+                    <span className="text-[11px] sm:text-xs font-black text-orange-700 dark:text-orange-300">
                       {currentUser.streak || 1}
                     </span>
-                    <span className="hidden sm:inline text-[10px] font-extrabold text-orange-600 uppercase">
+                    <span className="hidden sm:inline text-[10px] font-extrabold text-orange-600 dark:text-orange-400 uppercase">
                       ngày
                     </span>
                   </div>
@@ -521,13 +528,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 {currentUser && (
                   <div
                     title={`${currentUser.exp || 0} Điểm kinh nghiệm`}
-                    className="hidden xs:flex items-center gap-1 sm:gap-1.5 bg-amber-50 border border-amber-200 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full select-none"
+                    className="hidden xs:flex items-center gap-1 sm:gap-1.5 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full select-none"
                   >
                     <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 fill-amber-400" />
-                    <span className="text-[11px] sm:text-xs font-black text-amber-800">
+                    <span className="text-[11px] sm:text-xs font-black text-amber-800 dark:text-amber-200">
                       {currentUser.exp || 0}
                     </span>
-                    <span className="hidden sm:inline text-[10px] font-extrabold text-amber-600 uppercase">
+                    <span className="hidden sm:inline text-[10px] font-extrabold text-amber-600 dark:text-amber-400 uppercase">
                       EXP
                     </span>
                   </div>
@@ -539,13 +546,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     href="/pet"
                     onClick={() => sound.playClick()}
                     title={`Số dư: ${currentUser.coins || 0} Coins. Bấm để ghé thăm Khu Vườn Thú Cưng!`}
-                    className="flex items-center gap-1 sm:gap-1.5 bg-amber-100/70 hover:bg-amber-100 border border-amber-300 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full cursor-pointer transition select-none hover:scale-105 active:scale-95 shadow-xs"
+                    className="flex items-center gap-1 sm:gap-1.5 bg-amber-100/70 dark:bg-amber-950 hover:bg-amber-100 dark:hover:bg-amber-900 border border-amber-300 dark:border-amber-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full cursor-pointer transition select-none hover:scale-105 active:scale-95 shadow-xs"
                   >
-                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 fill-amber-400 transition-transform hover:scale-110" />
-                    <span className="text-[11px] sm:text-xs font-black text-amber-900">
+                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 dark:text-amber-300 fill-amber-400 transition-transform hover:scale-110" />
+                    <span className="text-[11px] sm:text-xs font-black text-amber-900 dark:text-amber-200">
                       {currentUser.coins || 0}
                     </span>
-                    <span className="hidden sm:inline text-[10px] font-extrabold text-amber-700 uppercase">
+                    <span className="hidden sm:inline text-[10px] font-extrabold text-amber-700 dark:text-amber-400 uppercase">
                       Coins
                     </span>
                   </Link>
@@ -555,14 +562,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 {currentUser && (
                   <div
                     title={`Cấp độ học viên`}
-                    className="hidden md:flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full select-none"
+                    className="hidden md:flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 px-3 py-1.5 rounded-full select-none"
                   >
-                    <Award className="w-4 h-4 text-emerald-600" />
-                    <span className="text-xs font-black text-emerald-800">
+                    <Award className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-xs font-black text-emerald-800 dark:text-emerald-200">
                       Lv.{currentUser.level || 1}
                     </span>
                   </div>
                 )}
+
+                {/* Nút chuyển giao diện Sáng / Tối */}
+                <ThemeToggle />
 
                 {/* User Avatar Button + Dropdown */}
                 <div className="relative">
@@ -573,7 +583,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       if (currentUser) setShowAvatarMenu((v) => !v);
                       else setShowAuth(true);
                     }}
-                    className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 p-1 sm:px-2.5 sm:py-1.5 rounded-2xl text-xs font-bold transition border border-slate-200 cursor-pointer shadow-xs"
+                    className="flex items-center gap-1.5 bg-slate-50 dark:bg-white/10 hover:bg-slate-100 dark:hover:bg-white/15 text-slate-800 dark:text-slate-100 p-1 sm:px-2.5 sm:py-1.5 rounded-2xl text-xs font-bold transition border border-slate-200 dark:border-white/10 cursor-pointer shadow-xs"
                   >
                     <span className="text-sm">{currentUser?.avatar || '🐱'}</span>
                     <span className="hidden sm:inline max-w-[90px] truncate">
@@ -666,7 +676,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* 3. MOBILE BOTTOM NAVIGATION (Native App Feel on Handheld Devices) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/90 h-16 pb-[calc(env(safe-area-inset-bottom,0px))] flex items-center justify-around px-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 border-t border-slate-200/90 dark:border-white/10 h-16 pb-[calc(env(safe-area-inset-bottom,0px))] flex items-center justify-around px-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
         {mobilePrimaryLinks.map((link) => {
           const Icon = link.icon;
           const isActive = pathname === link.href;
@@ -688,8 +698,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               }}
               className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[11px] font-extrabold transition cursor-pointer touch-manipulation ${
                 isActive
-                  ? 'text-emerald-600 scale-105'
-                  : 'text-slate-400 hover:text-slate-700'
+                  ? 'text-emerald-600 dark:text-emerald-400 scale-105'
+                  : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
               }`}
             >
               <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : ''}`} />
@@ -707,7 +717,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             sound.playClick();
             setMobileDrawerOpen(true);
           }}
-          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[11px] font-extrabold text-slate-400 hover:text-slate-700 cursor-pointer touch-manipulation select-none ${
+          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[11px] font-extrabold text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer touch-manipulation select-none ${
             mobileDrawerOpen ? 'text-emerald-600' : ''
           }`}
         >
@@ -731,13 +741,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           />
 
           {/* Drawer Content */}
-          <div className="relative w-4/5 max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between p-5 overflow-y-auto z-10 animate-drawer-slide pointer-events-auto">
+          <div className="relative w-4/5 max-w-xs bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col justify-between p-5 overflow-y-auto z-10 animate-drawer-slide pointer-events-auto">
             <div className="space-y-6">
               {/* Drawer Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                <div className="flex items-center gap-2.5 font-black text-lg text-slate-900">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/10">
+                <div className="flex items-center gap-2.5 font-black text-lg text-slate-900 dark:text-slate-100">
                   <span className="text-2xl">🐱</span>
-                  <span>Meow<span className="text-emerald-600">lish</span></span>
+                  <span>Meow<span className="text-emerald-600 dark:text-emerald-400">lish</span></span>
                 </div>
                 <button
                   type="button"
@@ -747,9 +757,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     sound.playClick();
                     setMobileDrawerOpen(false);
                   }}
-                  className="p-2.5 rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 cursor-pointer touch-manipulation"
+                  className="p-2.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 cursor-pointer touch-manipulation"
                 >
-                  <X className="w-5 h-5 text-slate-600" />
+                  <X className="w-5 h-5 text-slate-600 dark:text-slate-300" />
                 </button>
               </div>
 
@@ -757,7 +767,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <div className="space-y-5">
                 {navGroups.map((group, gIdx) => (
                   <div key={gIdx} className="space-y-1">
-                    <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-2">
+                    <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">
                       {group.title}
                     </div>
                     <div className="space-y-1">
@@ -788,7 +798,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                             className={`flex items-center justify-between p-3 rounded-xl text-xs font-bold transition touch-manipulation ${
                               isActive
                                 ? 'bg-emerald-500 text-white font-black shadow-xs'
-                                : 'text-slate-700 hover:bg-slate-50'
+                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'
                             }`}
                           >
                             <div className="flex items-center gap-2.5">
@@ -812,19 +822,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Drawer User Card */}
-            <div className="pt-4 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setMobileDrawerOpen(false);
-                  setShowAuth(true);
-                }}
-                className="w-full btn-3d btn-3d-white p-3 text-xs font-black text-slate-800 touch-manipulation"
-              >
-                <span>{currentUser?.avatar || '🐱'}</span>
-                <span>{currentUser ? currentUser.display_name : 'Đăng Nhập Tài Khoản'}</span>
-              </button>
+            <div className="pt-4 border-t border-slate-100 dark:border-white/10">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMobileDrawerOpen(false);
+                    setShowAuth(true);
+                  }}
+                  className="flex-1 btn-3d btn-3d-white p-3 text-xs font-black text-slate-800 touch-manipulation"
+                >
+                  <span>{currentUser?.avatar || '🐱'}</span>
+                  <span>{currentUser ? currentUser.display_name : 'Đăng Nhập Tài Khoản'}</span>
+                </button>
+                <ThemeToggle />
+              </div>
               {currentUser && (
                 <button
                   type="button"

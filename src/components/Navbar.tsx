@@ -75,21 +75,21 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-2 border-slate-100 shadow-xs transition-colors">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-2 border-slate-100 shadow-xs transition-colors dark:bg-slate-900/95 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 gap-3">
             {/* Logo */}
             <Link
               href="/"
               onClick={() => sound.playClick()}
-              className="flex items-center gap-2.5 font-black text-lg sm:text-xl text-slate-900 tracking-tight group shrink-0"
+              className="flex items-center gap-2.5 font-black text-lg sm:text-xl text-slate-900 tracking-tight group shrink-0 dark:text-slate-100"
             >
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform text-xl">
                 🦉
               </div>
               <div className="flex flex-col">
-                <span className="leading-none text-slate-900 font-extrabold text-base sm:text-lg">
-                  English<span className="text-emerald-600">ForMe</span>
+                <span className="leading-none text-slate-900 font-extrabold text-base sm:text-lg dark:text-slate-100">
+                  English<span className="text-emerald-600 dark:text-emerald-300">ForMe</span>
                 </span>
                 <span className="text-[10px] font-semibold text-slate-400">
                   Giao Tiếp Thực Chiến
@@ -130,10 +130,10 @@ export default function Navbar() {
                   <div
                     onClick={() => sound.playFlame()}
                     title={`Chuỗi học liên tục ${currentUser.streak || 1} ngày!`}
-                    className="flex items-center gap-1.5 bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-full cursor-pointer hover:scale-105 transition"
+                    className="flex items-center gap-1.5 bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-full cursor-pointer hover:scale-105 transition dark:bg-orange-950 dark:border-orange-800"
                   >
                     <Flame className="w-4 h-4 text-orange-500 fill-orange-500 animate-flame" />
-                    <span className="text-xs font-black text-orange-700">
+                    <span className="text-xs font-black text-orange-700 dark:text-orange-300">
                       {currentUser.streak || 1}
                     </span>
                   </div>
@@ -141,10 +141,10 @@ export default function Navbar() {
                   {/* EXP Pill */}
                   <div
                     title={`${currentUser.exp || 0} Điểm kinh nghiệm`}
-                    className="hidden sm:flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full"
+                    className="hidden sm:flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full dark:bg-amber-950 dark:border-amber-800"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-                    <span className="text-xs font-bold text-amber-800">
+                    <span className="text-xs font-bold text-amber-800 dark:text-amber-200">
                       {currentUser.exp || 0}
                     </span>
                   </div>
@@ -154,7 +154,7 @@ export default function Navbar() {
                     href="/pet"
                     onClick={() => sound.playClick()}
                     title={`Số dư: ${currentUser.coins || 1000} Coins (Bấm để ghé thăm Khu Vườn & Cửa Hàng)`}
-                    className="hidden md:flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-full text-xs font-black text-amber-800 transition cursor-pointer"
+                    className="hidden md:flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-full text-xs font-black text-amber-800 transition cursor-pointer dark:bg-amber-950 hover:dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200"
                   >
                     <span>🪙</span>
                     <span>{currentUser.coins || 1000}</span>
@@ -167,7 +167,7 @@ export default function Navbar() {
                       setShowAuth(true);
                     }}
                     title="Xem hồ sơ cá nhân"
-                    className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 px-3 py-1.5 rounded-2xl text-xs font-bold transition border border-slate-200 cursor-pointer shadow-xs"
+                    className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 px-3 py-1.5 rounded-2xl text-xs font-bold transition border border-slate-200 cursor-pointer shadow-xs dark:bg-slate-900 hover:dark:bg-slate-800 dark:text-slate-200 dark:border-white/10"
                   >
                     <span className="text-sm">{currentUser.avatar || '🦉'}</span>
                     <span className="max-w-[90px] truncate hidden sm:inline">
@@ -183,7 +183,7 @@ export default function Navbar() {
                       setCurrentUser(null);
                     }}
                     title="Đăng xuất khỏi thiết bị"
-                    className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                    className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer hover:dark:text-rose-300 hover:dark:bg-rose-950"
                   >
                     <LogOut className="w-4 h-4" />
                   </button>
@@ -207,7 +207,7 @@ export default function Navbar() {
                   sound.playClick();
                   setMobileMenuOpen(!mobileMenuOpen);
                 }}
-                className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer"
+                className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer dark:text-slate-400 hover:dark:bg-slate-800"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -215,7 +215,7 @@ export default function Navbar() {
           </div>
 
           {/* Sub Navigation Bar for Desktop Extra Links */}
-          <div className="hidden lg:flex items-center gap-1 overflow-x-auto py-2 border-t border-slate-100 text-xs">
+          <div className="hidden lg:flex items-center gap-1 overflow-x-auto py-2 border-t border-slate-100 text-xs dark:border-white/10">
             {navLinks.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -241,7 +241,7 @@ export default function Navbar() {
 
           {/* Mobile Drawer Menu */}
           {mobileMenuOpen && (
-            <div className="lg:hidden py-3 border-t border-slate-100 grid grid-cols-2 gap-2 animate-in fade-in duration-150">
+            <div className="lg:hidden py-3 border-t border-slate-100 grid grid-cols-2 gap-2 animate-in fade-in duration-150 dark:border-white/10">
               {navLinks.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;

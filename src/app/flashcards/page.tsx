@@ -180,7 +180,7 @@ export default function FlashcardsPage() {
       <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-rose-700 rounded-3xl p-6 sm:p-8 text-white shadow-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2">
+            <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2 dark:bg-slate-900/20">
               <Layers className="w-3.5 h-3.5 text-amber-200" /> Flashcard 3D Spaced Repetition
             </div>
             <h1 className="text-2xl sm:text-3xl font-black">
@@ -192,7 +192,7 @@ export default function FlashcardsPage() {
           </div>
 
           {/* Tab Filter */}
-          <div className="flex bg-white/20 p-1 rounded-2xl text-xs font-bold backdrop-blur-md">
+          <div className="flex bg-white/20 p-1 rounded-2xl text-xs font-bold backdrop-blur-md dark:bg-slate-900/20">
             <button
               onClick={() => {
                 sound.playClick();
@@ -202,7 +202,7 @@ export default function FlashcardsPage() {
                 setIsCompleted(false);
               }}
               className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
-                activeTab === 'all' ? 'bg-white text-orange-700 shadow-sm' : 'text-white'
+                activeTab === 'all' ? 'bg-white text-orange-700 shadow-sm dark:bg-slate-900 dark:text-orange-300' : 'text-white'
               }`}
             >
               Tất cả từ ({deck.length})
@@ -217,7 +217,7 @@ export default function FlashcardsPage() {
               }}
               className={`px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1 ${
                 activeTab === 'bookmarks'
-                  ? 'bg-white text-orange-700 shadow-sm'
+                  ? 'bg-white text-orange-700 shadow-sm dark:bg-slate-900 dark:text-orange-300'
                   : 'text-white'
               }`}
             >
@@ -231,11 +231,11 @@ export default function FlashcardsPage() {
       {!isCompleted && card ? (
         <div className="space-y-6">
           {/* Progress bar */}
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
             <span>
               Thẻ {currentIdx + 1} / {deck.length}
             </span>
-            <span className="text-emerald-600">Đã thuộc: {masteredCount} từ</span>
+            <span className="text-emerald-600 dark:text-emerald-300">Đã thuộc: {masteredCount} từ</span>
           </div>
           <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
             <div
@@ -323,7 +323,7 @@ export default function FlashcardsPage() {
           <div className="grid grid-cols-2 gap-4">
             <button
               onClick={() => handleNextCard(false)}
-              className="btn-3d btn-3d-white py-4 text-xs sm:text-sm font-black text-rose-600 border-rose-200 border-b-rose-400 shadow-md cursor-pointer"
+              className="btn-3d btn-3d-white py-4 text-xs sm:text-sm font-black text-rose-600 border-rose-200 border-b-rose-400 shadow-md cursor-pointer dark:text-rose-300 dark:border-rose-800"
             >
               <X className="w-5 h-5 text-rose-500" /> Chưa Thuộc (Ôn Lại)
             </button>
@@ -340,11 +340,11 @@ export default function FlashcardsPage() {
         /* Completion Screen */
         <div className="card-arcade card-arcade-emerald p-8 sm:p-12 text-center space-y-5">
           <div className="text-5xl animate-bounce">🎉</div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100">
             Tuyệt Vời! Bạn Đã Hoàn Thành Bộ Thẻ
           </h2>
-          <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed font-medium">
-            Bạn đã ghi nhớ được <b className="text-emerald-700">{masteredCount}</b> / {deck.length} từ trong phiên ôn tập này. Toàn bộ kết quả đã được cập nhật vào tiến độ cá nhân.
+          <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed font-medium dark:text-slate-400">
+            Bạn đã ghi nhớ được <b className="text-emerald-700 dark:text-emerald-300">{masteredCount}</b> / {deck.length} từ trong phiên ôn tập này. Toàn bộ kết quả đã được cập nhật vào tiến độ cá nhân.
           </p>
           <div className="flex items-center justify-center gap-3 pt-2">
             <button

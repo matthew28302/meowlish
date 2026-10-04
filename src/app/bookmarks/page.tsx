@@ -170,7 +170,7 @@ export default function BookmarksPage() {
       <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2">
+            <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2 dark:bg-slate-900/20">
               <Bookmark className="w-3.5 h-3.5 text-amber-200" /> Sổ Tay Từ Vựng Cá Nhân (SQLite Vault)
             </div>
             <h1 className="text-2xl sm:text-3xl font-black">
@@ -184,14 +184,14 @@ export default function BookmarksPage() {
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-3.5 py-2 bg-white text-orange-700 font-bold rounded-2xl text-xs flex items-center gap-1.5 shadow hover:bg-orange-50 transition cursor-pointer"
+              className="px-3.5 py-2 bg-white text-orange-700 font-bold rounded-2xl text-xs flex items-center gap-1.5 shadow hover:bg-orange-50 transition cursor-pointer dark:bg-slate-900 dark:text-orange-300 hover:dark:bg-orange-950"
             >
               <Plus className="w-4 h-4" /> Thêm Từ Mới
             </button>
             <Link
               href="/flashcards"
               onClick={() => sound.playClick()}
-              className="px-4 py-2 bg-slate-900 text-white font-bold rounded-2xl text-xs flex items-center gap-1.5 shadow hover:bg-slate-800 transition cursor-pointer"
+              className="px-4 py-2 bg-slate-900 text-white font-bold rounded-2xl text-xs flex items-center gap-1.5 shadow hover:bg-slate-800 transition cursor-pointer dark:bg-white dark:text-slate-900 hover:dark:bg-white"
             >
               <Layers className="w-4 h-4 text-amber-400" /> Ôn Bằng Flashcard
             </Link>
@@ -285,7 +285,7 @@ export default function BookmarksPage() {
                           speakText(b.word);
                         }}
                         title="Nghe phát âm"
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-emerald-600 cursor-pointer transition"
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-emerald-600 cursor-pointer transition dark:text-emerald-300"
                       >
                         <Volume2 className="w-4 h-4" />
                       </button>
@@ -404,7 +404,7 @@ export default function BookmarksPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer dark:text-slate-400"
                 >
                   Huỷ
                 </button>

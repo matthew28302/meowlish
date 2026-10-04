@@ -216,7 +216,7 @@ export default function HomePage() {
     <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 pb-24 lg:pb-12 overflow-x-hidden">
       {/* Hero Welcome Banner */}
       <section className="shrink-0 bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg shadow-emerald-500/10 relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-white/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-white/15 rounded-full blur-3xl pointer-events-none dark:bg-slate-900/15" />
         <div className="absolute bottom-0 left-1/4 -mb-10 w-60 h-60 bg-amber-300/15 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
@@ -245,9 +245,9 @@ export default function HomePage() {
               <Link
                 href="/exam"
                 onClick={() => sound.playClick()}
-                className="btn-3d btn-3d-white px-5 py-3 text-xs sm:text-sm font-black text-slate-800 shadow-md cursor-pointer"
+                className="btn-3d btn-3d-white px-5 py-3 text-xs sm:text-sm font-black text-slate-800 shadow-md cursor-pointer dark:text-slate-200"
               >
-                <Trophy className="w-4 h-4 text-emerald-600" /> Trung Tâm Thi Thử
+                <Trophy className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> Trung Tâm Thi Thử
               </Link>
             </div>
           </div>
@@ -267,30 +267,30 @@ export default function HomePage() {
       {/* ========================================================================= */}
       <section className="space-y-6">
         {/* Header & Goal Selector Bar */}
-        <div className="bg-white rounded-3xl p-6 border-2 border-slate-200 shadow-sm space-y-5">
+        <div className="bg-white rounded-3xl p-6 border-2 border-slate-200 shadow-sm space-y-5 dark:bg-slate-900 dark:border-white/10">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="p-2 bg-emerald-100 text-emerald-800 rounded-2xl text-xl">🎯</span>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                <span className="p-2 bg-emerald-100 text-emerald-800 rounded-2xl text-xl dark:bg-emerald-950 dark:text-emerald-200">🎯</span>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight dark:text-slate-100">
                   Lộ Trình Học Theo Mục Tiêu Chứng Chỉ & Công Việc
                 </h2>
               </div>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1 dark:text-slate-400">
                 Lựa chọn chứng chỉ bạn cần hướng tới. Nội dung mốc học và đề thi thử sẽ tự động cập nhật chuẩn hóa!
               </p>
             </div>
 
             {/* Overall Progress Badge */}
-            <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-3 sm:px-5 shrink-0 flex items-center gap-3">
+            <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-3 sm:px-5 shrink-0 flex items-center gap-3 dark:bg-emerald-950 dark:border-emerald-800">
               <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white font-black flex items-center justify-center text-sm shadow-xs">
                 {pathProgressPercent}%
               </div>
               <div>
-                <div className="text-xs font-black text-emerald-900">
+                <div className="text-xs font-black text-emerald-900 dark:text-emerald-200">
                   Tiến Độ Lộ Trình Hiện Tại
                 </div>
-                <div className="text-[11px] font-extrabold text-emerald-700">
+                <div className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-300">
                   Hoàn thành {completedInPath} / {currentPath.nodes.length} mốc bài học
                 </div>
               </div>
@@ -364,10 +364,10 @@ export default function HomePage() {
                 key={node.id}
                 className={`relative z-10 card-playful p-6 rounded-3xl border-2 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-6 ${
                   isCompleted
-                    ? 'bg-emerald-50/50 border-emerald-300 shadow-xs'
+                    ? 'bg-emerald-50/50 border-emerald-300 shadow-xs dark:bg-emerald-950/40 dark:border-emerald-800'
                     : isFirstUncompleted
-                    ? 'bg-white border-amber-400 shadow-md ring-4 ring-amber-400/20'
-                    : 'bg-white border-slate-200 opacity-90'
+                    ? 'bg-white border-amber-400 shadow-md ring-4 ring-amber-400/20 dark:bg-slate-900 dark:border-amber-600'
+                    : 'bg-white border-slate-200 opacity-90 dark:bg-slate-900 dark:border-white/10'
                 }`}
               >
                 {/* Left Node Status Badge */}
@@ -377,14 +377,14 @@ export default function HomePage() {
                       isCompleted
                         ? 'bg-emerald-500 text-white border-emerald-600 scale-105'
                         : isFirstUncompleted
-                        ? 'bg-gradient-to-tr from-amber-400 to-orange-400 text-slate-950 border-amber-500 ring-4 ring-amber-300/60 shadow-lg'
-                        : 'bg-slate-100 text-slate-400 border-slate-200'
+                        ? 'bg-gradient-to-tr from-amber-400 to-orange-400 text-slate-950 border-amber-500 ring-4 ring-amber-300/60 shadow-lg dark:text-slate-200'
+                        : 'bg-slate-100 text-slate-400 border-slate-200 dark:bg-white/10 dark:text-slate-500 dark:border-white/10'
                     }`}
                   >
                     {isCompleted ? (
                       <Check className="w-7 h-7 stroke-[3]" />
                     ) : node.isMockTest ? (
-                      <Trophy className="w-7 h-7 text-amber-950" />
+                      <Trophy className="w-7 h-7 text-amber-950 dark:text-amber-200" />
                     ) : (
                       <span>{index + 1}</span>
                     )}
@@ -395,16 +395,16 @@ export default function HomePage() {
                       <span
                         className={`text-xs font-black px-2.5 py-0.5 rounded-full border ${
                           isCompleted
-                            ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800'
                             : isFirstUncompleted
-                            ? 'bg-amber-100 text-amber-900 border-amber-300'
-                            : 'bg-slate-100 text-slate-600 border-slate-200'
+                            ? 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800'
+                            : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-white/10 dark:text-slate-300 dark:border-white/10'
                         }`}
                       >
                         {node.targetScore}
                       </span>
                       {node.isMockTest && (
-                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 dark:bg-rose-950 dark:text-rose-200 dark:border-rose-800">
                           🔥 Mốc Cuối Thi Thử
                         </span>
                       )}
@@ -415,11 +415,11 @@ export default function HomePage() {
                       )}
                     </div>
 
-                    <h4 className="text-base sm:text-lg font-black text-slate-900 leading-snug">
+                    <h4 className="text-base sm:text-lg font-black text-slate-900 leading-snug dark:text-slate-100">
                       {node.stageTitle}
                     </h4>
 
-                    <p className="text-xs text-slate-600 font-medium leading-relaxed max-w-2xl">
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed max-w-2xl dark:text-slate-400">
                       {node.description}
                     </p>
 
@@ -427,7 +427,7 @@ export default function HomePage() {
                       {node.skills.map((skill, skIdx) => (
                         <span
                           key={skIdx}
-                          className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md"
+                          className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md dark:text-slate-400 dark:bg-slate-800"
                         >
                           • {skill}
                         </span>
@@ -437,8 +437,8 @@ export default function HomePage() {
                 </div>
 
                 {/* Right Action Controls & Rewards */}
-                <div className="w-full md:w-auto flex flex-row md:flex-col items-center md:items-end justify-between gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
-                  <div className="flex items-center gap-2 text-xs font-black text-amber-600 bg-amber-50 px-3 py-1 rounded-xl border border-amber-200">
+                <div className="w-full md:w-auto flex flex-row md:flex-col items-center md:items-end justify-between gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-white/10">
+                  <div className="flex items-center gap-2 text-xs font-black text-amber-600 bg-amber-50 px-3 py-1 rounded-xl border border-amber-200 dark:text-amber-300 dark:bg-amber-950 dark:border-amber-800">
                     <span>⭐ +{node.expReward} EXP</span>
                     <span>•</span>
                     <span>🪙 +{node.coinReward}</span>
@@ -448,7 +448,7 @@ export default function HomePage() {
                     <Link
                       href={node.lessons?.[0]?.href || `/exam?category=${activeTargetCode}`}
                       onClick={() => sound.playClick()}
-                      className="btn-3d btn-3d-amber px-6 py-3 text-xs sm:text-sm font-black text-slate-950 shadow-md cursor-pointer flex items-center gap-2"
+                      className="btn-3d btn-3d-amber px-6 py-3 text-xs sm:text-sm font-black text-slate-950 shadow-md cursor-pointer flex items-center gap-2 dark:text-slate-200"
                     >
                       <Trophy className="w-4 h-4" />
                       <span>Bắt Đầu Bài Thi Thử</span>
@@ -460,9 +460,9 @@ export default function HomePage() {
                           sound.playClick();
                           setSelectedNodeModal(node);
                         }}
-                        className="btn-3d btn-3d-white px-4 py-2.5 min-h-[44px] text-xs font-black text-slate-800 cursor-pointer flex items-center gap-1.5 touch-manipulation"
+                        className="btn-3d btn-3d-white px-4 py-2.5 min-h-[44px] text-xs font-black text-slate-800 cursor-pointer flex items-center gap-1.5 touch-manipulation dark:text-slate-200"
                       >
-                        <BookOpen className="w-4 h-4 text-emerald-600" />
+                        <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-300" />
                         <span>Xem bài học ({node.lessons.length})</span>
                       </button>
 
@@ -476,7 +476,7 @@ export default function HomePage() {
                           <span>Đánh dấu xong</span>
                         </button>
                       ) : (
-                        <span className="text-xs font-black text-emerald-700 flex items-center gap-1 bg-emerald-100 px-3 py-2.5 min-h-[44px] rounded-xl">
+                        <span className="text-xs font-black text-emerald-700 flex items-center gap-1 bg-emerald-100 px-3 py-2.5 min-h-[44px] rounded-xl dark:text-emerald-300 dark:bg-emerald-950">
                           <CheckCircle2 className="w-4 h-4" /> Hoàn thành
                         </span>
                       )}
@@ -499,11 +499,11 @@ export default function HomePage() {
           <section className="space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2">
+                <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2 dark:text-slate-100">
                   <Zap className="w-5 h-5 text-amber-500 fill-amber-400 animate-flame" />
                   Phòng Luyện Tập 4 Kỹ Năng Tương Tác
                 </h2>
-                <p className="text-xs text-slate-500 font-medium">
+                <p className="text-xs text-slate-500 font-medium dark:text-slate-400">
                   Chấm điểm bằng giọng nói AI, lắp ghép câu Lego và đóng vai tình huống công sở.
                 </p>
               </div>
@@ -521,21 +521,21 @@ export default function HomePage() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:scale-110 transition-transform border-2 border-white ring-2 ring-emerald-300 shadow-md">
+                    <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:scale-110 transition-transform border-2 border-white ring-2 ring-emerald-300 shadow-md dark:bg-emerald-950 dark:text-emerald-300">
                       <Mic className="w-5 h-5" />
                     </div>
                     <span className="badge-arcade">
                       Speech AI
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  <h3 className="text-base font-black text-slate-900 group-hover:text-emerald-700 transition-colors dark:text-slate-100 group-hover:dark:text-emerald-300">
                     Luyện Nói Voice AI
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium dark:text-slate-400">
                     Nhận diện giọng nói microphone trực tiếp, chấm điểm % phát âm và chỉ ra lỗi sai từng từ.
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-emerald-700">
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-emerald-700 dark:border-white/10 dark:text-emerald-300">
                   <span>Vào phòng nói</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -549,21 +549,21 @@ export default function HomePage() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-11 h-11 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center group-hover:scale-110 transition-transform border-2 border-white ring-2 ring-teal-300 shadow-md">
+                    <div className="w-11 h-11 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center group-hover:scale-110 transition-transform border-2 border-white ring-2 ring-teal-300 shadow-md dark:bg-teal-950 dark:text-teal-300">
                       <PenTool className="w-5 h-5" />
                     </div>
                     <span className="badge-arcade">
                       Lego Block
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-slate-900 group-hover:text-teal-700 transition-colors">
+                  <h3 className="text-base font-black text-slate-900 group-hover:text-teal-700 transition-colors dark:text-slate-100 group-hover:dark:text-teal-300">
                     Luyện Viết Phản Xạ
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium dark:text-slate-400">
                     Lắp ghép các khối từ vựng thành câu hoặc gõ bàn phím phản xạ theo tình huống công việc.
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-teal-700">
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-teal-700 dark:border-white/10 dark:text-teal-300">
                   <span>Lắp ghép câu</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -577,21 +577,21 @@ export default function HomePage() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-11 h-11 rounded-2xl bg-sky-100 text-sky-700 flex items-center justify-center group-hover:scale-110 transition-transform border-2 border-white ring-2 ring-sky-300 shadow-md">
+                    <div className="w-11 h-11 rounded-2xl bg-sky-100 text-sky-700 flex items-center justify-center group-hover:scale-110 transition-transform border-2 border-white ring-2 ring-sky-300 shadow-md dark:bg-sky-950 dark:text-sky-300">
                       <Headphones className="w-5 h-5" />
                     </div>
                     <span className="badge-arcade">
                       0.75x & 1.0x
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-slate-900 group-hover:text-sky-700 transition-colors">
+                  <h3 className="text-base font-black text-slate-900 group-hover:text-sky-700 transition-colors dark:text-slate-100 group-hover:dark:text-sky-300">
                     Luyện Nghe Tốc Độ
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium dark:text-slate-400">
                     Audio đàm thoại bản xứ, chế độ nghe chậm 0.75x và trắc nghiệm nghe hiểu ngữ cảnh.
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-sky-700">
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-sky-700 dark:border-white/10 dark:text-sky-300">
                   <span>Luyện nghe</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -605,21 +605,21 @@ export default function HomePage() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-11 h-11 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center group-hover:scale-110 transition-transform border-2 border-white ring-2 ring-purple-300 shadow-md">
+                    <div className="w-11 h-11 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center group-hover:scale-110 transition-transform border-2 border-white ring-2 ring-purple-300 shadow-md dark:bg-purple-950 dark:text-purple-300">
                       <Gamepad2 className="w-5 h-5" />
                     </div>
                     <span className="badge-arcade">
                       Daily Scrum
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-slate-900 group-hover:text-purple-700 transition-colors">
+                  <h3 className="text-base font-black text-slate-900 group-hover:text-purple-700 transition-colors dark:text-slate-100 group-hover:dark:text-purple-300">
                     Đóng Vai Hội Thoại
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium dark:text-slate-400">
                     Mô phỏng buổi họp Daily Scrum với Tech Lead Alex, rèn luyện phản xạ đối đáp tiếng Anh.
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-purple-700">
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-purple-700 dark:border-white/10 dark:text-purple-300">
                   <span>Vào kịch bản</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -638,10 +638,10 @@ export default function HomePage() {
                     Trực quan & Dễ hiểu
                   </span>
                 </div>
-                <h3 className="text-base sm:text-lg font-black text-slate-900">
+                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100">
                   Ngữ Pháp Lego & Công Tắc Chuyển Thì
                 </h3>
-                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed font-medium">
+                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed font-medium dark:text-slate-400">
                   Giải thích cấu trúc câu qua 4 khối màu: Chủ ngữ, Động từ, Tân ngữ và Thời gian. Công tắc chuyển thì biến đổi câu tức thì.
                 </p>
               </div>
@@ -663,10 +663,10 @@ export default function HomePage() {
                     Lặp Lại Ngắt Quãng SRS
                   </span>
                 </div>
-                <h3 className="text-base sm:text-lg font-black text-slate-900">
+                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100">
                   Thẻ Ghi Nhớ 3D Flashcard Deck
                 </h3>
-                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed font-medium">
+                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed font-medium dark:text-slate-400">
                   Lật thẻ 3D hai mặt mượt mà, ôn tập ngắt quãng khoa học từ vựng TOEIC, VSTEP, IT và các từ trong Sổ Bookmark.
                 </p>
               </div>
@@ -681,7 +681,7 @@ export default function HomePage() {
                 <Link
                   href="/flashcards"
                   onClick={() => sound.playClick()}
-                  className="btn-3d btn-3d-amber py-2.5 text-center text-xs font-black text-slate-950 shadow-md cursor-pointer"
+                  className="btn-3d btn-3d-amber py-2.5 text-center text-xs font-black text-slate-950 shadow-md cursor-pointer dark:text-slate-200"
                 >
                   <Layers className="w-3.5 h-3.5" /> Lật Flashcard
                 </Link>
@@ -692,26 +692,26 @@ export default function HomePage() {
           {/* Interactive Bôi Đen Tra Từ */}
           <section className="card-arcade card-arcade-teal p-5 space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2 text-xs font-black text-emerald-700 uppercase tracking-wide">
+              <div className="flex items-center gap-2 text-xs font-black text-emerald-700 uppercase tracking-wide dark:text-emerald-300">
                 <MousePointerClick className="w-4 h-4 text-emerald-500" />
                 Tính Năng Bôi Đen Tra Từ & Lưu Bookmark Tức Thì
               </div>
-              <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full dark:text-slate-400 dark:bg-slate-800">
                 💡 Bôi đen bất kỳ từ nào bên dưới để thử nghiệm:
               </span>
             </div>
 
-            <div className="p-4 bg-emerald-50/40 rounded-2xl border-2 border-dashed border-emerald-200 text-xs sm:text-sm text-slate-800 leading-relaxed font-medium">
+            <div className="p-4 bg-emerald-50/40 rounded-2xl border-2 border-dashed border-emerald-200 text-xs sm:text-sm text-slate-800 leading-relaxed font-medium dark:border-emerald-800 dark:text-slate-200">
               &quot;During today&apos;s daily standup, the senior engineer highlighted that a major{' '}
-              <span className="font-black text-emerald-700 underline decoration-emerald-400 decoration-2 cursor-pointer bg-emerald-100/70 px-1 rounded">
+              <span className="font-black text-emerald-700 underline decoration-emerald-400 decoration-2 cursor-pointer bg-emerald-100/70 px-1 rounded dark:text-emerald-300">
                 blocker
               </span>{' '}
               was resolved by introducing a temporary{' '}
-              <span className="font-black text-emerald-700 underline decoration-emerald-400 decoration-2 cursor-pointer bg-emerald-100/70 px-1 rounded">
+              <span className="font-black text-emerald-700 underline decoration-emerald-400 decoration-2 cursor-pointer bg-emerald-100/70 px-1 rounded dark:text-emerald-300">
                 workaround
               </span>
               , avoiding critical downtime and allowing the team to{' '}
-              <span className="font-black text-emerald-700 underline decoration-emerald-400 decoration-2 cursor-pointer bg-emerald-100/70 px-1 rounded">
+              <span className="font-black text-emerald-700 underline decoration-emerald-400 decoration-2 cursor-pointer bg-emerald-100/70 px-1 rounded dark:text-emerald-300">
                 refactor
               </span>{' '}
               safely.&quot;
@@ -723,14 +723,14 @@ export default function HomePage() {
                   sound.playClick();
                   speakText('During today\'s daily standup, the senior engineer highlighted that a major blocker was resolved by introducing a temporary workaround.');
                 }}
-                className="text-emerald-700 hover:text-emerald-800 font-extrabold flex items-center gap-1.5 cursor-pointer bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 transition"
+                className="text-emerald-700 hover:text-emerald-800 font-extrabold flex items-center gap-1.5 cursor-pointer bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 transition dark:text-emerald-300 hover:dark:text-emerald-200 dark:bg-emerald-950 hover:dark:bg-emerald-950 dark:border-emerald-800"
               >
                 <Volume2 className="w-3.5 h-3.5" /> Nghe phát âm mẫu 1x
               </button>
               <Link
                 href="/bookmarks"
                 onClick={() => sound.playClick()}
-                className="text-slate-600 hover:text-emerald-700 font-bold flex items-center gap-1 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition"
+                className="text-slate-600 hover:text-emerald-700 font-bold flex items-center gap-1 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition dark:text-slate-400 hover:dark:text-emerald-300 dark:bg-slate-800 hover:dark:bg-slate-700"
               >
                 <Bookmark className="w-3.5 h-3.5 text-amber-500 fill-amber-400" /> Sổ Bookmark ({stats.bookmarksCount} từ)
               </Link>
@@ -743,31 +743,31 @@ export default function HomePage() {
           {/* User Profile Card */}
           <div className="card-arcade card-arcade-sky p-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl shadow-xs dark:bg-emerald-950 dark:text-emerald-200">
                 {currentUser?.avatar || '🦉'}
               </div>
               <div>
                 <span className="text-xs text-slate-400 font-medium block">Tài khoản học viên</span>
-                <h4 className="font-black text-base text-slate-900 leading-tight">
+                <h4 className="font-black text-base text-slate-900 leading-tight dark:text-slate-100">
                   {currentUser?.display_name || 'Học Viên'}
                 </h4>
-                <span className="text-[11px] text-slate-500 font-mono">@{currentUser?.username || 'demo'}</span>
+                <span className="text-[11px] text-slate-500 font-mono dark:text-slate-400">@{currentUser?.username || 'demo'}</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 dark:border-white/10">
               <div
                 onClick={() => sound.playFlame()}
-                className="p-3 rounded-2xl bg-orange-50 border border-orange-200 text-center cursor-pointer hover:scale-105 transition"
+                className="p-3 rounded-2xl bg-orange-50 border border-orange-200 text-center cursor-pointer hover:scale-105 transition dark:bg-orange-950 dark:border-orange-800"
               >
-                <span className="text-[11px] text-orange-700 block font-semibold">Chuỗi Học</span>
-                <span className="text-lg font-black text-orange-600 flex items-center justify-center gap-1">
+                <span className="text-[11px] text-orange-700 block font-semibold dark:text-orange-300">Chuỗi Học</span>
+                <span className="text-lg font-black text-orange-600 flex items-center justify-center gap-1 dark:text-orange-300">
                   🔥 {stats.streak} ngày
                 </span>
               </div>
-              <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-center">
-                <span className="text-[11px] text-amber-700 block font-semibold">Kinh Nghiệm</span>
-                <span className="text-lg font-black text-amber-600 flex items-center justify-center gap-1">
+              <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-center dark:bg-amber-950 dark:border-amber-800">
+                <span className="text-[11px] text-amber-700 block font-semibold dark:text-amber-300">Kinh Nghiệm</span>
+                <span className="text-lg font-black text-amber-600 flex items-center justify-center gap-1 dark:text-amber-300">
                   ⭐ {stats.exp} EXP
                 </span>
               </div>
@@ -777,13 +777,13 @@ export default function HomePage() {
           {/* Pet Companion Card */}
           <div className="card-arcade card-arcade-emerald p-5 space-y-3 relative">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-black text-emerald-800 uppercase tracking-wide">
+              <div className="flex items-center gap-1.5 text-xs font-black text-emerald-800 uppercase tracking-wide dark:text-emerald-200">
                 <span>🐾</span> Bạn Đồng Hành
               </div>
               <Link
                 href="/pet"
                 onClick={() => sound.playClick()}
-                className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-200 text-xs font-black transition cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-200 text-xs font-black transition cursor-pointer dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800"
               >
                 <span>🪙</span> {userCoins} Coins
               </Link>
@@ -792,7 +792,7 @@ export default function HomePage() {
             {userPet ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-3.5 pt-1">
-                  <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-100 via-teal-50 to-emerald-200 flex items-center justify-center shadow-xs shrink-0 border-2 border-emerald-300 overflow-hidden">
+                  <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-100 via-teal-50 to-emerald-200 flex items-center justify-center shadow-xs shrink-0 border-2 border-emerald-300 overflow-hidden dark:border-emerald-800">
                     <PixelPetSprite
                       species={userPet.species || 'owl'}
                       animationState="idle"
@@ -806,17 +806,17 @@ export default function HomePage() {
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <h4 className="font-black text-sm text-slate-900 truncate">
+                      <h4 className="font-black text-sm text-slate-900 truncate dark:text-slate-100">
                         {userPet.name}
                       </h4>
-                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0">
+                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0 dark:bg-emerald-950 dark:text-emerald-200">
                         Lv.{userPet.level}
                       </span>
                     </div>
-                    <p className="text-[11px] text-emerald-700 font-bold truncate">
+                    <p className="text-[11px] text-emerald-700 font-bold truncate dark:text-emerald-300">
                       {getPetTitle(userPet.level)}
                     </p>
-                    <p className="text-[10px] text-slate-500 font-medium truncate">
+                    <p className="text-[10px] text-slate-500 font-medium truncate dark:text-slate-400">
                       {PETS_CATALOG[userPet.species]?.buff.title}
                       {PETS_CATALOG[userPet.species]?.buff.description
                         ? `: ${PETS_CATALOG[userPet.species].buff.description}`
@@ -826,12 +826,12 @@ export default function HomePage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white/80 border border-emerald-100 rounded-xl p-2 text-center">
-                    <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1">
+                  <div className="bg-white/80 border border-emerald-100 rounded-xl p-2 text-center dark:bg-slate-900/80 dark:border-emerald-800">
+                    <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1 dark:text-slate-400">
                       <span>🍗 No nê</span>
-                      <span className="text-emerald-700 font-black">{userPet.hunger}%</span>
+                      <span className="text-emerald-700 font-black dark:text-emerald-300">{userPet.hunger}%</span>
                     </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden dark:bg-slate-800">
                       <div
                         className="bg-emerald-500 h-full rounded-full transition-all"
                         style={{ width: `${userPet.hunger}%` }}
@@ -839,12 +839,12 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <div className="bg-white/80 border border-pink-100 rounded-xl p-2 text-center">
-                    <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1">
+                  <div className="bg-white/80 border border-pink-100 rounded-xl p-2 text-center dark:bg-slate-900/80">
+                    <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1 dark:text-slate-400">
                       <span>💖 Vui vẻ</span>
                       <span className="text-pink-600 font-black">{userPet.happiness}%</span>
                     </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden dark:bg-slate-800">
                       <div
                         className="bg-pink-500 h-full rounded-full transition-all"
                         style={{ width: `${userPet.happiness}%` }}
@@ -864,7 +864,7 @@ export default function HomePage() {
             ) : (
               <div className="text-center py-3 space-y-2">
                 <span className="text-3xl">🐾</span>
-                <p className="text-xs text-slate-600 font-bold">Bạn chưa có thú cưng?</p>
+                <p className="text-xs text-slate-600 font-bold dark:text-slate-400">Bạn chưa có thú cưng?</p>
                 <Link
                   href="/pet"
                   onClick={() => sound.playClick()}
@@ -879,30 +879,30 @@ export default function HomePage() {
           {/* Daily Quests Widget */}
           <div className="card-arcade card-arcade-teal p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-black text-emerald-800 uppercase">
+              <div className="flex items-center gap-1.5 text-xs font-black text-emerald-800 uppercase dark:text-emerald-200">
                 <Trophy className="w-4 h-4 text-amber-500" /> Nhiệm Vụ Hôm Nay
               </div>
-              <span className="text-xs font-black text-emerald-700">2 / 3 Hoàn Thành</span>
+              <span className="text-xs font-black text-emerald-700 dark:text-emerald-300">2 / 3 Hoàn Thành</span>
             </div>
 
-            <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden p-0.5 border border-emerald-100">
+            <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden p-0.5 border border-emerald-100 dark:bg-slate-800 dark:border-emerald-800">
               <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full" style={{ width: '66%' }} />
             </div>
 
             <div className="space-y-2 pt-1">
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-emerald-100 text-xs font-bold text-slate-700">
-                <span className="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px]">
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-emerald-100 text-xs font-bold text-slate-700 dark:bg-slate-900 dark:border-emerald-800 dark:text-slate-300">
+                <span className="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] dark:bg-emerald-950 dark:text-emerald-300">
                   ✓
                 </span>
                 <span>Tra cứu 1 từ trên Cambridge</span>
               </div>
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-emerald-100 text-xs font-bold text-slate-700">
-                <span className="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px]">
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-emerald-100 text-xs font-bold text-slate-700 dark:bg-slate-900 dark:border-emerald-800 dark:text-slate-300">
+                <span className="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] dark:bg-emerald-950 dark:text-emerald-300">
                   ✓
                 </span>
                 <span>Lật 5 Flashcard ôn tập</span>
               </div>
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900">
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200">
                 <span className="w-5 h-5 rounded-lg bg-amber-400 text-slate-900 flex items-center justify-center text-[10px]">
                   ⚡
                 </span>
@@ -914,41 +914,41 @@ export default function HomePage() {
           {/* Word of the Day */}
           <div className="card-arcade card-arcade-amber p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-black text-amber-800 uppercase">
+              <div className="flex items-center gap-1.5 text-xs font-black text-amber-800 uppercase dark:text-amber-200">
                 <Sparkles className="w-4 h-4 text-amber-500 fill-amber-400" /> Từ Vựng Hôm Nay
               </div>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
                 Cambridge Verified
               </span>
             </div>
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-black text-slate-900">collaborate</h3>
+                <h3 className="text-xl font-black text-slate-900 dark:text-slate-100">collaborate</h3>
                 <button
                   onClick={() => {
                     sound.playClick();
                     speakText('collaborate', 0.9);
                   }}
-                  className="p-2 hover:bg-amber-100 rounded-xl text-amber-800 transition cursor-pointer"
+                  className="p-2 hover:bg-amber-100 rounded-xl text-amber-800 transition cursor-pointer hover:dark:bg-amber-950 dark:text-amber-200"
                   title="Nghe phát âm"
                 >
                   <Volume2 className="w-4 h-4" />
                 </button>
               </div>
-              <div className="text-xs font-mono text-emerald-700 font-bold">
+              <div className="text-xs font-mono text-emerald-700 font-bold dark:text-emerald-300">
                 /kəˈlæb.ə.reɪt/ • <i>verb</i>
               </div>
-              <p className="text-xs text-slate-700 font-medium pt-1">
+              <p className="text-xs text-slate-700 font-medium pt-1 dark:text-slate-300">
                 🇻🇳 <b>Hợp tác, cộng tác</b> cùng nhau làm việc trong dự án công nghệ.
               </p>
             </div>
 
-            <div className="pt-2 border-t border-amber-100 flex items-center justify-between text-xs">
+            <div className="pt-2 border-t border-amber-100 flex items-center justify-between text-xs dark:border-amber-800">
               <Link
                 href="/encyclopedia"
                 onClick={() => sound.playClick()}
-                className="text-amber-800 hover:text-amber-900 font-black flex items-center gap-1"
+                className="text-amber-800 hover:text-amber-900 font-black flex items-center gap-1 dark:text-amber-200 hover:dark:text-amber-200"
               >
                 Tra cứu từ điển <ArrowRight className="w-3.5 h-3.5" />
               </Link>
@@ -960,15 +960,15 @@ export default function HomePage() {
       {/* Database Status & Celebration Footer */}
       <section className="shrink-0 card-arcade card-arcade-indigo p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl shadow-xs">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl shadow-xs dark:bg-emerald-950 dark:text-emerald-200">
             💾
           </div>
           <div>
-            <span className="font-black text-slate-800 block text-xs sm:text-sm">
+            <span className="font-black text-slate-800 block text-xs sm:text-sm dark:text-slate-200">
               Mục tiêu & Tiến độ Lộ trình được lưu trực tiếp vào CSDL SQLite
             </span>
-            <span className="text-slate-500 font-medium">
-              Tài khoản: <b className="text-slate-800">@{currentUser?.username || 'chưa đăng nhập'}</b> • Mục tiêu: <b className="text-emerald-700 uppercase">{activeTargetCode}</b> • Tệp CSDL: <code>data/english_learning.db</code>
+            <span className="text-slate-500 font-medium dark:text-slate-400">
+              Tài khoản: <b className="text-slate-800 dark:text-slate-200">@{currentUser?.username || 'chưa đăng nhập'}</b> • Mục tiêu: <b className="text-emerald-700 uppercase dark:text-emerald-300">{activeTargetCode}</b> • Tệp CSDL: <code>data/english_learning.db</code>
             </span>
           </div>
         </div>
@@ -985,27 +985,27 @@ export default function HomePage() {
       {/* MODAL: LESSONS LIST FOR SELECTED PATH NODE */}
       {/* ========================================================================= */}
       {selectedNodeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl p-5 sm:p-8 max-w-lg w-[calc(100vw-24px)] sm:w-full border-2 border-slate-200 shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150 dark:bg-white/60">
+          <div className="bg-white rounded-3xl p-5 sm:p-8 max-w-lg w-[calc(100vw-24px)] sm:w-full border-2 border-slate-200 shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto custom-scrollbar dark:bg-slate-900 dark:border-white/10">
             <button
               onClick={() => setSelectedNodeModal(null)}
-              className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 cursor-pointer touch-manipulation"
+              className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 cursor-pointer touch-manipulation hover:dark:text-slate-300 dark:bg-slate-800 hover:dark:bg-slate-700"
               title="Đóng"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="space-y-2 pr-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black dark:bg-emerald-950 dark:text-emerald-200">
                 <Target className="w-3.5 h-3.5" /> MỤC TIÊU: {selectedNodeModal.targetScore}
               </div>
-              <h3 className="text-xl font-black text-slate-900">{selectedNodeModal.stageTitle}</h3>
-              <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              <h3 className="text-xl font-black text-slate-900 dark:text-slate-100">{selectedNodeModal.stageTitle}</h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-medium dark:text-slate-400">
                 {selectedNodeModal.description}
               </p>
             </div>
 
-            <div className="space-y-3 border-t border-slate-100 pt-4">
+            <div className="space-y-3 border-t border-slate-100 pt-4 dark:border-white/10">
               <div className="text-xs font-black text-slate-400 uppercase tracking-wider">
                 Danh sách bài luyện tập phù hợp mốc này ({selectedNodeModal.lessons.length}):
               </div>
@@ -1018,28 +1018,28 @@ export default function HomePage() {
                     sound.playClick();
                     setSelectedNodeModal(null);
                   }}
-                  className="card-playful p-4 rounded-2xl border-2 border-slate-100 hover:border-emerald-400 bg-slate-50/60 hover:bg-white flex items-center justify-between gap-3 group transition"
+                  className="card-playful p-4 rounded-2xl border-2 border-slate-100 hover:border-emerald-400 bg-slate-50/60 hover:bg-white flex items-center justify-between gap-3 group transition dark:border-white/10 dark:bg-slate-900/60 hover:dark:bg-slate-900"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition">
+                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition dark:bg-slate-900 dark:border-white/10">
                       {lesson.icon}
                     </div>
                     <div>
-                      <h5 className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-emerald-700 transition">
+                      <h5 className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-emerald-700 transition dark:text-slate-100 group-hover:dark:text-emerald-300">
                         {lesson.title}
                       </h5>
-                      <p className="text-[11px] text-slate-500 font-medium">
+                      <p className="text-[11px] text-slate-500 font-medium dark:text-slate-400">
                         {lesson.description}
                       </p>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-emerald-600 transition" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-emerald-600 transition group-hover:dark:text-emerald-300" />
                 </Link>
               ))}
             </div>
 
-            <div className="pt-2 flex items-center justify-between gap-3 border-t border-slate-100">
-              <div className="text-xs font-black text-amber-600">
+            <div className="pt-2 flex items-center justify-between gap-3 border-t border-slate-100 dark:border-white/10">
+              <div className="text-xs font-black text-amber-600 dark:text-amber-300">
                 Thưởng: ⭐ +{selectedNodeModal.expReward} EXP • 🪙 +{selectedNodeModal.coinReward} Coins
               </div>
 
@@ -1055,7 +1055,7 @@ export default function HomePage() {
                   <span>Đánh dấu hoàn thành</span>
                 </button>
               ) : (
-                <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-xl">
+                <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-xl dark:text-emerald-300 dark:bg-emerald-950">
                   ✓ Mốc này đã đạt!
                 </span>
               )}

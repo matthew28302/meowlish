@@ -104,7 +104,7 @@ export default function ListeningPracticePage() {
       <div className="bg-gradient-to-r from-sky-600 via-teal-600 to-emerald-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2">
+            <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2 dark:bg-slate-900/20">
               <Headphones className="w-3.5 h-3.5 text-amber-300" /> Phòng Luyện Nghe Phản Xạ
             </div>
             <h1 className="text-2xl sm:text-3xl font-black">
@@ -114,7 +114,7 @@ export default function ListeningPracticePage() {
               Nghe audio bản xứ, bắt từ khoá trọng tâm và trả lời câu hỏi trắc nghiệm ngữ cảnh.
             </p>
           </div>
-          <div className="text-xs bg-white/10 px-4 py-2 rounded-2xl border border-white/20 font-bold">
+          <div className="text-xs bg-white/10 px-4 py-2 rounded-2xl border border-white/20 font-bold dark:bg-slate-900/10">
             Bài {currentIdx + 1} / {LISTENING_EXERCISES.length}
           </div>
         </div>
@@ -122,14 +122,14 @@ export default function ListeningPracticePage() {
 
       {/* Session Persistence Alert Banner */}
       {hasSavedSession && (
-        <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-200">
+        <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-200 dark:bg-amber-950 dark:border-amber-800">
           <div className="flex items-center gap-3">
             <span className="text-2xl">📌</span>
             <div>
-              <h4 className="font-black text-sm text-amber-950">
+              <h4 className="font-black text-sm text-amber-950 dark:text-amber-200">
                 Bạn có 1 bài luyện nghe dở chưa hoàn thành!
               </h4>
-              <p className="text-xs text-amber-800 font-medium">
+              <p className="text-xs text-amber-800 font-medium dark:text-amber-200">
                 Bạn muốn tiếp tục tiến độ dở dang hay bắt đầu bài mới?
               </p>
             </div>
@@ -153,7 +153,7 @@ export default function ListeningPracticePage() {
                 if (typeof window !== 'undefined') sessionStorage.removeItem('session_listening_practice_v2');
                 setHasSavedSession(false);
               }}
-              className="px-3 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white rounded-xl border border-slate-200 cursor-pointer"
+              className="px-3 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white rounded-xl border border-slate-200 cursor-pointer dark:text-slate-400 hover:dark:text-slate-100 dark:bg-slate-900 dark:border-white/10"
             >
               Bắt đầu bài mới
             </button>
@@ -162,7 +162,7 @@ export default function ListeningPracticePage() {
       )}
 
       {/* Topic Filter & Random Set Bar */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 dark:bg-slate-900 dark:border-white/10">
         <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
           <span className="text-xs font-black text-slate-400 uppercase tracking-wider shrink-0">
             Chủ đề:
@@ -236,7 +236,7 @@ export default function ListeningPracticePage() {
           <div className="pt-2">
             <button
               onClick={() => setShowTranscript(!showTranscript)}
-              className="text-xs text-slate-500 hover:text-sky-600 font-semibold flex items-center gap-1.5 mx-auto cursor-pointer"
+              className="text-xs text-slate-500 hover:text-sky-600 font-semibold flex items-center gap-1.5 mx-auto cursor-pointer dark:text-slate-400 hover:dark:text-sky-300"
             >
               {showTranscript ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               {showTranscript ? 'Ẩn lời thoại văn bản' : 'Xem lời thoại văn bản (Transcript)'}
@@ -247,7 +247,7 @@ export default function ListeningPracticePage() {
                 <p className="font-semibold text-slate-900 dark:text-white">
                   &quot;{exercise.audioScript}&quot;
                 </p>
-                <p className="text-slate-500 italic">
+                <p className="text-slate-500 italic dark:text-slate-400">
                   🇻🇳 {exercise.transcriptVi}
                 </p>
               </div>
@@ -314,7 +314,7 @@ export default function ListeningPracticePage() {
               setSelectedOption(null);
               setIsSubmitted(false);
             }}
-            className="text-xs font-bold text-slate-500 hover:text-slate-700 flex items-center gap-1 cursor-pointer"
+            className="text-xs font-bold text-slate-500 hover:text-slate-700 flex items-center gap-1 cursor-pointer dark:text-slate-400 hover:dark:text-slate-300"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Nghe lại từ đầu
           </button>

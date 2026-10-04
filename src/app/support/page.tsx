@@ -560,16 +560,16 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/70 pb-20">
+    <div className="min-h-screen bg-slate-50/70 pb-20 dark:bg-slate-900/70">
       {/* ============================================================== */}
       {/* HERO BANNER SECTION                                            */}
       {/* ============================================================== */}
       <section className="bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 text-white pt-9 pb-14 px-4 sm:px-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20 dark:bg-slate-900/10" />
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-teal-400/15 rounded-full blur-2xl pointer-events-none -ml-16 -mb-16" />
 
         <div className="max-w-5xl mx-auto relative z-10 text-center space-y-3.5">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-emerald-100 text-xs font-bold uppercase tracking-wider shadow-xs">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-emerald-100 text-xs font-bold uppercase tracking-wider shadow-xs dark:bg-slate-900/20">
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
             <span>Trung Tâm Hỗ Trợ & Trợ Lý Học Viên Meowlish</span>
           </div>
@@ -592,11 +592,11 @@ export default function SupportPage() {
               }}
               className={`px-4 sm:px-5 py-2.5 rounded-2xl font-black text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 shadow-sm ${
                 activeTab === 'guide'
-                  ? 'bg-white text-emerald-900 shadow-md scale-102'
+                  ? 'bg-white text-emerald-900 shadow-md scale-102 dark:bg-slate-900 dark:text-emerald-200'
                   : 'bg-emerald-900/40 hover:bg-emerald-900/60 text-white'
               }`}
             >
-              <BookOpen className="w-4 h-4 text-emerald-600" />
+              <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-300" />
               <span>Cẩm Nang & Hướng Dẫn</span>
             </button>
 
@@ -612,7 +612,7 @@ export default function SupportPage() {
                   : 'bg-emerald-900/40 hover:bg-emerald-900/60 text-white'
               }`}
             >
-              <Bot className="w-4 h-4 text-slate-950" />
+              <Bot className="w-4 h-4 text-slate-950 dark:text-slate-200" />
               <span className="flex items-center gap-1.5">
                 <span>Trợ Lý Mèo AI 24/7</span>
                 <span className="px-1.5 py-0.2 rounded-full bg-emerald-600 text-white text-[10px] font-bold animate-pulse">
@@ -629,11 +629,11 @@ export default function SupportPage() {
               }}
               className={`px-4 sm:px-5 py-2.5 rounded-2xl font-black text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 shadow-sm ${
                 activeTab === 'ticket'
-                  ? 'bg-white text-indigo-900 shadow-md scale-102'
+                  ? 'bg-white text-indigo-900 shadow-md scale-102 dark:bg-slate-900 dark:text-indigo-200'
                   : 'bg-emerald-900/40 hover:bg-emerald-900/60 text-white'
               }`}
             >
-              <MessageSquare className="w-4 h-4 text-indigo-600" />
+              <MessageSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-300" />
               <span className="flex items-center gap-1.5">
                 <span>Gửi Ticket & Lịch Sử</span>
                 {myTickets.length > 0 && (
@@ -657,7 +657,7 @@ export default function SupportPage() {
         {activeTab === 'guide' && (
           <div className="space-y-6 animate-in fade-in duration-200">
             {/* SEARCH BAR & CATEGORY FILTER CARD */}
-            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-md space-y-4">
+            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-md space-y-4 dark:bg-slate-900 dark:border-white/10">
               {/* Search Bar */}
               <div className="relative">
                 <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
@@ -666,12 +666,12 @@ export default function SupportPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Nhập từ khóa tìm kiếm (vd: kiếm coins, thú cưng đói, lego, 2fa, luyện nói, mật khẩu)..."
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-2xl pl-11 pr-24 py-3 text-xs sm:text-sm text-slate-900 outline-none transition shadow-inner"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-2xl pl-11 pr-24 py-3 text-xs sm:text-sm text-slate-900 outline-none transition shadow-inner dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition cursor-pointer"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition cursor-pointer dark:bg-slate-700 dark:text-slate-300"
                   >
                     Xóa
                   </button>
@@ -699,7 +699,7 @@ export default function SupportPage() {
                       sound.playClick();
                       setSearchQuery(kw);
                     }}
-                    className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 font-semibold transition cursor-pointer text-[11px]"
+                    className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 font-semibold transition cursor-pointer text-[11px] dark:bg-slate-800 hover:dark:bg-emerald-950 hover:dark:text-emerald-300 dark:text-slate-400"
                   >
                     #{kw}
                   </button>
@@ -707,7 +707,7 @@ export default function SupportPage() {
               </div>
 
               {/* Category Filter Pills */}
-              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-white/10">
                 {[
                   { id: 'all', label: 'Tất cả chuyên mục', icon: '🌟' },
                   { id: 'study', label: 'Học tập hiệu quả', icon: '🎓' },
@@ -724,7 +724,7 @@ export default function SupportPage() {
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
                       selectedCategory === cat.id
                         ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 hover:dark:bg-slate-700 dark:text-slate-300'
                     }`}
                   >
                     <span>{cat.icon}</span>
@@ -736,16 +736,16 @@ export default function SupportPage() {
 
             {/* RESULTS HEADER */}
             <div className="flex items-center justify-between px-1">
-              <div className="text-xs sm:text-sm font-black text-slate-700">
+              <div className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-300">
                 Hiển thị {filteredFaqArticles.length} bài hướng dẫn
                 {searchQuery && (
-                  <span className="text-emerald-700 ml-1">cho từ khóa &quot;{searchQuery}&quot;</span>
+                  <span className="text-emerald-700 ml-1 dark:text-emerald-300">cho từ khóa &quot;{searchQuery}&quot;</span>
                 )}
               </div>
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="text-xs text-slate-500 hover:text-slate-800 font-bold underline cursor-pointer"
+                  className="text-xs text-slate-500 hover:text-slate-800 font-bold underline cursor-pointer dark:text-slate-400 hover:dark:text-slate-200"
                 >
                   Xem tất cả
                 </button>
@@ -754,12 +754,12 @@ export default function SupportPage() {
 
             {/* ARTICLES ACCORDION LIST */}
             {filteredFaqArticles.length === 0 ? (
-              <div className="bg-white rounded-3xl p-10 text-center border border-slate-200 shadow-sm space-y-3">
+              <div className="bg-white rounded-3xl p-10 text-center border border-slate-200 shadow-sm space-y-3 dark:bg-slate-900 dark:border-white/10">
                 <div className="text-4xl">🔍</div>
-                <h3 className="font-black text-base text-slate-800">
+                <h3 className="font-black text-base text-slate-800 dark:text-slate-200">
                   Không tìm thấy bài viết phù hợp với &quot;{searchQuery}&quot;
                 </h3>
-                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                <p className="text-xs text-slate-500 max-w-md mx-auto dark:text-slate-400">
                   Bạn có thể thử tìm kiếm với từ khóa khác, hoặc bấm sang tab{' '}
                   <strong>Trợ Lý Mèo AI 24/7</strong> để được giải đáp ngay lập tức!
                 </p>
@@ -779,36 +779,36 @@ export default function SupportPage() {
               <div className="space-y-3">
                 {filteredFaqArticles.map((article) => {
                   const isOpen = openFaqId === article.id;
-                  let categoryBadgeColor = 'bg-slate-100 text-slate-700';
+                  let categoryBadgeColor = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
                   let categoryName = 'Tổng quan';
                   if (article.category === 'study') {
-                    categoryBadgeColor = 'bg-emerald-100 text-emerald-800';
+                    categoryBadgeColor = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200';
                     categoryName = 'Học tập hiệu quả';
                   } else if (article.category === 'pet') {
-                    categoryBadgeColor = 'bg-rose-100 text-rose-800';
+                    categoryBadgeColor = 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200';
                     categoryName = 'Thú cưng PixelFarm';
                   } else if (article.category === 'coins') {
-                    categoryBadgeColor = 'bg-amber-100 text-amber-800';
+                    categoryBadgeColor = 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200';
                     categoryName = 'Coins & Cửa Hàng';
                   } else if (article.category === 'security') {
-                    categoryBadgeColor = 'bg-sky-100 text-sky-800';
+                    categoryBadgeColor = 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200';
                     categoryName = 'Bảo mật & 2FA';
                   }
 
                   return (
                     <div
                       key={article.id}
-                      className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xs hover:border-slate-300 transition overflow-hidden"
+                      className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xs hover:border-slate-300 transition overflow-hidden dark:bg-slate-900 dark:border-white/10 hover:dark:border-white/10"
                     >
                       <button
                         onClick={() => {
                           sound.playClick();
                           setOpenFaqId(isOpen ? null : article.id);
                         }}
-                        className="w-full p-4 sm:p-5 text-left flex items-start justify-between gap-3 sm:gap-4 cursor-pointer hover:bg-slate-50/70 transition"
+                        className="w-full p-4 sm:p-5 text-left flex items-start justify-between gap-3 sm:gap-4 cursor-pointer hover:bg-slate-50/70 transition hover:dark:bg-slate-900/70"
                       >
                         <div className="flex items-start gap-3 sm:gap-3.5">
-                          <span className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-xl shrink-0">
+                          <span className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-xl shrink-0 dark:bg-slate-800">
                             {article.icon}
                           </span>
                           <div className="space-y-1">
@@ -817,23 +817,23 @@ export default function SupportPage() {
                                 {categoryName}
                               </span>
                             </div>
-                            <h3 className="font-black text-xs sm:text-sm text-slate-900 leading-snug">
+                            <h3 className="font-black text-xs sm:text-sm text-slate-900 leading-snug dark:text-slate-100">
                               {article.title}
                             </h3>
-                            <p className="text-slate-500 text-[11px] sm:text-xs line-clamp-1">
+                            <p className="text-slate-500 text-[11px] sm:text-xs line-clamp-1 dark:text-slate-400">
                               {article.summary}
                             </p>
                           </div>
                         </div>
 
-                        <div className="p-1 rounded-xl bg-slate-100 text-slate-500 shrink-0 mt-1">
+                        <div className="p-1 rounded-xl bg-slate-100 text-slate-500 shrink-0 mt-1 dark:bg-slate-800 dark:text-slate-400">
                           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </div>
                       </button>
 
                       {isOpen && (
-                        <div className="px-5 pb-5 pt-1 border-t border-slate-100 bg-slate-50/50 space-y-3 animate-in fade-in duration-150">
-                          <div className="space-y-2 text-xs text-slate-700 leading-relaxed">
+                        <div className="px-5 pb-5 pt-1 border-t border-slate-100 bg-slate-50/50 space-y-3 animate-in fade-in duration-150 dark:border-white/10 dark:bg-slate-900/50">
+                          <div className="space-y-2 text-xs text-slate-700 leading-relaxed dark:text-slate-300">
                             {article.content.map((paragraph, pIdx) => (
                               <p key={pIdx}>{paragraph}</p>
                             ))}
@@ -864,7 +864,7 @@ export default function SupportPage() {
         {/* TAB 2: TRỢ LÝ MÈO AI 24/7 (AI ASSISTANT CHAT)                   */}
         {/* ============================================================== */}
         {activeTab === 'ai' && (
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden flex flex-col h-[720px] max-h-[85vh] animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden flex flex-col h-[720px] max-h-[85vh] animate-in fade-in duration-200 dark:bg-slate-900 dark:border-white/10">
             {/* Chat Header */}
             <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white flex items-center justify-between border-b border-slate-800">
               <div className="flex items-center gap-3">
@@ -901,7 +901,7 @@ export default function SupportPage() {
                     },
                   ]);
                 }}
-                className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-700"
+                className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-700 dark:bg-white/80 dark:border-white/10 dark:text-slate-800"
                 title="Làm mới cuộc trò chuyện"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -910,8 +910,8 @@ export default function SupportPage() {
             </div>
 
             {/* Quick Prompts Carousel Bar */}
-            <div className="px-4 py-2.5 bg-slate-100/90 border-b border-slate-200 overflow-x-auto flex items-center gap-2 custom-scrollbar">
-              <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1">
+            <div className="px-4 py-2.5 bg-slate-100/90 border-b border-slate-200 overflow-x-auto flex items-center gap-2 custom-scrollbar dark:bg-slate-800/90 dark:border-white/10">
+              <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1 dark:text-slate-400">
                 <Sparkles className="w-3 h-3 text-amber-500" />
                 Gợi ý hỏi nhanh:
               </span>
@@ -927,7 +927,7 @@ export default function SupportPage() {
                   key={idx}
                   onClick={() => handleSendAiMessage(chip.text)}
                   disabled={isAiLoading}
-                  className="shrink-0 px-3 py-1 rounded-xl bg-white hover:bg-emerald-50 hover:text-emerald-800 hover:border-emerald-300 text-slate-700 text-xs font-bold border border-slate-200 shadow-2xs transition cursor-pointer disabled:opacity-50"
+                  className="shrink-0 px-3 py-1 rounded-xl bg-white hover:bg-emerald-50 hover:text-emerald-800 hover:border-emerald-300 text-slate-700 text-xs font-bold border border-slate-200 shadow-2xs transition cursor-pointer disabled:opacity-50 dark:bg-slate-900 hover:dark:bg-emerald-950 hover:dark:text-emerald-200 hover:dark:border-emerald-800 dark:text-slate-300 dark:border-white/10"
                 >
                   {chip.label}
                 </button>
@@ -937,7 +937,7 @@ export default function SupportPage() {
             {/* Chat Messages Body */}
             <div
               ref={chatScrollRef}
-              className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50"
+              className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50 dark:bg-slate-900/50"
             >
               {chatMessages.map((msg) => {
                 const isUser = msg.role === 'user';
@@ -964,7 +964,7 @@ export default function SupportPage() {
                       className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm leading-relaxed shadow-xs ${
                         isUser
                           ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-tr-xs'
-                          : 'bg-white border border-slate-200 text-slate-800 rounded-tl-xs'
+                          : 'bg-white border border-slate-200 text-slate-800 rounded-tl-xs dark:bg-slate-900 dark:border-white/10 dark:text-slate-200'
                       }`}
                     >
                       <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -974,11 +974,11 @@ export default function SupportPage() {
                         className={`flex items-center gap-2 mt-2 pt-1 border-t text-[10px] ${
                           isUser
                             ? 'border-white/20 text-emerald-100 justify-end'
-                            : 'border-slate-100 text-slate-400 justify-between'
+                            : 'border-slate-100 text-slate-400 justify-between dark:border-white/10'
                         }`}
                       >
                         {!isUser && (
-                          <span className="flex items-center gap-1 font-semibold text-emerald-700">
+                          <span className="flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-300">
                             {msg.provider === 'groq' && '⚡ Groq LPU Siêu Tốc'}
                             {msg.provider === 'gemini' && '🤖 Google Gemini AI'}
                             {msg.provider === 'offline_kb' && '📖 Tri Thức Meowlish'}
@@ -998,7 +998,7 @@ export default function SupportPage() {
                   <div className="w-8 h-8 rounded-xl bg-amber-400 flex items-center justify-center text-sm shrink-0 shadow-xs animate-bounce">
                     🐱
                   </div>
-                  <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-xs p-3.5 text-xs text-slate-600 shadow-xs flex items-center gap-2">
+                  <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-xs p-3.5 text-xs text-slate-600 shadow-xs flex items-center gap-2 dark:bg-slate-900 dark:border-white/10 dark:text-slate-400">
                     <div className="flex items-center gap-1">
                       <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
                       <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
@@ -1011,7 +1011,7 @@ export default function SupportPage() {
             </div>
 
             {/* Chat Input Bar */}
-            <div className="p-3 sm:p-4 bg-white border-t border-slate-200">
+            <div className="p-3 sm:p-4 bg-white border-t border-slate-200 dark:bg-slate-900 dark:border-white/10">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -1024,7 +1024,7 @@ export default function SupportPage() {
                   value={inputQuestion}
                   onChange={(e) => setInputQuestion(e.target.value)}
                   placeholder="Gõ câu hỏi thắc mắc của bạn (vd: Thú cưng đói làm gì, cách kiếm coins, ngữ pháp lego)..."
-                  className="flex-1 bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-2xl px-4 py-3 text-xs sm:text-sm text-slate-900 outline-none transition"
+                  className="flex-1 bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-2xl px-4 py-3 text-xs sm:text-sm text-slate-900 outline-none transition dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
                   disabled={isAiLoading}
                 />
                 <button
@@ -1046,7 +1046,7 @@ export default function SupportPage() {
         {activeTab === 'ticket' && (
           <div className="space-y-6 animate-in fade-in duration-200">
             {/* SUB-TAB NAVIGATOR */}
-            <div className="flex items-center gap-2 p-1.5 bg-slate-200/80 rounded-2xl w-fit mx-auto sm:mx-0 shadow-inner">
+            <div className="flex items-center gap-2 p-1.5 bg-slate-200/80 rounded-2xl w-fit mx-auto sm:mx-0 shadow-inner dark:bg-slate-700/80">
               <button
                 onClick={() => {
                   sound.playClick();
@@ -1054,11 +1054,11 @@ export default function SupportPage() {
                 }}
                 className={`px-4 py-2 rounded-xl font-black text-xs transition cursor-pointer flex items-center gap-1.5 ${
                   ticketSubTab === 'create'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-100'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:dark:text-slate-100'
                 }`}
               >
-                <Send className="w-3.5 h-3.5 text-indigo-600" />
+                <Send className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300" />
                 <span>Gửi Phiếu Hỗ Trợ Mới</span>
               </button>
 
@@ -1072,11 +1072,11 @@ export default function SupportPage() {
                 }}
                 className={`px-4 py-2 rounded-xl font-black text-xs transition cursor-pointer flex items-center gap-1.5 ${
                   ticketSubTab === 'history'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-100'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 hover:dark:text-slate-100'
                 }`}
               >
-                <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-300" />
                 <span>Lịch Sử Phiếu Hỗ Trợ ({myTickets.length})</span>
               </button>
             </div>
@@ -1085,32 +1085,32 @@ export default function SupportPage() {
             {/* SUB-TAB 1: GỬI PHIẾU HỖ TRỢ MỚI                            */}
             {/* ---------------------------------------------------------- */}
             {ticketSubTab === 'create' && (
-              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md space-y-6">
-                <div className="border-b border-slate-100 pb-4">
-                  <div className="flex items-center gap-2 text-indigo-600 text-xs font-black uppercase tracking-wider mb-1">
+              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md space-y-6 dark:bg-slate-900 dark:border-white/10">
+                <div className="border-b border-slate-100 pb-4 dark:border-white/10">
+                  <div className="flex items-center gap-2 text-indigo-600 text-xs font-black uppercase tracking-wider mb-1 dark:text-indigo-300">
                     <FileText className="w-3.5 h-3.5" />
                     <span>Hệ Thống Tiếp Nhận Ý Kiến & Báo Lỗi</span>
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100">
                     Tạo Phiếu Hỗ Trợ Chuẩn #TK-XXXX
                   </h2>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-slate-500 mt-1 dark:text-slate-400">
                     Phiếu sẽ được mã hóa, lưu an toàn vào CSDL, đồng bộ đám mây S3 Filebase và gửi thông báo tức thì đến Ban Quản Trị (/duahau).
                   </p>
                 </div>
 
                 {/* Notifications */}
                 {submitSuccess && (
-                  <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs sm:text-sm font-bold space-y-2 animate-in fade-in">
-                    <div className="flex items-center gap-2 text-emerald-900 font-black">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs sm:text-sm font-bold space-y-2 animate-in fade-in dark:bg-emerald-950 dark:border-emerald-800 dark:text-emerald-200">
+                    <div className="flex items-center gap-2 text-emerald-900 font-black dark:text-emerald-200">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 dark:text-emerald-300" />
                       <span>{submitSuccess}</span>
                     </div>
 
                     {createdTicketId && (
                       <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-emerald-200/80">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-emerald-700">Mã phiếu hỗ trợ:</span>
+                          <span className="text-xs text-emerald-700 dark:text-emerald-300">Mã phiếu hỗ trợ:</span>
                           <span className="font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-lg bg-emerald-600 text-white font-black tracking-wider">
                             #{createdTicketId}
                           </span>
@@ -1120,9 +1120,9 @@ export default function SupportPage() {
                           <button
                             type="button"
                             onClick={() => handleCopyTicketId(createdTicketId)}
-                            className="px-3 py-1 rounded-xl bg-white text-emerald-800 border border-emerald-300 hover:bg-emerald-100 text-xs font-bold transition cursor-pointer flex items-center gap-1"
+                            className="px-3 py-1 rounded-xl bg-white text-emerald-800 border border-emerald-300 hover:bg-emerald-100 text-xs font-bold transition cursor-pointer flex items-center gap-1 dark:bg-slate-900 dark:text-emerald-200 dark:border-emerald-800 hover:dark:bg-emerald-950"
                           >
-                            {copiedId === createdTicketId ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                            {copiedId === createdTicketId ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
                             <span>{copiedId === createdTicketId ? 'Đã sao chép' : 'Sao chép mã'}</span>
                           </button>
 
@@ -1144,8 +1144,8 @@ export default function SupportPage() {
                 )}
 
                 {submitError && (
-                  <div className="p-4 rounded-2xl bg-rose-50 border border-rose-300 text-rose-800 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in">
-                    <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+                  <div className="p-4 rounded-2xl bg-rose-50 border border-rose-300 text-rose-800 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in dark:bg-rose-950 dark:border-rose-800 dark:text-rose-200">
+                    <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 dark:text-rose-300" />
                     <span>{submitError}</span>
                   </div>
                 )}
@@ -1153,7 +1153,7 @@ export default function SupportPage() {
                 <form onSubmit={handleSubmitFeedback} className="space-y-4">
                   {/* Category Selection */}
                   <div>
-                    <label className="block text-xs font-black text-slate-700 mb-2">
+                    <label className="block text-xs font-black text-slate-700 mb-2 dark:text-slate-300">
                       1. Chọn danh mục yêu cầu:
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -1172,15 +1172,15 @@ export default function SupportPage() {
                           }}
                           className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col gap-1 ${
                             category === cat.id
-                              ? 'border-indigo-600 bg-indigo-50/80 text-indigo-950 shadow-xs ring-2 ring-indigo-200'
-                              : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                              ? 'border-indigo-600 bg-indigo-50/80 text-indigo-950 shadow-xs ring-2 ring-indigo-200 dark:text-indigo-200'
+                              : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:border-white/10 dark:bg-slate-900 dark:text-slate-400 hover:dark:border-white/10'
                           }`}
                         >
                           <div className="flex items-center gap-1.5 font-black text-xs">
                             <span className="text-base">{cat.emoji}</span>
                             <span>{cat.label}</span>
                           </div>
-                          <span className="text-[10px] text-slate-500">{cat.desc}</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">{cat.desc}</span>
                         </button>
                       ))}
                     </div>
@@ -1188,7 +1188,7 @@ export default function SupportPage() {
 
                   {/* Priority Selection */}
                   <div>
-                    <label className="block text-xs font-black text-slate-700 mb-2">
+                    <label className="block text-xs font-black text-slate-700 mb-2 dark:text-slate-300">
                       2. Mức độ ưu tiên:
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -1207,8 +1207,8 @@ export default function SupportPage() {
                           }}
                           className={`p-2.5 rounded-2xl border-2 text-left transition cursor-pointer flex items-center justify-between ${
                             priority === prio.id
-                              ? 'border-indigo-600 bg-white text-slate-900 shadow-xs ring-2 ring-indigo-200'
-                              : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
+                              ? 'border-indigo-600 bg-white text-slate-900 shadow-xs ring-2 ring-indigo-200 dark:bg-slate-900 dark:text-slate-100'
+                              : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 dark:border-white/10 dark:bg-slate-900 dark:text-slate-400 hover:dark:border-white/10'
                           }`}
                         >
                           <div className="flex items-center gap-1.5 text-xs font-bold">
@@ -1226,7 +1226,7 @@ export default function SupportPage() {
                   {/* Name & Email Row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-black text-slate-700 mb-1.5">
+                      <label className="block text-xs font-black text-slate-700 mb-1.5 dark:text-slate-300">
                         Họ và tên của bạn:
                       </label>
                       <div className="relative">
@@ -1236,14 +1236,14 @@ export default function SupportPage() {
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           placeholder="Ví dụ: Nguyễn Văn Minh"
-                          className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl pl-10 pr-3 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition"
+                          className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl pl-10 pr-3 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
                           required
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-black text-slate-700 mb-1.5">
+                      <label className="block text-xs font-black text-slate-700 mb-1.5 dark:text-slate-300">
                         Email nhận xác nhận & phản hồi:
                       </label>
                       <div className="relative">
@@ -1253,7 +1253,7 @@ export default function SupportPage() {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="ban@gmail.com"
-                          className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl pl-10 pr-3 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition"
+                          className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl pl-10 pr-3 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
                           required
                         />
                       </div>
@@ -1262,10 +1262,10 @@ export default function SupportPage() {
 
                   {/* Rating */}
                   <div>
-                    <label className="block text-xs font-black text-slate-700 mb-1.5">
+                    <label className="block text-xs font-black text-slate-700 mb-1.5 dark:text-slate-300">
                       Mức độ hài lòng của bạn về trải nghiệm website:
                     </label>
-                    <div className="flex items-center gap-1.5 p-2 bg-slate-50 rounded-xl border border-slate-200 w-fit">
+                    <div className="flex items-center gap-1.5 p-2 bg-slate-50 rounded-xl border border-slate-200 w-fit dark:bg-slate-900 dark:border-white/10">
                       {[1, 2, 3, 4, 5].map((s) => (
                         <button
                           type="button"
@@ -1283,7 +1283,7 @@ export default function SupportPage() {
                           />
                         </button>
                       ))}
-                      <span className="text-xs font-bold text-slate-600 ml-2">
+                      <span className="text-xs font-bold text-slate-600 ml-2 dark:text-slate-400">
                         {rating === 5 && 'Tuyệt vời! 🌟'}
                         {rating === 4 && 'Rất tốt 👍'}
                         {rating === 3 && 'Bình thường 👌'}
@@ -1295,7 +1295,7 @@ export default function SupportPage() {
 
                   {/* Subject */}
                   <div>
-                    <label className="block text-xs font-black text-slate-700 mb-1.5">
+                    <label className="block text-xs font-black text-slate-700 mb-1.5 dark:text-slate-300">
                       Tiêu đề phiếu hỗ trợ:
                     </label>
                     <input
@@ -1303,14 +1303,14 @@ export default function SupportPage() {
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
                       placeholder="Tóm tắt ngắn gọn vấn đề (vd: Không mở khóa được cảnh quan Vườn Xanh)"
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition"
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
                       required
                     />
                   </div>
 
                   {/* Message Detail */}
                   <div>
-                    <label className="block text-xs font-black text-slate-700 mb-1.5">
+                    <label className="block text-xs font-black text-slate-700 mb-1.5 dark:text-slate-300">
                       Mô tả chi tiết nội dung:
                     </label>
                     <textarea
@@ -1318,7 +1318,7 @@ export default function SupportPage() {
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="Mô tả cụ thể các bước bạn thực hiện, đường dẫn trang web gặp sự cố hoặc ý tưởng tính năng mới..."
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl p-3.5 text-xs sm:text-sm text-slate-900 outline-none transition custom-scrollbar resize-none"
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl p-3.5 text-xs sm:text-sm text-slate-900 outline-none transition custom-scrollbar resize-none dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
                       required
                     />
                   </div>
@@ -1351,7 +1351,7 @@ export default function SupportPage() {
             {ticketSubTab === 'history' && (
               <div className="space-y-4">
                 {/* Search & Lookup Card */}
-                <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 dark:bg-slate-900 dark:border-white/10">
                   <div className="relative w-full sm:w-80">
                     <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
@@ -1364,7 +1364,7 @@ export default function SupportPage() {
                         }
                       }}
                       placeholder="Tra cứu theo mã #TK-XXXX hoặc email..."
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 outline-none transition"
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 outline-none transition dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
                     />
                   </div>
 
@@ -1389,7 +1389,7 @@ export default function SupportPage() {
                         }
                       }}
                       disabled={isLoadingHistory}
-                      className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer flex items-center gap-1.5"
+                      className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-800 hover:dark:bg-slate-700 dark:text-slate-300"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isLoadingHistory ? 'animate-spin' : ''}`} />
                       <span>Làm mới</span>
@@ -1399,19 +1399,19 @@ export default function SupportPage() {
 
                 {/* Tickets List */}
                 {isLoadingHistory ? (
-                  <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm space-y-3">
-                    <RefreshCw className="w-7 h-7 text-indigo-600 animate-spin mx-auto" />
-                    <div className="text-xs font-bold text-slate-600">
+                  <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm space-y-3 dark:bg-slate-900 dark:border-white/10">
+                    <RefreshCw className="w-7 h-7 text-indigo-600 animate-spin mx-auto dark:text-indigo-300" />
+                    <div className="text-xs font-bold text-slate-600 dark:text-slate-400">
                       Đang tải danh sách phiếu hỗ trợ của bạn...
                     </div>
                   </div>
                 ) : myTickets.length === 0 ? (
-                  <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm space-y-3">
+                  <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm space-y-3 dark:bg-slate-900 dark:border-white/10">
                     <div className="text-4xl">📭</div>
-                    <h3 className="font-black text-base text-slate-800">
+                    <h3 className="font-black text-base text-slate-800 dark:text-slate-200">
                       Bạn chưa có phiếu hỗ trợ nào trong danh sách
                     </h3>
-                    <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    <p className="text-xs text-slate-500 max-w-md mx-auto dark:text-slate-400">
                       Nếu bạn từng gửi phiếu hỗ trợ bằng email khác hoặc có mã ticket riêng, hãy nhập vào ô tra cứu phía trên nhé!
                     </p>
                     <button
@@ -1429,44 +1429,44 @@ export default function SupportPage() {
                   <div className="space-y-3.5">
                     {myTickets.map((ticket) => {
                       const formattedCode = ticket.id.startsWith('#') ? ticket.id : `#${ticket.id}`;
-                      let categoryBadgeColor = 'bg-slate-100 text-slate-700 border-slate-200';
+                      let categoryBadgeColor = 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-white/10';
                       let categoryLabel = '💬 Khác';
                       if (ticket.category === 'feedback') {
-                        categoryBadgeColor = 'bg-purple-100 text-purple-800 border-purple-200';
+                        categoryBadgeColor = 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950 dark:text-purple-200 dark:border-purple-800';
                         categoryLabel = '💡 Góp ý tính năng';
                       } else if (ticket.category === 'bug') {
-                        categoryBadgeColor = 'bg-rose-100 text-rose-800 border-rose-200';
+                        categoryBadgeColor = 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950 dark:text-rose-200 dark:border-rose-800';
                         categoryLabel = '🐞 Báo lỗi kỹ thuật';
                       } else if (ticket.category === 'guide') {
-                        categoryBadgeColor = 'bg-sky-100 text-sky-800 border-sky-200';
+                        categoryBadgeColor = 'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950 dark:text-sky-200 dark:border-sky-800';
                         categoryLabel = '📖 Thắc mắc học tập';
                       } else if (ticket.category === 'account') {
-                        categoryBadgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                        categoryBadgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800';
                         categoryLabel = '🔒 Tài khoản & Bảo mật';
                       }
 
                       let prioBadge = null;
                       if (ticket.priority === 'urgent') {
                         prioBadge = (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-rose-50 text-rose-700 border-rose-300">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800">
                             🔴 Khẩn cấp
                           </span>
                         );
                       } else if (ticket.priority === 'high') {
                         prioBadge = (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-orange-50 text-orange-700 border-orange-300">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-orange-50 text-orange-700 border-orange-300 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800">
                             🟠 Ưu tiên cao
                           </span>
                         );
                       } else if (ticket.priority === 'low') {
                         prioBadge = (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-300">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800">
                             🟢 Thấp
                           </span>
                         );
                       } else {
                         prioBadge = (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-amber-50 text-amber-700 border-amber-300">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
                             🟡 Trung bình
                           </span>
                         );
@@ -1475,13 +1475,13 @@ export default function SupportPage() {
                       return (
                         <div
                           key={ticket.id}
-                          className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm hover:border-slate-300 transition space-y-4"
+                          className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm hover:border-slate-300 transition space-y-4 dark:bg-slate-900 dark:border-white/10 hover:dark:border-white/10"
                         >
                           {/* Top Header Card */}
-                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-white/10">
                             <div className="flex items-center gap-2 flex-wrap">
                               {/* Ticket ID & Copy */}
-                              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900 text-amber-300 font-mono text-xs font-black tracking-wider">
+                              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900 text-amber-300 font-mono text-xs font-black tracking-wider dark:bg-white">
                                 <span>{formattedCode}</span>
                                 <button
                                   type="button"
@@ -1505,10 +1505,10 @@ export default function SupportPage() {
                               <span
                                 className={`px-2.5 py-0.5 rounded-full text-[11px] font-black border flex items-center gap-1 ${
                                   ticket.status === 'new'
-                                    ? 'bg-amber-50 text-amber-800 border-amber-300'
+                                    ? 'bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800'
                                     : ticket.status === 'processing'
-                                    ? 'bg-sky-50 text-sky-800 border-sky-300'
-                                    : 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                    ? 'bg-sky-50 text-sky-800 border-sky-300 dark:bg-sky-950 dark:text-sky-200 dark:border-sky-800'
+                                    : 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800'
                                 }`}
                               >
                                 <span
@@ -1535,39 +1535,39 @@ export default function SupportPage() {
 
                           {/* Ticket Content */}
                           <div className="space-y-2">
-                            <h3 className="font-black text-sm sm:text-base text-slate-900">
+                            <h3 className="font-black text-sm sm:text-base text-slate-900 dark:text-slate-100">
                               {ticket.subject}
                             </h3>
-                            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
+                            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap dark:bg-slate-900 dark:text-slate-300">
                               {ticket.message}
                             </div>
                           </div>
 
                           {/* Official Admin Reply Section */}
                           {ticket.admin_reply ? (
-                            <div className="bg-gradient-to-r from-emerald-50/90 to-teal-50/80 border-2 border-emerald-400 rounded-2xl p-4 sm:p-5 space-y-2.5 shadow-xs">
+                            <div className="bg-gradient-to-r from-emerald-50/90 to-teal-50/80 border-2 border-emerald-400 rounded-2xl p-4 sm:p-5 space-y-2.5 shadow-xs dark:from-emerald-950 dark:to-teal-950 dark:border-emerald-800">
                               <div className="flex items-center justify-between flex-wrap gap-2">
                                 <div className="flex items-center gap-2">
                                   <span className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-sm shadow-xs">
                                     🍉
                                   </span>
-                                  <span className="font-black text-xs text-emerald-950 uppercase tracking-wider">
+                                  <span className="font-black text-xs text-emerald-950 uppercase tracking-wider dark:text-emerald-200">
                                     Phản Hồi Chính Thức Từ Ban Quản Trị
                                   </span>
                                 </div>
                                 {ticket.resolved_at && (
-                                  <span className="text-[10px] font-mono text-emerald-700 font-bold">
+                                  <span className="text-[10px] font-mono text-emerald-700 font-bold dark:text-emerald-300">
                                     Giải quyết lúc: {new Date(ticket.resolved_at).toLocaleString('vi-VN')}
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xs text-emerald-900 leading-relaxed whitespace-pre-wrap font-medium">
+                              <div className="text-xs text-emerald-900 leading-relaxed whitespace-pre-wrap font-medium dark:text-emerald-200">
                                 {ticket.admin_reply}
                               </div>
                             </div>
                           ) : (
-                            <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/80 text-[11px] text-amber-800 flex items-center gap-2 font-medium">
-                              <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/80 text-[11px] text-amber-800 flex items-center gap-2 font-medium dark:text-amber-200">
+                              <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0 dark:text-amber-300" />
                               <span>
                                 Ban Quản Trị đã nhận được phiếu và đang tiến hành xử lý. Bạn sẽ nhận được thông báo qua email khi có câu trả lời!
                               </span>

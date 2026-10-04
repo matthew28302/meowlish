@@ -78,7 +78,7 @@ export default function VocabularyPage() {
       <div className="bg-gradient-to-r from-teal-600 via-emerald-600 to-amber-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2">
+            <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2 dark:bg-slate-900/20">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Thư Viện Từ Vựng IT & Daily
             </div>
             <h1 className="text-2xl sm:text-3xl font-black">
@@ -91,7 +91,7 @@ export default function VocabularyPage() {
           <Link
             href="/flashcards"
             onClick={() => sound.playClick()}
-            className="btn-3d btn-3d-white px-4 py-2.5 min-h-[44px] text-xs font-black text-slate-800 shadow-md transition flex items-center gap-1.5 cursor-pointer touch-manipulation"
+            className="btn-3d btn-3d-white px-4 py-2.5 min-h-[44px] text-xs font-black text-slate-800 shadow-md transition flex items-center gap-1.5 cursor-pointer touch-manipulation dark:text-slate-200"
           >
             Lật Flashcard Ôn Tập
           </Link>
@@ -191,7 +191,7 @@ export default function VocabularyPage() {
                         sound.playClick();
                         speakText(item.exampleSentence);
                       }}
-                      className="text-emerald-600 hover:underline flex items-center gap-0.5 cursor-pointer text-[10px]"
+                      className="text-emerald-600 hover:underline flex items-center gap-0.5 cursor-pointer text-[10px] dark:text-emerald-300"
                     >
                       <Volume2 className="w-3 h-3" /> Nghe câu
                     </button>

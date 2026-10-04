@@ -151,7 +151,7 @@ export default function GrammarPage() {
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-white/10 to-transparent pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold dark:bg-slate-900/20">
               <BookOpen className="w-3.5 h-3.5 text-amber-300" /> Ngữ Pháp Lego Trực Quan & Giới Từ Thực Chiến
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
@@ -177,7 +177,7 @@ export default function GrammarPage() {
               </span>
             </button>
 
-            <div className="bg-white/10 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 text-[11px] text-center font-medium">
+            <div className="bg-white/10 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 text-[11px] text-center font-medium dark:bg-slate-900/10">
               💡 Bôi đen bất kỳ từ nào để tra nghĩa & phát âm!
             </div>
           </div>
@@ -533,7 +533,7 @@ export default function GrammarPage() {
                           sound.playClick();
                           speakText(selectedLesson.tenseVariants![activeTenseIdx].sentence);
                         }}
-                        className="text-xs text-emerald-600 hover:underline flex items-center gap-1 cursor-pointer font-bold"
+                        className="text-xs text-emerald-600 hover:underline flex items-center gap-1 cursor-pointer font-bold dark:text-emerald-300"
                       >
                         <Volume2 className="w-3.5 h-3.5" /> Nghe phát âm
                       </button>
@@ -932,12 +932,12 @@ export default function GrammarPage() {
                         <div className="font-bold flex items-center gap-1.5 mb-1">
                           {isCorrect ? (
                             <>
-                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 dark:text-emerald-300" />
                               <span>Giải thích chuẩn xác:</span>
                             </>
                           ) : (
                             <>
-                              <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                              <XCircle className="w-4 h-4 text-rose-600 shrink-0 dark:text-rose-300" />
                               <span>Đáp án đúng là {String.fromCharCode(65 + quiz.correctIndex)}:</span>
                             </>
                           )}
@@ -972,7 +972,7 @@ export default function GrammarPage() {
               </div>
               <button
                 onClick={() => setShowPrepositionGuide(false)}
-                className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition cursor-pointer shrink-0 touch-manipulation"
+                className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition cursor-pointer shrink-0 touch-manipulation dark:bg-slate-900/20 hover:dark:bg-slate-900/30"
                 title="Đóng"
               >
                 <X className="w-5 h-5 text-white" />
@@ -1026,7 +1026,7 @@ export default function GrammarPage() {
                           <span className="text-xs font-black px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-200">
                             TẦNG 1: IN (RỘNG NHẤT - GENERAL)
                           </span>
-                          <span className="text-xs font-bold text-slate-500">Thế kỷ, Thập kỷ, Năm, Tháng, Mùa, Buổi trong ngày</span>
+                          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Thế kỷ, Thập kỷ, Năm, Tháng, Mùa, Buổi trong ngày</span>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1 text-xs">
@@ -1049,7 +1049,7 @@ export default function GrammarPage() {
                           <span className="text-xs font-black px-2 py-0.5 rounded-md bg-teal-200 text-teal-900 dark:bg-teal-900 dark:text-teal-200">
                             TẦNG 2: ON (CỤ THỂ HƠN - SPECIFIC DAYS)
                           </span>
-                          <span className="text-xs font-bold text-slate-500">Ngày trong tuần, Ngày tháng cụ thể, Dịp lễ có chữ &quot;Day&quot;</span>
+                          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Ngày trong tuần, Ngày tháng cụ thể, Dịp lễ có chữ &quot;Day&quot;</span>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1 text-xs">
@@ -1072,7 +1072,7 @@ export default function GrammarPage() {
                           <span className="text-xs font-black px-2 py-0.5 rounded-md bg-indigo-200 text-indigo-900 dark:bg-indigo-900 dark:text-indigo-200">
                             TẦNG 3: AT (CHÍNH XÁC NHẤT - PRECISE TIME)
                           </span>
-                          <span className="text-xs font-bold text-slate-500">Giờ giấc từng phút, Khoảnh khắc bấm đồng hồ, Ban đêm</span>
+                          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Giờ giấc từng phút, Khoảnh khắc bấm đồng hồ, Ban đêm</span>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1 text-xs">
@@ -1168,11 +1168,11 @@ export default function GrammarPage() {
                       <div className="text-xs space-y-1.5 text-slate-700 dark:text-slate-300">
                         <div>
                           <b>BY [Time]:</b> Chậm nhất là (hành động xảy ra 1 lần dứt điểm trước mốc đó).
-                          <div className="italic text-slate-500">&quot;Please submit the PR by 5 PM.&quot; (Nộp trước hoặc lúc 5h).</div>
+                          <div className="italic text-slate-500 dark:text-slate-400">&quot;Please submit the PR by 5 PM.&quot; (Nộp trước hoặc lúc 5h).</div>
                         </div>
                         <div>
                           <b>UNTIL [Time]:</b> Cho tới tận khi (hành động duy trì liên tục).
-                          <div className="italic text-slate-500">&quot;The server runs until midnight.&quot; (Chạy liên tục tới nửa đêm).</div>
+                          <div className="italic text-slate-500 dark:text-slate-400">&quot;The server runs until midnight.&quot; (Chạy liên tục tới nửa đêm).</div>
                         </div>
                       </div>
                     </div>
@@ -1185,11 +1185,11 @@ export default function GrammarPage() {
                       <div className="text-xs space-y-1.5 text-slate-700 dark:text-slate-300">
                         <div>
                           <b>FOR + Khoảng thời gian:</b> Trả lời câu hỏi &quot;How long?&quot; (Bao lâu?).
-                          <div className="italic text-slate-500">&quot;I have coded for 4 hours.&quot; (Lập trình suốt 4 tiếng).</div>
+                          <div className="italic text-slate-500 dark:text-slate-400">&quot;I have coded for 4 hours.&quot; (Lập trình suốt 4 tiếng).</div>
                         </div>
                         <div>
                           <b>SINCE + Mốc thời gian:</b> Trả lời câu hỏi &quot;Since when?&quot; (Từ khi nào?).
-                          <div className="italic text-slate-500">&quot;I have worked here since 2022.&quot; (Làm từ năm 2022).</div>
+                          <div className="italic text-slate-500 dark:text-slate-400">&quot;I have worked here since 2022.&quot; (Làm từ năm 2022).</div>
                         </div>
                       </div>
                     </div>
@@ -1202,11 +1202,11 @@ export default function GrammarPage() {
                       <div className="text-xs space-y-1.5 text-slate-700 dark:text-slate-300">
                         <div>
                           <b>DURING + Cụm danh từ:</b> Không có động từ chia thì.
-                          <div className="italic text-slate-500">&quot;The power went out during the demo.&quot; (Trong buổi demo).</div>
+                          <div className="italic text-slate-500 dark:text-slate-400">&quot;The power went out during the demo.&quot; (Trong buổi demo).</div>
                         </div>
                         <div>
                           <b>WHILE + Mệnh đề (S + V):</b> Bắt buộc có chủ ngữ và động từ.
-                          <div className="italic text-slate-500">&quot;The power went out while we were presenting.&quot;</div>
+                          <div className="italic text-slate-500 dark:text-slate-400">&quot;The power went out while we were presenting.&quot;</div>
                         </div>
                       </div>
                     </div>
@@ -1219,11 +1219,11 @@ export default function GrammarPage() {
                       <div className="text-xs space-y-1.5 text-slate-700 dark:text-slate-300">
                         <div>
                           <b>ON TIME:</b> Đúng chuẩn giờ theo lịch trình quy định (punctual).
-                          <div className="italic text-slate-500">&quot;The standup meeting started on time at 9:00.&quot;</div>
+                          <div className="italic text-slate-500 dark:text-slate-400">&quot;The standup meeting started on time at 9:00.&quot;</div>
                         </div>
                         <div>
                           <b>IN TIME:</b> Kịp giờ trước khi quá muộn hoặc trước khi sự cố xảy ra.
-                          <div className="italic text-slate-500">&quot;We arrived just in time to stop the faulty deploy.&quot;</div>
+                          <div className="italic text-slate-500 dark:text-slate-400">&quot;We arrived just in time to stop the faulty deploy.&quot;</div>
                         </div>
                       </div>
                     </div>

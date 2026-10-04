@@ -439,13 +439,13 @@ export default function HighlightTooltip() {
               sound.playClick();
               executeTranslation(mobileTranslateBtn.text, mobileTranslateBtn.sentence, undefined, true);
             }}
-            className="px-4 py-2.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white font-black text-xs shadow-2xl border-2 border-emerald-300 flex items-center gap-2 active:scale-95 cursor-pointer ring-4 ring-emerald-500/25 select-none"
+            className="px-4 py-2.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white font-black text-xs shadow-2xl border-2 border-emerald-300 flex items-center gap-2 active:scale-95 cursor-pointer ring-4 ring-emerald-500/25 select-none dark:border-emerald-800"
           >
             <span className="text-sm animate-pulse">✨</span>
             <span className="max-w-[160px] truncate">
               Dịch: &ldquo;{mobileTranslateBtn.text}&rdquo;
             </span>
-            <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-bold">
+            <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-bold dark:bg-slate-900/20">
               Tra từ
             </span>
           </button>

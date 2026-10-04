@@ -534,7 +534,7 @@ export default function WritingPracticePage() {
       <div className="bg-gradient-to-r from-teal-600 via-emerald-600 to-cyan-600 rounded-3xl p-5 sm:p-8 text-white shadow-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2">
+            <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2 dark:bg-slate-900/20">
               <PenTool className="w-3.5 h-3.5 text-amber-300 shrink-0" /> Phòng Luyện Viết Phản Xạ Lego
             </div>
             <h1 className="text-xl sm:text-3xl font-black">
@@ -546,7 +546,7 @@ export default function WritingPracticePage() {
           </div>
           <button
             onClick={() => setShowAiModal(true)}
-            className="btn-3d btn-3d-amber w-full sm:w-auto px-4 py-2.5 text-xs font-black text-slate-950 shadow-md cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+            className="btn-3d btn-3d-amber w-full sm:w-auto px-4 py-2.5 text-xs font-black text-slate-950 shadow-md cursor-pointer flex items-center justify-center gap-1.5 shrink-0 dark:text-slate-200"
           >
             <Zap className="w-4 h-4" />
             <span>✨ Tạo Đề AI Tự Do</span>
@@ -556,14 +556,14 @@ export default function WritingPracticePage() {
 
       {/* Session Persistence Alert Banner */}
       {hasSavedSession && (
-        <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-200">
+        <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-200 dark:bg-amber-950 dark:border-amber-800">
           <div className="flex items-center gap-3">
             <span className="text-2xl">📌</span>
             <div>
-              <h4 className="font-black text-sm text-amber-950">
+              <h4 className="font-black text-sm text-amber-950 dark:text-amber-200">
                 Bạn có 1 bài luyện viết dở chưa hoàn thành!
               </h4>
-              <p className="text-xs text-amber-800 font-medium">
+              <p className="text-xs text-amber-800 font-medium dark:text-amber-200">
                 Bạn muốn tiếp tục tiến độ dở dang hay bắt đầu bài mới?
               </p>
             </div>
@@ -577,7 +577,7 @@ export default function WritingPracticePage() {
             </button>
             <button
               onClick={handleClearSession}
-              className="flex-1 sm:flex-initial px-3 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white rounded-xl border border-slate-200 cursor-pointer text-center"
+              className="flex-1 sm:flex-initial px-3 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white rounded-xl border border-slate-200 cursor-pointer text-center dark:text-slate-400 hover:dark:text-slate-100 dark:bg-slate-900 dark:border-white/10"
             >
               Bắt đầu bài mới
             </button>
@@ -586,9 +586,9 @@ export default function WritingPracticePage() {
       )}
 
       {/* Topic Filter Selector Bar */}
-      <div className="bg-white rounded-2xl p-3 sm:p-4 border-2 border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-white rounded-2xl p-3 sm:p-4 border-2 border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 dark:bg-slate-900 dark:border-white/10">
         <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar max-w-full">
-          <span className="text-xs font-black text-slate-500 flex items-center gap-1 shrink-0 uppercase tracking-wide">
+          <span className="text-xs font-black text-slate-500 flex items-center gap-1 shrink-0 uppercase tracking-wide dark:text-slate-400">
             <Filter className="w-3.5 h-3.5" /> Chủ đề:
           </span>
           {[
@@ -606,7 +606,7 @@ export default function WritingPracticePage() {
               className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap shrink-0 ${
                 categoryFilter === cat.id
                   ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 hover:dark:bg-slate-700'
               }`}
             >
               {cat.label}
@@ -614,17 +614,17 @@ export default function WritingPracticePage() {
           ))}
         </div>
 
-        <div className="text-xs font-bold text-slate-500 shrink-0 self-end sm:self-center">
+        <div className="text-xs font-bold text-slate-500 shrink-0 self-end sm:self-center dark:text-slate-400">
           Câu {currentIdx + 1} / {filteredPrompts.length}
         </div>
       </div>
 
       {/* Main Practice Container */}
-      <div className="bg-white border-2 border-slate-200 rounded-3xl p-4 sm:p-6 lg:p-8 shadow-sm space-y-5 sm:space-y-6 max-w-full overflow-hidden">
+      <div className="bg-white border-2 border-slate-200 rounded-3xl p-4 sm:p-6 lg:p-8 shadow-sm space-y-5 sm:space-y-6 max-w-full overflow-hidden dark:bg-slate-900 dark:border-white/10">
         {/* Situation prompt */}
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 dark:bg-slate-900 dark:border-white/10">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
-            <span className="text-xs font-black uppercase text-emerald-600 tracking-wider">
+            <span className="text-xs font-black uppercase text-emerald-600 tracking-wider dark:text-emerald-300">
               {prompt.category} • Tình huống thực tế:
             </span>
             <button
@@ -632,29 +632,29 @@ export default function WritingPracticePage() {
                 sound.playClick();
                 setUseFreeType(!useFreeType);
               }}
-              className="text-xs text-slate-600 hover:text-emerald-700 underline font-extrabold cursor-pointer self-start sm:self-auto"
+              className="text-xs text-slate-600 hover:text-emerald-700 underline font-extrabold cursor-pointer self-start sm:self-auto dark:text-slate-400 hover:dark:text-emerald-300"
             >
               {useFreeType ? '🧱 Chuyển sang xếp khối từ Lego' : '⌨️ Chuyển sang gõ bàn phím tự do'}
             </button>
           </div>
-          <p className="text-xs sm:text-sm font-black text-slate-900 leading-snug break-words">
+          <p className="text-xs sm:text-sm font-black text-slate-900 leading-snug break-words dark:text-slate-100">
             {prompt.situation}
           </p>
-          <div className="text-xs sm:text-sm font-bold text-emerald-800 bg-emerald-50 p-2.5 sm:p-3 rounded-xl border border-emerald-200 break-words">
+          <div className="text-xs sm:text-sm font-bold text-emerald-800 bg-emerald-50 p-2.5 sm:p-3 rounded-xl border border-emerald-200 break-words dark:text-emerald-200 dark:bg-emerald-950 dark:border-emerald-800">
             🇻🇳 Hãy dịch sang tiếng Anh: &quot;{prompt.vietnamesePrompt}&quot;
           </div>
         </div>
 
         {/* Key Vocabulary Hints */}
         {prompt.keyVocabHints && prompt.keyVocabHints.length > 0 && (
-          <div className="flex items-center gap-2 flex-wrap text-xs text-slate-600">
-            <span className="font-bold flex items-center gap-1 text-amber-600">
+          <div className="flex items-center gap-2 flex-wrap text-xs text-slate-600 dark:text-slate-400">
+            <span className="font-bold flex items-center gap-1 text-amber-600 dark:text-amber-300">
               <Lightbulb className="w-3.5 h-3.5" /> Gợi ý cụm từ:
             </span>
             {prompt.keyVocabHints.map((hint, idx) => (
               <span
                 key={idx}
-                className="bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md font-mono text-[11px] text-amber-900 font-bold"
+                className="bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md font-mono text-[11px] text-amber-900 font-bold dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200"
               >
                 {hint}
               </span>
@@ -670,7 +670,7 @@ export default function WritingPracticePage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] font-bold text-slate-400 px-1 gap-1">
                 <span>Vùng ghép câu (Kéo thả từ để đổi vị trí hoặc bấm vào từ để bỏ):</span>
                 {selectedTokens.length > 0 && (
-                  <span className="shrink-0 text-emerald-600 font-bold">Đã ghép {selectedTokens.length} từ</span>
+                  <span className="shrink-0 text-emerald-600 font-bold dark:text-emerald-300">Đã ghép {selectedTokens.length} từ</span>
                 )}
               </div>
 
@@ -715,7 +715,7 @@ export default function WritingPracticePage() {
                 data-drop-zone="pool"
                 className={`flex flex-wrap gap-2 pt-1 min-h-[50px] p-2 rounded-2xl transition-all max-w-full ${
                   isOverPool && activeDrag?.source === 'selected'
-                    ? 'bg-rose-50 border-2 border-dashed border-rose-300 ring-2 ring-rose-200'
+                    ? 'bg-rose-50 border-2 border-dashed border-rose-300 ring-2 ring-rose-200 dark:bg-rose-950 dark:border-rose-800'
                     : ''
                 }`}
                 suppressHydrationWarning
@@ -724,7 +724,7 @@ export default function WritingPracticePage() {
                   <div
                     key={`${currentIdx}-${tok}-${idx}`}
                     onPointerDown={(e) => handleTokenPointerDown(e, 'available', idx, tok)}
-                    className={`lego-chip text-xs font-black hover:scale-105 active:scale-95 cursor-grab active:cursor-grabbing shadow-xs border-2 border-slate-200 select-none touch-none break-words ${
+                    className={`lego-chip text-xs font-black hover:scale-105 active:scale-95 cursor-grab active:cursor-grabbing shadow-xs border-2 border-slate-200 dark:border-white/10 select-none touch-none break-words ${
                       activeDrag?.source === 'available' && activeDrag.index === idx && activeDrag.isDragging
                         ? 'opacity-30 scale-95'
                         : ''
@@ -762,7 +762,7 @@ export default function WritingPracticePage() {
                 saveCurrentSession();
               }}
               placeholder="Gõ câu trả lời tiếng Anh của bạn tại đây..."
-              className="w-full p-3.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-emerald-500 focus:bg-white transition"
+              className="w-full p-3.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-emerald-500 focus:bg-white transition dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900"
             />
           </div>
         )}
@@ -771,7 +771,7 @@ export default function WritingPracticePage() {
         <div className="flex items-center justify-between pt-2 gap-3 flex-wrap">
           <button
             onClick={handleReset}
-            className="flex-1 sm:flex-initial justify-center px-4 py-2.5 min-h-[44px] text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer bg-slate-50 hover:bg-slate-100 rounded-xl touch-manipulation"
+            className="flex-1 sm:flex-initial justify-center px-4 py-2.5 min-h-[44px] text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer bg-slate-50 hover:bg-slate-100 rounded-xl touch-manipulation dark:text-slate-400 hover:dark:text-slate-200 dark:bg-slate-900 hover:dark:bg-slate-800"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Xếp lại từ đầu
           </button>
@@ -790,25 +790,25 @@ export default function WritingPracticePage() {
           <div
             className={`p-4 sm:p-5 rounded-2xl border-2 space-y-3 animate-in fade-in duration-200 max-w-full overflow-hidden ${
               isCorrect
-                ? 'bg-emerald-50 border-emerald-500 text-emerald-950'
-                : 'bg-rose-50 border-rose-400 text-rose-950'
+                ? 'bg-emerald-50 border-emerald-500 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-200'
+                : 'bg-rose-50 border-rose-400 text-rose-950 dark:bg-rose-950 dark:text-rose-200'
             }`}
           >
             <div className="flex items-center gap-2 font-black text-xs sm:text-sm">
               {isCorrect ? (
                 <>
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 dark:text-emerald-300" />
                   <span>🎉 Xuất sắc! Câu của bạn hoàn toàn chính xác (+25 EXP)</span>
                 </>
               ) : (
                 <>
-                  <XCircle className="w-5 h-5 text-rose-600 shrink-0" />
+                  <XCircle className="w-5 h-5 text-rose-600 shrink-0 dark:text-rose-300" />
                   <span>Chưa hoàn toàn chuẩn xác, hãy so sánh với câu chuẩn:</span>
                 </>
               )}
             </div>
 
-            <div className="text-xs sm:text-sm font-mono font-bold bg-white p-3 rounded-xl border border-emerald-200 break-words">
+            <div className="text-xs sm:text-sm font-mono font-bold bg-white p-3 rounded-xl border border-emerald-200 break-words dark:bg-slate-900 dark:border-emerald-800">
               Đáp án mẫu: &quot;{prompt.referenceAnswer}&quot;
             </div>
 
@@ -838,15 +838,15 @@ export default function WritingPracticePage() {
                   setAiExplanation(null);
                   handleNextPrompt();
                 }}
-                className="w-full sm:w-auto justify-center px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black hover:bg-slate-800 transition inline-flex items-center gap-1.5 cursor-pointer shadow-md"
+                className="w-full sm:w-auto justify-center px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black hover:bg-slate-800 transition inline-flex items-center gap-1.5 cursor-pointer shadow-md dark:bg-white dark:text-slate-900 hover:dark:bg-white"
               >
                 Câu Tiếp Theo <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
             {aiExplanation && (
-              <div className="mt-3 p-3.5 sm:p-4 bg-slate-900 text-white rounded-2xl text-xs space-y-2.5 animate-in fade-in border border-amber-500/40 shadow-xl max-w-full overflow-hidden">
-                <div className="font-black text-amber-300 text-xs flex items-center gap-1.5 border-b border-slate-700 pb-1.5">
+              <div className="mt-3 p-3.5 sm:p-4 bg-slate-900 text-white rounded-2xl text-xs space-y-2.5 animate-in fade-in border border-amber-500/40 shadow-xl max-w-full overflow-hidden dark:bg-white dark:text-slate-900">
+                <div className="font-black text-amber-300 text-xs flex items-center gap-1.5 border-b border-slate-700 pb-1.5 dark:border-white/10">
                   <span>🧠</span> PHÂN TÍCH CHI TIẾT TỪ AI SƯ PHẠM MEOWLISH
                 </div>
                 <div className="whitespace-pre-line leading-relaxed text-slate-200 font-medium break-words">
@@ -867,24 +867,24 @@ export default function WritingPracticePage() {
 
       {/* AI Practice Prompt Generator Modal */}
       {showAiModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl p-5 sm:p-8 max-w-md w-[calc(100vw-24px)] sm:w-full border-2 border-slate-200 shadow-2xl space-y-5 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150 dark:bg-white/60">
+          <div className="bg-white rounded-3xl p-5 sm:p-8 max-w-md w-[calc(100vw-24px)] sm:w-full border-2 border-slate-200 shadow-2xl space-y-5 relative dark:bg-slate-900 dark:border-white/10">
             <button
               onClick={() => setShowAiModal(false)}
-              className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 cursor-pointer touch-manipulation"
+              className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 cursor-pointer touch-manipulation hover:dark:text-slate-300 dark:bg-slate-800 hover:dark:bg-slate-700"
               title="Đóng"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="space-y-1 pr-6">
-              <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-100 text-amber-900 text-xs font-black">
-                <Zap className="w-3.5 h-3.5 text-amber-600" /> TẠO ĐỀ THI BẰNG AI
+              <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-100 text-amber-900 text-xs font-black dark:bg-amber-950 dark:text-amber-200">
+                <Zap className="w-3.5 h-3.5 text-amber-600 dark:text-amber-300" /> TẠO ĐỀ THI BẰNG AI
               </div>
-              <h3 className="text-xl font-black text-slate-900">
+              <h3 className="text-xl font-black text-slate-900 dark:text-slate-100">
                 Tạo Bài Tập Luyện Viết Tùy Chọn
               </h3>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              <p className="text-xs text-slate-500 font-medium leading-relaxed dark:text-slate-400">
                 Nhập chủ đề tình huống bất kỳ (Ví dụ: Thương lượng tăng lương, giải thích lỗi server với khách Singapore, gọi món cafe Mỹ...).
               </p>
             </div>
@@ -894,24 +894,24 @@ export default function WritingPracticePage() {
               value={aiTopicInput}
               onChange={(e) => setAiTopicInput(e.target.value)}
               placeholder="Nhập tình huống bạn muốn thực hành viết..."
-              className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:outline-none focus:border-emerald-500 focus:bg-white"
+              className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900"
             />
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 onClick={() => setShowAiModal(false)}
-                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl dark:text-slate-400 hover:dark:bg-slate-800"
               >
                 Hủy
               </button>
               <button
                 onClick={handleGenerateAiPrompt}
                 disabled={isGeneratingAi || !aiTopicInput.trim()}
-                className="btn-3d btn-3d-amber px-5 py-2.5 text-xs font-black text-slate-950 shadow-md cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                className="btn-3d btn-3d-amber px-5 py-2.5 text-xs font-black text-slate-950 shadow-md cursor-pointer disabled:opacity-50 flex items-center gap-1.5 dark:text-slate-200"
               >
                 {isGeneratingAi ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-950 dark:text-slate-200" />
                     <span>AI đang tạo bộ đề...</span>
                   </>
                 ) : (

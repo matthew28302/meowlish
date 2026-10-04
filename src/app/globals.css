@@ -1000,3 +1000,92 @@ textarea,
   -webkit-backface-visibility: hidden;
 }
 
+/* ========================================================================= */
+/* DARK MODE (giao diện tối dịu mắt) — class-based qua `.dark` trên <html>  */
+/* Bật/tắt bằng ThemeToggle (localStorage 'meowlish_theme').                 */
+/* KHÔNG bọc @layer: các rule gốc (.card-arcade, .card-playful, .btn-3d...)  */
+/* cũng unlayered nên override phải cùng cấp mới thắng (sau + đặc hiệu hơn). */
+/* Màu đã căn khớp với dark: utilities (slate-900 #0f172a, slate-100        */
+/* #f1f5f9, slate-950 #020617) nên không xung đột.                           */
+/* Palette: nền slate-950/900, chữ slate-100/400, accent tông 300-400,       */
+/* viền white/10. KHÔNG tương phản gắt, KHÔNG chữ tàng hình.                 */
+/* ========================================================================= */
+/* Nền trang + thanh cuộn */
+.dark body {
+  background-color: #020617;
+  background-image:
+    radial-gradient(at 15% 15%, rgba(16, 185, 129, 0.07) 0px, transparent 40%),
+    radial-gradient(at 85% 25%, rgba(245, 158, 11, 0.05) 0px, transparent 40%),
+    radial-gradient(at 50% 80%, rgba(56, 189, 248, 0.05) 0px, transparent 50%);
+  color: #f1f5f9;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #10b981;
+}
+.dark aside::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+/* Card dùng chung: giữ viền accent nhưng hạ tối bằng color-mix, chữ đọc được */
+.dark .card-playful {
+  background-color: #0f172a;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  color: #f1f5f9;
+}
+.dark .card-playful:hover {
+  border-color: rgba(52, 211, 153, 0.45);
+  box-shadow: 0 14px 30px -4px rgba(16, 185, 129, 0.12);
+}
+.dark .card-arcade {
+  background-color: #0f172a;
+  background-image: linear-gradient(
+    155deg,
+    #0f172a 0%,
+    #0f172a 52%,
+    color-mix(in srgb, var(--arcade-accent) 26%, #0f172a) 100%
+  );
+  border-color: color-mix(in srgb, var(--arcade-accent) 55%, #1e293b);
+  border-bottom-color: color-mix(in srgb, var(--arcade-accent-deep) 70%, #020617);
+  box-shadow: 0 14px 24px -16px rgba(0, 0, 0, 0.7);
+  color: #f1f5f9;
+}
+.dark .card-arcade::after {
+  opacity: 0.28;
+}
+
+/* Nút 3D bản sáng -> bản tối dịu (giữ chữ đậm đọc được) */
+.dark .btn-3d-white {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.12);
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+.dark .btn-3d-white:hover {
+  border-color: #34d399;
+  background-color: #273449;
+}
+
+/* Chip Lego kéo-thả trong tối */
+.dark .lego-chip {
+  background-color: #1e293b;
+  border-color: rgba(255, 255, 255, 0.12);
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+  color: #e2e8f0;
+}
+.dark .lego-chip:hover {
+  border-color: #34d399;
+  background-color: rgba(6, 78, 59, 0.5);
+  color: #6ee7b7;
+}
+.dark .custom-scrollbar {
+  scrollbar-color: #334155 #0f172a;
+}
+

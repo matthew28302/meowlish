@@ -355,20 +355,20 @@ export default function ExamPage() {
       {mode === 'catalog' && (
         <div className="space-y-8 animate-in fade-in duration-200">
           {hasSavedSession && savedSessionData && (
-            <div className="bg-amber-50 border-2 border-amber-400 rounded-3xl p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in">
+            <div className="bg-amber-50 border-2 border-amber-400 rounded-3xl p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in dark:bg-amber-950">
               <div className="flex items-center gap-3.5">
                 <div className="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black text-xl shrink-0 shadow-md">
                   ⏱️
                 </div>
                 <div>
-                  <h4 className="font-black text-slate-900 text-sm flex items-center gap-2">
+                  <h4 className="font-black text-slate-900 text-sm flex items-center gap-2 dark:text-slate-100">
                     Bạn đang có bài thi thử chưa hoàn tất!
-                    <span className="text-[10px] bg-amber-200 text-amber-900 font-extrabold px-2 py-0.5 rounded-full uppercase">
+                    <span className="text-[10px] bg-amber-200 text-amber-900 font-extrabold px-2 py-0.5 rounded-full uppercase dark:text-amber-200 dark:bg-amber-900">
                       Đang dở dang
                     </span>
                   </h4>
-                  <p className="text-xs text-slate-600 font-medium mt-0.5">
-                    Đề: <strong className="text-amber-800">{EXAM_SETS.find((s) => s.id === savedSessionData.selectedSetId)?.vietnameseTitle || 'Bài thi dở'}</strong> 
+                  <p className="text-xs text-slate-600 font-medium mt-0.5 dark:text-slate-400">
+                    Đề: <strong className="text-amber-800 dark:text-amber-200">{EXAM_SETS.find((s) => s.id === savedSessionData.selectedSetId)?.vietnameseTitle || 'Bài thi dở'}</strong> 
                     • Đã làm {Object.keys(savedSessionData.userAnswers || {}).length} câu hỏi
                   </p>
                 </div>
@@ -382,7 +382,7 @@ export default function ExamPage() {
                 </button>
                 <button
                   onClick={handleDiscardSession}
-                  className="px-3 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-black rounded-xl transition cursor-pointer"
+                  className="px-3 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-black rounded-xl transition cursor-pointer dark:bg-slate-700 dark:text-slate-300"
                 >
                   Bắt Đầu Lại
                 </button>
@@ -392,10 +392,10 @@ export default function ExamPage() {
 
           {/* Header Banner */}
           <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-700 rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none dark:bg-slate-900/10" />
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-3 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-emerald-100 text-xs font-black uppercase tracking-wider">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-emerald-100 text-xs font-black uppercase tracking-wider dark:bg-slate-900/20">
                   <Trophy className="w-3.5 h-3.5 text-amber-300" /> Trung Tâm Khảo Thí & Phản Xạ Giao Tiếp
                 </div>
                 <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
@@ -419,7 +419,7 @@ export default function ExamPage() {
               </div>
 
               {/* Stat card */}
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-2xl shrink-0 flex flex-col items-center justify-center text-center">
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-2xl shrink-0 flex flex-col items-center justify-center text-center dark:bg-slate-900/10">
                 <span className="text-3xl font-black text-amber-300">
                   {Object.keys(completedExams).length} / {EXAM_SETS.length}
                 </span>
@@ -432,10 +432,10 @@ export default function ExamPage() {
           </div>
 
           {/* Filters Bar */}
-          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 dark:bg-slate-900 dark:border-white/10">
             {/* Category Filter */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-              <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0">
+              <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0 dark:text-slate-400">
                 <Filter className="w-3.5 h-3.5" /> Chủ đề:
               </span>
               {[
@@ -461,7 +461,7 @@ export default function ExamPage() {
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                     categoryFilter === c.id
                       ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:bg-slate-900 dark:text-slate-400 hover:dark:bg-slate-800 hover:dark:text-slate-100'
                   }`}
                 >
                   {c.label}
@@ -471,7 +471,7 @@ export default function ExamPage() {
 
             {/* CEFR Level Filter */}
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-xs font-bold text-slate-500">Cấp độ:</span>
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Cấp độ:</span>
               {['all', 'A1 - A2', 'B1', 'B1 - B2', 'B2 - C1'].map((lvl) => (
                 <button
                   key={lvl}
@@ -481,8 +481,8 @@ export default function ExamPage() {
                   }}
                   className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
                     levelFilter === lvl
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 hover:dark:bg-slate-700'
                   }`}
                 >
                   {lvl === 'all' ? 'Tất cả' : lvl}
@@ -502,19 +502,19 @@ export default function ExamPage() {
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-3xl p-2 bg-slate-50 rounded-2xl border border-slate-100">
+                      <span className="text-3xl p-2 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-900 dark:border-white/10">
                         {exam.badgeIcon}
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800">
                           {exam.level}
                         </span>
                         {history && (
                           <span
                             className={`text-xs font-black px-2 py-0.5 rounded-full border ${
                               history.passed
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                                : 'bg-rose-50 text-rose-700 border-rose-300'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800'
+                                : 'bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800'
                             }`}
                           >
                             {history.percentage}%
@@ -527,19 +527,19 @@ export default function ExamPage() {
                       <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider block">
                         {exam.categoryLabel}
                       </span>
-                      <h3 className="text-base font-black text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug mt-0.5">
+                      <h3 className="text-base font-black text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug mt-0.5 dark:text-slate-100 group-hover:dark:text-emerald-300">
                         {exam.vietnameseTitle}
                       </h3>
-                      <p className="text-xs font-semibold text-slate-500 italic mt-0.5">
+                      <p className="text-xs font-semibold text-slate-500 italic mt-0.5 dark:text-slate-400">
                         {exam.title}
                       </p>
                     </div>
 
-                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    <p className="text-xs text-slate-600 leading-relaxed font-medium dark:text-slate-400">
                       {exam.summary}
                     </p>
 
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs font-bold text-slate-600">
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs font-bold text-slate-600 dark:border-white/10 dark:text-slate-400">
                       <div className="flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
                         <span>{exam.durationMinutes} phút</span>
@@ -548,11 +548,11 @@ export default function ExamPage() {
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                         <span>{exam.questions.length} câu hỏi</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-amber-600">
+                      <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-300">
                         <span>⭐</span>
                         <span>+{exam.expReward} EXP</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-amber-600">
+                      <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-300">
                         <span>🪙</span>
                         <span>+{exam.coinReward} Coins</span>
                       </div>
@@ -579,11 +579,11 @@ export default function ExamPage() {
       {mode === 'testing' && selectedSet && activeQuestion && (
         <div className="space-y-6 animate-in fade-in duration-150">
           {/* Sticky Header with Timer & Actions */}
-          <div className="bg-white rounded-2xl p-4 border-2 border-slate-200 shadow-md flex items-center justify-between gap-4 sticky top-18 z-30">
+          <div className="bg-white rounded-2xl p-4 border-2 border-slate-200 shadow-md flex items-center justify-between gap-4 sticky top-18 z-30 dark:bg-slate-900 dark:border-white/10">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowConfirmModal(true)}
-                className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 cursor-pointer"
+                className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 cursor-pointer dark:text-slate-400 hover:dark:bg-slate-800"
                 title="Thoát phòng thi"
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -592,7 +592,7 @@ export default function ExamPage() {
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-wide block">
                   {selectedSet.categoryLabel}
                 </span>
-                <h2 className="text-sm sm:text-base font-black text-slate-900 truncate max-w-xs sm:max-w-md">
+                <h2 className="text-sm sm:text-base font-black text-slate-900 truncate max-w-xs sm:max-w-md dark:text-slate-100">
                   {selectedSet.vietnameseTitle}
                 </h2>
               </div>
@@ -602,8 +602,8 @@ export default function ExamPage() {
             <div
               className={`flex items-center gap-2 px-4 py-2 rounded-2xl font-mono text-sm sm:text-base font-black shadow-xs transition-colors ${
                 secondsRemaining < 120
-                  ? 'bg-rose-100 text-rose-700 border-2 border-rose-300 animate-pulse'
-                  : 'bg-emerald-50 text-emerald-800 border-2 border-emerald-200'
+                  ? 'bg-rose-100 text-rose-700 border-2 border-rose-300 animate-pulse dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800'
+                  : 'bg-emerald-50 text-emerald-800 border-2 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800'
               }`}
             >
               <Clock className="w-4 h-4" />
@@ -613,7 +613,7 @@ export default function ExamPage() {
             {/* Submit Button */}
             <button
               onClick={() => setShowConfirmModal(true)}
-              className="btn-3d btn-3d-amber px-4 py-2 text-xs sm:text-sm font-black text-slate-950 shadow-md cursor-pointer flex items-center gap-1.5"
+              className="btn-3d btn-3d-amber px-4 py-2 text-xs sm:text-sm font-black text-slate-950 shadow-md cursor-pointer flex items-center gap-1.5 dark:text-slate-200"
             >
               <Check className="w-4 h-4" />
               <span>Nộp bài</span>
@@ -621,14 +621,14 @@ export default function ExamPage() {
           </div>
 
           {/* Question Grid Navigation Bar */}
-          <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200 flex items-center justify-between gap-2 overflow-x-auto">
+          <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200 flex items-center justify-between gap-2 overflow-x-auto dark:bg-slate-900 dark:border-white/10">
             <div className="flex items-center gap-1.5">
               {selectedSet.questions.map((q, idx) => {
                 const isAnswered = userAnswers[q.id] !== undefined;
                 const isFlagged = flaggedQuestions[q.id];
                 const isCurrent = idx === currentQIndex;
 
-                let btnClass = 'bg-white text-slate-600 border-slate-200 hover:border-slate-400';
+                let btnClass = 'bg-white text-slate-600 border-slate-200 hover:border-slate-400 dark:bg-slate-900 dark:text-slate-400 dark:border-white/10 hover:dark:border-white/10';
                 if (isAnswered) {
                   btnClass = 'bg-emerald-600 text-white border-emerald-700 shadow-xs';
                 }
@@ -654,7 +654,7 @@ export default function ExamPage() {
               })}
             </div>
 
-            <div className="hidden sm:flex items-center gap-3 text-[11px] font-bold text-slate-500 shrink-0">
+            <div className="hidden sm:flex items-center gap-3 text-[11px] font-bold text-slate-500 shrink-0 dark:text-slate-400">
               <span className="flex items-center gap-1">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> Đã trả lời ({Object.keys(userAnswers).length}/{selectedSet.questions.length})
               </span>
@@ -665,18 +665,18 @@ export default function ExamPage() {
           </div>
 
           {/* Main Question Card */}
-          <div className="card-playful bg-white border-2 border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-md">
+          <div className="card-playful bg-white border-2 border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-md dark:bg-slate-900 dark:border-white/10">
             {/* Top Question Tagging */}
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black px-3 py-1 rounded-full bg-slate-900 text-white">
+                <span className="text-xs font-black px-3 py-1 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900">
                   Câu {currentQIndex + 1} / {selectedSet.questions.length}
                 </span>
-                <span className="text-xs font-black px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <span className="text-xs font-black px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800">
                   {activeQuestion.sectionName}
                 </span>
                 {activeQuestion.speakerRole && (
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 border border-sky-200">
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 border border-sky-200 dark:bg-sky-950 dark:text-sky-200 dark:border-sky-800">
                     👤 {activeQuestion.speakerRole}
                   </span>
                 )}
@@ -687,8 +687,8 @@ export default function ExamPage() {
                 onClick={() => handleToggleFlag(activeQuestion.id)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
                   flaggedQuestions[activeQuestion.id]
-                    ? 'bg-amber-100 text-amber-800 border-amber-300'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    ? 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800'
+                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-400 dark:border-white/10 hover:dark:bg-slate-800'
                 }`}
               >
                 <Flag className="w-3.5 h-3.5" />
@@ -698,12 +698,12 @@ export default function ExamPage() {
 
             {/* Listening Audio Player Box if available */}
             {activeQuestion.audioScript && (
-              <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-2 border-emerald-200 space-y-3">
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-2 border-emerald-200 space-y-3 dark:border-emerald-800 dark:from-emerald-950 dark:via-teal-950 dark:to-sky-950">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-emerald-800 uppercase tracking-wide flex items-center gap-1.5">
-                    <Headphones className="w-4 h-4 text-emerald-600" /> Nghe đoạn hội thoại bản xứ:
+                  <span className="text-xs font-black text-emerald-800 uppercase tracking-wide flex items-center gap-1.5 dark:text-emerald-200">
+                    <Headphones className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> Nghe đoạn hội thoại bản xứ:
                   </span>
-                  <span className="text-[11px] font-bold text-slate-500">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
                     Giọng chuẩn US Business
                   </span>
                 </div>
@@ -714,7 +714,7 @@ export default function ExamPage() {
                     disabled={isAudioPlaying}
                     className={`btn-3d px-5 py-2.5 rounded-2xl text-xs font-black flex items-center gap-2 cursor-pointer shadow-sm ${
                       isAudioPlaying
-                        ? 'bg-emerald-200 text-emerald-900 animate-pulse'
+                        ? 'bg-emerald-200 text-emerald-900 animate-pulse dark:bg-emerald-900 dark:text-emerald-200'
                         : 'btn-3d-emerald'
                     }`}
                   >
@@ -728,7 +728,7 @@ export default function ExamPage() {
                       speakText(activeQuestion.audioScript!, 0.75);
                       setTimeout(() => setIsAudioPlaying(false), 3000);
                     }}
-                    className="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition cursor-pointer"
+                    className="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition cursor-pointer dark:bg-slate-900 dark:text-slate-300 hover:dark:bg-slate-800 dark:border-white/10"
                   >
                     Tốc độ chậm (0.75x)
                   </button>
@@ -738,13 +738,13 @@ export default function ExamPage() {
 
             {/* Context Sentence */}
             {activeQuestion.contextSentence && (
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 italic">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 italic dark:bg-slate-900 dark:border-white/10 dark:text-slate-300">
                 &ldquo;{activeQuestion.contextSentence}&rdquo;
               </div>
             )}
 
             {/* Question Text */}
-            <div className="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
+            <div className="text-base sm:text-lg font-bold text-slate-900 leading-relaxed dark:text-slate-100">
               {activeQuestion.question}
             </div>
 
@@ -760,15 +760,15 @@ export default function ExamPage() {
                     onClick={() => handleSelectOption(activeQuestion.id, optIdx)}
                     className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-start gap-3.5 cursor-pointer ${
                       isSelected
-                        ? 'bg-emerald-50 border-emerald-500 shadow-sm text-emerald-950 ring-2 ring-emerald-500/20'
-                        : 'bg-white border-slate-200 hover:border-slate-400 text-slate-800 hover:bg-slate-50'
+                        ? 'bg-emerald-50 border-emerald-500 shadow-sm text-emerald-950 ring-2 ring-emerald-500/20 dark:bg-emerald-950 dark:text-emerald-200'
+                        : 'bg-white border-slate-200 hover:border-slate-400 text-slate-800 hover:bg-slate-50 dark:bg-slate-900 dark:border-white/10 hover:dark:border-white/10 dark:text-slate-200 hover:dark:bg-slate-900'
                     }`}
                   >
                     <span
                       className={`w-7 h-7 rounded-xl text-xs font-black flex items-center justify-center shrink-0 mt-0.5 border ${
                         isSelected
                           ? 'bg-emerald-600 text-white border-emerald-700'
-                          : 'bg-slate-100 text-slate-600 border-slate-200'
+                          : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-white/10'
                       }`}
                     >
                       {letter}
@@ -782,7 +782,7 @@ export default function ExamPage() {
             </div>
 
             {/* Bottom Actions Navigation */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/10">
               <button
                 onClick={() => {
                   sound.playClick();
@@ -809,7 +809,7 @@ export default function ExamPage() {
               ) : (
                 <button
                   onClick={() => setShowConfirmModal(true)}
-                  className="btn-3d btn-3d-amber px-6 py-2.5 text-xs font-black text-slate-950 shadow-md cursor-pointer flex items-center gap-1.5"
+                  className="btn-3d btn-3d-amber px-6 py-2.5 text-xs font-black text-slate-950 shadow-md cursor-pointer flex items-center gap-1.5 dark:text-slate-200"
                 >
                   <Check className="w-4 h-4" />
                   <span>Nộp bài & Xem điểm</span>
@@ -867,7 +867,7 @@ export default function ExamPage() {
               </div>
 
               {/* Big Score Dial */}
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl shrink-0 flex flex-col items-center justify-center text-center">
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl shrink-0 flex flex-col items-center justify-center text-center dark:bg-slate-900/10">
                 <span className="text-5xl sm:text-6xl font-black text-white">
                   {testPercentage}%
                 </span>
@@ -876,7 +876,7 @@ export default function ExamPage() {
                 </span>
                 <span
                   className={`mt-3 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider ${
-                    isPassed ? 'bg-emerald-400 text-slate-950' : 'bg-rose-200 text-rose-950'
+                    isPassed ? 'bg-emerald-400 text-slate-950' : 'bg-rose-200 text-rose-950 dark:bg-rose-900 dark:text-rose-200'
                   }`}
                 >
                   {isPassed ? 'ĐẠT YÊU CẦU' : 'CHƯA ĐẠT'}
@@ -910,11 +910,11 @@ export default function ExamPage() {
           {/* Detailed Question Review List */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-emerald-600" />
+              <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2 dark:text-slate-100">
+                <BarChart3 className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
                 Phân Tích Chi Tiết Từng Câu & Bí Kíp Sư Phạm
               </h2>
-              <span className="text-xs font-bold text-slate-500">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                 Hiển thị {selectedSet.questions.length} câu
               </span>
             </div>
@@ -927,8 +927,8 @@ export default function ExamPage() {
                 return (
                   <div
                     key={q.id}
-                    className={`card-playful bg-white rounded-3xl p-6 border-2 transition-all space-y-4 ${
-                      isCorrect ? 'border-emerald-200 bg-emerald-50/20' : 'border-rose-200 bg-rose-50/20'
+                    className={`card-playful bg-white dark:bg-slate-900 rounded-3xl p-6 border-2 transition-all space-y-4 ${
+                      isCorrect ? 'border-emerald-200 bg-emerald-50/20 dark:border-emerald-800' : 'border-rose-200 bg-rose-50/20 dark:border-rose-800'
                     }`}
                   >
                     {/* Header */}
@@ -941,15 +941,15 @@ export default function ExamPage() {
                         >
                           {idx + 1}
                         </span>
-                        <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800">
+                        <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
                           {q.sectionName}
                         </span>
                         {isCorrect ? (
-                          <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1 dark:text-emerald-300 dark:bg-emerald-950">
                             <CheckCircle2 className="w-3.5 h-3.5" /> Chính xác
                           </span>
                         ) : (
-                          <span className="text-xs font-black text-rose-700 bg-rose-100 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          <span className="text-xs font-black text-rose-700 bg-rose-100 px-2.5 py-0.5 rounded-full flex items-center gap-1 dark:text-rose-300 dark:bg-rose-950">
                             <XCircle className="w-3.5 h-3.5" /> Chưa chính xác
                           </span>
                         )}
@@ -961,7 +961,7 @@ export default function ExamPage() {
                             sound.playClick();
                             speakText(q.audioScript!);
                           }}
-                          className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-3 py-1 rounded-xl border border-emerald-200 transition cursor-pointer"
+                          className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-3 py-1 rounded-xl border border-emerald-200 transition cursor-pointer dark:text-emerald-300 hover:dark:text-emerald-200 dark:bg-emerald-950 hover:dark:bg-emerald-950 dark:border-emerald-800"
                         >
                           <Volume2 className="w-3.5 h-3.5" /> Nghe lại audio
                         </button>
@@ -969,7 +969,7 @@ export default function ExamPage() {
                     </div>
 
                     {/* Question text */}
-                    <div className="text-sm sm:text-base font-bold text-slate-900 leading-relaxed">
+                    <div className="text-sm sm:text-base font-bold text-slate-900 leading-relaxed dark:text-slate-100">
                       {q.question}
                     </div>
 
@@ -979,11 +979,11 @@ export default function ExamPage() {
                         const isCorrectOption = optIdx === q.correctIndex;
                         const isUserChoice = optIdx === userAns;
 
-                        let optClass = 'bg-white border-slate-200 text-slate-700';
+                        let optClass = 'bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-white/10 dark:text-slate-300';
                         if (isCorrectOption) {
-                          optClass = 'bg-emerald-100/70 border-emerald-500 text-emerald-950 font-bold';
+                          optClass = 'bg-emerald-100/70 border-emerald-500 text-emerald-950 font-bold dark:text-emerald-200';
                         } else if (isUserChoice && !isCorrect) {
-                          optClass = 'bg-rose-100/70 border-rose-500 text-rose-950 font-bold';
+                          optClass = 'bg-rose-100/70 border-rose-500 text-rose-950 font-bold dark:text-rose-200';
                         }
 
                         return (
@@ -1000,12 +1000,12 @@ export default function ExamPage() {
 
                             <div className="shrink-0 flex items-center gap-1">
                               {isCorrectOption && (
-                                <span className="text-[10px] font-black text-emerald-800 bg-emerald-200 px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] font-black text-emerald-800 bg-emerald-200 px-2 py-0.5 rounded-full dark:text-emerald-200 dark:bg-emerald-900">
                                   Đáp án đúng
                                 </span>
                               )}
                               {isUserChoice && (
-                                <span className="text-[10px] font-black text-slate-800 bg-slate-200 px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] font-black text-slate-800 bg-slate-200 px-2 py-0.5 rounded-full dark:text-slate-200 dark:bg-slate-700">
                                   Bạn đã chọn
                                 </span>
                               )}
@@ -1017,15 +1017,15 @@ export default function ExamPage() {
 
                     {/* Detailed Explanation & Pedagogical Tip */}
                     <div className="pt-2 space-y-2.5">
-                      <div className="p-3.5 rounded-2xl bg-white border border-slate-200 text-xs text-slate-700 space-y-1">
-                        <span className="font-black text-slate-900 block">
+                      <div className="p-3.5 rounded-2xl bg-white border border-slate-200 text-xs text-slate-700 space-y-1 dark:bg-slate-900 dark:border-white/10 dark:text-slate-300">
+                        <span className="font-black text-slate-900 block dark:text-slate-100">
                           📖 Giải thích chi tiết:
                         </span>
                         <p className="leading-relaxed font-medium">{q.explanation}</p>
                       </div>
 
-                      <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 space-y-1">
-                        <span className="font-black text-amber-950 flex items-center gap-1">
+                      <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 space-y-1 dark:border-amber-800 dark:text-amber-200">
+                        <span className="font-black text-amber-950 flex items-center gap-1 dark:text-amber-200">
                           💡 Bí kíp phản xạ bản xứ:
                         </span>
                         <p className="leading-relaxed font-semibold">{q.pedagogicalTip}</p>
@@ -1044,44 +1044,44 @@ export default function ExamPage() {
       {/* ========================================================================= */}
       {showConfirmModal && selectedSet && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border-2 border-slate-100">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border-2 border-slate-100 dark:bg-slate-900 dark:border-white/10">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl shrink-0 dark:bg-amber-950 dark:text-amber-300">
                 <AlertCircle className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900 leading-tight">
+                <h3 className="text-lg font-black text-slate-900 leading-tight dark:text-slate-100">
                   Xác nhận nộp bài thi?
                 </h3>
-                <p className="text-xs text-slate-500 font-medium">
+                <p className="text-xs text-slate-500 font-medium dark:text-slate-400">
                   {selectedSet.vietnameseTitle}
                 </p>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-2 font-medium">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-2 font-medium dark:bg-slate-900 dark:border-white/10 dark:text-slate-400">
               <div className="flex items-center justify-between">
                 <span>Số câu đã trả lời:</span>
-                <span className="font-black text-emerald-700">
+                <span className="font-black text-emerald-700 dark:text-emerald-300">
                   {Object.keys(userAnswers).length} / {selectedSet.questions.length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Số câu còn bỏ trống:</span>
-                <span className="font-black text-rose-600">
+                <span className="font-black text-rose-600 dark:text-rose-300">
                   {selectedSet.questions.length - Object.keys(userAnswers).length} câu
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Thời gian còn lại:</span>
-                <span className="font-mono font-black text-slate-900">
+                <span className="font-mono font-black text-slate-900 dark:text-slate-100">
                   {formatTime(secondsRemaining)}
                 </span>
               </div>
             </div>
 
             {selectedSet.questions.length - Object.keys(userAnswers).length > 0 && (
-              <p className="text-[11px] font-bold text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200">
+              <p className="text-[11px] font-bold text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200 dark:text-amber-300 dark:bg-amber-950 dark:border-amber-800">
                 ⚠️ Bạn vẫn còn câu hỏi chưa chọn đáp án. Các câu chưa trả lời sẽ được tính là 0 điểm.
               </p>
             )}
@@ -1099,7 +1099,7 @@ export default function ExamPage() {
 
               <button
                 onClick={handleConfirmSubmit}
-                className="btn-3d btn-3d-amber px-5 py-2 text-xs font-black text-slate-950 shadow-md cursor-pointer"
+                className="btn-3d btn-3d-amber px-5 py-2 text-xs font-black text-slate-950 shadow-md cursor-pointer dark:text-slate-200"
               >
                 Chắc chắn nộp bài
               </button>
