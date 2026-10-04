@@ -212,6 +212,69 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
   const [bloomId, setBloomId] = useState<number>(0);
   const [windGustId, setWindGustId] = useState<number>(0);
 
+  // ===== Juice FX layer (game-feel-juice): one-shot particles + object ticks =====
+  // fx: mảng particle dùng chung mọi habitat — transform/opacity only, tự dọn,
+  // cap 40, replay ngay. objPulse: tick anticipation HIỆN NGAY khi click (≤200ms).
+  // objHit: rung vật thể tại frame tiếp xúc (contact frame).
+  interface FxBit { id: number; x: number; y: number; emoji: string; cls: string; delay?: number }
+  const [fx, setFx] = useState<FxBit[]>([]);
+  const [objPulse, setObjPulse] = useState<{ key: string; id: number } | null>(null);
+  const [objHit, setObjHit] = useState<{ key: string; id: number } | null>(null);
+  const fxIdRef = useRef(0);
+  const fxTimersRef = useRef<number[]>([]);
+  const touchTapRef = useRef(0);
+  // Timer KHÔNG gắn generation: chỉ dọn particle/pulse, không chạm pet/timers action.
+  const fxLater = (fn: () => void, ms: number) => {
+    const id = window.setTimeout(() => {
+      fxTimersRef.current = fxTimersRef.current.filter((x) => x !== id);
+      fn();
+    }, ms);
+    fxTimersRef.current.push(id);
+  };
+  const spawnFx = (items: { x: number; y: number; emoji: string; cls: string; delay?: number }[], ttlMs: number) => {
+    const batch: FxBit[] = items.map((it) => ({ ...it, id: (fxIdRef.current += 1) }));
+    setFx((prev) => [...prev, ...batch].slice(-40));
+    fxLater(() => {
+      setFx((prev) => prev.filter((f) => !batch.some((b) => b.id === f.id)));
+    }, ttlMs);
+  };
+  const fxJitter = (cx: number, cy: number, spreadX = 5, up = 3) => ({
+    x: cx + (Math.random() * spreadX * 2 - spreadX),
+    y: cy - Math.random() * up,
+  });
+  // Sóng gợn 3 vòng (ao / suối / đài phun) — delay so le 180ms
+  const fxRings = (cx: number, cy: number) => {
+    spawnFx([0, 1, 2].map((i) => ({ x: cx, y: cy, emoji: '', cls: 'fx-ring', delay: i * 180 })), 2000);
+  };
+  // Rơi + nảy + mờ (táo / dừa / cam rụng khi rung cây)
+  const fxDropLoot = (cx: number, cy: number, emojis: string[]) => {
+    spawnFx(emojis.map((emoji) => ({ ...fxJitter(cx, cy, 5, 3), emoji, cls: 'fx-drop' })), 1700);
+  };
+  // Bay lên + mờ (cánh hoa / hơi nước / tia bắn / nốt nhạc)
+  const fxFloatUp = (cx: number, cy: number, emojis: string[]) => {
+    spawnFx(emojis.map((emoji) => ({ ...fxJitter(cx, cy, 6, 4), emoji, cls: 'fx-float' })), 1600);
+  };
+  // Nảy nở + settle (trứng / cà rốt / bóng / sao)
+  const fxPop = (cx: number, cy: number, emojis: string[]) => {
+    spawnFx(emojis.map((emoji) => ({ ...fxJitter(cx, cy, 4, 2), emoji, cls: 'fx-pop' })), 2000);
+  };
+  // Vệt gió / xoáy cổng (trôi ngang + mờ)
+  const fxDrift = (cx: number, cy: number, emojis: string[]) => {
+    spawnFx(emojis.map((emoji) => ({ ...fxJitter(cx, cy, 3, 6), emoji, cls: 'fx-drift' })), 1400);
+  };
+  // Vàng bay vòng cung (mở rương / bắn đại bác)
+  const fxArc = (cx: number, cy: number, emojis: string[]) => {
+    spawnFx(emojis.map((emoji) => ({ ...fxJitter(cx, cy, 7, 2), emoji, cls: 'fx-arc' })), 1500);
+  };
+  // Rung vật thể tại contact frame (kèm tick âm thanh chạm)
+  const fxHitObject = (key: string) => {
+    const id = Date.now() + Math.random();
+    setObjHit({ key, id });
+    fxLater(() => {
+      setObjHit((prev) => (prev && prev.id === id ? null : prev));
+    }, 650);
+  };
+
   // Floating hearts when petted
   const [hearts, setHearts] = useState<{ id: number; x: number; y: number }[]>([]);
 
@@ -278,6 +341,9 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     clearActionTimers();
     resetTransientStates();
     isInteractingRef.current = false;
+    setFx([]);
+    setObjPulse(null);
+    setObjHit(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [habitat]);
 
@@ -305,6 +371,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
       actionTimersRef.current.forEach((id) => clearTimeout(id));
       actionTimersRef.current = [];
+      fxTimersRef.current.forEach((id) => clearTimeout(id));
+      fxTimersRef.current = [];
       actionGenRef.current += 1;
     };
   }, []);
@@ -738,6 +806,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       setFacing(rightX >= leftX ? 'right' : 'left');
       if (i === Math.floor(steps / 2)) {
         sound.playCelebration();
+        fxFloatUp(topX, topY - 2, ['⭐', '🌈', '✨']);
         confetti({ particleCount: 30, spread: 50, origin: { x: topX / 100, y: topY / 100 } });
         showSpeech('Đang đi bộ trên cầu vồng nè! Cao ơi là cao! 🌈🐾');
       }
@@ -760,12 +829,15 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     showSpeech(label);
     setPetPos({ x: topX, y: topY });
     setAnimState('jump');
+    fxDrift(topX, topY, ['💨', '✨']);
     sound.playWhoosh();
     later(() => {
       setPetPos({ x: footX, y: footY });
     }, 120);
     later(() => {
       sound.playCelebration();
+      fxRings(footX, footY);
+      fxFloatUp(footX, footY - 2, ['💦', '✨']);
       confetti({ particleCount: 40, spread: 60, origin: { x: footX / 100, y: footY / 100 } });
       setAnimState('happy');
       showSpeech('Wheeee! Trượt xuống mát rượi, vui quá đi! 🛝🎉');
@@ -791,6 +863,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         setPetPos({ x: baseX + dx, y: baseY + Math.abs(dx) * 0.3 });
         sound.playClick();
         if (idx === 2) {
+          fxFloatUp(84, 30, ['🍃', '🍎', '✨']);
           confetti({ particleCount: 20, spread: 40, origin: { x: 0.84, y: 0.3 } });
           showSpeech('Đung đưa cao ơi là cao, táo rơi lộp độp nè! 🍎😆');
         }
@@ -808,6 +881,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     showSpeech('Ngồi vào bàn làm việc gõ code fix bug nào! 💻⚡');
     walkTo(50, 36, () => {
       setAnimState('happy');
+      fxFloatUp(50, 30, ['⌨️', '⚡', '✨']);
       setIsCoding(true);
       setCodeLines([]);
       setCodeExp(0);
@@ -861,6 +935,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Đi ra cầu ván nhảy xuống hồ sen mát rượi thôi! 🏊🪷');
         walkTo(74, 76, () => {
           sound.playWhoosh();
+          fxRings(84, 80);
+          fxFloatUp(84, 76, ['💦', '🐟', '💧']);
           setPondSplashId(Date.now());
           later(() => setPondSplashId(0), 3000);
           setPetPos({ x: 84, y: 80 });
@@ -887,9 +963,12 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             setPetPos({ x: 88, y: 16 });
             later(() => {
               setAnimState('happy');
+              fxHitObject('oak');
+              sound.playPop();
+              fxDropLoot(88, 12, ['🍎', '🍎', '🍏']);
               sound.playCelebration();
               confetti({ particleCount: 30, spread: 45, origin: { x: 0.88, y: 0.16 } });
-              showSpeech('Chạm tới ngọn cây rồi! Hái được quả táo chín mọng ngọt lịm! 🍎✨');
+              showSpeech('Rung cây rụng táo nè! Hái được quả táo chín mọng ngọt lịm! 🍎✨');
               later(() => {
                 setAnimState('climb');
                 setPetPos({ x: 88, y: 32 });
@@ -918,6 +997,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(76, 42, () => {
           setIsBouncingMushroom(true);
           setAnimState('jump');
+          fxFloatUp(76, 38, ['✨', '🍄', '💨']);
           sound.playCelebration();
           confetti({ particleCount: 40, spread: 60, origin: { x: 0.76, y: 0.35 } });
           showSpeech('Boingggg! Nấm bật tung chạm mây luôn! 🍄🚀');
@@ -942,6 +1022,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Lại chuồng gà rải thóc cho gà ăn nhé! 🌾🐔');
         walkTo(48, 44, () => {
           setAnimState('eat');
+          fxFloatUp(48, 40, ['🌾', '🌾', '🐣']);
+          fxPop(52, 37, ['🥚']);
           sound.playPop();
           sound.playSuccess();
           confetti({ particleCount: 20, spread: 40, origin: { x: 0.48, y: 0.4 } });
@@ -955,6 +1037,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Ra bồn hoa & luống rau thu hoạch nào! 🥕🌷');
         walkTo(20, 78, () => {
           setAnimState('eat');
+          fxFloatUp(20, 74, ['🌸', '🌷', '✨']);
+          fxPop(24, 72, ['🥕', '🍓']);
           setBloomId(Date.now());
           later(() => setBloomId(0), 3000);
           sound.playPop();
@@ -970,6 +1054,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Chạy ra cối xay gió đón cơn gió mát nào! 💨🏡');
         walkTo(16, 28, () => {
           setWindGustId(Date.now());
+          fxDrift(16, 24, ['💨', '💨', '🍃']);
+          fxFloatUp(16, 22, ['✨']);
           later(() => setWindGustId(0), 3000);
           setAnimState('happy');
           sound.playWhoosh();
@@ -984,6 +1070,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Về biệt thự mái ngói đỏ nghỉ chân nào! 🏡✨');
         walkTo(18, 55, () => {
           setAnimState('happy');
+          fxFloatUp(18, 50, ['✨', '🍞', '💨']);
           sound.playSuccess();
           confetti({ particleCount: 20, spread: 40, origin: { x: 0.18, y: 0.5 } });
           showSpeech('Biệt thự ấm áp, khói bếp bay lên, thơm mùi bánh mới! 🏡🍞');
@@ -998,6 +1085,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Lướt trên sóng biển nhiệt đới thôi! 🏄🌊');
         walkTo(50, 20, () => {
           setAnimState('swim');
+          fxRings(50, 22);
+          fxFloatUp(50, 18, ['🌊', '🐬', '💦']);
           sound.playCelebration();
           showSpeech('Cưỡi trên ngọn sóng biển hoàng hôn thật sảng khoái! 🏄✨');
           isInteractingRef.current = false;
@@ -1011,8 +1100,11 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             setPetPos({ x: 86, y: 16 });
             later(() => {
               setAnimState('happy');
+              fxHitObject('palm');
+              sound.playPop();
+              fxDropLoot(86, 12, ['🥥', '🥥']);
               sound.playCelebration();
-              showSpeech('Lên tới chùm dừa rồi! Quả nào quả nấy mọng nước! 🥥✨');
+              showSpeech('Rung cây dừa rụng quả nè! Quả nào quả nấy mọng nước! 🥥✨');
               later(() => {
                 setAnimState('climb');
                 setPetPos({ x: 86, y: 30 });
@@ -1028,6 +1120,9 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Ra sân đập bóng chuyền bãi biển nhé! 🏐🔥');
         walkTo(50, 52, () => {
           setAnimState('jump');
+          fxHitObject('volleyball');
+          fxPop(50, 46, ['🏐']);
+          fxFloatUp(50, 48, ['✨', '🔥']);
           sound.playCelebration();
           confetti({ particleCount: 35, spread: 50, origin: { x: 0.5, y: 0.52 } });
           showSpeech('Cú đập bóng ăn điểm tuyệt đỉnh! 🏐🎉');
@@ -1040,6 +1135,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Ghé quầy Tiki Bar uống nước dừa thơm ngon! 🍹🥥');
         walkTo(84, 76, () => {
           setAnimState('eat');
+          fxFloatUp(84, 72, ['🥥', '🍹', '✨']);
+          sound.playPop();
           sound.playSuccess();
           showSpeech('Nước dừa ngọt lịm mát lạnh tan biến cơn khát! 🌴😋');
           later(() => {
@@ -1051,6 +1148,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Xây lâu đài cát & sưởi ấm bên đốm lửa bập bùng! 🏰🔥');
         walkTo(20, 76, () => {
           setAnimState('happy');
+          fxFloatUp(20, 70, ['🔥', '⭐', '🐚']);
+          sound.playFlame();
           sound.playCelebration();
           confetti({ particleCount: 30, spread: 50, origin: { x: 0.2, y: 0.76 } });
           showSpeech('Lâu đài cát thật đồ sộ với vỏ ốc và sao biển xinh xắn! 🐚⭐');
@@ -1063,6 +1162,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Tới ngọn hải đăng ngắm biển đêm! 🗼🌟');
         walkTo(16, 28, () => {
           setAnimState('happy');
+          fxFloatUp(16, 20, ['✨', '💡', '⭐']);
           sound.playCelebration();
           showSpeech('Đèn hải đăng sáng rực rỡ, chiếu rọi cả bầu trời! 🗼✨');
           later(() => {
@@ -1086,6 +1186,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             setPetPos({ x: 18, y: 18 });
             later(() => {
               setAnimState('happy');
+              fxFloatUp(18, 14, ['📚', '✨', '💨']);
               sound.playCelebration();
               showSpeech('Tìm thấy cuốn sách bí kíp tiếng Anh công nghệ rồi! 📖✨');
               later(() => {
@@ -1104,6 +1205,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(20, 74, () => {
           setIsBouncingBeanbag(true);
           setAnimState('jump');
+          fxFloatUp(20, 68, ['⭐', '💤', '✨']);
           sound.playCelebration();
           confetti({ particleCount: 30, spread: 50, origin: { x: 0.2, y: 0.74 } });
           showSpeech('Boinggg! Đệm lười êm như nhung, nhún sướng quá! 🛋️🎉');
@@ -1128,6 +1230,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Lại quầy máy pha ly cafe Espresso & ăn pizza nào! ☕🍕');
         walkTo(82, 74, () => {
           setAnimState('eat');
+          fxFloatUp(82, 68, ['♨️', '☕', '🍕']);
+          sound.playPop();
           sound.playSuccess();
           showSpeech('Mùi cafe thơm lừng! Trí tuệ tỉnh táo tập trung học tiếp! ☕😋');
           later(() => {
@@ -1139,6 +1243,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Xem bảng Scrum Kanban tiến độ dự án học tập! 📋🚀');
         walkTo(50, 54, () => {
           setAnimState('happy');
+          fxPop(50, 50, ['✅']);
+          fxFloatUp(50, 50, ['📋', '🎉']);
           sound.playCelebration();
           showSpeech('Sprint hoàn thành 100%! Không còn con bug nào nữa! ✅🎉');
           later(() => {
@@ -1150,6 +1256,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Kiểm tra tủ Server Rack 42U nào! 🖥️⚡');
         walkTo(84, 34, () => {
           setAnimState('happy');
+          fxFloatUp(84, 28, ['🟢', '⚡', '✨']);
+          sound.playFlip();
           sound.playSuccess();
           showSpeech('Uptime 100%! Server chạy mượt mà không có lỗi! 🚀✨');
           later(() => {
@@ -1163,6 +1271,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Tắm trong đài phun sao pha lê mát rượi! ⛲✨');
         walkTo(20, 74, () => {
           setAnimState('swim');
+          fxRings(20, 76);
+          fxFloatUp(20, 72, ['💧', '⭐', '✨']);
           sound.playCelebration();
           confetti({ particleCount: 25, spread: 45, origin: { x: 0.2, y: 0.7 } });
           showSpeech('Tõm! Nước sao bắn tung tóe mát lạnh! Những giọt sao rơi quanh mình! ⛲⭐');
@@ -1180,6 +1290,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(56, 36, () => {
           walkRainbowArc(56, 36, 66, 20, 76, 36, () => {
             sound.playCelebration();
+            fxPop(66, 22, ['⭐']);
+            fxFloatUp(66, 24, ['🌈', '✨']);
             confetti({ particleCount: 40, spread: 55, origin: { x: 0.66, y: 0.25 } });
             showSpeech('Đi hết cầu vồng rồi! Bắt được ngôi sao ước nguyện! ⭐🎉');
             later(() => {
@@ -1193,10 +1305,13 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(80, 74, () => {
           setIsSkyTreasureOpen(true);
           setAnimState('happy');
+          fxHitObject('skytreasure');
+          sound.playPop();
           sound.playSuccess();
           showSpeech('Cạch! Nắp rương bật mở, ánh sáng tỏa ra! ✨🔓');
           later(() => {
             burstTreasureLoot(80, 70);
+            fxArc(80, 64, ['🪙', '💎', '🪙', '🌟']);
             showSpeech('Kho báu tuôn ra: vàng + kim cương + từ vựng mới! +20 Coins! 💎🪙');
             later(() => {
               setIsSkyTreasureOpen(false);
@@ -1214,6 +1329,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             setPetPos({ x: 50, y: 22 });
             later(() => {
               setAnimState('happy');
+              fxFloatUp(50, 16, ['✨', '🏰', '💫']);
               sound.playCelebration();
               confetti({ particleCount: 45, spread: 60, origin: { x: 0.5, y: 0.22 } });
               showSpeech('Đã chạm tới cổng ngọc bích lâu đài mây nguy nga lộng lẫy! 🏰🌈✨');
@@ -1234,6 +1350,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Bẻ bánh lái tàu Sunny, tiến vào Tân Thế Giới! ☸️🏴‍☠️');
         walkTo(50, 72, () => {
           setAnimState('happy');
+          fxFloatUp(50, 66, ['✨', '🧭', '🌊']);
+          sound.playFlip();
           sound.playCelebration();
           showSpeech('Bánh lái xoay tít! Tàu đang lướt sóng thẳng tiến One Piece! 🌊🚀');
           later(() => {
@@ -1250,6 +1368,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             setPetPos({ x: 50, y: 18 });
             later(() => {
               setAnimState('happy');
+              fxFloatUp(50, 14, ['🚩', '🕊️', '✨']);
               sound.playCelebration();
               confetti({ particleCount: 35, spread: 50, origin: { x: 0.5, y: 0.18 } });
               showSpeech('Đã đứng trên đỉnh cột buồm Mũ Rơm! Nhìn thấy đảo tiếp theo rồi! 🏴‍☠️✨');
@@ -1268,6 +1387,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Nhảy phóc lên đầu sư tử Thousand Sunny đón gió! 🦁✨');
         walkTo(84, 76, () => {
           setAnimState('jump');
+          fxFloatUp(84, 70, ['🔥', '🦁', '✨']);
+          sound.playFlame();
           sound.playCelebration();
           confetti({ particleCount: 40, spread: 55, origin: { x: 0.84, y: 0.76 } });
           showSpeech('Gaon Cannon sẵn sàng! Niềm kiêu hãnh của băng Mũ Rơm! 🦁💥');
@@ -1281,10 +1402,13 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(18, 76, () => {
           setIsSunnyTreasureOpen(true);
           setAnimState('happy');
+          fxHitObject('sunnytreasure');
+          sound.playPop();
           sound.playSuccess();
           showSpeech('Cạch! Nắp rương bật mở tung! ✨🔓');
           later(() => {
             burstTreasureLoot(18, 70);
+            fxArc(18, 64, ['🪙', '💰', '💎']);
             showSpeech('Vàng bạc châu báu tuôn ra sáng chói mắt! +20 Coins! 💰✨');
             later(() => {
               setIsSunnyTreasureOpen(false);
@@ -1297,6 +1421,9 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Lại vườn cam của Nami hái quả mọng nước nào! 🍊😋');
         walkTo(82, 32, () => {
           setAnimState('eat');
+          fxHitObject('tangerine');
+          sound.playPop();
+          fxDropLoot(82, 26, ['🍊', '🍊', '🍊']);
           sound.playSuccess();
           showSpeech('Cam Mikan ngọt lịm và thơm mát vô cùng! 🍊✨');
           later(() => {
@@ -1308,6 +1435,9 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Kiểm tra khẩu đại bác bảo vệ mạn tàu! 💥⚓');
         walkTo(20, 32, () => {
           setAnimState('happy');
+          fxArc(22, 30, ['⚫']);
+          fxFloatUp(24, 28, ['💥', '💨']);
+          sound.playHit();
           sound.playCelebration();
           showSpeech('Đại bác sẵn sàng! Uống ngụm Cola nạp đầy năng lượng! 🥤🔥');
           later(() => {
@@ -1321,6 +1451,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Ghé quán mì Ichiraku làm một bát ramen nóng hổi! 🍜😋');
         walkTo(20, 36, () => {
           setAnimState('eat');
+          fxFloatUp(20, 30, ['♨️', '🍜', '✨']);
+          sound.playPop();
           sound.playSuccess();
           showSpeech('Xì xụp... Mì ramen xá xíu của bác Teuchi ngon đỉnh của chóp! 🍜🔥');
           later(() => {
@@ -1332,6 +1464,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Nhảy xuống suối nước nóng Onsen ngâm mình thư giãn! ♨️🧘');
         walkTo(82, 78, () => {
           setAnimState('swim');
+          fxRings(82, 80);
+          fxFloatUp(82, 74, ['♨️', '💧', '✨']);
           sound.playCelebration();
           showSpeech('Nước khoáng nóng bốc hơi nghi ngút, hồi phục 100% Chakra! ♨️✨');
           later(() => {
@@ -1347,6 +1481,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             setPetPos({ x: 50, y: 18 });
             later(() => {
               setAnimState('happy');
+              fxFloatUp(50, 14, ['🍃', '✨', '⛰️']);
               sound.playCelebration();
               confetti({ particleCount: 35, spread: 50, origin: { x: 0.5, y: 0.18 } });
               showSpeech('Đứng trên đỉnh tượng cụ Đệ Tứ ngắm toàn cảnh Làng Lá tuyệt đẹp! 🍃✨');
@@ -1402,6 +1537,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                   colors: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6'],
                 });
                 setAnimState('happy');
+                fxPop(20, 72, ['🎯']);
                 showSpeech('Trúng ngay tâm bia 100 điểm tuyệt đối! Xuất sắc lắm Nhẫn giả! 🎯🔥✨');
 
                 later(() => {
@@ -1418,6 +1554,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Bước qua cổng Torii đỏ thắp hương cầu may mắn học tập! ⛩️🍃');
         walkTo(80, 32, () => {
           setAnimState('happy');
+          fxFloatUp(80, 28, ['🏮', '🌸', '✨']);
           sound.playSuccess();
           showSpeech('Ý chí của Lửa luôn soi sáng con đường thành công của bạn! 🔥🌸');
           later(() => {
@@ -1431,6 +1568,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Ngồi vào bàn tiệc Đại Sảnh Đường thưởng thức tiệc pháp thuật! 🍗🍺');
         walkTo(50, 72, () => {
           setAnimState('eat');
+          fxFloatUp(50, 66, ['🍗', '🍺', '💖']);
+          sound.playPop();
           sound.playSuccess();
           showSpeech('Gà quay giòn rụm và cốc Bia Bơ béo ngậy ngon tuyệt cú mèo! 🍗✨');
           later(() => {
@@ -1442,6 +1581,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Chạy lại ghế ngồi đội chiếc Nón Phân Loại cổ kính! 🎩🧙‍♂️');
         walkTo(20, 74, () => {
           setAnimState('jump');
+          fxHitObject('sortinghat');
+          fxFloatUp(20, 68, ['🎩', '⭐', '✨']);
           sound.playCelebration();
           confetti({ particleCount: 45, spread: 60, origin: { x: 0.2, y: 0.74 } });
           showSpeech('Nón Phân Loại: Tư chất xuất sắc! Cộng 100 điểm cho Nhà của bạn! 🦁✨');
@@ -1454,6 +1595,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Sưởi ấm bên ngọn lửa Floo xanh ngọc tại lò sưởi đá! 🔥🟢');
         walkTo(80, 74, () => {
           setAnimState('happy');
+          fxFloatUp(80, 68, ['🔥', '🟢', '✨']);
+          sound.playFlame();
           sound.playCelebration();
           showSpeech('Ngọn lửa Floo xanh ngọc bùng lên ấm áp, sẵn sàng du hành! 🪄✨');
           later(() => {
@@ -1466,6 +1609,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(50, 24, () => {
           setIsCandleLit(true);
           setAnimState('happy');
+          fxFloatUp(50, 18, ['🕯️', '✨', '💫']);
           sound.playCelebration();
           confetti({ particleCount: 35, spread: 50, origin: { x: 0.5, y: 0.24 } });
           showSpeech('Hàng trăm ngọn nến ma thuật bùng sáng lung linh khắp sảnh đường! 🕯️🌟');
@@ -1479,6 +1623,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Tiến về phía cờ hiệu bốn Nhà vinh danh thành tích học tập! 🚩🦁');
         walkTo(82, 28, () => {
           setAnimState('happy');
+          fxFloatUp(82, 22, ['🚩', '🦁', '⭐']);
           sound.playCelebration();
           confetti({
             particleCount: 40,
@@ -1499,6 +1644,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(50, 48, () => {
           setIsBouncingPipes(true);
           setAnimState('jump');
+          fxHitObject('pipes');
+          fxFloatUp(50, 42, ['🎵', '🎶', '✨']);
           sound.playCelebration();
           confetti({ particleCount: 45, spread: 60, origin: { x: 0.5, y: 0.4 } });
           showSpeech('Boing! Đứng trên đỉnh 3 ống bê tông tổ chức liveshow âm nhạc! 🎤🎶');
@@ -1524,6 +1671,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(82, 68, () => {
           setIsAnywhereDoorOpen(true);
           setAnimState('happy');
+          fxDrift(82, 64, ['🌀', '✨']);
+          fxFloatUp(82, 62, ['🌸']);
           sound.playCelebration();
           confetti({ particleCount: 40, spread: 55, origin: { x: 0.82, y: 0.68 } });
           showSpeech('Cánh Cửa Thần Kỳ đã mở! Bước qua là đến ngay London học tiếng Anh! 🚪✈️');
@@ -1537,6 +1686,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Thưởng thức đĩa bánh rán Dorayaki thơm lừng của Doraemon! 🥞😋');
         walkTo(20, 76, () => {
           setAnimState('eat');
+          fxFloatUp(20, 70, ['🥞', '💖', '✨']);
+          sound.playPop();
           sound.playSuccess();
           showSpeech('Bánh rán nhân đậu đỏ ngọt ngào giòn xốp ngon tuyệt cú mèo! 🥞✨');
           later(() => {
@@ -1548,6 +1699,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Chạy tới Cột Điện Khu Phố ngắm hoàng hôn! ⚡🌇');
         walkTo(84, 28, () => {
           setAnimState('happy');
+          fxFloatUp(84, 22, ['✨', '🕊️', '🌇']);
           sound.playSuccess();
           showSpeech('Cảnh chiều tà tuổi thơ thật yên bình và hoài niệm! 🌇✨');
           later(() => {
@@ -1562,6 +1714,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         walkTo(22, 42, () => {
           setIsWarpStarActive(true);
           setAnimState('jump');
+          fxFloatUp(22, 36, ['⭐', '💫', '✨']);
           sound.playCelebration();
           confetti({ particleCount: 45, spread: 60, origin: { x: 0.22, y: 0.35 } });
           showSpeech('Warp Star phóng vút qua bầu trời dải ngân hà lấp lánh! ⭐🌌');
@@ -1586,6 +1739,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Lại cây kẹo mút khổng lồ bảy sắc nếm thử vị ngọt! 🍭🍬');
         walkTo(80, 32, () => {
           setAnimState('eat');
+          fxFloatUp(80, 26, ['🍬', '✨', '💖']);
+          sound.playPop();
           sound.playSuccess();
           showSpeech('Kẹo mút dâu xoắn 7 màu ngọt ngào tan biến mọi âu lo! 🍭💖');
           later(() => {
@@ -1609,6 +1764,8 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
         showSpeech('Chạm tay vào Trượng Sao Star Rod ước nguyện! 🪄⭐');
         walkTo(82, 76, () => {
           setAnimState('happy');
+          fxPop(82, 70, ['🪄']);
+          fxFloatUp(82, 70, ['⭐', '💫', '✨']);
           sound.playCelebration();
           confetti({ particleCount: 50, spread: 65, origin: { x: 0.82, y: 0.76 } });
           showSpeech('Trượng Sao phát sáng rực rỡ! Bạn đã được tiếp thêm 100% năng lượng! 🪄💫');
@@ -1626,8 +1783,11 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             setPetPos({ x: 20, y: 50 });
             later(() => {
               setAnimState('happy');
+              fxHitObject('apple');
+              sound.playPop();
+              fxDropLoot(20, 46, ['🍎', '⭐', '🍏']);
               sound.playCelebration();
-              showSpeech('Táo Whispy Woods to đùng ngọt lịm! 🍎✨');
+              showSpeech('Rung cây rụng táo nè! Táo Whispy Woods to đùng ngọt lịm! 🍎✨');
               later(() => {
                 setAnimState('climb');
                 setPetPos({ x: 20, y: 76 });
@@ -1642,6 +1802,74 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       }
     }
   };
+
+  // ===== Tap hợp nhất cho MỌI vật thể (physics-raycasting: target ≥44px, tap = full beat) =====
+  // Anticipation (0ms): tick + vòng pulse HIỆN NGAY trên vật thể → click nào cũng
+  // có phản ứng nhìn thấy trong 200ms, kể cả khi pet còn đang chạy tới.
+  // Contact frame (pet tới nơi): từng action tự bắn effect + sound chạm.
+  const goTapObject = (actionKey: string, objKey: string) => {
+    sound.playClick();
+    handlePerformMapAction(actionKey);
+    const id = Date.now() + Math.random();
+    setObjPulse({ key: objKey, id });
+    fxLater(() => {
+      setObjPulse((prev) => (prev && prev.id === id ? null : prev));
+    }, 550);
+  };
+  const onObjClick = (e: React.MouseEvent | React.TouchEvent, actionKey: string, objKey: string) => {
+    e.stopPropagation();
+    // TouchEnd đi trước Click ~300ms trên mobile: bỏ qua Click dội (tránh đè action 2 lần)
+    if (Date.now() - touchTapRef.current < 800) return;
+    goTapObject(actionKey, objKey);
+  };
+  const onObjTouch = (e: React.TouchEvent, actionKey: string, objKey: string) => {
+    e.stopPropagation();
+    touchTapRef.current = Date.now();
+    goTapObject(actionKey, objKey);
+  };
+  // Hàng rào gỗ Doraemon: trước đây click chết (chỉ đi bộ, không reaction).
+  // Nay: pet chạy lại → hít hà (sniff) + hoa bồ công anh bay + speech ngay.
+  const handleFenceTap = () => {
+    sound.playClick();
+    beginNewAction();
+    showSpeech('Hàng rào gỗ tuổi thơ thơm mùi nắng! Bé hít hà hương hoa bồ công anh! 🌼🦋');
+    walkTo(25, 34, () => {
+      setAnimState('sniff');
+      fxFloatUp(25, 28, ['🌼', '🦋', '✨']);
+      sound.playSuccess();
+      later(() => {
+        setAnimState('idle');
+        isInteractingRef.current = false;
+      }, 2200);
+    });
+    const id = Date.now() + Math.random();
+    setObjPulse({ key: 'fence', id });
+    fxLater(() => {
+      setObjPulse((prev) => (prev && prev.id === id ? null : prev));
+    }, 550);
+  };
+  const onFenceClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (Date.now() - touchTapRef.current < 800) return;
+    handleFenceTap();
+  };
+  const onFenceTouch = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    touchTapRef.current = Date.now();
+    handleFenceTap();
+  };
+  // Vòng pulse anticipation phủ lên vật thể (replay ngay nhờ key=id)
+  const pulseRing = (objKey: string) =>
+    objPulse?.key === objKey ? (
+      <span
+        key={objPulse.id}
+        className="fx-obj-pulse pointer-events-none absolute inset-0 rounded-full border-[3px] border-white/80"
+      />
+    ) : null;
+  // Lớp rung cho cây/rương/mũ (remount bằng key để replay ngay)
+  const shakeWrapKey = (objKey: string) =>
+    objHit?.key === objKey ? `hit-${objHit.id}` : `idle-${objKey}`;
+  const shakeWrapCls = (objKey: string) => (objHit?.key === objKey ? 'fx-obj-shake' : '');
 
   // Ném Bóng: chỉ ném QUẢ BÓNG (pet đá bóng, không ném vợt) — bóng bay parabol, pet chạy nhặt
   const handleTossBall = () => {
@@ -1989,15 +2217,14 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             {/* Dutch Windmill with Rotating Lattice Sails (Top-Left) */}
             <div
               data-testid="garden-windmill"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('windmill');
-              }}
+              onClick={(e) => onObjClick(e, 'windmill', 'windmill')}
+              onTouchEnd={(e) => onObjTouch(e, 'windmill', 'windmill')}
               style={{ left: '16%', top: '22%', zIndex: EMERALD_FEET_Z.windmill }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Cối xay gió Hà Lan xoay cánh quạt nan gỗ"
             >
               <DutchWindmillSVG scale={scaleObj(1.40)} />
+              {pulseRing('windmill')}
               {windGustId > 0 && (
                 <div key={windGustId} className="absolute -top-2 left-1/2 -translate-x-1/2 text-xl animate-bounce pointer-events-none">💨</div>
               )}
@@ -2006,19 +2233,16 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             {/* Grand Oak Tree with Climbing Ladder & Swing (Top-Right) */}
             <div
               data-testid="garden-swing"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('swing');
-              }}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('swing');
-              }}
+              onClick={(e) => onObjClick(e, 'climb', 'oak')}
+              onTouchEnd={(e) => onObjTouch(e, 'climb', 'oak')}
               style={{ left: '88%', top: '22%', zIndex: EMERALD_FEET_Z.oak }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform transition-transform hover:scale-105"
-              title="Cây đại thụ + Xích đu gỗ - Bấm để Bé ngồi xích đu đung đưa!"
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform hover:scale-105"
+              title="Cây đại thụ + Xích đu gỗ - Bấm để Bé trèo hái táo rồi ngồi xích đu đung đưa!"
             >
-              <GrandOakTreeSVG scale={scaleObj(1.40)} />
+              <div key={shakeWrapKey('oak')} className={shakeWrapCls('oak')}>
+                <GrandOakTreeSVG scale={scaleObj(1.40)} />
+              </div>
+              {pulseRing('oak')}
               {isSwinging && (
                 <>
                   {/* Ghế xích đu đung đưa (con lắc) — cây đứng yên, chỉ ghế + Bé chuyển động */}
@@ -2040,40 +2264,36 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             {/* Farmhouse Villa with Smoking Chimney (Center-Left) */}
             <div
               data-testid="garden-villa"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('villa');
-              }}
+              onClick={(e) => onObjClick(e, 'villa', 'villa')}
+              onTouchEnd={(e) => onObjTouch(e, 'villa', 'villa')}
               style={{ left: '18%', top: '50%', zIndex: EMERALD_FEET_Z.villa }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Biệt thự nông trại mái ngói đỏ"
             >
               <FarmhouseVillaSVG scale={scaleObj(1.40)} />
+              {pulseRing('villa')}
             </div>
 
             {/* Chicken Coop with Golden Haystack (Center) */}
             <div
               data-testid="garden-coop"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('coop');
-              }}
+              onClick={(e) => onObjClick(e, 'coop', 'coop')}
+              onTouchEnd={(e) => onObjTouch(e, 'coop', 'coop')}
               style={{ left: '48%', top: '40%', zIndex: EMERALD_FEET_Z.coop }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Chuồng gà & Đụn rơm - Bấm để cho gà ăn!"
             >
               <ChickenCoopSVG scale={scaleObj(1.40)} />
+              {pulseRing('coop')}
             </div>
 
             {/* Bouncy Mushroom Trampoline (Center-Right) */}
             <div
               data-testid="garden-mushroom"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('jump');
-              }}
+              onClick={(e) => onObjClick(e, 'jump', 'mushroom')}
+              onTouchEnd={(e) => onObjTouch(e, 'jump', 'mushroom')}
               style={{ left: '76%', top: '48%', zIndex: EMERALD_FEET_Z.mushroom }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-transform duration-300 ${
+              className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transition-transform duration-300 ${
                 isBouncingMushroom
                   ? 'scale-y-70 scale-x-125'
                   : 'hover:scale-115'
@@ -2081,24 +2301,20 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
               title="Nấm lò xo ma thuật - Bấm để Bé bật nhảy lên trời!"
             >
               <BouncyMushroomSVG scale={scaleObj(1.40)} />
+              {pulseRing('mushroom')}
             </div>
 
             {/* Veggie Garden Beds (Bottom-Left) — bồn hoa + luống rau */}
             <div
               data-testid="garden-flower"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('veggie');
-              }}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('veggie');
-              }}
+              onClick={(e) => onObjClick(e, 'veggie', 'flower')}
+              onTouchEnd={(e) => onObjTouch(e, 'veggie', 'flower')}
               style={{ left: '20%', top: '80%', zIndex: EMERALD_FEET_Z.flower }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform transition-transform ${bloomId > 0 ? 'scale-110' : 'hover:scale-105'}`}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform ${bloomId > 0 ? 'scale-110' : 'hover:scale-105'}`}
               title="Bồn hoa & Luống rau củ 4 mùa bội thu - Bấm để thu hoạch!"
             >
               <VeggiePatchSVG scale={scaleObj(1.40)} />
+              {pulseRing('flower')}
               {bloomId > 0 && (
                 <div key={bloomId} className="absolute -top-3 left-1/2 -translate-x-1/2 text-lg animate-bounce pointer-events-none">🌷✨🥕</div>
               )}
@@ -2107,19 +2323,14 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             {/* Lotus Pond with Pier, Lily Pads & Koi (Bottom-Right) — ao sen */}
             <div
               data-testid="garden-pond"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('swim');
-              }}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('swim');
-              }}
+              onClick={(e) => onObjClick(e, 'swim', 'pond')}
+              onTouchEnd={(e) => onObjTouch(e, 'swim', 'pond')}
               style={{ left: '80%', top: '78%', zIndex: EMERALD_FEET_Z.pond }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Đầm hồ sen sinh thái - Bấm để Bé nhảy xuống bơi lội mát rượi!"
             >
               <LotusPondSVG scale={scaleObj(1.40)} />
+              {pulseRing('pond')}
               {pondSplashId > 0 && (
                 <div key={pondSplashId} className="absolute top-[30%] left-1/2 -translate-x-1/2 text-2xl animate-bounce pointer-events-none">💦🐟</div>
               )}
@@ -2196,14 +2407,13 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
             {/* Ocean Waves */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('surf');
-              }}
-              className="absolute top-0 left-0 right-0 h-32 z-10 cursor-pointer overflow-hidden group shadow-lg"
+              onClick={(e) => onObjClick(e, 'surf', 'ocean')}
+              onTouchEnd={(e) => onObjTouch(e, 'surf', 'ocean')}
+              className="absolute top-0 left-0 right-0 h-32 z-10 cursor-pointer touch-manipulation min-h-[44px] overflow-hidden group shadow-lg"
               title="Vùng biển nhiệt đới tràn hàng ngang - Bấm để Bé lướt sóng & ngắm cá heo!"
             >
               <FullWidthOceanWavesSVG height={128} />
+              {pulseRing('ocean')}
             </div>
 
             {/* Flying Seagull particle */}
@@ -2216,67 +2426,66 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
             {/* Coastal Lighthouse on Cliff Rock (Top-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('lighthouse');
-              }}
+              onClick={(e) => onObjClick(e, 'lighthouse', 'lighthouse')}
+              onTouchEnd={(e) => onObjTouch(e, 'lighthouse', 'lighthouse')}
               style={{ left: '16%', top: '26%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Ngọn hải đăng xoay đèn rực rỡ"
             >
               <LighthouseSVG scale={scaleObj(1.40)} />
+              {pulseRing('lighthouse')}
             </div>
 
             {/* Tropical Coconut Palm Tree (Top-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('climb');
-              }}
+              onClick={(e) => onObjClick(e, 'climb', 'palm')}
+              onTouchEnd={(e) => onObjTouch(e, 'climb', 'palm')}
               style={{ left: '86%', top: '26%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Cây dừa nhiệt đới - Bấm để Bé leo hái dừa xiêm!"
             >
-              <PalmTreeSVG scale={scaleObj(1.40)} />
+              <div key={shakeWrapKey('palm')} className={shakeWrapCls('palm')}>
+                <PalmTreeSVG scale={scaleObj(1.40)} />
+              </div>
+              {pulseRing('palm')}
             </div>
 
             {/* Beach Volleyball Court (Center) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('volleyball');
-              }}
+              onClick={(e) => onObjClick(e, 'volleyball', 'volleyball')}
+              onTouchEnd={(e) => onObjTouch(e, 'volleyball', 'volleyball')}
               style={{ left: '50%', top: '52%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-108 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-108 transition-transform"
               title="Sân bóng chuyền bãi biển - Bấm để Bé đập bóng ăn điểm!"
             >
-              <BeachVolleyballSVG scale={scaleObj(1.40)} />
+              <div key={shakeWrapKey('volleyball')} className={shakeWrapCls('volleyball')}>
+                <BeachVolleyballSVG scale={scaleObj(1.40)} />
+              </div>
+              {pulseRing('volleyball')}
             </div>
 
             {/* Bonfire, Campfire Pit & Sandcastle (Bottom-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('sandcastle');
-              }}
+              onClick={(e) => onObjClick(e, 'sandcastle', 'sandcastle')}
+              onTouchEnd={(e) => onObjTouch(e, 'sandcastle', 'sandcastle')}
               style={{ left: '20%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Lâu đài cát & Lửa trại bãi biển - Bấm để vui chơi!"
             >
               <SandcastleBonfireSVG scale={scaleObj(1.40)} />
+              {pulseRing('sandcastle')}
             </div>
 
             {/* Tropical Tiki Bar Cabana & Surfboard (Bottom-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('tiki');
-              }}
+              onClick={(e) => onObjClick(e, 'tiki', 'tiki')}
+              onTouchEnd={(e) => onObjTouch(e, 'tiki', 'tiki')}
               style={{ left: '82%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Quầy Tiki Bar nhiệt đới - Bấm để uống nước dừa mát lạnh!"
             >
               <TikiBarCabanaSVG scale={scaleObj(1.40)} />
+              {pulseRing('tiki')}
             </div>
           </div>
         )}
@@ -2340,86 +2549,76 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
             {/* Bookshelf with Brass Rail & Rolling Ladder (Top-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('climb');
-              }}
+              onClick={(e) => onObjClick(e, 'climb', 'bookshelf')}
+              onTouchEnd={(e) => onObjTouch(e, 'climb', 'bookshelf')}
               style={{ left: '18%', top: '28%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Kệ sách thuật toán & thang lăn - Bấm để trèo thang đọc sách!"
             >
               <LibraryBookshelfSVG scale={scaleObj(1.37)} />
+              {pulseRing('bookshelf')}
             </div>
 
             {/* Dual-Monitor Developer Workstation (Top-Center) — máy tính ngồi code */}
             <div
               data-testid="garden-computer"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('code');
-              }}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('code');
-              }}
+              onClick={(e) => onObjClick(e, 'code', 'workstation')}
+              onTouchEnd={(e) => onObjTouch(e, 'code', 'workstation')}
               style={{ left: '50%', top: '28%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Dàn máy dual monitor - Bấm để Bé NGỒI code, nhận EXP!"
             >
               <DevWorkstationSVG scale={scaleObj(1.40)} />
+              {pulseRing('workstation')}
               <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-black bg-white/90 text-slate-800 px-1.5 py-px rounded-full border border-indigo-300 pointer-events-none whitespace-nowrap">💻 Ngồi code +EXP</div>
             </div>
 
             {/* Enterprise 42U Server Rack (Top-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('server');
-              }}
+              onClick={(e) => onObjClick(e, 'server', 'server')}
+              onTouchEnd={(e) => onObjTouch(e, 'server', 'server')}
               style={{ left: '84%', top: '28%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Tủ server rack 42U đèn LED nhấp nháy - Bấm để kiểm tra hạ tầng và uptime!"
             >
               <ServerRackSVG scale={scaleObj(1.35)} />
+              {pulseRing('server')}
             </div>
 
             {/* Mobile Scrum Kanban Whiteboard (Center) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('kanban');
-              }}
+              onClick={(e) => onObjClick(e, 'kanban', 'kanban')}
+              onTouchEnd={(e) => onObjTouch(e, 'kanban', 'kanban')}
               style={{ left: '50%', top: '54%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Bảng Scrum Kanban tiến độ dự án - Bấm để Bé kiểm tra sprint!"
             >
               <ScrumKanbanWhiteboardSVG scale={scaleObj(1.30)} />
+              {pulseRing('kanban')}
             </div>
 
             {/* Giant Plush Velvet Beanbag Couch (Bottom-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('beanbag');
-              }}
+              onClick={(e) => onObjClick(e, 'beanbag', 'beanbag')}
+              onTouchEnd={(e) => onObjTouch(e, 'beanbag', 'beanbag')}
               style={{ left: '20%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Đệm lười Beanbag êm ái - Bấm để Bé nhún nhảy cực vui!"
             >
               <BeanbagLoungeSVG scale={scaleObj(1.12)} isBouncing={isBouncingBeanbag} />
+              {pulseRing('beanbag')}
             </div>
 
             {/* Espresso Bar Machine & Pizza Kitchenette (Bottom-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('coffee');
-              }}
+              onClick={(e) => onObjClick(e, 'coffee', 'coffee')}
+              onTouchEnd={(e) => onObjTouch(e, 'coffee', 'coffee')}
               style={{ left: '82%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Quầy pha cafe Espresso & Pizza - Bấm để nạp năng lượng!"
             >
               <EspressoBarKitchenetteSVG scale={scaleObj(1.35)} />
+              {pulseRing('coffee')}
             </div>
           </div>
         )}
@@ -2468,85 +2667,70 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
             {/* Shimmering Crystal Sky Citadel (Top-Center) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('castle');
-              }}
+              onClick={(e) => onObjClick(e, 'castle', 'castle')}
+              onTouchEnd={(e) => onObjTouch(e, 'castle', 'castle')}
               style={{ left: '50%', top: '22%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Lâu đài pha lê trên mây - Bấm để Bé bay lên cổng thành!"
             >
               <CrystalCastleSVG scale={scaleObj(1.40)} />
+              {pulseRing('castle')}
             </div>
 
             {/* Rainbow Crystal Arch (Upper-Right) — cầu vồng đi bộ được */}
             <div
               data-testid="garden-rainbow"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('rainbow');
-              }}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('rainbow');
-              }}
+              onClick={(e) => onObjClick(e, 'rainbow', 'rainbow')}
+              onTouchEnd={(e) => onObjTouch(e, 'rainbow', 'rainbow')}
               style={{ left: '72%', top: '30%' }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform transition-transform ${isRainbowWalking ? 'scale-105' : 'hover:scale-105'}`}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform ${isRainbowWalking ? 'scale-105' : 'hover:scale-105'}`}
               title="Cầu vồng pha lê 7 màu - Bấm để Bé ĐI BỘ qua cầu vồng!"
             >
               <RainbowBridgeArchSVG scale={scaleObj(1.40)} />
+              {pulseRing('rainbow')}
               <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-black bg-white/90 text-slate-800 px-1.5 py-px rounded-full border border-pink-300 pointer-events-none whitespace-nowrap">🌈 Đi bộ qua cầu</div>
             </div>
 
             {/* Ascending Starry Cloud Stepping Stones (Upper-Left) — cầu trượt mây */}
             <div
               data-testid="garden-slide"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('climb');
-              }}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('climb');
-              }}
+              onClick={(e) => onObjClick(e, 'climb', 'slide')}
+              onTouchEnd={(e) => onObjTouch(e, 'climb', 'slide')}
               style={{ left: '28%', top: '38%' }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform transition-transform ${isSliding ? 'scale-110' : 'hover:scale-105'}`}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform ${isSliding ? 'scale-110' : 'hover:scale-105'}`}
               title="Cầu trượt mây bồng bềnh - Bấm để Bé TRƯỢT từ đỉnh xuống!"
             >
               <StarryCloudPlatformSVG scale={scaleObj(1.37)} />
+              {pulseRing('slide')}
               <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-black bg-white/90 text-slate-800 px-1.5 py-px rounded-full border border-sky-300 pointer-events-none whitespace-nowrap">🛝 Trượt xuống</div>
             </div>
 
             {/* Celestial Marble Angel Fountain (Bottom-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('fountain');
-              }}
+              onClick={(e) => onObjClick(e, 'fountain', 'fountain')}
+              onTouchEnd={(e) => onObjTouch(e, 'fountain', 'fountain')}
               style={{ left: '20%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Đài phun nước thiên thần sao - Bấm để tắm mát lấp lánh!"
             >
               <CelestialAngelFountainSVG scale={scaleObj(1.37)} />
+              {pulseRing('fountain')}
             </div>
 
             {/* Gemstone Treasure Chest (Bottom-Right) — rương báu mở nắp */}
             <div
               data-testid="garden-treasure"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('treasure');
-              }}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('treasure');
-              }}
+              onClick={(e) => onObjClick(e, 'treasure', 'skytreasure')}
+              onTouchEnd={(e) => onObjTouch(e, 'treasure', 'skytreasure')}
               style={{ left: '80%', top: '78%' }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform transition-transform ${isSkyTreasureOpen ? 'scale-110' : 'hover:scale-105'}`}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform transition-transform ${isSkyTreasureOpen ? 'scale-110' : 'hover:scale-105'}`}
               title="Rương ngọc báu tri thức - Bấm để MỞ rương, vàng bay ra!"
             >
-              <div className="relative">
-                <GemstoneTreasureChestSVG scale={scaleObj(1.37)} />
+              <div className="relative" key={shakeWrapKey('skytreasure')}>
+                <div className={shakeWrapCls('skytreasure')}>
+                  <GemstoneTreasureChestSVG scale={scaleObj(1.37)} />
+                </div>
+                {pulseRing('skytreasure')}
                 {isSkyTreasureOpen && (
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-2xl animate-bounce pointer-events-none">✨💎🪙</div>
                 )}
@@ -2638,80 +2822,78 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
             {/* Pirate Main Mast & Crow's Nest with Straw Hat Jolly Roger (Top-Center) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('mast');
-              }}
+              onClick={(e) => onObjClick(e, 'mast', 'mast')}
+              onTouchEnd={(e) => onObjTouch(e, 'mast', 'mast')}
               style={{ left: '50%', top: '25%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Cột buồm Mũ Rơm & Đài quan sát - Bấm để Bé trèo lên hóng gió biển!"
             >
               <PirateMastJollyRogerSVG scale={scaleObj(1.37)} />
+              {pulseRing('mast')}
             </div>
 
             {/* Naval Cannon & Cola Barrels (Top-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('cannon');
-              }}
+              onClick={(e) => onObjClick(e, 'cannon', 'cannon')}
+              onTouchEnd={(e) => onObjTouch(e, 'cannon', 'cannon')}
               style={{ left: '20%', top: '30%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Khẩu đại bác mạ đồng & Thùng Cola sồi - Bấm để nạp năng lượng!"
             >
               <PirateCannonAndRumBarrelsSVG scale={scaleObj(1.35)} />
+              {pulseRing('cannon')}
             </div>
 
             {/* Nami's Mikan Tangerine Trees (Top-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('tangerine');
-              }}
+              onClick={(e) => onObjClick(e, 'tangerine', 'tangerine')}
+              onTouchEnd={(e) => onObjTouch(e, 'tangerine', 'tangerine')}
               style={{ left: '82%', top: '30%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Vườn cam Mikan của hoa tiêu Nami - Bấm để ăn cam ngọt lịm!"
             >
-              <NamiTangerineTreesSVG scale={scaleObj(1.35)} />
+              <div key={shakeWrapKey('tangerine')} className={shakeWrapCls('tangerine')}>
+                <NamiTangerineTreesSVG scale={scaleObj(1.35)} />
+              </div>
+              {pulseRing('tangerine')}
             </div>
 
             {/* Ship Steering Helm Wheel & Balusters (Center-Bottom) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('helm');
-              }}
+              onClick={(e) => onObjClick(e, 'helm', 'helm')}
+              onTouchEnd={(e) => onObjTouch(e, 'helm', 'helm')}
               style={{ left: '50%', top: '74%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-108 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-108 transition-transform"
               title="Bánh lái tàu Thousand Sunny - Bấm để Bé bẻ lái hướng tới Grand Line!"
             >
               <PirateHelmAndDeckRailingSVG scale={scaleObj(1.40)} />
+              {pulseRing('helm')}
             </div>
 
             {/* Sunny Lion Figurehead on Bow Prow (Bottom-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('jump');
-              }}
+              onClick={(e) => onObjClick(e, 'jump', 'lion')}
+              onTouchEnd={(e) => onObjTouch(e, 'jump', 'lion')}
               style={{ left: '84%', top: '76%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer transform hover:scale-108 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-108 transition-transform"
               title="Đầu sư tử Sunny vàng óng - Bấm để Bé nhảy lên bờm hoa hướng dương!"
             >
               <ThousandSunnyLionFigureheadSVG scale={scaleObj(1.40)} />
+              {pulseRing('lion')}
             </div>
 
             {/* Pirate Spilling Treasure Chest (Bottom-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('treasure');
-              }}
+              onClick={(e) => onObjClick(e, 'treasure', 'sunnytreasure')}
+              onTouchEnd={(e) => onObjTouch(e, 'treasure', 'sunnytreasure')}
               style={{ left: '18%', top: '76%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer transform hover:scale-110 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-110 transition-transform"
               title="Rương vàng kho báu hải tặc - Bấm để mở nắp tung vàng!"
             >
-              <PirateTreasureChestSVG scale={scaleObj(1.18)} isOpen={isSunnyTreasureOpen} />
+              <div key={shakeWrapKey('sunnytreasure')} className={shakeWrapCls('sunnytreasure')}>
+                <PirateTreasureChestSVG scale={scaleObj(1.18)} isOpen={isSunnyTreasureOpen} />
+              </div>
+              {pulseRing('sunnytreasure')}
             </div>
           </div>
         )}
@@ -2795,67 +2977,62 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
             {/* Hokage Rock Monument Mountain Silhouette (Top-Center) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('hokage');
-              }}
+              onClick={(e) => onObjClick(e, 'hokage', 'hokage')}
+              onTouchEnd={(e) => onObjTouch(e, 'hokage', 'hokage')}
               style={{ left: '50%', top: '22%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Vách đá chạm khắc 4 tượng Hokage - Bấm để Bé leo lên đỉnh núi!"
             >
               <HokageRockMonumentSVG scale={scaleObj(1.37)} />
+              {pulseRing('hokage')}
             </div>
 
             {/* Ichiraku Ramen Shop Stall (Top-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('ramen');
-              }}
+              onClick={(e) => onObjClick(e, 'ramen', 'ramen')}
+              onTouchEnd={(e) => onObjTouch(e, 'ramen', 'ramen')}
               style={{ left: '18%', top: '34%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-108 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-108 transition-transform"
               title="Tiệm mì Ichiraku Ramen - Bấm để thưởng thức bát ramen nóng hổi!"
             >
               <IchirakuRamenShopSVG scale={scaleObj(1.40)} />
+              {pulseRing('ramen')}
             </div>
 
             {/* Red Torii Gate & Bamboo Grove (Top-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('torii');
-              }}
+              onClick={(e) => onObjClick(e, 'torii', 'torii')}
+              onTouchEnd={(e) => onObjTouch(e, 'torii', 'torii')}
               style={{ left: '84%', top: '32%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Cổng Torii đỏ rực & Rừng trúc - Bấm để thắp sáng Ý chí của Lửa!"
             >
               <BambooToriiShrineSVG scale={scaleObj(1.37)} />
+              {pulseRing('torii')}
             </div>
 
             {/* Ninja Training Target Post & Kunai (Bottom-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('target');
-              }}
+              onClick={(e) => onObjClick(e, 'target', 'target')}
+              onTouchEnd={(e) => onObjTouch(e, 'target', 'target')}
               style={{ left: '20%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-108 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-108 transition-transform"
               title="Bia gỗ tập luyện phóng Kunai & Shuriken - Bấm để phóng phi tiêu!"
             >
               <NinjaTrainingPostSVG scale={scaleObj(1.40)} isHit={isNinjaTargetHit} />
+              {pulseRing('target')}
             </div>
 
             {/* Onsen Natural Hot Spring Pool (Bottom-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('onsen');
-              }}
+              onClick={(e) => onObjClick(e, 'onsen', 'onsen')}
+              onTouchEnd={(e) => onObjTouch(e, 'onsen', 'onsen')}
               style={{ left: '80%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-108 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-108 transition-transform"
               title="Suối nước nóng Onsen bốc khói - Bấm để Bé nhảy vào ngâm mình thư giãn!"
             >
               <OnsenHotSpringSVG scale={scaleObj(1.40)} />
+              {pulseRing('onsen')}
             </div>
           </div>
         )}
@@ -2924,67 +3101,64 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
             {/* Floating Candles Array across Hall (Top-Center) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('candles');
-              }}
+              onClick={(e) => onObjClick(e, 'candles', 'candles')}
+              onTouchEnd={(e) => onObjTouch(e, 'candles', 'candles')}
               style={{ left: '50%', top: '22%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Nến phép thuật bay lơ lửng - Bấm để niệm thần chú Lumos Maxima!"
             >
               <FloatingCandlesGothicHallSVG scale={scaleObj(1.15)} isLit={isCandleLit} />
+              {pulseRing('candles')}
             </div>
 
             {/* 4 Hogwarts House Heraldic Banners (Top-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('banners');
-              }}
+              onClick={(e) => onObjClick(e, 'banners', 'banners')}
+              onTouchEnd={(e) => onObjTouch(e, 'banners', 'banners')}
               style={{ left: '82%', top: '25%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Cờ hiệu 4 Nhà: Gryffindor, Ravenclaw, Hufflepuff, Slytherin - Bấm để vinh danh thành tích!"
             >
               <HogwartsHouseBannersSVG scale={scaleObj(1.30)} />
+              {pulseRing('banners')}
             </div>
 
             {/* Grand Banquet Feast Table (Center) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('feast');
-              }}
+              onClick={(e) => onObjClick(e, 'feast', 'feast')}
+              onTouchEnd={(e) => onObjTouch(e, 'feast', 'feast')}
               style={{ left: '50%', top: '60%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-108 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-108 transition-transform"
               title="Bàn tiệc phép thuật thịnh soạn - Bấm để chén gà quay và uống Bia Bơ!"
             >
               <MagicFeastTableSVG scale={scaleObj(1.37)} />
+              {pulseRing('feast')}
             </div>
 
             {/* The Sentient Sorting Hat on Stool (Bottom-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('sorting_hat');
-              }}
+              onClick={(e) => onObjClick(e, 'sorting_hat', 'sortinghat')}
+              onTouchEnd={(e) => onObjTouch(e, 'sorting_hat', 'sortinghat')}
               style={{ left: '20%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-110 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-110 transition-transform"
               title="Chiếc Nón Phân Loại cổ kính - Bấm để Nón phán xét Nhà cho bạn!"
             >
-              <SortingHatPedestalSVG scale={scaleObj(1.40)} />
+              <div key={shakeWrapKey('sortinghat')} className={shakeWrapCls('sortinghat')}>
+                <SortingHatPedestalSVG scale={scaleObj(1.40)} />
+              </div>
+              {pulseRing('sortinghat')}
             </div>
 
             {/* Massive Stone Fireplace with Emerald Floo Fire (Bottom-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('fireplace');
-              }}
+              onClick={(e) => onObjClick(e, 'fireplace', 'fireplace')}
+              onTouchEnd={(e) => onObjTouch(e, 'fireplace', 'fireplace')}
               style={{ left: '82%', top: '76%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Lò sưởi đá khổng lồ & Ngọn lửa Floo - Bấm để sưởi ấm bập bùng!"
             >
               <HogwartsGreatFireplaceSVG scale={scaleObj(1.40)} />
+              {pulseRing('fireplace')}
             </div>
 
             {/* Flickering Fireplace Glow */}
@@ -3050,44 +3224,43 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
             {/* Nostalgic Suburban Wooden Fence along Upper Edge (Top-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                walkTo(25, 34);
-              }}
+              onClick={onFenceClick}
+              onTouchEnd={onFenceTouch}
               style={{ left: '26%', top: '28%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center"
               title="Hàng rào gỗ nhà hàng xóm & Bãi hoa bồ công anh"
             >
               <NostalgicWoodenFenceFieldSVG scale={scaleObj(1.33)} />
+              {pulseRing('fence')}
             </div>
 
             {/* Concrete Utility Pole & Safety Convex Mirror (Top-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('pole');
-              }}
+              onClick={(e) => onObjClick(e, 'pole', 'pole')}
+              onTouchEnd={(e) => onObjTouch(e, 'pole', 'pole')}
               style={{ left: '84%', top: '28%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Cột điện khu phố & Gương cầu lồi ngã ba - Bấm để ngắm hoàng hôn tuổi thơ!"
             >
               <JapaneseNeighborhoodPoleSVG scale={scaleObj(1.30)} />
+              {pulseRing('pole')}
             </div>
 
             {/* The Legendary 3 Concrete Pipes (Center - Main Attraction) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('pipes');
-              }}
+              onClick={(e) => onObjClick(e, 'pipes', 'pipes')}
+              onTouchEnd={(e) => onObjTouch(e, 'pipes', 'pipes')}
               style={{ left: '50%', top: '56%' }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transition-transform duration-300 ${
+              className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transition-transform duration-300 ${
                 isBouncingPipes ? 'scale-120' : 'hover:scale-108'
               }`}
               title="3 ống cống bê tông tròn kinh điển - Bấm để Bé nhảy lên đỉnh ngồi hát liveshow!"
             >
-              <div className="relative">
-                <DoraemonConcretePipesSVG scale={scaleObj(1.40)} />
+              <div className="relative" key={shakeWrapKey('pipes')}>
+                <div className={shakeWrapCls('pipes')}>
+                  <DoraemonConcretePipesSVG scale={scaleObj(1.40)} />
+                </div>
+                {pulseRing('pipes')}
                 {/* Grass growing around pipes */}
                 <div className="absolute bottom-[-10px] left-[-10px] text-xl z-30 pointer-events-none">🌿</div>
                 <div className="absolute bottom-[-5px] right-[10px] text-lg z-30 pointer-events-none">🌱</div>
@@ -3096,28 +3269,26 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
             {/* Anywhere Door Dokodemo (Bottom-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('door');
-              }}
+              onClick={(e) => onObjClick(e, 'door', 'door')}
+              onTouchEnd={(e) => onObjTouch(e, 'door', 'door')}
               style={{ left: '82%', top: '74%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-110 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-110 transition-transform"
               title="Cánh Cửa Thần Kỳ màu hồng - Bấm để mở cửa bay xuyên không gian!"
             >
               <AnywhereDoorPropSVG scale={scaleObj(1.15)} isOpen={isAnywhereDoorOpen} />
+              {pulseRing('door')}
             </div>
 
             {/* Nobita's Baseball Mitt & Dorayaki Bean Pancakes (Bottom-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('dorayaki');
-              }}
+              onClick={(e) => onObjClick(e, 'dorayaki', 'dorayaki')}
+              onTouchEnd={(e) => onObjTouch(e, 'dorayaki', 'dorayaki')}
               style={{ left: '20%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-108 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-108 transition-transform"
               title="Găng bóng chày & Bánh rán Dorayaki - Bấm để thưởng thức bánh ngọt lịm!"
             >
               <NobitaBaseballGearSVG scale={scaleObj(1.37)} />
+              {pulseRing('dorayaki')}
             </div>
           </div>
         )}
@@ -3161,72 +3332,86 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
 
             {/* Golden Warp Star Launchpad (Upper-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('warp_star');
-              }}
+              onClick={(e) => onObjClick(e, 'warp_star', 'warpstar')}
+              onTouchEnd={(e) => onObjTouch(e, 'warp_star', 'warpstar')}
               style={{ left: '22%', top: '34%' }}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transition-transform duration-300 ${
+              className={`absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transition-transform duration-300 ${
                 isWarpStarActive ? 'scale-125' : 'hover:scale-110'
               }`}
               title="Ngôi Sao Vàng Warp Star - Bấm để Bé cưỡi sao phóng vút lên dải ngân hà!"
             >
               <KirbyWarpStarSVG scale={scaleObj(1.40)} />
+              {pulseRing('warpstar')}
             </div>
 
             {/* Giant Swirling Rainbow Lollipop Tree (Upper-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('lollipop');
-              }}
+              onClick={(e) => onObjClick(e, 'lollipop', 'lollipop')}
+              onTouchEnd={(e) => onObjTouch(e, 'lollipop', 'lollipop')}
               style={{ left: '80%', top: '30%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Cây kẹo mút khổng lồ bảy sắc - Bấm để thưởng thức kẹo bông gòn ngọt ngào!"
             >
               <GiantLollipopTreeSVG scale={scaleObj(1.40)} />
+              {pulseRing('lollipop')}
             </div>
 
             {/* Cascading Pastel Rainbow River Waterfall (Center) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('rainbow');
-              }}
+              onClick={(e) => onObjClick(e, 'rainbow', 'river')}
+              onTouchEnd={(e) => onObjTouch(e, 'rainbow', 'river')}
               style={{ left: '50%', top: '56%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Suối thác cầu vồng kẹo dẻo - Bấm để Bé bơi lội mát rượi!"
             >
               <RainbowRiverWaterfallSVG scale={scaleObj(1.40)} />
+              {pulseRing('river')}
             </div>
 
             {/* Whispy Woods Apple Tree (Bottom-Left) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('apple');
-              }}
+              onClick={(e) => onObjClick(e, 'apple', 'apple')}
+              onTouchEnd={(e) => onObjTouch(e, 'apple', 'apple')}
               style={{ left: '18%', top: '78%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-105 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-105 transition-transform"
               title="Cây táo thần Whispy Woods - Bấm để hái táo ngôi sao may mắn!"
             >
-              <WhispyWoodsAppleTreeSVG scale={scaleObj(1.37)} />
+              <div key={shakeWrapKey('apple')} className={shakeWrapCls('apple')}>
+                <WhispyWoodsAppleTreeSVG scale={scaleObj(1.37)} />
+              </div>
+              {pulseRing('apple')}
             </div>
 
             {/* Star Rod Monument Fountain (Bottom-Right) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePerformMapAction('star_rod');
-              }}
+              onClick={(e) => onObjClick(e, 'star_rod', 'starrod')}
+              onTouchEnd={(e) => onObjTouch(e, 'star_rod', 'starrod')}
               style={{ left: '82%', top: '76%' }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer transform hover:scale-110 transition-transform"
+              className="absolute -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer touch-manipulation min-w-[44px] min-h-[44px] grid place-items-center transform hover:scale-110 transition-transform"
               title="Bệ đài Trượng Sao Star Rod - Bấm để ước nguyện học tiếng Anh thành tài!"
             >
               <StarRodMonumentSVG scale={scaleObj(1.40)} />
+              {pulseRing('starrod')}
             </div>
           </div>
         )}
+
+        {/* Juice FX layer: one-shot particles (billboard, screen-space, self-cleaning) */}
+        <div className="absolute inset-0 z-[35] pointer-events-none overflow-hidden">
+          {fx.map((f) => (
+            <div
+              key={f.id}
+              className={`fx-particle ${f.cls}`}
+              style={{
+                left: `${f.x}%`,
+                top: `${f.y}%`,
+                animationDelay: f.delay ? `${f.delay}ms` : undefined,
+              }}
+            >
+              {f.emoji}
+            </div>
+          ))}
+        </div>
 
         {/* Target Click Ripple */}
         {targetMarker && (
