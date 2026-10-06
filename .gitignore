@@ -71,3 +71,8 @@ scratch/
 .env.local
 .env.*.local
 !.env.example
+
+# Artefact của Playwright (ảnh chụp lỗi, trace) — sinh ra mỗi lần chạy e2e
+test-results/
+playwright-report/
+blob-report/
