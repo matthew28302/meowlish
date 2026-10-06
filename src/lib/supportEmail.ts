@@ -61,9 +61,13 @@ export async function sendSupportNotificationEmail({
   });
 
   try {
-    const smtpUser = process.env.SMTP_USER || 'admin@imfishball.id.vn';
-    const smtpPass = process.env.SMTP_PASS || '28032002Aa@';
-    const smtpHost = process.env.SMTP_HOST || 'mail93142.maychuemail.com';
+    // Không dự phòng hardcode: repo PUBLIC nên literal ở đây là lộ mật khẩu email.
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
+    const smtpHost = process.env.SMTP_HOST;
+    if (!smtpUser || !smtpPass || !smtpHost) {
+      throw new Error('Thiếu cấu hình SMTP (SMTP_USER/SMTP_PASS/SMTP_HOST)');
+    }
     const smtpPort = Number(process.env.SMTP_PORT) || 465;
 
     const resolvedHost = await resolveIpv4(smtpHost);

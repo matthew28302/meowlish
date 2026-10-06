@@ -184,9 +184,14 @@ export async function POST(request: Request) {
       });
 
       try {
-        const smtpUser = process.env.SMTP_USER || 'admin@imfishball.id.vn';
-        const smtpPass = process.env.SMTP_PASS || '28032002Aa@';
-        const smtpHost = process.env.SMTP_HOST || 'mail93142.maychuemail.com';
+        // Xem giải thích ở api/auth/forgot-password: repo PUBLIC nên không được
+        // để dự phòng hardcode cho thông tin SMTP.
+        const smtpUser = process.env.SMTP_USER;
+        const smtpPass = process.env.SMTP_PASS;
+        const smtpHost = process.env.SMTP_HOST;
+        if (!smtpUser || !smtpPass || !smtpHost) {
+          throw new Error('Thiếu cấu hình SMTP (SMTP_USER/SMTP_PASS/SMTP_HOST)');
+        }
         const smtpPort = Number(process.env.SMTP_PORT) || 465;
         const resolvedHost = await resolveIpv4(smtpHost);
 

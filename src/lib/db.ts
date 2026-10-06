@@ -550,37 +550,44 @@ function createDb(): Database.Database {
     // (đổi mtime/WAL) và khiến auto-sync upload uổng công, tăng nguy cơ xung đột.
     db.exec("UPDATE users SET email_verified = 1 WHERE username IN ('admin', 'demo') AND COALESCE(email_verified, 0) <> 1;");
 
-    // Ensure admin account exists with credentials admin / 28032002Aa@
-    const adminPwdHash = hashPassword('28032002Aa@');
+    // Đảm bảo tài khoản admin tồn tại.
+    //
+    // Mật khẩu admin KHÔNG nằm trong source: repo này là PUBLIC nên ghi literal
+    // vào đây là phát tán mật khẩu quản trị cho cả internet. Chỉ seed khi thiếu
+    // biến môi trường ADMIN_INITIAL_PASSWORD.
+    //
+    // Và KHÔNG bao giờ ép reset mật khẩu admin khi deploy: bản cũ so `password_hash
+    // <> <hash seed>` nên mỗi lần boot đều ghi đè — nghĩa là đổi mật khẩu admin xong
+    // thì bị trả về mật khẩu cũ ở lần deploy kế tiếp.
+    const adminInitialPassword = process.env.ADMIN_INITIAL_PASSWORD;
     const checkAdmin = db.prepare('SELECT id FROM users WHERE username = ?').get('admin') as { id: string } | undefined;
     if (!checkAdmin) {
-      const today = new Date().toISOString().split('T')[0];
-      db.prepare(`
-        INSERT INTO users (id, username, email, password_hash, display_name, avatar, streak, last_active_date, exp, level, coins, role, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run('user_admin_root', 'admin', 'admin@meowlish.com', adminPwdHash, 'Quản Trị Viên (Admin)', '🛡️', 99, today, 9999, 99, 99999, 'admin', 'active');
-
-      db.prepare(`
-        INSERT OR IGNORE INTO user_pets (user_id, pet_type, pet_name, level, exp, hunger, happiness, energy, selected_habitat, equipped_hat, equipped_outfit, equipped_accessory)
-        VALUES (?, 'doraemon', 'Doraemon Admin', 99, 9999, 100, 100, 100, 'doraemon_field', 'bamboo_copter', 'none', 'none')
-      `).run('user_admin_root');
-    } else {
-      // Chỉ ghi khi THẬT SỰ cần: hash sai (kiểm tra bằng verifyPassword vì
-      // hashPassword nay có salt ngẫu nhiên → so sánh `password_hash <> ?` sẽ
-      // LUÔN đúng và làm DB bị ghi ở mỗi lần cold start, dẫn tới upload 66MB
-      // liên tục giữa các instance Vercel).
-      const adminRow = db
-        .prepare('SELECT password_hash, role, status FROM users WHERE username = ?')
-        .get('admin') as { password_hash: string; role: string | null; status: string | null } | undefined;
-
-      const pwdBroken = !verifyPassword('28032002Aa@', adminRow?.password_hash).ok;
-      const metaBroken = adminRow?.role !== 'admin' || adminRow?.status !== 'active';
-      if (adminRow && (pwdBroken || metaBroken)) {
+      if (adminInitialPassword) {
+        const today = new Date().toISOString().split('T')[0];
         db.prepare(`
-          UPDATE users
-          SET password_hash = ?, role = 'admin', status = 'active'
-          WHERE username = 'admin'
-        `).run(pwdBroken ? hashPassword('28032002Aa@') : adminRow.password_hash);
+          INSERT INTO users (id, username, email, password_hash, display_name, avatar, streak, last_active_date, exp, level, coins, role, status)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run('user_admin_root', 'admin', 'admin@meowlish.com', hashPassword(adminInitialPassword), 'Quản Trị Viên (Admin)', '🛡️', 99, today, 9999, 99, 99999, 'admin', 'active');
+
+        db.prepare(`
+          INSERT OR IGNORE INTO user_pets (user_id, pet_type, pet_name, level, exp, hunger, happiness, energy, selected_habitat, equipped_hat, equipped_outfit, equipped_accessory)
+          VALUES (?, 'doraemon', 'Doraemon Admin', 99, 9999, 100, 100, 100, 'doraemon_field', 'bamboo_copter', 'none', 'none')
+        `).run('user_admin_root');
+        console.warn('[SQLite DB] Đã tạo tài khoản admin từ ADMIN_INITIAL_PASSWORD. Nên xoá biến này khỏi môi trường sau lần deploy đầu.');
+      } else {
+        console.error(
+          '[SQLite DB] CRITICAL: chưa có tài khoản admin và thiếu biến môi trường ' +
+            'ADMIN_INITIAL_PASSWORD → không tạo tài khoản nào (không tạo mật khẩu mặc định trong source).'
+        );
+      }
+    } else {
+      // Chỉ sửa metadata quyền/trạng thái, KHÔNG đụng tới password_hash.
+      const adminRow = db
+        .prepare('SELECT role, status FROM users WHERE username = ?')
+        .get('admin') as { role: string | null; status: string | null } | undefined;
+
+      if (adminRow && (adminRow.role !== 'admin' || adminRow.status !== 'active')) {
+        db.prepare(`UPDATE users SET role = 'admin', status = 'active' WHERE username = 'admin'`).run();
       }
     }
 

@@ -100,8 +100,19 @@ export async function POST(request: Request) {
     const newPassword = crypto.randomBytes(4).toString('hex') + Math.floor(1000 + Math.random() * 9000);
     const pwdHash = hashPassword(newPassword);
 
-    // Create a Nodemailer transporter using SMTP details from the environment or fallback
-    const smtpHost = process.env.SMTP_HOST || 'mail93142.maychuemail.com';
+    // KHÔNG có giá trị dự phòng hardcode cho thông tin SMTP: repo này là PUBLIC,
+    // nên một `|| 'mat-khau-that'` là lộ mật khẩu email cho cả internet. Thiếu
+    // biến môi trường thì báo lỗi rõ ràng thay vì im lặng dùng khoá cũ.
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
+    const smtpHost = process.env.SMTP_HOST;
+    if (!smtpUser || !smtpPass || !smtpHost) {
+      logger.error('[ForgotPassword] Thiếu cấu hình SMTP (SMTP_USER/SMTP_PASS/SMTP_HOST).');
+      return NextResponse.json(
+        { error: 'Dịch vụ email đang tạm thời không hoạt động. Vui lòng thử lại sau ít phút!' },
+        { status: 503 }
+      );
+    }
     let resolvedIp = smtpHost;
     try {
       const ips = await dns.promises.resolve4(smtpHost);
@@ -111,9 +122,6 @@ export async function POST(request: Request) {
     } catch (dnsErr) {
       logger.warn(`Failed to resolve IPv4 for ${smtpHost}, falling back to original hostname`, { error: dnsErr });
     }
-
-    const smtpUser = process.env.SMTP_USER || 'admin@imfishball.id.vn';
-    const smtpPass = process.env.SMTP_PASS || '28032002Aa@';
 
     const transporter = nodemailer.createTransport({
       host: resolvedIp,

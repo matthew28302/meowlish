@@ -39,13 +39,29 @@ const files = SCAN_DIRS.flatMap((d) => walk(d));
  * - khoá truy cập kiểu Filebase/AWS: chuỗi literal 20+ ký tự chữ/số viết hoa.
  *   Bắt buộc phải có dấu nháy bao, nếu không sẽ báo nhầm bảng ký tự dùng để sinh
  *   mã (ví dụ "0123456789ABCDEF..." trong api/support/route.ts).
- * - tên biến nhạy cảm được gán bằng chuỗi literal dài (không phải process.env)
+ * - tên biến nhạy cảm được gán bằng chuỗi literal dài.
+ * - giá trị DỰ PHÒNG sau `||` cho biến môi trường nhạy cảm — đây chính là mẫu
+ *   đã lọt mật khẩu SMTP thật (`process.env.SMTP_PASS || '28032002Aa@'`).
+ *
+ * `skipProcessEnvLine` phải BẬT cho các mẫu cần bỏ qua dòng đọc biến môi
+ * trường, và TẮT cho mẫu dự phòng — nếu không đặt sai thì mẫu dự phòng bị chính
+ * điều kiện bỏ qua vô hiệu hoá (đã dính lỗi này một lần).
  */
-const PATTERNS: { name: string; re: RegExp }[] = [
-  { name: 'khoa truy cap kieu Filebase/AWS (literal 20+ ky tu hoa+so)', re: /['"][A-Z0-9]{20,}['"]/ },
+const PATTERNS: { name: string; re: RegExp; skipProcessEnvLine?: boolean }[] = [
+  {
+    name: 'khoa truy cap kieu Filebase/AWS (literal 20+ ky tu hoa+so)',
+    re: /['"][A-Z0-9]{20,}['"]/,
+    skipProcessEnvLine: true,
+  },
   {
     name: 'biet bien nhay cam gan bang chuoi literal',
     re: /(secret|password|passwd|token|access[_-]?key|api[_-]?key|private[_-]?key)\s*[:=]\s*['"][^'"]{8,}['"]/i,
+    skipProcessEnvLine: true,
+  },
+  {
+    name: 'gia tri DU PHONG hardcode cho bien moi truong nhay cam',
+    re: /process\.env\.[A-Z0-9_]*(PASS|SECRET|KEY|TOKEN|PWD|CREDENTIAL)[A-Z0-9_]*\s*\|\|\s*['"][^'"]+['"]/,
+    skipProcessEnvLine: false,
   },
 ];
 
@@ -59,6 +75,13 @@ const ALLOWED_LITERALS = new Set([
   '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ', // bảng ký tự sinh mã ticket
 ]);
 
+/**
+ * Biến môi trường có chứa từ khoá nhạy cảm nhưng bản thân KHÔNG phải bí mật.
+ * `PG_SOURCE_KEY` là tên object trên S3 (tên tệp), không phải khoá truy cập —
+ * có giá trị dự phòng hợp lệ.
+ */
+const ALLOWED_ENV_NAMES = new Set(['PG_SOURCE_KEY']);
+
 describe('khong co secret hardcode trong source', () => {
   it('co it nhat mot file de quet (tranh truong hop quet sai duong dan)', () => {
     expect(files.length).toBeGreaterThan(10);
@@ -70,12 +93,16 @@ describe('khong co secret hardcode trong source', () => {
     it(`${f} khong chua secret hardcode`, () => {
       const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
       src.split(/\r?\n/).forEach((line, i) => {
-        for (const { name, re } of PATTERNS) {
+        for (const { name, re, skipProcessEnvLine } of PATTERNS) {
           const m = re.exec(line);
           if (!m) continue;
-          // Bỏ qua giá trị lấy từ biến môi trường và dòng ghi chú
-          if (line.includes('process.env')) continue;
+          // Bỏ qua giá trị lấy từ biến môi trường và dòng ghi chú — CHỈ với mẫu
+          // cần; mẫu dự phòng thì phải soi.
+          if (skipProcessEnvLine && line.includes('process.env')) continue;
           if (/^\s*(\/\/|\*|\/\*)/.test(line)) continue;
+          // Biến môi trường được ghi rõ là không phải bí mật
+          const envName = /process\.env\.([A-Z0-9_]+)/.exec(line)?.[1];
+          if (envName && ALLOWED_ENV_NAMES.has(envName)) continue;
           // Bỏ qua ngoại lệ đã khai báo có chủ đích
           if (m[0].length >= 2) {
             const literal = m[0].replace(/^['"]|['"]$/g, '');
