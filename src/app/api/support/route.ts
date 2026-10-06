@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db, sanitizeText } from '@/lib/db';
+import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { sendSupportNotificationEmail } from '@/lib/supportEmail';
 import { logAccess, logError } from '@/lib/systemLogs';
@@ -23,7 +24,13 @@ function getUniqueTicketId(): string {
   return `TK-${Date.now().toString(36).slice(-4).toUpperCase()}`;
 }
 
-// GET: Lấy lịch sử ticket của học viên theo userId, email hoặc tra cứu theo ticketId
+// Cột hiển thị đầy đủ khi người dùng đã xác thực hoặc tra cứu bằng mã phiếu.
+const TICKET_FULL_COLUMNS = `id, name, email, user_id, category, priority, subject, message, rating, status, admin_reply, created_at, resolved_at`;
+// Cột rút gọn cho khách CHƯA đăng nhập tra cứu bằng email: không trả tên, email,
+// tiêu đề, nội dung hay trả lời của admin — chỉ đủ để biết "đã có phiếu".
+const TICKET_SUMMARY_COLUMNS = `id, category, priority, status, created_at, resolved_at`;
+
+// GET: Lấy lịch sử ticket của học viên
 export async function GET(request: Request) {
   const clientIp = getClientIp(request);
   const rateCheck = checkRateLimit({
@@ -38,57 +45,65 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId')?.trim();
+    const requestedUserId = searchParams.get('userId')?.trim();
     const email = searchParams.get('email')?.trim().toLowerCase();
     const ticketId = searchParams.get('ticketId')?.trim();
 
-    // 1. Tra cứu theo mã Ticket cụ thể
+    // Tài khoản lấy từ PHIÊN, không phải từ query. Trước đây GET không xác thực
+    // gì: bất kỳ ai cũng đọc được phiếu của người khác bằng ?userId= hoặc
+    // ?email= (lộ tên, email, nội dung khiếu nại và trả lời của admin).
+    const auth = getAuthenticatedUser(request, requestedUserId);
+    const isSession = auth.status === 'active' && !auth.isGuest;
+
+    // 1. Tra cứu theo mã Ticket (mã nằm trong email gửi cho chủ phiếu)
     if (ticketId) {
       const cleanId = ticketId.replace(/^#/, '').trim().toUpperCase();
       const ticket = db.prepare(`
-        SELECT id, name, email, user_id, category, priority, subject, message, rating, status, admin_reply, created_at, resolved_at
+        SELECT ${TICKET_FULL_COLUMNS}
         FROM support_messages
         WHERE UPPER(id) = ? OR id = ?
-      `).get(cleanId, ticketId);
+      `).get(cleanId, ticketId) as any;
 
-      return NextResponse.json({
-        success: true,
-        tickets: ticket ? [ticket] : [],
-      });
+      if (!ticket) {
+        return NextResponse.json({ success: true, tickets: [] });
+      }
+      // Đã đăng nhập: mã phiếu của người khác cũng không xem được.
+      if (isSession && ticket.user_id && ticket.user_id !== auth.userId) {
+        return NextResponse.json({ success: false, error: 'Bạn không có quyền xem phiếu hỗ trợ này.' }, { status: 403 });
+      }
+      return NextResponse.json({ success: true, tickets: [ticket] });
     }
 
-    // 2. Tra cứu theo tài khoản học viên (userId hoặc email)
-    if (userId && email) {
+    // 2. Đã đăng nhập → chỉ trả phiếu của chính mình, bỏ qua userId/email từ client.
+    if (isSession) {
       const tickets = db.prepare(`
-        SELECT id, name, email, user_id, category, priority, subject, message, rating, status, admin_reply, created_at, resolved_at
-        FROM support_messages
-        WHERE user_id = ? OR LOWER(email) = ?
-        ORDER BY created_at DESC
-        LIMIT 50
-      `).all(userId, email);
-      return NextResponse.json({ success: true, tickets });
-    }
-
-    if (userId) {
-      const tickets = db.prepare(`
-        SELECT id, name, email, user_id, category, priority, subject, message, rating, status, admin_reply, created_at, resolved_at
+        SELECT ${TICKET_FULL_COLUMNS}
         FROM support_messages
         WHERE user_id = ?
         ORDER BY created_at DESC
         LIMIT 50
-      `).all(userId);
+      `).all(auth.userId);
       return NextResponse.json({ success: true, tickets });
     }
 
+    // 3. Chưa đăng nhập KHÔNG được tra cứu theo userId (đó là IDOR).
+    if (requestedUserId) {
+      return NextResponse.json(
+        { success: false, error: 'Vui lòng đăng nhập để xem lịch sử phiếu hỗ trợ.' },
+        { status: 401 }
+      );
+    }
+
+    // 4. Khách chưa đăng nhập tra cứu bằng email → chỉ metadata, không lộ nội dung.
     if (email) {
       const tickets = db.prepare(`
-        SELECT id, name, email, user_id, category, priority, subject, message, rating, status, admin_reply, created_at, resolved_at
+        SELECT ${TICKET_SUMMARY_COLUMNS}
         FROM support_messages
         WHERE LOWER(email) = ?
         ORDER BY created_at DESC
         LIMIT 50
       `).all(email);
-      return NextResponse.json({ success: true, tickets });
+      return NextResponse.json({ success: true, tickets, redacted: true });
     }
 
     return NextResponse.json({ success: true, tickets: [] });
@@ -118,7 +133,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, email, category, priority, subject, message, rating, userId } = body;
+    const { name, email, category, priority, subject, message, rating } = body;
 
     const cleanName = sanitizeText(name || '').trim().slice(0, 80);
     const cleanEmail = String(email || '').trim().toLowerCase().slice(0, 120);
@@ -148,6 +163,11 @@ export async function POST(request: Request) {
     const ticketId = getUniqueTicketId();
 
     // 1. Lưu vào cơ sở dữ liệu SQLite
+    // user_id lấy từ PHIÊN đã xác thực, KHÔNG lấy từ body — nếu không, ai cũng
+    // có thể đính phiếu giả vào tài khoản người khác.
+    const sessionAuth = getAuthenticatedUser(request, undefined);
+    const sessionUserId = sessionAuth.status === 'active' && !sessionAuth.isGuest ? sessionAuth.userId : null;
+
     db.prepare(`
       INSERT INTO support_messages (id, name, email, user_id, category, priority, subject, message, rating, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'new')
@@ -155,7 +175,7 @@ export async function POST(request: Request) {
       ticketId,
       cleanName,
       cleanEmail,
-      userId || null,
+      sessionUserId,
       cleanCategory,
       cleanPriority,
       cleanSubject,
@@ -179,7 +199,7 @@ export async function POST(request: Request) {
 
     // 3. Ghi log truy cập / thao tác
     logAccess({
-      user_id: userId || null,
+      user_id: sessionUserId,
       username: cleanName,
       action: 'submit_support_ticket',
       ip: clientIp,

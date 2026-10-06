@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db, sanitizeText } from '@/lib/db';
+import { db, sanitizeText, claimTimedReward, rewardCooldownRemaining, REWARD_CATALOG } from '@/lib/db';
 import { PETS_CATALOG, SHOP_ITEMS, checkCinnamorollAccess } from '@/lib/petData';
 import { CROPS_CATALOG, LIVESTOCK_CATALOG } from '@/lib/petFarmData';
 import { WEDDING_RINGS, MOCK_COMMUNITY_USERS } from '@/lib/petSocialData';
@@ -180,20 +180,16 @@ export async function GET(request: Request) {
       }, { status: 403 });
     }
 
-    let userId = auth.userId;
-    if (auth.status === 'unauthorized' && requestedUserId) {
-      const targetUser = db.prepare('SELECT id, username, display_name, avatar, streak, exp, level, coins, status FROM users WHERE id = ?').get(requestedUserId) as any;
-      if (targetUser && targetUser.status !== 'disabled') {
-        userId = targetUser.id;
-      } else {
-        return NextResponse.json({ error: auth.error || 'Vui lòng đăng nhập.' }, { status: 401 });
-      }
-    } else if (auth.status === 'unauthorized') {
+    // KHÔNG tự tra DB bằng requestedUserId khi chưa xác thực — đó là IDOR: bất kỳ
+    // ai cũng đọc được pet/inventory/coins của người khác chỉ bằng cách gửi
+    // ?userId=<id nạn nhân>. Đã xác nhận lỗ hổng này trên production.
+    if (auth.status === 'unauthorized') {
       return NextResponse.json({ error: auth.error || 'Vui lòng đăng nhập.' }, { status: 401 });
     }
     if (auth.status === 'forbidden') {
       return NextResponse.json({ error: auth.error || 'Từ chối quyền truy cập.' }, { status: 403 });
     }
+    const userId = auth.userId;
 
     let user = db.prepare('SELECT id, username, display_name, avatar, streak, exp, level, coins, status FROM users WHERE id = ?').get(userId) as any;
     const pet = ensurePet(userId);
@@ -378,20 +374,14 @@ export async function POST(request: Request) {
       }, { status: 403 });
     }
 
-    let userId = auth.userId;
-    if (auth.status === 'unauthorized' && rawUserId) {
-      const targetUser = db.prepare('SELECT id, status FROM users WHERE id = ?').get(rawUserId) as any;
-      if (targetUser && targetUser.status !== 'disabled') {
-        userId = targetUser.id;
-      } else {
-        return NextResponse.json({ error: auth.error || 'Vui lòng đăng nhập để chăm sóc thú cưng.' }, { status: 401 });
-      }
-    } else if (auth.status === 'unauthorized') {
+    // Xem chú thích ở GET: không tự tra DB bằng userId do client gửi (IDOR).
+    if (auth.status === 'unauthorized') {
       return NextResponse.json({ error: auth.error || 'Vui lòng đăng nhập để chăm sóc thú cưng.' }, { status: 401 });
     }
     if (auth.status === 'forbidden') {
       return NextResponse.json({ error: auth.error || 'Từ chối quyền thao tác trên thú cưng của người khác (IDOR).' }, { status: 403 });
     }
+    const userId = auth.userId;
 
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId) as any;
     if (!user) {
@@ -700,6 +690,19 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Luống đất đang trống!' }, { status: 400 });
       }
 
+      // Phải CHÍN mới thu hoạch được. Trước đây nhánh này chỉ kiểm tra có cây,
+      // nên gieo xong thu hoạch liền → lặp lại là farm coins vô hạn (nhánh
+      // harvest_all_crops ở dưới có kiểm tra, còn nhánh này thì không).
+      const readyTime = parseInt(plot.harvest_ready_at, 10);
+      const now = Date.now();
+      if (!Number.isFinite(readyTime) || (now < readyTime && plot.stage !== 'ripe')) {
+        const waitMin = Number.isFinite(readyTime) ? Math.max(1, Math.ceil((readyTime - now) / 60000)) : 1;
+        return NextResponse.json(
+          { error: `Cây chưa chín! Còn khoảng ${waitMin} phút nữa.`, status: 'not_ready', harvestReadyAt: readyTime || null },
+          { status: 409 }
+        );
+      }
+
       const crop = CROPS_CATALOG[plot.crop_type] || CROPS_CATALOG.carrot;
       const earnedCoins = crop.harvestCoins;
       const earnedExp = crop.harvestExp;
@@ -920,11 +923,20 @@ export async function POST(request: Request) {
 
     // 13. ACTION: CLAIM PVP BATTLE REWARD / THƯỞNG ĐẤU TRƯỜNG
     if (action === 'claim_pvp_reward') {
-      const rewardCoins = Math.min(500, Math.max(10, parseInt(body.rewardCoins || '100', 10)));
-      const rewardExp = Math.min(250, Math.max(10, parseInt(body.rewardExp || '50', 10)));
+      const cooldown = rewardCooldownRemaining(userId, 'pvp');
+      if (cooldown > 0) {
+        return NextResponse.json(
+          { success: false, error: `Chưa đủ thời gian chờ — thử lại sau ${Math.ceil(cooldown / 60000)} phút.` },
+          { status: 429 }
+        );
+      }
+      if (!claimTimedReward(userId, 'pvp')) {
+        return NextResponse.json({ success: false, error: 'Vừa nhận thưởng này rồi, hãy thử lại sau.' }, { status: 429 });
+      }
+      const reward = REWARD_CATALOG.pvp;
 
-      db.prepare('UPDATE users SET coins = coins + ?, exp = exp + ? WHERE id = ?').run(rewardCoins, rewardExp, userId);
-      db.prepare('UPDATE user_pets SET exp = exp + ? WHERE user_id = ?').run(rewardExp, userId);
+      db.prepare('UPDATE users SET coins = coins + ?, exp = exp + ? WHERE id = ?').run(reward.coins, reward.exp, userId);
+      db.prepare('UPDATE user_pets SET exp = exp + ? WHERE user_id = ?').run(reward.exp, userId);
 
       const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
       const freshPet = ensurePet(userId);
@@ -932,7 +944,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
-        message: `Vinh quang Đấu Trường Thú Cưng! Nhận +${rewardCoins} Coins & +${rewardExp} EXP!`,
+        message: `Vinh quang Đấu Trường Thú Cưng! Nhận +${reward.coins} Coins & +${reward.exp} EXP!`,
         userCoins: freshUser?.coins || 0,
         pet: freshPet,
       });
@@ -940,11 +952,20 @@ export async function POST(request: Request) {
 
     // 14. ACTION: CLAIM RACING REWARD / THƯỞNG ĐUA THÚ CƯNG
     if (action === 'claim_racing_reward') {
-      const rewardCoins = Math.min(1500, Math.max(10, parseInt(body.rewardCoins || '150', 10)));
-      const rewardExp = Math.min(200, Math.max(10, parseInt(body.rewardExp || '40', 10)));
+      const cooldown = rewardCooldownRemaining(userId, 'racing');
+      if (cooldown > 0) {
+        return NextResponse.json(
+          { success: false, error: `Chưa đủ thời gian chờ — thử lại sau ${Math.ceil(cooldown / 60000)} phút.` },
+          { status: 429 }
+        );
+      }
+      if (!claimTimedReward(userId, 'racing')) {
+        return NextResponse.json({ success: false, error: 'Vừa nhận thưởng này rồi, hãy thử lại sau.' }, { status: 429 });
+      }
+      const reward = REWARD_CATALOG.racing;
 
-      db.prepare('UPDATE users SET coins = coins + ?, exp = exp + ? WHERE id = ?').run(rewardCoins, rewardExp, userId);
-      db.prepare('UPDATE user_pets SET exp = exp + ? WHERE user_id = ?').run(rewardExp, userId);
+      db.prepare('UPDATE users SET coins = coins + ?, exp = exp + ? WHERE id = ?').run(reward.coins, reward.exp, userId);
+      db.prepare('UPDATE user_pets SET exp = exp + ? WHERE user_id = ?').run(reward.exp, userId);
 
       const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
       const freshPet = ensurePet(userId);
@@ -952,7 +973,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
-        message: `Đua Thú Cưng đại thắng! Nhận +${rewardCoins} Coins & +${rewardExp} EXP!`,
+        message: `Đua Thú Cưng đại thắng! Nhận +${reward.coins} Coins & +${reward.exp} EXP!`,
         userCoins: freshUser?.coins || 0,
         pet: freshPet,
       });

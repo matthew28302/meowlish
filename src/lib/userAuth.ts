@@ -215,27 +215,35 @@ export function createUserSessionToken(userId: string): string {
 }
 
 /**
- * Kiểm tra và giải mã token phiên người dùng
+ * Kiểm tra và giải mã token phiên người dùng.
+ *
+ * KHÔNG có đường tắt nào coi token là hợp lệ mà không kiểm tra chữ ký HMAC.
+ * Trước đây có nhánh `token.startsWith('user_')` gọi là "tương thích ngược phiên
+ * dev" — nhưng cookie do CLIENT gửi lên, nên đó là bypass xác thực hoàn toàn: chỉ
+ * cần đặt `meowlish_user_session=<userId của nạn nhân>` là đọc/ghi được dữ liệu
+ * tài khoản đó mà không cần mật khẩu. Đã xác nhận lỗ hổng này trên production,
+ * nhánh đó đã bị gỡ.
  */
 export function verifyUserSessionToken(token?: string | null): string | null {
   if (!token) return null;
   try {
     const parts = token.split('.');
-    if (parts.length === 2) {
-      const [payloadB64, sig] = parts;
-      const payload = Buffer.from(payloadB64, 'base64url').toString('utf8');
-      const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
-      if (crypto.timingSafeEqual(Buffer.from(sig, 'hex'), Buffer.from(expectedSig, 'hex'))) {
-        const [userId, expStr] = payload.split(':');
-        const exp = parseInt(expStr, 10);
-        if (exp > Date.now()) {
-          return userId;
-        }
-      }
-    } else if (token.startsWith('user_')) {
-      // Tương thích ngược phiên dev cục bộ
-      return token;
-    }
+    if (parts.length !== 2) return null;
+
+    const [payloadB64, sig] = parts;
+    const payload = Buffer.from(payloadB64, 'base64url').toString('utf8');
+    const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+
+    // timingSafeEqual ném lỗi nếu hai buffer khác độ dài → so độ dài trước.
+    if (sig.length !== expectedSig.length) return null;
+    if (!crypto.timingSafeEqual(Buffer.from(sig, 'hex'), Buffer.from(expectedSig, 'hex'))) return null;
+
+    // userId có thể chứa dấu ':' → cắt từ dấu phân cách CUỐI cùng.
+    const sep = payload.lastIndexOf(':');
+    const userId = payload.slice(0, sep);
+    const exp = parseInt(payload.slice(sep + 1), 10);
+    if (!userId || !Number.isFinite(exp) || exp <= Date.now()) return null;
+    return userId;
   } catch {
     // Token không hợp lệ
   }
@@ -347,6 +355,25 @@ export function getAuthenticatedUser(
       isGuest: false,
       status: 'unauthorized',
       error: 'Vui lòng đăng nhập để thực hiện thao tác trên tài khoản này.',
+    };
+  }
+
+  // Khách chưa đăng nhập chỉ được XEM tài khoản demo, KHÔNG được GHI.
+  //
+  // Lý do: nếu không chặn theo method, bất kỳ ai cũng POST được vào tài khoản
+  // demo thật (tiêu coins, sửa thú cưng, xoá bookmark, ghi tiến độ). Tài khoản
+  // demo là tài khoản dùng chung nên đây là bề mặt ghi không xác thực.
+  // Nút "Thử nhanh với tài khoản demo" đã cấp phiên cookie thật nên luồng chính
+  // vẫn ghi được bình thường.
+  const isReadOnly = request.method === 'GET' || request.method === 'HEAD';
+  if (!isReadOnly) {
+    return {
+      authenticated: false,
+      user: null,
+      userId: '',
+      isGuest: false,
+      status: 'unauthorized',
+      error: 'Vui lòng đăng nhập để thực hiện thao tác này.',
     };
   }
 

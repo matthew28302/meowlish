@@ -107,13 +107,27 @@ export async function POST(request: Request) {
     const id = `prog-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
     const today = new Date().toISOString().split('T')[0];
 
-    // Upsert progress
-    db.prepare(`
+    // Upsert progress. Chỉ lần ĐẦU (tạo dòng mới) mới được cộng EXP/Coins.
+    // Trước đây phần thưởng cộng ở dưới chạy vô điều kiện mỗi request ⇒ gọi lại
+    // cùng một item là farm coins vô hạn (60 req/phút × +50 coins).
+    const upsert = db.prepare(`
       INSERT INTO progress (id, user_id, module_type, item_id, score, status, completed_at)
       VALUES (?, ?, ?, ?, ?, 'completed', CURRENT_TIMESTAMP)
       ON CONFLICT(user_id, module_type, item_id) 
-      DO UPDATE SET score = excluded.score, completed_at = CURRENT_TIMESTAMP
+      DO UPDATE SET score = MAX(progress.score, excluded.score), completed_at = CURRENT_TIMESTAMP
     `).run(id, userId, cleanModule, cleanItem, safeScore);
+
+    // changes = 0 nghĩa là dòng đã tồn tại và câu lệnh không ghi gì mới.
+    if (upsert.changes === 0) {
+      const existing = db
+        .prepare('SELECT id, score FROM progress WHERE user_id = ? AND module_type = ? AND item_id = ?')
+        .get(userId, cleanModule, cleanItem) as { id: string; score: number } | undefined;
+      return NextResponse.json({
+        success: true,
+        alreadyCompleted: true,
+        progress: existing || null,
+      });
+    }
 
     // Update user EXP, streak, and coins
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId) as {

@@ -63,9 +63,16 @@ export async function POST(request: Request) {
         }
       }
 
-      // Nếu cookie chưa đồng bộ kịp hoặc phiên lưu ở client, sử dụng clientUserId nếu khớp dữ liệu
+      // Nếu cookie chưa đồng bộ kịp, dùng clientUserId — nhưng CHỉ khi trùng với
+      // tài khoản thật trong DB. Trước đây tin clientUserId vô điều kiện nên bất kỳ
+      // ai cũng ghi được log truy cập giả mang tên tài khoản người khác.
       if (!userId && clientUserId) {
-        userId = clientUserId;
+        try {
+          const claimed = db.prepare('SELECT id FROM users WHERE id = ?').get(clientUserId) as { id: string } | undefined;
+          if (claimed) userId = claimed.id;
+        } catch {
+          // DB lỗi → coi như khách
+        }
       }
 
       if (userId) {

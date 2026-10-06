@@ -15,20 +15,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Tài khoản của bạn đã bị vô hiệu hóa bởi Quản trị viên.', status: 'disabled' }, { status: 403 });
     }
 
-    let userId = auth.userId;
-    if (auth.status === 'unauthorized' && requestedUserId) {
-      const dbUser = db.prepare('SELECT id, status FROM users WHERE id = ?').get(requestedUserId) as any;
-      if (dbUser && dbUser.status !== 'disabled') {
-        userId = dbUser.id;
-      } else {
-        return NextResponse.json({ error: auth.error || 'Vui lòng đăng nhập.' }, { status: 401 });
-      }
-    } else if (auth.status === 'unauthorized') {
+    // Không tự tra DB bằng userId từ query (IDOR — đã xác nhận trên production).
+    if (auth.status === 'unauthorized') {
       return NextResponse.json({ error: auth.error || 'Vui lòng đăng nhập.' }, { status: 401 });
     }
     if (auth.status === 'forbidden') {
       return NextResponse.json({ error: auth.error || 'Từ chối quyền truy cập.' }, { status: 403 });
     }
+    const userId = auth.userId;
 
     const inventory = db.prepare('SELECT item_id, quantity FROM pet_inventory WHERE user_id = ?').all(userId) as { item_id: string; quantity: number }[];
     const ownedMap = new Map<string, number>();
@@ -74,20 +68,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Tài khoản của bạn đã bị vô hiệu hóa bởi Quản trị viên.', status: 'disabled' }, { status: 403 });
     }
 
-    let userId = auth.userId;
-    if (auth.status === 'unauthorized' && rawUserId) {
-      const dbUser = db.prepare('SELECT id, status FROM users WHERE id = ?').get(rawUserId) as any;
-      if (dbUser && dbUser.status !== 'disabled') {
-        userId = dbUser.id;
-      } else {
-        return NextResponse.json({ error: auth.error || 'Vui lòng đăng nhập để mua sắm vật phẩm.' }, { status: 401 });
-      }
-    } else if (auth.status === 'unauthorized') {
+    // Xem chú thích ở GET: không tự tra DB bằng userId từ body (IDOR).
+    if (auth.status === 'unauthorized') {
       return NextResponse.json({ error: auth.error || 'Vui lòng đăng nhập để mua sắm vật phẩm.' }, { status: 401 });
     }
     if (auth.status === 'forbidden') {
       return NextResponse.json({ error: auth.error || 'Bạn không có quyền dùng Coins của tài khoản khác (IDOR).' }, { status: 403 });
     }
+    const userId = auth.userId;
 
     const item = SHOP_ITEMS.find((i) => i.id === itemId);
     if (!item) {

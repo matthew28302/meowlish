@@ -369,6 +369,14 @@ function createDb(): Database.Database {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
 
+    -- Vết lần nhận thưởng PVP / đua thú cưng, chống gọi lặp để cộng coins vô hạn.
+    CREATE TABLE IF NOT EXISTS reward_claims (
+      user_id TEXT NOT NULL,
+      kind TEXT NOT NULL,
+      claimed_at INTEGER NOT NULL,
+      PRIMARY KEY (user_id, kind)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_coin_tx_user_id ON coin_transactions(user_id);
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_date);
@@ -800,6 +808,48 @@ export function sanitizeText(input?: string | null): string {
   return input
     .replace(/[<>]/g, '') // remove HTML tag brackets
     .trim();
+}
+
+/** Thưởng PVP / đua thú cưng — do SERVER quyết định, không nhận từ client. */
+export const REWARD_CATALOG = {
+  pvp: { coins: 100, exp: 50, cooldownMs: 10 * 60 * 1000 },
+  racing: { coins: 150, exp: 40, cooldownMs: 10 * 60 * 1000 },
+} as const;
+
+export type RewardKind = keyof typeof REWARD_CATALOG;
+
+/**
+ * Nhận thưởng có hạn chế tần suất, chống gọi lặp để cộng coins vô hạn.
+ *
+ * Trước đây endpoint nhận `rewardCoins`/`rewardExp` từ body, chỉ clamp, không
+ * kiểm tra trận đấu và không chống replay ⇒ `claim_racing_reward` lặp lại cộng
+ * tối đa +1500 coins/lần, 60 lần/phút.
+ *
+ * Toàn bộ việc ghi vết nằm trong MỘT câu lệnh `INSERT … ON CONFLICT … WHERE`
+ * nên kể cả request song song (race) thì cũng chỉ một lần thành công.
+ * Trả về `null` nếu còn quá sớm so với lần nhận trước.
+ */
+export function claimTimedReward(userId: string, kind: RewardKind): RewardKind | null {
+  const cfg = REWARD_CATALOG[kind];
+  const now = Date.now();
+  const res = db
+    .prepare(
+      `INSERT INTO reward_claims (user_id, kind, claimed_at) VALUES (?, ?, ?)
+       ON CONFLICT(user_id, kind) DO UPDATE SET claimed_at = excluded.claimed_at
+       WHERE reward_claims.claimed_at <= ?`
+    )
+    .run(userId, kind, now, now - cfg.cooldownMs);
+  return res.changes > 0 ? kind : null;
+}
+
+/** Số còn lại (ms) trước khi được nhận tiếp loại thưởng này. 0 = được nhận. */
+export function rewardCooldownRemaining(userId: string, kind: RewardKind): number {
+  const cfg = REWARD_CATALOG[kind];
+  const row = db
+    .prepare('SELECT claimed_at FROM reward_claims WHERE user_id = ? AND kind = ?')
+    .get(userId, kind) as { claimed_at: number } | undefined;
+  if (!row) return 0;
+  return Math.max(0, row.claimed_at + cfg.cooldownMs - Date.now());
 }
 
 // Background Filebase S3 Sync: tự động upload ngay khi có thao tác ghi dữ liệu mới
