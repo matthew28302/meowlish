@@ -23,6 +23,30 @@ function shuffle<T>(arr: T[]): T[] {
   return result;
 }
 
+const normOption = (s: string) => (s ?? '').trim().toLowerCase();
+
+/**
+ * Chọn N đáp án nhiễu KHÔNG trùng đáp án đúng và không trùng nhau.
+ *
+ * Vì sao cần: nhiều từ trong từ điển có CÙNG nghĩa tiếng Việt (ví dụ "error" và
+ * "mistake" cùng dịch là "lỗi"). Lọc bằng `v.id !== target.id` rồi lấy
+ * `v.meaningVi` vẫn để lọt giá trị trùng ⇒ sinh câu hỏi có hai đáp án giống
+ * nhau, người chơi thấy câu hỏi hỏng. Đã dính lỗi này ở nhánh EN→VI và ở PvP.
+ */
+function pickDistractors<T>(items: T[], getValue: (item: T) => string, correct: string, count: number): string[] {
+  const seen = new Set<string>([normOption(correct)]);
+  const out: string[] = [];
+  for (const item of shuffle(items)) {
+    if (out.length >= count) break;
+    const raw = getValue(item);
+    const key = normOption(raw);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(raw);
+  }
+  return out;
+}
+
 /**
  * Generate a PvP Battle English Question
  * Supports: Meaning analysis, sentence unscramble, and fill-in-the-blank
@@ -56,7 +80,7 @@ export function generatePvPQuestion(excludeIds: string[] = []): QuizQuestion {
     const blankSentence = target.exampleSentence.replace(regex, '________');
 
     // Get 3 distractors
-    const otherWords = shuffle(VOCABULARY_LIST.filter((v) => v.word.toLowerCase() !== target.word.toLowerCase()).map((v) => v.word)).slice(0, 3);
+    const otherWords = pickDistractors(VOCABULARY_LIST, (v) => v.word, target.word, 3);
     const options = shuffle([target.word, ...otherWords]);
 
     return {
@@ -71,7 +95,7 @@ export function generatePvPQuestion(excludeIds: string[] = []): QuizQuestion {
     };
   } else {
     // VOCABULARY MEANING ANALYSIS (EN -> VI)
-    const otherMeanings = shuffle(VOCABULARY_LIST.filter((v) => v.id !== target.id).map((v) => v.meaningVi)).slice(0, 3);
+    const otherMeanings = pickDistractors(VOCABULARY_LIST, (v) => v.meaningVi, target.meaningVi, 3);
     const options = shuffle([target.meaningVi, ...otherMeanings]);
 
     return {
@@ -101,7 +125,7 @@ export function generateRacingQuestion(excludeIds: string[] = []): QuizQuestion 
 
   if (isReverse) {
     // Gợi ý nghĩa tiếng Việt -> Chọn từ tiếng Anh
-    const otherWords = shuffle(VOCABULARY_LIST.filter((v) => v.id !== target.id).map((v) => v.word)).slice(0, 3);
+    const otherWords = pickDistractors(VOCABULARY_LIST, (v) => v.word, target.word, 3);
     const options = shuffle([target.word, ...otherWords]);
 
     return {
@@ -116,7 +140,8 @@ export function generateRacingQuestion(excludeIds: string[] = []): QuizQuestion 
     };
   } else {
     // Cho từ tiếng Anh -> Chọn nghĩa tiếng Việt
-    const otherMeanings = shuffle(VOCABULARY_LIST.filter((v) => v.id !== target.id).map((v) => v.meaningVi)).slice(0, 3);
+    // Đây là chỗ dễ sinh đáp án trùng: các từ khác nhau hay có cùng meaningVi.
+    const otherMeanings = pickDistractors(VOCABULARY_LIST, (v) => v.meaningVi, target.meaningVi, 3);
     const options = shuffle([target.meaningVi, ...otherMeanings]);
 
     return {

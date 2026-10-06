@@ -2,12 +2,14 @@ import { describe, expect, it, vi } from 'vitest';
 import { generatePvPQuestion, generateRacingQuestion } from '@/lib/petQuizData';
 
 describe('petQuizData generators', () => {
-  it('generateRacingQuestion returns 4 unique options containing the answer (x20)', () => {
-    for (let i = 0; i < 20; i++) {
+  // 300 vòng: lỗi trùng đáp án chỉ lộ ra khi random trúng cặp từ có cùng nghĩa
+  // (ở mức 20 vòng thì fail khoảng 1/5 lần chạy, nên test cũ pass lung tung).
+  it('generateRacingQuestion returns 4 unique options containing the answer (x300)', () => {
+    for (let i = 0; i < 300; i++) {
       const q = generateRacingQuestion();
       expect(q.options, `q${i} options defined`).toBeDefined();
       expect(q.options!.length, `q${i} has 4 options`).toBe(4);
-      expect(new Set(q.options!).size, `q${i} options unique`).toBe(4);
+      expect(new Set(q.options!.map((o) => o.trim().toLowerCase())).size, `q${i} options unique`).toBe(4);
       expect(
         q.options!.includes(q.correctAnswer as string),
         `q${i} answer inside options`,
@@ -18,6 +20,16 @@ describe('petQuizData generators', () => {
       expect(q.explanation.length, `q${i} explanation`).toBeGreaterThan(0);
       expect(q.vocabRef.id.length, `q${i} vocabRef`).toBeGreaterThan(0);
       expect(q.id.length, `q${i} id`).toBeGreaterThan(0);
+    }
+  });
+
+  it('generatePvPQuestion never repeats an option (x200)', () => {
+    for (let i = 0; i < 200; i++) {
+      const q = generatePvPQuestion();
+      if (!q.options) continue; // câu unscramble không có lựa chọn
+      expect(q.options.length, `pvp${i} has 4 options`).toBe(4);
+      expect(new Set(q.options.map((o) => o.trim().toLowerCase())).size, `pvp${i} options unique`).toBe(4);
+      expect(q.options.includes(q.correctAnswer as string), `pvp${i} answer in options`).toBe(true);
     }
   });
 
