@@ -22,7 +22,10 @@ export async function GET(request: Request) {
   try {
     const authHeader = request.headers.get('authorization');
     const { searchParams } = new URL(request.url);
-    const tokenParam = searchParams.get('token') || searchParams.get('adminSecret');
+    // KHONG nhan token qua query string (`?token=`/`?adminSecret=`): token se roi
+    // vao access log, Referer khi admin mo link noi boi va lich su trinh duyet.
+    // Chi chap nhan header `Authorization` va cookie httpOnly.
+    const tokenParam = null;
 
     if (!verifyAdmin(request, authHeader, tokenParam)) {
       return NextResponse.json({ error: 'Truy cập bị từ chối. Vui lòng đăng nhập quyền quản trị.' }, { status: 401 });

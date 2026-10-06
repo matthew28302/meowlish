@@ -22,7 +22,7 @@ const LOGGED_OUT_KEY = 'english_for_me_logged_out';
 
 /**
  * Làm mờ email để bảo mật thông tin (ẩn khoảng 1/2 phần tên định danh):
- * Ví dụ: vukiet28032002@gmail.com => vuki*****02@gmail.com
+ * Ví dụ: <email quan tri> => <email quan tri>
  */
 export function maskEmail(email?: string | null): string {
   if (!email || !email.includes('@')) return email || '';

@@ -2,7 +2,7 @@ import dns from 'dns';
 import nodemailer from 'nodemailer';
 import logger from './logger';
 import { logEmail } from './systemLogs';
-import { ADMIN_EMAIL } from './adminAuth';
+import { getAdminEmail } from './adminAuth';
 import {
   supportAckTemplate,
   supportAdminAlertTemplate,
@@ -90,7 +90,7 @@ export async function sendSupportNotificationEmail({
     // 1. Gửi thông báo đến Admin (replyTo = người gửi để admin trả lời trực tiếp)
     const adminMailOptions = {
       from: mailFrom(smtpUser),
-      to: ADMIN_EMAIL,
+      to: getAdminEmail(),
       replyTo: email,
       subject: adminContent.subject,
       html: adminContent.html,
@@ -100,7 +100,7 @@ export async function sendSupportNotificationEmail({
     await transporter.sendMail(adminMailOptions);
     logger.info(`[Support] Notification email sent to admin for ticket ${formattedTicketCode}: ${subject}`);
     logEmail({
-      recipient: ADMIN_EMAIL,
+      recipient: getAdminEmail(),
       subject: adminContent.subject,
       purpose: 'support_admin_alert',
       status: 'sent',
@@ -131,7 +131,7 @@ export async function sendSupportNotificationEmail({
   } catch (err: any) {
     logger.error('[Support] Failed to send support email:', { error: err });
     logEmail({
-      recipient: ADMIN_EMAIL,
+      recipient: getAdminEmail(),
       subject: adminContent.subject,
       purpose: 'support_admin_alert',
       status: 'failed',

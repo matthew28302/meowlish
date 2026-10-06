@@ -24,31 +24,51 @@ function formatSafeUser(user: any) {
   };
 }
 
-// GET: Lấy thông tin user theo userId hoặc username
+// GET: Thông tin người dùng.
+//
+// TRƯỚC ĐÂY endpoint này hoàn toàn không xác thực: `?username=<bất kỳ>` trả về
+// email đầy đủ, display_name, coins, streak, exp, role, trạng thái 2FA — đo được
+// trên production. Đây là công cụ enumeration hoàn hảo (dò tài khoản hợp lệ, lấy
+// email, rồi dùng sang các đường khác) và là bước đệm cho việc ghi đè email.
+//
+// Nay: bắt buộc phiên hợp lệ; xem người khác chỉ trả tối thiểu để UI biết
+// tài khoản có bị khoá hay không.
 export async function GET(request: Request) {
   try {
+    const clientIp = getClientIp(request);
+    const rateCheck = checkRateLimit({
+      key: `auth_lookup:${clientIp}`,
+      maxAttempts: 60,
+      windowMs: 60 * 1000,
+    });
+    if (!rateCheck.allowed) {
+      return rateLimitExceededResponse('Bạn tra cứu quá nhanh. Vui lòng thử lại sau ít giây!', rateCheck.resetInSeconds);
+    }
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-    const username = searchParams.get('username');
 
-    let user = null;
-    if (userId) {
-      user = db.prepare(`
-        SELECT id, username, email, display_name, avatar, streak, exp, level, coins, target_exam, role, status, two_factor_enabled, email_verified, created_at 
-        FROM users WHERE id = ?
-      `).get(userId);
-    } else if (username) {
-      user = db.prepare(`
-        SELECT id, username, email, display_name, avatar, streak, exp, level, coins, target_exam, role, status, two_factor_enabled, email_verified, created_at 
-        FROM users WHERE username = ?
-      `).get(username);
-    } else {
-      // Default to demo
-      user = db.prepare(`
-        SELECT id, username, email, display_name, avatar, streak, exp, level, coins, target_exam, role, status, two_factor_enabled, email_verified, created_at 
-        FROM users WHERE username = ?
-      `).get('demo');
+    if (!userId) {
+      return NextResponse.json({ error: 'Thiếu ID người dùng.' }, { status: 400 });
     }
+
+    const auth = getAuthenticatedUser(request, userId);
+    if (auth.status === 'unauthorized' || auth.isGuest) {
+      return NextResponse.json({ error: 'Vui lòng đăng nhập.' }, { status: 401 });
+    }
+    if (auth.status === 'disabled') {
+      return NextResponse.json({
+        error: 'Tài khoản của bạn đã bị vô hiệu hóa bởi Quản trị viên.',
+        status: 'disabled',
+      }, { status: 403 });
+    }
+
+    const isSelf = auth.userId === userId;
+
+    const user = db.prepare(`
+      SELECT id, username, email, display_name, avatar, streak, exp, level, coins, target_exam, role, status, two_factor_enabled, email_verified, created_at 
+      FROM users WHERE id = ?
+    `).get(userId) as any;
 
     if (!user) {
       return NextResponse.json({ error: 'Không tìm thấy người dùng' }, { status: 404 });
@@ -66,11 +86,19 @@ export async function GET(request: Request) {
       }, { status: 403 });
     }
 
+    // Xem tài khoản KHÁC: chỉ trả đúng thứ UI cần (có bị khoá không), không lộ
+    // email, coins, streak, exp...
+    if (!isSelf) {
+      return NextResponse.json({
+        user: { id: targetUser.id, username: targetUser.username, status: targetUser.status },
+        limited: true,
+      });
+    }
+
     return NextResponse.json({ user: formatSafeUser(targetUser) });
   } catch (err: unknown) {
     logger.error('Database error in GET /api/auth', { error: err });
-    const message = err instanceof Error ? err.message : 'Database error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: 'Không thể tải thông tin tài khoản lúc này.' }, { status: 500 });
   }
 }
 
@@ -243,6 +271,24 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: verifyRes.error || 'Mã OTP không hợp lệ.' }, { status: 400 });
       }
 
+      // OTP đúng KHÔNG đủ: session OTP phải thuộc đúng tài khoản trong body.
+      // Trước đây kết quả `verifyRes.userId` bị bỏ qua, nên kẻ tấn công đăng ký
+      // tài khoản riêng, nhận OTP của chính mình rồi gửi
+      // {sessionId: <của tôi>, otp: <của tôi>, userId: <nạn nhân>} là:
+      //   (a) bật email_verified cho tài khoản nạn nhân,
+      //   (b) nhận về hồ sơ đầy đủ của nạn nhân (email, coins, role).
+      if (verifyRes.userId !== userId) {
+        logAccess({
+          user_id: userId,
+          action: 'verify_email_failed',
+          ip: clientIp,
+          user_agent: userAgent,
+          status: 'failed',
+          details: 'OTP không thuộc tài khoản được yêu cầu xác thực',
+        });
+        return NextResponse.json({ error: 'Mã xác thực không khớp với tài khoản này.' }, { status: 403 });
+      }
+
       // Mark email as verified in database
       db.prepare('UPDATE users SET email_verified = 1 WHERE id = ?').run(userId);
       syncDbToS3Now().catch(() => {});
@@ -276,6 +322,22 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Thiếu ID người dùng.' }, { status: 400 });
       }
 
+      // Bắt buộc phiên hợp lệ và khớp đúng userId.
+      // Trước đây nhánh này KHÔNG có xác thực nào và lấy userId từ body ⇒ kẻ
+      // tấn công gửi {userId: <nạn nhân>, email: <email của kẻ>} là ghi đè được
+      // email nạn nhân, rồi dùng forgot-password để đặt mật khẩu mới gửi về
+      // email đó ⇒ chiếm tài khoản hoàn toàn.
+      const emailAuth = getAuthenticatedUser(request, userId);
+      if (emailAuth.status === 'unauthorized') {
+        return NextResponse.json({ error: 'Vui lòng đăng nhập để xác thực email.' }, { status: 401 });
+      }
+      if (emailAuth.status === 'disabled') {
+        return NextResponse.json({ error: 'Tài khoản của bạn đã bị vô hiệu hóa.' }, { status: 403 });
+      }
+      if (emailAuth.status === 'forbidden' || emailAuth.userId !== userId) {
+        return NextResponse.json({ error: 'Không được thực hiện thao tác này trên tài khoản khác.' }, { status: 403 });
+      }
+
       const user = db.prepare('SELECT id, username, email, display_name FROM users WHERE id = ?').get(userId) as any;
       if (!user) {
         return NextResponse.json({ error: 'Không tìm thấy người dùng.' }, { status: 404 });
@@ -289,7 +351,16 @@ export async function POST(request: Request) {
           if (existing) {
             return NextResponse.json({ error: 'Email này đã được sử dụng bởi một tài khoản khác.' }, { status: 400 });
           }
+          // Ghi log thay đổi email — thao tác nhạy cảm, cần để điều tra sau này.
           db.prepare('UPDATE users SET email = ? WHERE id = ?').run(cleanEmail, userId);
+          logAccess({
+            user_id: userId,
+            username: user.username,
+            action: 'set_email',
+            ip: clientIp,
+            details: 'Thiết lập email lần đầu để nhận mã xác thực',
+            status: 'success',
+          });
           targetEmail = cleanEmail;
         }
       }

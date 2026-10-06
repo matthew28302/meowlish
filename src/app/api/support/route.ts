@@ -71,6 +71,25 @@ export async function GET(request: Request) {
       if (isSession && ticket.user_id && ticket.user_id !== auth.userId) {
         return NextResponse.json({ success: false, error: 'Bạn không có quyền xem phiếu hỗ trợ này.' }, { status: 403 });
       }
+      // KHÁCH CHƯA ĐĂNG NHẬP chỉ nhận metadata. Mã phiếu chỉ 4 ký tự (~1,2 triệu
+      // giá trị ⇒ enum được), nên trả nguyên nội dung nghĩa là bất kỳ ai đoán
+      // trúng mã là đọc được tên, email, nội dung khiếu nại và trả lời admin.
+      if (!isSession) {
+        return NextResponse.json({
+          success: true,
+          tickets: [
+            {
+              id: ticket.id,
+              category: ticket.category,
+              priority: ticket.priority,
+              status: ticket.status,
+              created_at: ticket.created_at,
+              resolved_at: ticket.resolved_at,
+            },
+          ],
+          redacted: true,
+        });
+      }
       return NextResponse.json({ success: true, tickets: [ticket] });
     }
 

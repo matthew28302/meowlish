@@ -9,9 +9,22 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 import crypto from 'crypto';
-import { verifyUserSessionToken, createUserSessionToken, getAuthenticatedUser } from '@/lib/userAuth';
+import type {
+  verifyUserSessionToken as VerifyFn,
+  createUserSessionToken as CreateFn,
+  getAuthenticatedUser as AuthFn,
+} from '@/lib/userAuth';
 
-const SECRET = process.env.AUTH_SALT || 'meowlish_user_session_secret_2026';
+// Đặt AUTH_SALT TRƯỚC khi nạp module: `userAuth` đọc biến này ở module scope.
+// Nhờ vậy test không cần nhân bản secret fallback trong source — test tự nhân bản
+// secret là nguyên nhân test hỏng mỗi lần ta đổi cơ chế fallback.
+process.env.AUTH_SALT = 'test-only-auth-salt-0123456789abcdef';
+
+let verifyUserSessionToken: typeof VerifyFn;
+let createUserSessionToken: typeof CreateFn;
+let getAuthenticatedUser: typeof AuthFn;
+
+const SECRET = process.env.AUTH_SALT;
 const sign = (payload: string) =>
   crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
 const b64 = (s: string) => Buffer.from(s).toString('base64url');
@@ -21,6 +34,13 @@ function requestWithCookie(cookie: string | null, method = 'GET', url = 'https:/
   if (cookie) headers.cookie = cookie;
   return new Request(url, { method, headers });
 }
+
+beforeAll(async () => {
+  const mod = await import('@/lib/userAuth');
+  verifyUserSessionToken = mod.verifyUserSessionToken;
+  createUserSessionToken = mod.createUserSessionToken;
+  getAuthenticatedUser = mod.getAuthenticatedUser;
+});
 
 describe('verifyUserSessionToken', () => {
   beforeAll(() => {

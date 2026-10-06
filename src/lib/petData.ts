@@ -1,56 +1,10 @@
-export const CINNAMOROLL_ALLOWED_EMAILS = [
-  'xuanmai032004@gmail.com',
-  'liuyufishball@gmail.com',
-  '22520841@gm.uit.edu.vn',
-];
 
-export function checkCinnamorollAccess(user: { email?: string | null; email_verified?: boolean | number } | null | undefined): {
-  isUnlocked: boolean;
-  status: 'locked_not_logged_in' | 'locked_unauthorized_email' | 'locked_unverified_email' | 'unlocked';
-  message: string;
-} {
-  if (!user) {
-    return {
-      isUnlocked: false,
-      status: 'locked_not_logged_in',
-      message: 'Bé Cinnamoroll là Thú Cưng Độc Quyền Giới Hạn dành riêng cho Quản Trị Viên (Admin). Vui lòng đăng nhập để kiểm tra điều kiện mở khoá!',
-    };
-  }
-
-  const userEmail = (user.email || '').trim().toLowerCase();
-  if (!userEmail) {
-    return {
-      isUnlocked: false,
-      status: 'locked_unauthorized_email',
-      message: '🔒 Bé Cinnamoroll là Thú Cưng Độc Quyền Giới Hạn chỉ dành riêng cho Quản Trị Viên (Admin) được cấp quyền.',
-    };
-  }
-
-  const isEmailAllowed = CINNAMOROLL_ALLOWED_EMAILS.some((e) => e.toLowerCase() === userEmail);
-  if (!isEmailAllowed) {
-    return {
-      isUnlocked: false,
-      status: 'locked_unauthorized_email',
-      message: '🔒 Bé Cinnamoroll là Thú Cưng Độc Quyền Giới Hạn chỉ dành riêng cho Quản Trị Viên (Admin) được cấp quyền đặc biệt.',
-    };
-  }
-
-  const isVerified = user.email_verified === true || user.email_verified === 1;
-  if (!isVerified) {
-    return {
-      isUnlocked: false,
-      status: 'locked_unverified_email',
-      message: '✉️ Tài khoản của bạn đủ điều kiện kích hoạt đặc quyền sở hữu bé Cinnamoroll! Vui lòng hoàn tất xác thực mã OTP email để mở khoá bé về khu vườn của mình.',
-    };
-  }
-
-  return {
-    isUnlocked: true,
-    status: 'unlocked',
-    message: '🎉 Chúc mừng Quản Trị Viên! Bạn đã mở khoá thành công bé Cinnamoroll Bồng Bềnh!',
-  };
-}
-
+/**
+ * Catalogue thú cưng — file này được CLIENT import (`PETS_CATALOG`), nên mọi
+ * thứ ở đây đều bị đóng gói và gửi tới trình duyệt mọi khách.
+ * TUYỆT ĐỐI không đặt dữ liệu cá nhân (email, tên thật, id người dùng) vào đây.
+ * Xem `cinnamorollAccess.ts` cho phần kiểm tra quyền chỉ chạy ở server.
+ */
 export interface PetConfig {
   id: string;
   name: string;
@@ -59,7 +13,6 @@ export interface PetConfig {
   avatarBg: string;
   description: string;
   isSpecialVip?: boolean;
-  requiredEmails?: string[];
   buff: {
     title: string;
     description: string;
@@ -294,7 +247,6 @@ export const PETS_CATALOG: Record<string, PetConfig> = {
     emoji: '☁️',
     avatarBg: 'from-sky-300 to-blue-400',
     isSpecialVip: true,
-    requiredEmails: CINNAMOROLL_ALLOWED_EMAILS,
     description: 'Chú cún trắng sinh ra từ đám mây bồng bềnh, đôi tai dài có thể bay lượn và lắng nghe vạn vật. (Đặc Quyền Dành Riêng Admin)',
     buff: {
       title: 'Đôi Cánh Diệu Kỳ',

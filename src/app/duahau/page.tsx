@@ -124,7 +124,7 @@ export default function DuaHauAdminPage() {
   const [loginPassword, setLoginPassword] = useState<string>('');
   const [loginOtp, setLoginOtp] = useState<string>('');
   const [otpSessionId, setOtpSessionId] = useState<string | null>(null);
-  const [otpMaskedEmail, setOtpMaskedEmail] = useState<string>('vuki*****02@gmail.com');
+  const [otpMaskedEmail, setOtpMaskedEmail] = useState<string>('');
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginSuccessNotice, setLoginSuccessNotice] = useState<string | null>(null);
   const [isRequestingOtp, setIsRequestingOtp] = useState<boolean>(false);
@@ -305,11 +305,11 @@ export default function DuaHauAdminPage() {
 
       if (res.ok && data.success) {
         setOtpSessionId(data.sessionId);
-        setOtpMaskedEmail(data.maskedEmail || 'vuki*****02@gmail.com');
+        setOtpMaskedEmail(data.maskedEmail || 'email của quản trị');
         setLoginStep('otp');
         setOtpCountdown(300);
         setLoginOtp('');
-        setLoginSuccessNotice(data.message || `Mã xác thực 2FA 6 số đã được gửi đến email ${data.maskedEmail || 'vuki*****02@gmail.com'}!`);
+        setLoginSuccessNotice(data.message || `Mã xác thực 2FA 6 số đã được gửi đến email ${data.maskedEmail}!`);
         sound.playSuccess();
       } else {
         setLoginError(data.error || 'Tên đăng nhập hoặc mật khẩu quản trị không đúng.');

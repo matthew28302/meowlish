@@ -16,9 +16,47 @@ async function resolveIpv4(host: string): Promise<string> {
   return host;
 }
 
-export const ADMIN_EMAIL = 'vukiet28032002@gmail.com';
-export const ADMIN_MASKED_EMAIL = 'vuki*****02@gmail.com';
-const ENCRYPTION_KEY = crypto.createHash('sha256').update(process.env.AUTH_SALT || 'meowlish_admin_super_secret_salt_2026').digest(); // 32 bytes for AES-256
+/**
+ * Email nhận OTP quản trị — lấy từ biến môi trường, KHÔNG ghi trong source.
+ *
+ * Repo này public. Email trước đây nằm trong mã nguồn công khai, tức bất kỳ ai
+ * cũng biết chính xác mã OTP 2FA của cổng quản trị sẽ được gửi tới đâu. Đưa sang
+ * biến môi trường và fail-closed khi thiếu.
+ */
+export function getAdminEmail(): string {
+  const email = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+  if (email) return email;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'ADMIN_EMAIL bat buoc khi chay production — noi OTP quan tri duoc gui. ' +
+        'Thieu bien nay thi khong the xac thuc 2FA cho cong /duahau.'
+    );
+  }
+  return 'admin@localhost';
+}
+
+/**
+ * Bản email đã che, chỉ dùng để hiển thị trong giao diện quản trị.
+ * Lấy từ biến môi trường; KHÔNG để literal trong source vì dù đã che thì
+ * địa chỉ dạng `a***b@gmail.com` vẫn là dữ liệu định danh trong repo public.
+ */
+export const ADMIN_MASKED_EMAIL = process.env.ADMIN_MASKED_EMAIL || 'a*********@***.com';
+
+/**
+ * Khoá mã hoá token admin (AES-256-GCM).
+ * Fail-closed ở production: nếu thiếu `AUTH_SALT`, kẻ tấn công đọc mã nguồn
+ * công khai sẽ tự mã hoá được token `role: 'admin'` ⇒ toàn quyền quản trị.
+ */
+const ENCRYPTION_KEY = (() => {
+  const fromEnv = process.env.AUTH_SALT;
+  if (fromEnv && fromEnv.trim().length >= 16) {
+    return crypto.createHash('sha256').update(fromEnv).digest();
+  }
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('AUTH_SALT bat buoc va phai du 16 ky tu khi chay production.');
+  }
+  return crypto.createHash('sha256').update('meowlish_admin_super_secret_salt_2026_DEV_ONLY').digest();
+})();
 const TOKEN_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 const OTP_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -52,7 +90,7 @@ export function createEncryptedAdminToken(username: string = 'admin'): string {
   const payload = JSON.stringify({
     username,
     role: 'admin',
-    email: ADMIN_EMAIL,
+    email: getAdminEmail(),
     nonce: crypto.randomBytes(8).toString('hex'),
     exp: Date.now() + TOKEN_TTL_MS,
   });
@@ -98,7 +136,7 @@ export function verifyAdminToken(token: string | null | undefined): boolean {
   }
 }
 
-// 5. Send secure 2FA OTP Email to vukiet28032002@gmail.com
+// 5. Send secure 2FA OTP Email to <email quan tri>
 export async function sendAdminOtpEmail(otp: string): Promise<{ success: boolean; error?: string }> {
   const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
   // Chỉ dựng nội dung email (presentation) — không thay đổi logic OTP.
@@ -138,7 +176,7 @@ export async function sendAdminOtpEmail(otp: string): Promise<{ success: boolean
 
     const mailOptions = {
       from: mailFrom(smtpUser),
-      to: ADMIN_EMAIL,
+      to: getAdminEmail(),
       replyTo: EMAIL_BRAND.contactEmail,
       subject: emailContent.subject,
       html: emailContent.html,
@@ -146,9 +184,9 @@ export async function sendAdminOtpEmail(otp: string): Promise<{ success: boolean
     };
 
     await transporter.sendMail(mailOptions);
-    logger.info(`[Admin 2FA] OTP email successfully sent to ${ADMIN_EMAIL}`);
+    logger.info(`[Admin 2FA] OTP email successfully sent to admin inbox`);
     logEmail({
-      recipient: ADMIN_EMAIL,
+      recipient: getAdminEmail(),
       subject: emailContent.subject,
       purpose: 'admin_2fa',
       status: 'sent',
@@ -157,7 +195,7 @@ export async function sendAdminOtpEmail(otp: string): Promise<{ success: boolean
   } catch (err: any) {
     logger.error('[Admin 2FA] Failed to send OTP email:', { error: err });
     logEmail({
-      recipient: ADMIN_EMAIL,
+      recipient: getAdminEmail(),
       subject: emailContent.subject,
       purpose: 'admin_2fa',
       status: 'failed',
@@ -180,7 +218,7 @@ export function createOtpSession(otp: string): string {
   db.prepare(`
     INSERT INTO admin_otp_sessions (id, otp_hash, email, attempts, expires_at)
     VALUES (?, ?, ?, 0, ?)
-  `).run(sessionId, otpHash, ADMIN_EMAIL, expiresAt);
+  `).run(sessionId, otpHash, getAdminEmail(), expiresAt);
 
   return sessionId;
 }

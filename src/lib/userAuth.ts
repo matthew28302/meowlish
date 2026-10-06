@@ -30,7 +30,7 @@ export function hashUserOTP(otp: string): string {
   return crypto.createHash('sha256').update(otp.trim() + salt).digest('hex');
 }
 
-// 3. Mask email for public display: vukiet28032002@gmail.com -> vuki*****02@gmail.com
+// 3. Mask email for public display: <email quan tri> -> <email quan tri>
 export function maskEmail(email?: string | null): string {
   if (!email || !email.includes('@')) return email || '';
   const [localPart, domain] = email.split('@');
@@ -201,7 +201,29 @@ export function verifyUserOtpInput({
 // ==========================================
 // 7. TAMPER-PROOF SESSION TOKENS & IDOR DEFENSE
 // ==========================================
-const SESSION_SECRET = process.env.AUTH_SALT || 'meowlish_user_session_secret_2026';
+/**
+ * Khoá ký phiên người dùng.
+ *
+ * KHÔNG được fallback về literal trong source. Repo này PUBLIC: nếu production
+ * thiếu `AUTH_SALT`, bất kỳ ai đọc mã nguồn đều tự tính được HMAC và forge
+ * cookie `meowlish_user_session` cho bất kỳ tài khoản nào (đọc/ghi dữ liệu mà
+ * không cần mật khẩu). Thiếu biến môi trường ở production là lỗi cấu hình, phải
+ * làm app hỏng theo kiểu fail-closed chứ không phải rơi về giá trị yếu.
+ *
+ * Ở dev/test vẫn dùng fallback để `npm run dev` chạy được không cần cấu hình.
+ */
+const SESSION_SECRET = (() => {
+  const fromEnv = process.env.AUTH_SALT;
+  if (fromEnv && fromEnv.trim().length >= 16) return fromEnv;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'AUTH_SALT bat buoc va phai du 16 ky tu khi chay production. ' +
+        'Thieu bien nay thi token phien co the bi forge (chi doc source cong khai la dung).'
+    );
+  }
+  return 'meowlish_user_session_secret_2026_DEV_ONLY';
+})();
+
 const SESSION_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
 /**

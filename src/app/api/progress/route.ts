@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db, sanitizeText } from '@/lib/db';
+import { db, sanitizeText, consumeProgressBudget } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { syncDbToS3Now } from '@/lib/s3Sync';
@@ -108,17 +108,27 @@ export async function POST(request: Request) {
     const today = new Date().toISOString().split('T')[0];
 
     // Upsert progress. Chỉ lần ĐẦU (tạo dòng mới) mới được cộng EXP/Coins.
-    // Trước đây phần thưởng cộng ở dưới chạy vô điều kiện mỗi request ⇒ gọi lại
-    // cùng một item là farm coins vô hạn (60 req/phút × +50 coins).
-    const upsert = db.prepare(`
+    //
+    // PHẢI dùng `DO NOTHING`, KHÔNG dùng `DO UPDATE`: với `DO UPDATE`, SQLite luôn
+    // báo `changes = 1` kể cả khi dòng đã tồn tại (đã kiểm chứng bằng
+    // scripts/check-progress-upsert.mjs: DO UPDATE → [1,1,1], DO NOTHING → [1,0,0])
+    // ⇒ vòng bảo vệ dựa trên `changes` là code chết, gọi lặp vẫn farm coins vô hạn.
+    const inserted =
+      db
+        .prepare(`
       INSERT INTO progress (id, user_id, module_type, item_id, score, status, completed_at)
       VALUES (?, ?, ?, ?, ?, 'completed', CURRENT_TIMESTAMP)
-      ON CONFLICT(user_id, module_type, item_id) 
-      DO UPDATE SET score = MAX(progress.score, excluded.score), completed_at = CURRENT_TIMESTAMP
-    `).run(id, userId, cleanModule, cleanItem, safeScore);
+      ON CONFLICT(user_id, module_type, item_id) DO NOTHING
+    `)
+        .run(id, userId, cleanModule, cleanItem, safeScore).changes > 0;
 
-    // changes = 0 nghĩa là dòng đã tồn tại và câu lệnh không ghi gì mới.
-    if (upsert.changes === 0) {
+    // Item đã hoàn thành trước đó: chỉ nâng điểm cao nhất, KHÔNG cộng thưởng và
+    // KHÔNG đụng hạn mức ngày. Tiêu hạn mức ở nhánh này sẽ khiến lần gọi lại hao
+    // hạn mức oan rồi nhận 429, tức người dùng mất cả item lẫn phần thưởng.
+    if (!inserted) {
+      db.prepare(
+        'UPDATE progress SET score = MAX(score, ?) WHERE user_id = ? AND module_type = ? AND item_id = ?'
+      ).run(safeScore, userId, cleanModule, cleanItem);
       const existing = db
         .prepare('SELECT id, score FROM progress WHERE user_id = ? AND module_type = ? AND item_id = ?')
         .get(userId, cleanModule, cleanItem) as { id: string; score: number } | undefined;
@@ -127,6 +137,24 @@ export async function POST(request: Request) {
         alreadyCompleted: true,
         progress: existing || null,
       });
+    }
+
+    // `itemId` do client gửi lên nên kẻ tấn công bịa itemId mới ở mỗi request để né
+    // chống trùng. Hạn mức thưởng theo ngày chặn nốt đường đó: tổng phần thưởng
+    // học tập trong ngày bị giới hạn cứng, không thể vượt bằng cách bịa itemId.
+    if (!consumeProgressBudget(userId, today, safeCoins, safeExp)) {
+      // Hoàn tác dòng vừa chèn. Nếu không, người dùng mất luôn item này mà không
+      // nhận được thưởng: lần gọi lại sẽ thành "đã hoàn thành" và không bao giờ
+      // nhận được nữa.
+      db.prepare('DELETE FROM progress WHERE id = ?').run(id);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Bạn đã nhận đủ phần thưởng học tập hôm nay. Hãy quay lại vào ngày mai nhé!',
+          budgetReached: true,
+        },
+        { status: 429 }
+      );
     }
 
     // Update user EXP, streak, and coins

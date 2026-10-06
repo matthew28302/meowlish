@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db, sanitizeText, claimTimedReward, rewardCooldownRemaining, REWARD_CATALOG } from '@/lib/db';
-import { PETS_CATALOG, SHOP_ITEMS, checkCinnamorollAccess } from '@/lib/petData';
+import { PETS_CATALOG, SHOP_ITEMS } from '@/lib/petData';
+import { checkCinnamorollAccess } from '@/lib/cinnamorollAccess';
 import { CROPS_CATALOG, LIVESTOCK_CATALOG } from '@/lib/petFarmData';
 import { WEDDING_RINGS, MOCK_COMMUNITY_USERS } from '@/lib/petSocialData';
 import { getAuthenticatedUser } from '@/lib/userAuth';
@@ -318,6 +319,10 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       user,
+      // Cờ quyền thú cưng đặc quyền do SERVER tính. Client không được tự tính:
+      // việc đó đòi hỏi biết danh sách email được cấp quyền, mà danh sách đó
+      // không được phép nằm trong bundle client (PII thật — đã từng bị lộ).
+      cinnamorollAccess: checkCinnamorollAccess(auth.user as any),
       pet: {
         ...pet,
         meta: petMeta,
@@ -1163,6 +1168,18 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Không tìm thấy lời cầu hôn này!' }, { status: 404 });
       }
 
+      // Người gọi phải là một trong hai bên. Trước đây chỉ cần biết `proposalId` là
+      // bất kỳ ai cũng accept/từ chối được lời cầu hôn của người khác (cưỡng ép
+      // kết hôn), và nhánh từ chối còn hoàn coins cho `proposer_id` bất kỳ.
+      if (proposal.user_id_1 !== userId && proposal.user_id_2 !== userId) {
+        return NextResponse.json({ error: 'Bạn không phải người nhận lời cầu hôn này.' }, { status: 403 });
+      }
+
+      // Chỉ phản hồi lời cầu hôn đang chờ.
+      if (proposal.status !== 'pending') {
+        return NextResponse.json({ error: 'Lời cầu hôn này đã được xử lý.' }, { status: 409 });
+      }
+
       if (isAccepted) {
         // Accept proposal -> Official couple!
         db.prepare(`
@@ -1182,7 +1199,10 @@ export async function POST(request: Request) {
       } else {
         // Decline proposal -> Refund ring coins to proposer
         const ring = WEDDING_RINGS.find((r) => r.id === proposal.ring_type) || WEDDING_RINGS[0];
-        db.prepare('UPDATE users SET coins = coins + ? WHERE id = ?').run(ring.price, proposal.proposer_id);
+        // `proposer_id` có thể NULL với dữ liệu cũ → không hoàn nhầm cho ai khác.
+        if (proposal.proposer_id) {
+          db.prepare('UPDATE users SET coins = coins + ? WHERE id = ?').run(ring.price, proposal.proposer_id);
+        }
         db.prepare('DELETE FROM user_couples WHERE id = ?').run(proposalId);
         void syncDbToS3Now();
 
@@ -1309,15 +1329,39 @@ export async function POST(request: Request) {
     // 26. ACTION: FINISH BATTLE ROOM / KẾT THÚC TRẬN ĐẤU & TRAO THƯỞNG
     if (action === 'finish_battle_room') {
       const roomId = sanitizeText(body.roomId || '');
-      const winnerId = sanitizeText(body.winnerId || userId);
+      const requestedWinner = sanitizeText(body.winnerId || '');
       const room = db.prepare('SELECT * FROM pet_battle_rooms WHERE id = ?').get(roomId) as any;
 
-      if (room && room.status === 'in_progress') {
+      if (!room) {
+        return NextResponse.json({ error: 'Không tìm thấy phòng đấu.' }, { status: 404 });
+      }
+
+      // Người gọi BẮT BUỘC là host hoặc guest của phòng. Trước đây không có kiểm
+      // tra này: bất kỳ tài khoản nào đọc được roomId từ `activeRooms` đều kết
+      // thúc được phòng của người khác, chỉ định winnerId là chính mình và nhận
+      // `bet_coins × 2` — cướp tiền cược của người chơi khác.
+      const isParticipant = room.host_id === userId || room.guest_id === userId;
+      if (!isParticipant) {
+        return NextResponse.json({ error: 'Bạn không phải thành viên của phòng đấu này.' }, { status: 403 });
+      }
+
+      // Người thắng phải là một trong hai thành viên, không phải id tùy ý.
+      const winnerId = requestedWinner || userId;
+      if (winnerId !== room.host_id && winnerId !== room.guest_id) {
+        return NextResponse.json({ error: 'Người thắng không hợp lệ.' }, { status: 403 });
+      }
+
+      // Chuyển trạng thái với điều kiện: chỉ request đầu tiên mới được trao thưởng,
+      // chống gọi lặp trả thưởng nhiều lần (race giữa 2 request song song).
+      const claimed = db
+        .prepare("UPDATE pet_battle_rooms SET status = 'finished', winner_id = ? WHERE id = ? AND status = 'in_progress'")
+        .run(winnerId, roomId).changes;
+
+      if (claimed === 1) {
         const prizeCoins = room.bet_coins * 2;
         if (prizeCoins > 0) {
           db.prepare('UPDATE users SET coins = coins + ?, exp = exp + 50 WHERE id = ?').run(prizeCoins, winnerId);
         }
-        db.prepare("UPDATE pet_battle_rooms SET status = 'finished', winner_id = ? WHERE id = ?").run(winnerId, roomId);
       }
 
       const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
@@ -1325,7 +1369,9 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
-        message: 'Trận đấu đã kết thúc và trao thưởng thành công!',
+        message: claimed === 1
+          ? 'Trận đấu đã kết thúc và trao thưởng thành công!'
+          : 'Trận đấu này đã được kết thúc trước đó.',
         userCoins: freshUser?.coins || 0,
       });
     }

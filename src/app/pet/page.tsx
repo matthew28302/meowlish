@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
 import { getStoredUser, setStoredUser, AuthUser } from '@/lib/auth';
-import { PETS_CATALOG, SHOP_ITEMS, ShopItem, getPetTitle, checkCinnamorollAccess, CINNAMOROLL_ALLOWED_EMAILS } from '@/lib/petData';
+import { PETS_CATALOG, SHOP_ITEMS, ShopItem, getPetTitle } from '@/lib/petData';
 import confetti from '@/lib/confetti';
 import PixelFarmGame, { PixelFarmHandle } from '@/components/pet/PixelFarmGame';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
@@ -45,6 +45,17 @@ export default function PetPage() {
   // server -> React hydration mismatch. Việc khôi phục cache làm ở hydrateFromCache()
   // chạy trong useEffect (SAU khi hydration xong).
   const [petData, setPetData] = useState<any | null>(null);
+  // Cờ quyền Cinnamoroll do server gửi (GET /api/pet → `cinnamorollAccess`).
+  // Mặc định khoá: không đợi dữ liệu thì không cho đổi sang thú cưng đặc quyền.
+  const [cinnaServerAccess, setCinnaServerAccess] = useState<{
+    isUnlocked: boolean;
+    status: string;
+    message: string;
+  }>({
+    isUnlocked: false,
+    status: 'locked_not_logged_in',
+    message: 'Bé Cinnamoroll là Thú Cưng Độc Quyền Giới Hạn dành riêng cho Quản Trị Viên (Admin).',
+  });
   const [inventory, setInventory] = useState<any[]>([]);
   const [gardenDecor, setGardenDecor] = useState<any[]>([]);
   const [userCoins, setUserCoins] = useState<number>(0);
@@ -227,6 +238,7 @@ export default function PetPage() {
         if (data.incomingProposal !== undefined) setIncomingProposal(data.incomingProposal);
         if (data.activeRooms) setActiveRooms(data.activeRooms);
         if (data.recentChat) setRecentChat(data.recentChat);
+        if (data.cinnamorollAccess) setCinnaServerAccess(data.cinnamorollAccess);
         if (data.user?.coins !== undefined) {
           setUserCoins(data.user.coins);
           const stored = getStoredUser();
@@ -478,7 +490,11 @@ export default function PetPage() {
   // Action: Switch Pet Species (Optimistic Update)
   const handleSwitchPet = async (petId: string) => {
     if (petId === 'cinnamoroll') {
-      const access = checkCinnamorollAccess(currentUser);
+      // Dùng cờ do SERVER gửi kèm, không tự tính ở client: tính ở client đòi
+      // hỏi danh sách email được cấp quyền — mà danh sách đó là PII thật, tuyệt
+      // đối không được đóng gói vào bundle (đã từng bị phát hiện trong JS tải
+      // về cho mọi khách truy cập /pet).
+      const access = cinnaServerAccess;
       if (!access.isUnlocked) {
         sound.playWrong();
         if (access.status === 'locked_not_logged_in') {
@@ -2136,7 +2152,7 @@ export default function PetPage() {
                         if (!pet) return null;
                         const isCurrent = petData?.pet_type === pet.id;
                         const isCinnamoroll = pet.id === 'cinnamoroll';
-                        const cinnaAccess = isCinnamoroll ? checkCinnamorollAccess(currentUser) : null;
+                        const cinnaAccess = isCinnamoroll ? cinnaServerAccess : null;
                         const isLocked = isCinnamoroll && cinnaAccess && !cinnaAccess.isUnlocked;
 
                         return (

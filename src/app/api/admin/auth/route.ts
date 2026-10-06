@@ -116,7 +116,7 @@ export async function POST(request: Request) {
       const otpCode = generateOTP();
       const newSessionId = createOtpSession(otpCode);
 
-      // Send OTP to email vukiet28032002@gmail.com
+      // Send OTP to email <email quan tri>
       const sendResult = await sendAdminOtpEmail(otpCode);
 
       if (!sendResult.success) {

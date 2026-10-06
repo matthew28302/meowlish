@@ -377,6 +377,17 @@ function createDb(): Database.Database {
       PRIMARY KEY (user_id, kind)
     );
 
+    -- Hạn mức phần thưởng học tập theo ngày. itemId do client gửi lên nên kẻ
+    -- tấn công có thể bịa itemId mới mỗi request để né chống trùng; bảng này chặn
+    -- nốt đường đó bằng trần cứng cho tổng coins/exp trong ngày.
+    CREATE TABLE IF NOT EXISTS progress_daily_budget (
+      user_id TEXT NOT NULL,
+      day TEXT NOT NULL,
+      coins_spent INTEGER NOT NULL DEFAULT 0,
+      exp_spent INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (user_id, day)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_coin_tx_user_id ON coin_transactions(user_id);
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active_date);
@@ -850,6 +861,32 @@ export function rewardCooldownRemaining(userId: string, kind: RewardKind): numbe
     .get(userId, kind) as { claimed_at: number } | undefined;
   if (!row) return 0;
   return Math.max(0, row.claimed_at + cfg.cooldownMs - Date.now());
+}
+
+/** Trần phần thưởng học tập mỗi ngày — chặn mint coins bằng cách bịa itemId. */
+export const PROGRESS_DAILY_CAP = { coins: 250, exp: 500 } as const;
+
+/**
+ * Tiêu thụ hạn mức phần thưởng học tập trong ngày, nguyên tử.
+ *
+ * Trả về false nếu đã vượt trần (và KHÔNG ghi gì thêm). Toàn bộ kiểm tra + trừ
+ * nằm trong một câu `INSERT … ON CONFLICT … WHERE` nên request song song không
+ * thể cùng vượt trần.
+ */
+export function consumeProgressBudget(userId: string, day: string, coins: number, exp: number): boolean {
+  if (coins <= 0 && exp <= 0) return true;
+  const res = db
+    .prepare(
+      `INSERT INTO progress_daily_budget (user_id, day, coins_spent, exp_spent)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(user_id, day) DO UPDATE SET
+         coins_spent = progress_daily_budget.coins_spent + excluded.coins_spent,
+         exp_spent   = progress_daily_budget.exp_spent + excluded.exp_spent
+       WHERE progress_daily_budget.coins_spent + excluded.coins_spent <= ?
+         AND progress_daily_budget.exp_spent + excluded.exp_spent <= ?`
+    )
+    .run(userId, day, coins, exp, PROGRESS_DAILY_CAP.coins, PROGRESS_DAILY_CAP.exp);
+  return res.changes > 0;
 }
 
 // Background Filebase S3 Sync: tự động upload ngay khi có thao tác ghi dữ liệu mới
