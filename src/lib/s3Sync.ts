@@ -756,6 +756,64 @@ function getBucketName(): string {
 }
 
 /**
+ * Ghi dữ liệu QUAN TRỌNG (đăng ký tài khoản, đổi mật khẩu) rồi bảo đảm nó
+ * thực sự tồn tại trong bản dữ liệu chuẩn trên Filebase.
+ *
+ * VÌ SAO CẦN: khi hai instance cùng ghi, bản bị đánh bại sẽ bị `forkRejoin` tải
+ * bản remote đè lên và ghi cục bộ bị vứt (chỉ còn nằm trong key .conflict.db).
+ * Nghĩa là một tài khoản vừa đăng ký có thể biến mất khỏi hệ thống vài phút sau
+ * đó: người dùng thấy "đăng ký thành công" rồi không đăng nhập được nữa. Đã thấy
+ * hiện tượng này thật trên Filebase: user `kangyoungha` (tạo 14:51) chỉ còn trong
+ * english_learning.conflict.db, không có trong bản chính.
+ *
+ * Cách xử lý: ghi → đẩy lên → kiểm tra lại dữ liệu chuẩn. Nếu bản ghi biến mất
+ * (bị instance khác ghi đè) thì ghi lại và thử tối đa vài lần; lần sau baseVersion
+ * đã khớp remote nên sẽ thắng. `apply` phải idempotent.
+ */
+export async function persistCriticalWrite(
+  label: string,
+  apply: () => void,
+  verify: () => boolean,
+  maxAttempts = 3
+): Promise<{ persisted: boolean; attempts: number }> {
+  // Ngoài Vercel auto-sync tắt → ghi cục bộ là xong, không có remote để tranh chấp.
+  if (!autoSyncEnabled()) {
+    apply();
+    return { persisted: true, attempts: 1 };
+  }
+
+  let attempts = 0;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    attempts = attempt;
+    apply();
+    await syncDbToS3Now();
+
+    let ok = false;
+    try {
+      ok = verify();
+    } catch (err) {
+      logger.warn(`[S3 Persist] Không kiểm tra được "${label}":`, {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+    if (ok) {
+      if (attempt > 1) {
+        logger.warn(`[S3 Persist] "${label}" bị ghi đè ${attempt - 1} lần, đã ghi lại thành công.`);
+      }
+      return { persisted: true, attempts };
+    }
+
+    logger.error(
+      `[S3 Persist] "${label}" không còn trong dữ liệu chuẩn sau khi đồng bộ ` +
+        `(bản cục bộ bị instance khác ghi đè). Sẽ ghi lại (lần ${attempt}/${maxAttempts}).`
+    );
+  }
+
+  logger.error(`[S3 Persist] KHÔNG lưu được "${label}" sau ${maxAttempts} lần thử.`);
+  return { persisted: false, attempts };
+}
+
+/**
  * Gọi đồng bộ ngay lập tức lên Filebase S3 sau khi có mutation quan trọng (Register, Password, Coins, Admin)
  *
  * Ngoài Vercel (auto-sync tắt) hàm này là no-op — dùng POST /api/sync hoặc

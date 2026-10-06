@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { db, hashPassword } from '@/lib/db';
+import { db, hashPassword, verifyPassword } from '@/lib/db';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { logAccess, logEmail, logError } from '@/lib/systemLogs';
-import { syncDbToS3Now } from '@/lib/s3Sync';
+import { persistCriticalWrite } from '@/lib/s3Sync';
 import logger from '@/lib/logger';
 import { passwordResetTemplate, mailFrom, EMAIL_BRAND } from '@/lib/emailTemplates';
 import dns from 'dns';
@@ -149,8 +149,31 @@ export async function POST(request: Request) {
     try {
       await transporter.sendMail(mailOptions);
       // CHỈ cập nhật mật khẩu trong CSDL KHI email đã được gửi thành công đến người dùng!
-      db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(pwdHash, user.id);
-      syncDbToS3Now().catch(() => {});
+      // Ghi rồi kiểm tra lại: nếu bản ghi bị instance khác ghi đè mất thì người dùng
+      // sẽ nhận mật khẩu mà không dùng được (báo sai pass) — phải báo lỗi rõ ràng.
+      const applyReset = () => {
+        db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(pwdHash, user.id);
+      };
+      const resetPersisted = () => {
+        const row = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(user.id) as
+          | { password_hash: string }
+          | undefined;
+        return !!row && verifyPassword(newPassword, row.password_hash).ok;
+      };
+      const persistReset = await persistCriticalWrite(
+        `đặt lại mật khẩu @${user.username}`,
+        applyReset,
+        resetPersisted
+      );
+
+      if (!persistReset.persisted) {
+        logger.error(`Đặt lại mật khẩu @${user.username} không lưu được lên Filebase sau ${persistReset.attempts} lần thử.`);
+        return NextResponse.json(
+          { error: 'Chưa lưu được mật khẩu mới lên máy chủ. Vui lòng yêu cầu lại sau ít phút!' },
+          { status: 503 }
+        );
+      }
+
       logger.info(`Successfully sent password reset email to: ${recipientEmail}`);
 
       logEmail({

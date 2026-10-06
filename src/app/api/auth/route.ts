@@ -11,7 +11,7 @@ import {
 } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { logAccess, logError } from '@/lib/systemLogs';
-import { syncDbToS3Now, refreshIfRemoteNewer } from '@/lib/s3Sync';
+import { syncDbToS3Now, refreshIfRemoteNewer, persistCriticalWrite } from '@/lib/s3Sync';
 import logger from '@/lib/logger';
 
 function formatSafeUser(user: any) {
@@ -436,8 +436,11 @@ export async function POST(request: Request) {
       }
 
       // c) Đổi mật khẩu (bắt buộc nhập đúng mật khẩu hiện tại)
+      // newPasswordClean dùng lại ở bước xác minh "đã lưu thật sự" bên dưới.
+      let newPasswordClean = '';
       if (newPassword !== undefined && newPassword !== null && String(newPassword).length > 0) {
         const cleanNew = String(newPassword).trim();
+        newPasswordClean = cleanNew;
         const cleanCurrent = String(currentPassword || '');
         if (cleanNew.length < 6 || cleanNew.length > 100) {
           return NextResponse.json({ error: 'Mật khẩu mới phải từ 6 đến 100 ký tự.' }, { status: 400 });
@@ -465,13 +468,44 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Không có thay đổi nào để lưu.' }, { status: 400 });
       }
 
-      db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...params, userId);
-      void syncDbToS3Now();
+      // Đổi mật khẩu cũng phải "ghi rồi kiểm tra lại": nếu thay đổi bị instance
+      // khác ghi đè mất, người dùng sẽ tưởng đã đổi xong rồi không đăng nhập được
+      // bằng mật khẩu mới (đúng triệu chứng "báo sai pass").
+      const isPasswordChange = updates.includes('password_hash = ?');
+      const applyProfileUpdate = () => {
+        db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...params, userId);
+      };
+      const profilePersisted = () => {
+        const row = db.prepare('SELECT display_name, avatar, password_hash FROM users WHERE id = ?').get(userId) as
+          | { display_name: string; avatar: string; password_hash: string }
+          | undefined;
+        if (!row) return false;
+        if (isPasswordChange && !verifyPassword(newPasswordClean, row.password_hash).ok) return false;
+        if (displayName !== undefined && displayName !== null && row.display_name !== String(displayName).trim().replace(/\s+/g, ' ').slice(0, 30)) {
+          return false;
+        }
+        if (avatar !== undefined && avatar !== null && row.avatar !== String(avatar).trim()) return false;
+        return true;
+      };
+
+      const persistProfile = await persistCriticalWrite(
+        `cập nhật hồ sơ @${dbUser.username}`,
+        applyProfileUpdate,
+        profilePersisted
+      );
 
       const updatedUser = db.prepare(`
         SELECT id, username, email, display_name, avatar, streak, exp, level, coins, target_exam, role, status, two_factor_enabled, email_verified, created_at
         FROM users WHERE id = ?
       `).get(userId);
+
+      if (!updatedUser || !persistProfile.persisted) {
+        logger.error(`Cập nhật hồ sơ @${dbUser.username} không lưu được lên Filebase.`);
+        return NextResponse.json(
+          { error: 'Chưa lưu được thay đổi lên máy chủ. Vui lòng thử lại sau ít phút!' },
+          { status: 503 }
+        );
+      }
 
       const changedFields = updates.map((u) => u.split(' =')[0]).join(', ');
       logger.info(`User ${dbUser.username} updated profile fields: ${changedFields}`);
@@ -559,27 +593,61 @@ export async function POST(request: Request) {
       const today = new Date().toISOString().split('T')[0];
       const emailVerifiedStatus = cleanEmail ? 0 : 1; // Chưa xác thực nếu có email
 
-      // Tài khoản mới nhận 1000 Coins mặc định
-      db.prepare(`
-        INSERT INTO users (id, username, email, password_hash, display_name, avatar, streak, last_active_date, exp, level, coins, role, status, two_factor_enabled, email_verified)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1000, 'user', 'active', 0, ?)
-      `).run(id, cleanUsername, cleanEmail || null, pwdHash, name, '🐱', 1, today, 50, 1, emailVerifiedStatus);
+      // Ghi tài khoản mới rồi BẢO ĐẢM nó không bị mất.
+      //
+      // Vì sao cần bước này: DB là MỘT tệp SQLite 66MB trên Filebase, mọi
+      // instance Vercel đều giữ một bản riêng và đẩy nguyên tệp lên. Khi hai
+      // instance ghi cùng lúc, bản bị đánh bại bị tải bản remote đè lên và ghi
+      // cục bộ bị vứt → tài khoản vừa đăng ký biến mất vài phút sau, người dùng
+      // thấy "đăng ký thành công" nhưng không đăng nhập được nữa. Đã xảy ra thật:
+      // user kangyoungha chỉ còn trong english_learning.conflict.db.
+      // INSERT OR IGNORE giúp apply() idempotent để ghi lại được nhiều lần.
+      const applyRegistration = () => {
+        // Tài khoản mới nhận 1000 Coins mặc định
+        db.prepare(`
+          INSERT OR IGNORE INTO users (id, username, email, password_hash, display_name, avatar, streak, last_active_date, exp, level, coins, role, status, two_factor_enabled, email_verified)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1000, 'user', 'active', 0, ?)
+        `).run(id, cleanUsername, cleanEmail || null, pwdHash, name, '🐱', 1, today, 50, 1, emailVerifiedStatus);
 
-      // Tự động cấp thú cưng khởi đầu cho tài khoản mới
-      db.prepare(`
-        INSERT OR IGNORE INTO user_pets (user_id, pet_type, pet_name, level, exp, hunger, happiness, energy, selected_habitat, equipped_hat, equipped_outfit, equipped_accessory)
-        VALUES (?, 'cat', 'Meowlish', 1, 0, 90, 95, 100, 'emerald_garden', 'grad_cap', 'none', 'none')
-      `).run(id);
+        // Tự động cấp thú cưng khởi đầu cho tài khoản mới
+        db.prepare(`
+          INSERT OR IGNORE INTO user_pets (user_id, pet_type, pet_name, level, exp, hunger, happiness, energy, selected_habitat, equipped_hat, equipped_outfit, equipped_accessory)
+          VALUES (?, 'cat', 'Meowlish', 1, 0, 90, 95, 100, 'emerald_garden', 'grad_cap', 'none', 'none')
+        `).run(id);
 
-      db.prepare(`
-        INSERT OR IGNORE INTO pet_inventory (id, user_id, item_id, item_type, is_equipped)
-        VALUES (?, ?, 'grad_cap', 'hat', 1)
-      `).run(`inv_${id}_1`, id);
+        db.prepare(`
+          INSERT OR IGNORE INTO pet_inventory (id, user_id, item_id, item_type, is_equipped)
+          VALUES (?, ?, 'grad_cap', 'hat', 1)
+        `).run(`inv_${id}_1`, id);
+      };
+      const registrationPersisted = () => !!db.prepare('SELECT id FROM users WHERE id = ?').get(id);
+
+      const persistResult = await persistCriticalWrite(
+        `đăng ký tài khoản @${cleanUsername}`,
+        applyRegistration,
+        registrationPersisted
+      );
 
       const newUser = db.prepare(`
         SELECT id, username, email, display_name, avatar, streak, exp, level, coins, target_exam, role, status, two_factor_enabled, email_verified, created_at 
         FROM users WHERE id = ?
       `).get(id);
+
+      if (!newUser || !persistResult.persisted) {
+        logger.error(`Đăng ký @${cleanUsername} không lưu được lên Filebase sau ${persistResult.attempts} lần thử.`);
+        logAccess({
+          username: cleanUsername,
+          action: 'register_failed',
+          ip: clientIp,
+          user_agent: userAgent,
+          status: 'failed',
+          details: 'Không đồng bộ được tài khoản lên Filebase (bị instance khác ghi đè)',
+        });
+        return NextResponse.json(
+          { error: 'Chưa lưu được tài khoản lên máy chủ do hệ thống đang bận. Vui lòng thử lại sau ít phút!' },
+          { status: 503 }
+        );
+      }
 
       // Nếu có email, tự động gửi mã OTP xác thực email đầu tiên
       let verifySessionId = null;
