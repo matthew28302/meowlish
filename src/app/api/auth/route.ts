@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db, hashPassword, sanitizeText } from '@/lib/db';
+import { db, hashPassword, verifyPassword, sanitizeText } from '@/lib/db';
 import {
   generateUserOTP,
   createUserOtpSession,
@@ -445,7 +445,7 @@ export async function POST(request: Request) {
         if (!cleanCurrent) {
           return NextResponse.json({ error: 'Vui lòng nhập mật khẩu hiện tại để đổi mật khẩu.' }, { status: 400 });
         }
-        if (hashPassword(cleanCurrent) !== dbUser.password_hash) {
+        if (!verifyPassword(cleanCurrent, dbUser.password_hash).ok) {
           logAccess({
             user_id: userId,
             username: dbUser.username,
@@ -518,6 +518,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // Đăng ký: ghi bằng scheme MỚI (scrypt + salt riêng cho từng tài khoản).
     const pwdHash = hashPassword(cleanPassword);
 
     // 5. ACTION: REGISTER (ĐĂNG KÝ MỚI)
@@ -676,8 +677,9 @@ export async function POST(request: Request) {
       FROM users WHERE username = ?
     `;
     let user = db.prepare(userQuery).get(cleanUsername) as any;
+    let pwdCheck = user ? verifyPassword(cleanPassword, user.password_hash) : { ok: false, needsRehash: false, scheme: 'unknown' as const };
 
-    if (!user || user.password_hash !== pwdHash) {
+    if (!user || !pwdCheck.ok) {
       // Instance này có thể đang giữ bản SQLite CŨ trong /tmp (user vừa đăng ký
       // hoặc đổi mật khẩu ở instance khác, bản mới chưa kịp về đây). Thử làm
       // tươi từ Filebase rồi tra lại MỘT lần trước khi báo lỗi (throttle 1 lần/
@@ -685,10 +687,11 @@ export async function POST(request: Request) {
       const refreshed = await refreshIfRemoteNewer('login-retry');
       if (refreshed) {
         user = db.prepare(userQuery).get(cleanUsername) as any;
+        pwdCheck = user ? verifyPassword(cleanPassword, user.password_hash) : { ok: false, needsRehash: false, scheme: 'unknown' as const };
       }
     }
 
-    if (!user || user.password_hash !== pwdHash) {
+    if (!user || !pwdCheck.ok) {
       logger.warn(`Failed login attempt for username: ${cleanUsername}`);
       logAccess({
         username: cleanUsername,
@@ -702,6 +705,21 @@ export async function POST(request: Request) {
         { error: 'Tên đăng nhập hoặc mật khẩu không chính xác' },
         { status: 401 }
       );
+    }
+
+    // Tự chữa dữ liệu: tài khoản này còn hash kiểu cũ (SHA-256 + salt) nên khi
+    // đăng nhập thành công ta có plaintext để nâng cấp ngay lập tức sang scrypt.
+    // Nhờ vậy dữ liệu tự lành dần mà không cần reset mật khẩu cho người dùng.
+    if (pwdCheck.needsRehash) {
+      try {
+        db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hashPassword(cleanPassword), user.id);
+        void syncDbToS3Now();
+        logger.info(`[Auth] Đã nâng cấp hash mật khẩu cho @${cleanUsername} (${pwdCheck.scheme} -> scrypt)`);
+      } catch (err) {
+        logger.warn('[Auth] Nâng cấp hash mật khẩu thất bại (đăng nhập vẫn thành công):', {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
 
     if (user.role === 'admin') {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db, hashPassword } from '@/lib/db';
+import { db, verifyPassword } from '@/lib/db';
 import {
   generateOTP,
   createOtpSession,
@@ -96,8 +96,10 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Tài khoản quản trị không tồn tại.' }, { status: 401 });
       }
 
-      const inputHash = hashPassword(cleanPass);
-      if (admin.password_hash !== inputHash) {
+      // verifyPassword chấp nhận cả hash cũ (SHA-256 + salt) lẫn hash mới
+      // (scrypt) → admin không bị khoá ngoài khi salt đổi giữa các môi trường.
+      const adminPwdCheck = verifyPassword(cleanPass, admin.password_hash);
+      if (!adminPwdCheck.ok) {
         logger.warn('Admin 2FA login failed: incorrect password');
         logAccess({
           username: 'admin',

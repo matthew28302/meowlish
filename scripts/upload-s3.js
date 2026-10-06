@@ -10,8 +10,14 @@ const dbDir = isVercel ? path.join('/tmp', 'data') : path.join(process.cwd(), 'd
 const dbPath = path.join(dbDir, 'english_learning.db');
 
 const S3_ENDPOINT = process.env.FILEBASE_ENDPOINT || 'https://s3.filebase.io';
-const S3_ACCESS_KEY = process.env.FILEBASE_ACCESS_KEY || 'C4BA6129BC024529E82F';
-const S3_SECRET_KEY = process.env.FILEBASE_SECRET_KEY || 'jdnwJ3jTFVCQQr4pnnc5HfZg4foktCgpImDiPtmW';
+// KHÔNG hardcode khoá (bản cũ chứa khoá thật trong git — ai đọc repo là nắm
+// được toàn bộ database production). Thiếu biến môi trường thì dừng ngay.
+const S3_ACCESS_KEY = process.env.FILEBASE_ACCESS_KEY || '';
+const S3_SECRET_KEY = process.env.FILEBASE_SECRET_KEY || '';
+if (!S3_ACCESS_KEY || !S3_SECRET_KEY) {
+  console.error('[S3 Upload] Thiếu FILEBASE_ACCESS_KEY/FILEBASE_SECRET_KEY trong môi trường.');
+  process.exit(1);
+}
 const S3_REGION = (process.env.FILEBASE_REGION && process.env.FILEBASE_REGION !== 'auto') ? process.env.FILEBASE_REGION : 'us-east-1';
 const S3_BUCKET = process.env.FILEBASE_BUCKET_NAME || 'meowlish-db';
 const DB_FILENAME = 'english_learning.db';

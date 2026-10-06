@@ -725,8 +725,10 @@ export function startAutoSync(): void {
 
 export function getS3Client(): S3Client | null {
   const S3_ENDPOINT = process.env.FILEBASE_ENDPOINT || 'https://s3.filebase.io';
-  const S3_ACCESS_KEY = process.env.FILEBASE_ACCESS_KEY || 'C4BA6129BC024529E82F';
-  const S3_SECRET_KEY = process.env.FILEBASE_SECRET_KEY || 'jdnwJ3jTFVCQQr4pnnc5HfZg4foktCgpImDiPtmW';
+  // KHÔNG hardcode khoá: secret chỉ lấy từ biến môi trường. Khoá nằm trong
+  // source = ai đọc được repo là nắm được toàn bộ database production.
+  const S3_ACCESS_KEY = process.env.FILEBASE_ACCESS_KEY || '';
+  const S3_SECRET_KEY = process.env.FILEBASE_SECRET_KEY || '';
   const rawRegion = process.env.FILEBASE_REGION;
   const S3_REGION = (rawRegion && rawRegion !== 'auto') ? rawRegion : 'us-east-1';
 

@@ -17,10 +17,107 @@ declare global {
   var __dbInstance: Database.Database | undefined;
 }
 
-// Secure password hashing with salt (SHA-256 + salt)
+/**
+ * Salt MỚI (bắt buộc chọn 1 giá trị duy nhất cho mọi môi trường).
+ * Đặt biến môi trường AUTH_SALT giống nhau ở local và production, nếu không có
+ * thì cả hai dùng LEGACY_PASSWORD_SALT.
+ */
+const LEGACY_PASSWORD_SALT = 'english_for_me_salt_2026';
+
+/** Salt đang có hiệu lực ở instance này. */
+function currentPasswordSalt(): string {
+  return process.env.AUTH_SALT || LEGACY_PASSWORD_SALT;
+}
+
+// Thông số scrypt (lưu trong chính chuỗi hash để tương lai tăng được cost)
+const PASSWORD_SCHEME = 'scrypt';
+const SCRYPT_N = 16384;
+const SCRYPT_R = 8;
+const SCRYPT_P = 1;
+const SCRYPT_KEYLEN = 64;
+
+/**
+ * Băm mật khẩu (SCHEME MỚI): scrypt + salt NGẪU NHIÊN RIÊNG cho từng người.
+ * Cấu trúc: scrypt$N$r$p$saltBase64$hashBase64
+ * - Salt per-user ⇒ 2 người cùng đặt mật khẩu giống nhau sẽ có hash khác nhau
+ *   (SHA-256 + salt chung để lộ ra điều này, xem verifyPassword bên dưới).
+ * - Có version → có thể nâng cost/nâng cấp thuật toán về sau mà không phá dữ liệu cũ.
+ */
 export function hashPassword(password: string): string {
-  const salt = process.env.AUTH_SALT || 'english_for_me_salt_2026';
+  const salt = crypto.randomBytes(16);
+  const derived = crypto.scryptSync(password, salt, SCRYPT_KEYLEN, {
+    N: SCRYPT_N,
+    r: SCRYPT_R,
+    p: SCRYPT_P,
+  });
+  return `${PASSWORD_SCHEME}$${SCRYPT_N}$${SCRYPT_R}$${SCRYPT_P}$${salt.toString('base64')}$${derived.toString('base64')}`;
+}
+
+/** Hash kiểu CŨ: SHA-256(password + salt) — chỉ dùng để ĐỌC/so khớp dữ liệu cũ. */
+export function hashPasswordLegacy(password: string, salt: string = currentPasswordSalt()): string {
   return crypto.createHash('sha256').update(password + salt).digest('hex');
+}
+
+function safeEqualsHex(a: string, b: string): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  try {
+    return crypto.timingSafeEqual(Buffer.from(a, 'hex'), Buffer.from(b, 'hex'));
+  } catch {
+    return false;
+  }
+}
+
+export type PasswordCheck = {
+  ok: boolean;
+  /** true = khớp bằng thuật toán/salt CŨ ⇒ nên nâng cấp lại hash khi có plaintext. */
+  needsRehash: boolean;
+  scheme: 'scrypt' | 'legacy-current' | 'legacy-fallback' | 'unknown';
+};
+
+/**
+ * Kiểm tra mật khẩu, chấp nhận CẢ hash cũ lẫn hash mới.
+ *
+ * VÌ SAO phải chấp nhận "legacy-fallback":
+ *   Khi Vercel mới có env AUTH_SALT trong khi máy local (và các tài khoản tạo
+ *   trước đó) dùng salt fallback, hash của họ được tính bằng salt fallback.
+ *   Instance nào chỉ thử salt hiện hành sẽ từ chối đúng mật khẩu đó → "sai mật
+ *   khẩu" dù người dùng không đổi gì. Đây là nguyên nhân đăng nhập hỏng riêng
+ *   trên production. Thử cả hai salt giúp mọi tài khoản cũ đăng nhập lại được.
+ */
+export function verifyPassword(password: string, storedHash: string | null | undefined): PasswordCheck {
+  if (!storedHash || typeof storedHash !== 'string') return { ok: false, needsRehash: false, scheme: 'unknown' };
+
+  // (1) Scheme mới: scrypt
+  if (storedHash.startsWith(`${PASSWORD_SCHEME}$`)) {
+    const parts = storedHash.split('$');
+    const [, nRaw, rRaw, pRaw, saltB64, hashB64] = parts;
+    if (!nRaw || !rRaw || !pRaw || !saltB64 || !hashB64) return { ok: false, needsRehash: false, scheme: 'unknown' };
+    try {
+      const expected = Buffer.from(hashB64, 'base64');
+      const actual = crypto.scryptSync(password, Buffer.from(saltB64, 'base64'), expected.length, {
+        N: Number(nRaw),
+        r: Number(rRaw),
+        p: Number(pRaw),
+      });
+      const ok = actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
+      return { ok, needsRehash: false, scheme: 'scrypt' };
+    } catch {
+      return { ok: false, needsRehash: false, scheme: 'unknown' };
+    }
+  }
+
+  // (2) Scheme cũ: SHA-256 + salt hiện hành
+  if (safeEqualsHex(hashPasswordLegacy(password), storedHash)) {
+    return { ok: true, needsRehash: true, scheme: 'legacy-current' };
+  }
+
+  // (3) Scheme cũ: SHA-256 + salt fallback (tài khoản tạo trước khi có AUTH_SALT)
+  const current = currentPasswordSalt();
+  if (current !== LEGACY_PASSWORD_SALT && safeEqualsHex(hashPasswordLegacy(password, LEGACY_PASSWORD_SALT), storedHash)) {
+    return { ok: true, needsRehash: true, scheme: 'legacy-fallback' };
+  }
+
+  return { ok: false, needsRehash: false, scheme: 'unknown' };
 }
 
 /**
@@ -29,8 +126,7 @@ export function hashPassword(password: string): string {
  * có fingerprint khác nhau → hash mật khẩu không bao giờ khớp (mất đăng nhập).
  */
 function getAuthSaltFingerprint(): string {
-  const salt = process.env.AUTH_SALT || 'english_for_me_salt_2026';
-  return crypto.createHash('sha256').update(salt).digest('hex').slice(0, 12);
+  return crypto.createHash('sha256').update(currentPasswordSalt()).digest('hex').slice(0, 12);
 }
 
 /**
@@ -469,18 +565,34 @@ function createDb(): Database.Database {
         VALUES (?, 'doraemon', 'Doraemon Admin', 99, 9999, 100, 100, 100, 'doraemon_field', 'bamboo_copter', 'none', 'none')
       `).run('user_admin_root');
     } else {
-      // WHERE có điều kiện khác biệt: nếu hash/role/status đã đúng thì 0 dòng bị
-      // ảnh hưởng → KHÔNG có ghi dữ liệu → không làm dirty DB khi boot.
-      db.prepare(`
-        UPDATE users
-        SET password_hash = ?, role = 'admin', status = 'active'
-        WHERE username = 'admin'
-          AND (password_hash <> ? OR role <> 'admin' OR status <> 'active')
-      `).run(adminPwdHash, adminPwdHash);
+      // Chỉ ghi khi THẬT SỰ cần: hash sai (kiểm tra bằng verifyPassword vì
+      // hashPassword nay có salt ngẫu nhiên → so sánh `password_hash <> ?` sẽ
+      // LUÔN đúng và làm DB bị ghi ở mỗi lần cold start, dẫn tới upload 66MB
+      // liên tục giữa các instance Vercel).
+      const adminRow = db
+        .prepare('SELECT password_hash, role, status FROM users WHERE username = ?')
+        .get('admin') as { password_hash: string; role: string | null; status: string | null } | undefined;
+
+      const pwdBroken = !verifyPassword('28032002Aa@', adminRow?.password_hash).ok;
+      const metaBroken = adminRow?.role !== 'admin' || adminRow?.status !== 'active';
+      if (adminRow && (pwdBroken || metaBroken)) {
+        db.prepare(`
+          UPDATE users
+          SET password_hash = ?, role = 'admin', status = 'active'
+          WHERE username = 'admin'
+        `).run(pwdBroken ? hashPassword('28032002Aa@') : adminRow.password_hash);
+      }
     }
 
-    // Clear old AI cache to ensure all explanations use the new 100% Vietnamese prompt format
-    db.exec("DELETE FROM ai_translation_cache WHERE query_type = 'pedagogy';");
+    // Clear old AI cache to ensure all explanations use the new 100% Vietnamese prompt format.
+    // CHỈ xoá khi thực sự có dòng cần xoá: DELETE rỗng vẫn làm WAL đổi → mỗi lần
+    // cold start lại ghi DB và kích hoạt upload, tăng nguy cơ xung đột S3.
+    const pedagogyCache = db
+      .prepare("SELECT COUNT(*) AS c FROM ai_translation_cache WHERE query_type = 'pedagogy'")
+      .get() as { c: number } | undefined;
+    if ((pedagogyCache?.c ?? 0) > 0) {
+      db.exec("DELETE FROM ai_translation_cache WHERE query_type = 'pedagogy';");
+    }
   } catch (err) {
     console.warn('Migration notice:', err);
   }
@@ -584,7 +696,32 @@ function createDb(): Database.Database {
     }
   }
 
+  reportLegacyPasswordRows(db);
+
   return db;
+}
+
+/**
+ * Báo cáo (chỉ log, KHÔNG ghi DB) có bao nhiêu tài khoản còn dùng hash kiểu cũ
+ * SHA-256. verifyPassword chấp nhận hash cũ nên các tài khoản này vẫn đăng nhập
+ * được; chúng sẽ tự được nâng cấp (rehash) ngay lần đăng nhập kế tiếp. Con số này
+ * giảm dần → hệ thống đã tự chữa xong.
+ */
+function reportLegacyPasswordRows(db: Database.Database): void {
+  try {
+    const rows = db.prepare('SELECT password_hash FROM users').all() as { password_hash: string | null }[];
+    const legacy = rows.filter((r) => typeof r.password_hash === 'string' && !r.password_hash.startsWith(`${PASSWORD_SCHEME}$`)).length;
+    if (legacy === 0) {
+      console.log(`[SQLite DB] Mật khẩu: 0/${rows.length} tài khoản dùng hash cũ (toàn bộ đã ở chuẩn scrypt).`);
+    } else {
+      console.warn(
+        `[SQLite DB] Mật khẩu: ${legacy}/${rows.length} tài khoản còn hash SHA-256 cũ — ` +
+          'vẫn đăng nhập được và sẽ tự nâng cấp sang scrypt khi họ đăng nhập.'
+      );
+    }
+  } catch (err) {
+    console.warn('[SQLite DB] Không thống kê được hash mật khẩu:', err);
+  }
 }
 
 // Bảng sync_meta + trigger theo dõi ghi dữ liệu: mỗi INSERT/UPDATE/DELETE vào các
