@@ -610,16 +610,20 @@ async function reconcileWithRemote(trigger: string): Promise<void> {
  * - remote mới hơn + cục bộ sạch → downloadDbFromS3() (quy tắc an toàn riêng).
  * Lỗi mạng nuốt trong catch — không bao giờ làm hỏng request.
  *
+ * @param opts.force bỏ qua throttle 15s/instance. Chỉ dùng khi request đang
+ *   tra cứu một bản ghi mà instance KHÔNG CÓ (user vừa đăng ký ở instance khác):
+ *   đây là lúc instance lạnh có bản /tmp cũ, không throttle thì người dùng phải
+ *   thử lại nhiều lần mới vào được. Vẫn chặn khi đang sync để không tranh nhau.
  * @returns true nếu vừa tải bản mới về (request nên đọc lại DB).
  */
 let lastReadRefreshAt = 0;
 const READ_REFRESH_MIN_INTERVAL_MS = isVercel ? 15_000 : 60_000;
 
-export async function refreshIfRemoteNewer(trigger: string): Promise<boolean> {
+export async function refreshIfRemoteNewer(trigger: string, opts?: { force?: boolean }): Promise<boolean> {
   if (!autoSyncEnabled()) return false;
   if (state.isSyncing) return false;
   const now = Date.now();
-  if (now - lastReadRefreshAt < READ_REFRESH_MIN_INTERVAL_MS) return false;
+  if (!opts?.force && now - lastReadRefreshAt < READ_REFRESH_MIN_INTERVAL_MS) return false;
   lastReadRefreshAt = now;
 
   const s3 = getS3Client();

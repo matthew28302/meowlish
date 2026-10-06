@@ -681,10 +681,14 @@ export async function POST(request: Request) {
 
     if (!user || !pwdCheck.ok) {
       // Instance này có thể đang giữ bản SQLite CŨ trong /tmp (user vừa đăng ký
-      // hoặc đổi mật khẩu ở instance khác, bản mới chưa kịp về đây). Thử làm
-      // tươi từ Filebase rồi tra lại MỘT lần trước khi báo lỗi (throttle 1 lần/
-      // 15s/instance nên không tạo tải S3).
-      const refreshed = await refreshIfRemoteNewer('login-retry');
+      // hoặc đổi mật khẩu ở instance khác, bản mới chưa kịp về đây) → làm tươi
+      // từ Filebase rồi tra lại. Hai tình huống khác nhau:
+      // - KHÔNG có dòng user ⇒ instance lạnh đang giữ bản cũ ⇒ ép refresh (bỏ
+      //   throttle), nếu không người dùng phải thử lại nhiều lần mới vào được.
+      // - CÓ dòng nhưng hash không khớp ⇒ refresh thường (throttle 15s/instance).
+      const refreshed = await refreshIfRemoteNewer(!user ? 'login-missing-user' : 'login-retry', {
+        force: !user,
+      });
       if (refreshed) {
         user = db.prepare(userQuery).get(cleanUsername) as any;
         pwdCheck = user ? verifyPassword(cleanPassword, user.password_hash) : { ok: false, needsRehash: false, scheme: 'unknown' as const };
@@ -692,14 +696,18 @@ export async function POST(request: Request) {
     }
 
     if (!user || !pwdCheck.ok) {
-      logger.warn(`Failed login attempt for username: ${cleanUsername}`);
+      // Phân biệt trong log nội bộ: "không có tài khoản" (DB lệch phiên bản) với
+      // "sai mật khẩu" (người dùng gõ sai). Thông báo trả về vẫn chung để không
+      // lộ ra tài khoản nào tồn tại.
+      const reason = !user ? 'Không tìm thấy tài khoản ở instance này (DB có thể chưa đồng bộ)' : 'Mật khẩu không khớp';
+      logger.warn(`Failed login attempt for username: ${cleanUsername} — ${reason}`);
       logAccess({
         username: cleanUsername,
         action: 'login_failed',
         ip: clientIp,
         user_agent: userAgent,
         status: 'failed',
-        details: 'Sai tên đăng nhập hoặc mật khẩu',
+        details: reason,
       });
       return NextResponse.json(
         { error: 'Tên đăng nhập hoặc mật khẩu không chính xác' },
