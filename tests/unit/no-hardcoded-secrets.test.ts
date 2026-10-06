@@ -18,8 +18,19 @@ const ROOT = process.cwd();
 const SCAN_DIRS = ['src', 'scripts'];
 const SKIP_FILE = /(\.test\.|\.spec\.|_tmp-|\.bak)/i;
 
-/** File bị bỏ qua: file test này chứa chính các mẫu cần dò. */
-const SELF = path.join('tests', 'unit', 'no-hardcoded-secrets.test.ts');
+/**
+ * File bị bỏ qua có chủ đích.
+ *
+ * - File test này chứa chính các mẫu cần dò.
+ * - `scan-script-secrets.selftest.mjs` cố tình chứa chuỗi giống bí mật làm
+ *   probe để chứng minh scanner thật sự bắt được. Đó là dữ liệu kiểm thử, không
+ *   phải khoá thật. Nếu muốn dò file này, hãy sửa probe để ghép từ mảnh chuỗi.
+ */
+const ALLOWED_FILES = new Set([
+  'tests/unit/no-hardcoded-secrets.test.ts',
+  'scripts/scan-script-secrets.selftest.mjs',
+]);
+const SELF = 'tests/unit/no-hardcoded-secrets.test.ts';
 
 function walk(dir: string, out: string[] = []): string[] {
   const full = path.join(ROOT, dir);
@@ -89,6 +100,7 @@ describe('khong co secret hardcode trong source', () => {
 
   for (const f of files) {
     if (SKIP_FILE.test(f)) continue;
+    if (ALLOWED_FILES.has(f)) continue;
 
     it(`${f} khong chua secret hardcode`, () => {
       const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
