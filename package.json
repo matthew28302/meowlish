@@ -8,7 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:merge-conflicts": "node scripts/merge-conflict-users.mjs",
+    "db:pg:download": "node scripts/pg/00-download-prod-db.mjs",
+    "db:pg:schema": "node scripts/pg/01-create-schema.mjs --apply",
+    "db:pg:import": "node scripts/pg/02-import-user-data.mjs --apply",
+    "db:pg:verify": "node scripts/pg/03-verify.mjs",
+    "db:pg:smoke": "tsx scripts/pg/04-smoke-adapter.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1138.0",

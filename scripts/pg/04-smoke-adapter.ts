@@ -1,7 +1,20 @@
 // Smoke test adapter `src/lib/pg.ts` trên Supabase thật: đọc, ghi, transaction
 // rollback, kiểu dữ liệu bigint, và câu SQL dạng SQLite (`?`) chuyển đổi.
-// Chạy: DATABASE_URL=... npx tsx scripts/pg/04-smoke-adapter.ts
+// Chạy: npx tsx scripts/pg/04-smoke-adapter.ts   (đọc DATABASE_URL từ .env.local)
+import fs from 'fs';
+import path from 'path';
 import { pgDb } from '../../src/lib/pg';
+
+// Nạp .env.local để KHÔNG phải dán mật khẩu DB vào dòng lệnh (lọt vào history).
+const envFile = path.join(process.cwd(), '.env.local');
+if (fs.existsSync(envFile)) {
+  for (const line of fs.readFileSync(envFile, 'utf8').split(/\r?\n/)) {
+    const i = line.indexOf('=');
+    if (i <= 0 || line.trim().startsWith('#')) continue;
+    const k = line.slice(0, i).trim();
+    if (process.env[k] === undefined) process.env[k] = line.slice(i + 1).trim();
+  }
+}
 
 const results: { label: string; pass: boolean; extra?: string }[] = [];
 const ok = (label: string, pass: boolean, extra = '') => results.push({ label, pass, extra });
