@@ -19,11 +19,6 @@ import {
 } from 'lucide-react';
 import { getStoredUser } from '@/lib/auth';
 
-export const metadata: Metadata = {
-  title: 'Luyện Nghe Tiếng Anh Phản Xạ - Meowlish',
-  description: 'Luyện nghe tiếng Anh phản xạ với các tình huống giao tiếp thực tế, bài nghe theo chủ đề IT và đời sống.',
-};
-
 export default function ListeningPracticePage() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);

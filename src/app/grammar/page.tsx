@@ -32,11 +32,6 @@ import {
 import confetti from '@/lib/confetti';
 import { getStoredUser } from '@/lib/auth';
 
-export const metadata: Metadata = {
-  title: 'Ngữ Pháp Lego Trực Quan - Meowlish',
-  description: 'Học ngữ pháp tiếng Anh bằng phương pháp Lego trực quan: ghép khối màu theo cấu trúc câu, ghi nhớ tự nhiên không học vẹt.',
-};
-
 export default function GrammarPage() {
   const [selectedLesson, setSelectedLesson] = useState<GrammarLesson>(GRAMMAR_LESSONS[0]);
   const [activeTenseIdx, setActiveTenseIdx] = useState(0);

@@ -4,12 +4,6 @@ import type { Metadata } from 'next';
 import React from 'react';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
 
-export const metadata: Metadata = {
-  title: 'Pet Test - Meowlish',
-  description: 'Trang kiểm tra thú cưng nội bộ.',
-  robots: { index: false, follow: false },
-};
-
 export default function PetTestPage() {
   const speciesList = [
     'hello_kitty', 'kuromi', 'cinnamoroll', 'my_melody', 'pompompurin', 'keroppi',

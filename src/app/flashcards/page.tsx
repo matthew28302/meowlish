@@ -32,11 +32,6 @@ interface FlashcardItem {
   source: 'bookmark' | 'curated';
 }
 
-export const metadata: Metadata = {
-  title: 'Flashcard 3D Spaced Repetition - Meowlish',
-  description: 'Lật thẻ ghi nhớ từ vựng với thuật toán lặp lại ngắt quãng (SRS), hệ thống 3D và sổ tay từ vựng cá nhân.',
-};
-
 export default function FlashcardsPage() {
   const [deck, setDeck] = useState<FlashcardItem[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);

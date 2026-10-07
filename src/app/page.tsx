@@ -42,11 +42,6 @@ import { PETS_CATALOG, getPetTitle } from '@/lib/petData';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
 import { LEARNING_PATHS, LearningPath, PathNode } from '@/lib/learningPathsData';
 
-export const metadata: Metadata = {
-  title: 'Trang Chủ - Meowlish',
-  description: 'Meowlish - Nền tảng học tiếng Anh giao tiếp & IT thực chiến với thú cưng 2.5D, ngữ pháp Lego, từ vựng 26.500+ từ và luyện nói AI.',
-};
-
 export default function HomePage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [userPet, setUserPet] = useState<any>(null);

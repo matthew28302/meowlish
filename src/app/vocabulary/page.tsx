@@ -19,11 +19,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-export const metadata: Metadata = {
-  title: 'Từ Vựng Tiếng Anh IT & Giao Tiếp - Meowlish',
-  description: 'Học từ vựng tiếng Anh chuyên ngành IT, giao tiếp hàng ngày theo chủ đề với phiên âm IPA, ví dụ thực chiến và bài tập phản xạ.',
-};
-
 export default function VocabularyPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');

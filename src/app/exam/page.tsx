@@ -35,11 +35,6 @@ import { getStoredUser, AuthUser } from '@/lib/auth';
 
 type ExamMode = 'catalog' | 'testing' | 'result';
 
-export const metadata: Metadata = {
-  title: 'Thi Thử TOEIC IELTS & Bài Quiz - Meowlish',
-  description: 'Phòng thi thử định dạng chuẩn TOEIC, IELTS với đồng hồ đếm ngược, chấm điểm và giải thích đáp án chi tiết từng câu.',
-};
-
 export default function ExamPage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [mode, setMode] = useState<ExamMode>('catalog');

@@ -116,12 +116,6 @@ interface SupportCounts {
   resolved: number;
 }
 
-export const metadata: Metadata = {
-  title: 'Quản Trị - Meowlish',
-  description: 'Trang quản trị nội bộ Meowlish.',
-  robots: { index: false, follow: false },
-};
-
 export default function DuaHauAdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [adminToken, setAdminToken] = useState<string | null>(null);

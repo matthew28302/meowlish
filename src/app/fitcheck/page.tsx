@@ -27,11 +27,6 @@ const CASES: Array<{ species: string; outfit: string }> = [
  * TEMPORARY visual verification harness for non-standard torso fits.
  * DELETE before finishing.
  */
-export const metadata: Metadata = {
-  title: 'Fit Check - Meowlish',
-  description: 'Trang kiểm tra thời trang thú cưng nội bộ.',
-  robots: { index: false, follow: false },
-};
 
 export default function FitCheckPage() {
   return (

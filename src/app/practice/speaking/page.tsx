@@ -29,11 +29,6 @@ import {
 import MascotCompanion from '@/components/MascotCompanion';
 import { getStoredUser } from '@/lib/auth';
 
-export const metadata: Metadata = {
-  title: 'Luyện Nói AI Voice & Phát Âm IPA - Meowlish',
-  description: 'Luyện nói tiếng Anh với AI Voice: chấm điểm phát âm chuẩn từng âm tiết IPA, phát hiện lỗi sai và luyện phản xạ giao tiếp.',
-};
-
 export default function SpeakingPracticePage() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isListening, setIsListening] = useState(false);

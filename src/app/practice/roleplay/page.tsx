@@ -24,11 +24,6 @@ import { getStoredUser } from '@/lib/auth';
 
 type RoleplayMode = 'select' | 'playing';
 
-export const metadata: Metadata = {
-  title: 'Luyện Hội thoại Roleplay AI - Meowlish',
-  description: 'Luyện giao tiếp tiếng Anh qua các tình huống roleplay với AI: đặt hàng, phỏng vấn, trò chuyện hàng ngày.',
-};
-
 export default function RoleplayPage() {
   const [mode, setMode] = useState<RoleplayMode>(ROLEPLAY_SCENARIOS.length > 1 ? 'select' : 'playing');
   const [scenarioIdx, setScenarioIdx] = useState(0);

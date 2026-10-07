@@ -70,11 +70,6 @@ function saveExamHistory(entries: ExamHistoryEntry[]) {
   } catch {}
 }
 
-export const metadata: Metadata = {
-  title: 'Luyện Viết Tiếng Anh AI - Meowlish',
-  description: 'Luyện viết tiếng Anh với AI: gợi ý từ vựng, sửa lỗi ngữ pháp, cải thiện câu chuyện và bài luận theo chủ đề.',
-};
-
 export default function WritingPracticePage() {
   const [promptsList, setPromptsList] = useState<WritingPrompt[]>(WRITING_PROMPTS);
   const [currentIdx, setCurrentIdx] = useState(0);

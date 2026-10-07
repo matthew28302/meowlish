@@ -89,11 +89,6 @@ interface FaqArticle {
   tags: string[];
 }
 
-export const metadata: Metadata = {
-  title: 'Hỗ Trợ & Câu Hỏi Thường Gặp - Meowlish',
-  description: 'Trung tâm hỗ trợ Meowlish: hướng dẫn sử dụng, câu hỏi thường gặp, gửi ticket góp ý và trợ lý AI giải đáp tức thì.',
-};
-
 export default function SupportPage() {
   const [activeTab, setActiveTab] = useState<'guide' | 'ai' | 'ticket'>('guide');
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
