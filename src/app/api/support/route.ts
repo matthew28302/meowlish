@@ -31,6 +31,15 @@ const TICKET_FULL_COLUMNS = `id, name, email, user_id, category, priority, subje
 const TICKET_SUMMARY_COLUMNS = `id, category, priority, status, created_at, resolved_at`;
 
 // GET: Lấy lịch sử ticket của học viên
+/**
+ * 60s thay vì mặc định 10s của Vercel.
+ *
+ * Các route này có thể phải đẩy file SQLite ~67MB lên Filebase S3. Đo được:
+ * ~5.4s ở 100Mbit/s nhưng ~26.8s ở 20Mbit/s. Trượt mặc định 10s ⇒ upload bị
+ * cắt giữa chừng ⇒ dữ liệu mất. 60s là trần của gói Vercel Hobby.
+ */
+export const maxDuration = 60;
+
 export async function GET(request: Request) {
   const clientIp = getClientIp(request);
   const rateCheck = checkRateLimit({

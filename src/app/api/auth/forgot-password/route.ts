@@ -9,6 +9,15 @@ import { passwordResetTemplate, mailFrom, EMAIL_BRAND } from '@/lib/emailTemplat
 import dns from 'dns';
 import crypto from 'crypto';
 
+/**
+ * 60s thay vì mặc định 10s của Vercel.
+ *
+ * Các route này có thể phải đẩy file SQLite ~67MB lên Filebase S3. Đo được:
+ * ~5.4s ở 100Mbit/s nhưng ~26.8s ở 20Mbit/s. Trượt mặc định 10s ⇒ upload bị
+ * cắt giữa chừng ⇒ dữ liệu mất. 60s là trần của gói Vercel Hobby.
+ */
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   const clientIp = getClientIp(request);
   const userAgent = request.headers.get('user-agent') || '';

@@ -84,7 +84,73 @@ https://www.meowlish.io.vn, và cách chẩn đoán khi sự cố tái diễn.
   ghi đè lẫn nhau — quy tắc hiện chọn "remote thắng, bên thua lưu sidecar". Muốn
   không còn xung đột thì phải giảm số instance cùng ghi (hoặc chuyển sang DB có
   ghi tập trung — ngoài phạm vi task này).
-- **Filebase có hỗ trợ `If-Match` hay không** chưa kiểm chứng được từ repo: nếu
-  không hỗ trợ, code tự nhận diện (400/501) và hạ cấp xuống "HEAD lại rồi upload
-  thường" (cửa sổ race nhỏ nhưng có thật).
 - **Env `AUTH_SALT` trên Vercel** cần chủ dự án đối chiếu fingerprint như mục 4.
+
+## 5b. ĐÃ ĐO ĐƯỢC: Filebase KHÔNG hỗ trợ `If-Match` — lớp CAS là code chết
+
+Câu hỏi mở ở trên đã được trả lời bằng phép đo thật trên bucket production
+(`scripts/probe-filebase-if-match.mjs`, dùng key thử nghiệm `cas-probe/…` riêng,
+đã xoá sau khi đo):
+
+| Thử nghiệm | Kết quả | Nghĩa là |
+|---|---|---|
+| `PUT` không điều kiện | 200 | ghi bình thường |
+| `PUT If-Match: <ETag đúng>` | 200 | server nhận header, không lỗi |
+| **`PUT If-Match: <ETag sai>`** | **200** | **server BỎ QUA điều kiện** |
+| `PUT If-Match: *` | 200 | bỏ qua |
+| `PUT If-None-Match: *` (key đã tồn tại) | 200 | bỏ qua |
+| ETag đổi sau mỗi lần ghi | có | nên *có thể* dùng để so phiên bản |
+
+**Kết luận: Filebase im lặng bỏ qua mọi điều kiện ghi có điều kiện.** Không phải
+trả lỗi 400/501 để code tự nhận diện — nó trả 200 như thể đã bảo vệ.
+
+Hệ quả trực tiếp:
+
+1. `putWithCas` (`s3Sync.ts`) **luôn trả `ok: true`**. Nhánh `unsupported` và
+   nhánh `conflict` ở `s3Sync.ts:1229-1257` **không bao giờ chạy** — chúng là
+   code chết.
+2. `If-None-Match` cũng vô dụng, nên "chỉ tạo nếu chưa có" cũng không có tác dụng.
+3. **`uploadDbToS3` thực chất là last-write-wins thuần.** Mọi ghi đè bản remote
+   đều thắng tuỳ thứ tự đến, không phụ thuộc dữ liệu mới hay cũ.
+4. Vì `finishUpload` vẫn ghi `fingerprint`/`baseVersion` như thể CAS đã chạy,
+   hệ thống **tự tin rằng mình an toàn trong khi không có cơ chế nào chống ghi đè**.
+   Đây là loại lỗi tệ nhất: im lặng và tạo cảm giác an toàn giả.
+
+`baseVersion` trong `sync_state.json` **vẫn hữu ích để phát hiện** xung đột (so
+`LastModified` với mốc đã lưu) — nhưng nó chỉ phát hiện *sau khi* đã xảy ra,
+không ngăn được.
+
+Điều này **củng cố** quyết định chuyển sang Postgres: giữ kiến trúc Filebase nghĩa
+là chấp nhận mất dữ liệu khi 2 instance cùng ghi. Xem `docs/db-migration-postgres.md`.
+
+## 5c. Sao lưu tự động (cron `/api/cron/backup-db`)
+
+Trước đây **không có bản sao lưu định kỳ nào** — cron duy nhất là `/api/health`
+và nó chỉ ping Postgres. Mất key `english_learning.db` trên Filebase là mất trọn
+vẹn toàn bộ tài khoản.
+
+- Cron: `vercel.json` → `/api/cron/backup-db`, 04:30 hằng ngày.
+- Cách làm: **`CopyObject` server-side** (đo được là Filebase hỗ trợ, xem
+  `scripts/probe-filebase-if-match.mjs`) — 67MB được copy ở phía Filebase, không
+  đi qua instance, nên không tốn RAM và không sợ vượt `maxDuration`. Bản sao luôn
+  là trạng thái nguyên vẹn của một thời điểm, không phải file SQLite đang ghi dở.
+- Bảo vệ: chỉ chạy với `Authorization: Bearer $CRON_SECRET`; thiếu biến này thì
+  từ chối mọi yêu cầu (fail-closed). Xác minh kích thước bản sao khớp nguồn,
+  lệch thì xoá bản sao lỗi và báo lỗi.
+- Giữ **14 bản mới nhất**. Logic dọn nằm ở `selectStaleBackups`
+  (`src/lib/backupRetention.ts`) và chỉ xoá key đúng định dạng `backups/db-<ISO>.db`,
+  sắp xếp theo `LastModified` thật — **không** theo tên key, vì so sánh chuỗi từng
+  xoá nhầm bản backup mới nhất (đã xảy ra, đã có test chặn lại).
+- Kiểm chứng:
+  - `node scripts/verify-db-backups.mjs` — cron tạo backup, tải về **mở bằng
+    SQLite thật**, `integrity_check`, đếm dòng.
+  - `node scripts/verify-backup-prune.mjs` — key lạ không bị đụng, key nguồn không
+    bị đụng, giữ đúng 14 bản.
+  - `npx vitest run tests/unit/backup-retention.test.ts` — logic dọn thuần.
+
+## 5d. `maxDuration`
+
+Các route đụng CSDL đều có thể phải đẩy ~67MB lên Filebase (đo được: ~5.4s ở
+100Mbit/s nhưng ~26.8s ở 20Mbit/s), vượt mặc định 10s của Vercel. 13 route đã
+đặt `maxDuration = 60` (trần của gói Hobby). Không đặt thì upload bị cắt giữa
+chừng và dữ liệu mất.
