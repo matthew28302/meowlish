@@ -478,9 +478,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {/* Top Status Header (Single Minimal Row with Zero Clutter) */}
         <header className="shrink-0 z-30 bg-white dark:bg-slate-900 lg:bg-white/90 lg:dark:bg-slate-900/90 lg:backdrop-blur-md border-b border-slate-100 dark:border-white/10 shadow-xs">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16 gap-4">
-              {/* Left: Mobile hamburger & Page Title */}
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
+              {/* Left: Mobile hamburger & Page Title
+               *
+               * PHẢI cho cụm này co lại được (`flex-1 min-w-0`). Trước đây nó
+               * không có, còn cụm phải thì `shrink-0` ⇒ cả thanh có sàn cứng
+               * ~440px. Đo được: ở 360px nút đổi theme nằm ở [359..395] và avatar
+               * ở [401..430] — tức nằm NGOÀI khung nhìn. Mà `<html>` có
+               * `overflow-x:hidden` nên không có thanh cuộn cứu: người dùng mất
+               * trắng nút đổi theme và nút mở menu tài khoản mà không có gì báo.
+               * Nay tiêu đề co lại trước, hai nút đó luôn còn.
+               */}
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                 <button
                   type="button"
                   onClick={(e) => {
@@ -495,18 +504,20 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   <Menu className="w-6 h-6 text-slate-700 dark:text-slate-200" />
                 </button>
 
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   <div className="lg:hidden w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white text-base shrink-0">
                     🐱
                   </div>
-                  <h1 className="text-xs sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate max-w-[110px] xs:max-w-[170px] sm:max-w-none">
+                  {/* `xs:` không phải breakpoint của Tailwind ⇒ class chết, đã gỡ.
+                      Tiêu đề tự co nhờ `flex-1 min-w-0` bên trên. */}
+                  <h1 className="text-xs sm:text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate min-w-0">
                     {getPageTitle()}
                   </h1>
                 </div>
               </div>
 
               {/* Right: Gamified Stats (Flame Streak, EXP, Level, Profile) */}
-              <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 {/* Streak Flame Pill */}
                 {currentUser && (
                   <div

@@ -24,7 +24,8 @@ import {
   X,
   Eye,
   RotateCcw,
-  Lock
+  Lock,
+  MoreHorizontal
 } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
 import { getStoredUser, setStoredUser, AuthUser } from '@/lib/auth';
@@ -37,6 +38,43 @@ import PetPvPArenaCanvas from '@/components/pet/PetPvPArenaCanvas';
 import PetRacingCanvas from '@/components/pet/PetRacingCanvas';
 import PetSocialHub from '@/components/pet/PetSocialHub';
 import { SocialFriend } from '@/lib/petSocialData';
+
+/**
+ * Một mục trong menu "Thêm" của thanh công cụ.
+ *
+ * Tách thành component riêng để 5 mục không lặp cùng một khối className dài.
+ * Mỗi mục cao ≥44px để chạm được bằng ngón tay.
+ */
+function MoreItem({
+  icon,
+  label,
+  hint,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  hint?: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      className="w-full min-h-[44px] flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-bold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-white/10 active:bg-slate-200 dark:active:bg-white/15 transition cursor-pointer touch-manipulation"
+    >
+      <span className="shrink-0">{icon}</span>
+      <span className="min-w-0">
+        <span className="block truncate">{label}</span>
+        {hint && (
+          <span className="block truncate text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            {hint}
+          </span>
+        )}
+      </span>
+    </button>
+  );
+}
 
 export default function PetPage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
@@ -78,6 +116,8 @@ export default function PetPage() {
   const [showShopModal, setShowShopModal] = useState<boolean>(false);
   const [showHabitatModal, setShowHabitatModal] = useState<boolean>(false);
   const [showFeedModal, setShowFeedModal] = useState<boolean>(false);
+  /** Menu "Thêm" của thanh công cụ — gom các nút chỉ mở modal. */
+  const [showMoreMenu, setShowMoreMenu] = useState<boolean>(false);
   const [showSwitchModal, setShowSwitchModal] = useState<boolean>(false);
   const [switchPetCategory, setSwitchPetCategory] = useState<string>('all');
   const [specialPetModal, setSpecialPetModal] = useState<{
@@ -1010,107 +1050,133 @@ export default function PetPage() {
           </div>
 
           {/* DEDICATED ACTION TOOLBAR (SEPARATED COMPLETELY OUTSIDE MAP).
-              Mobile: một hàng cuộn ngang để vườn vừa khung hình không cuộn;
-              desktop (lg+): wrap nhiều hàng như cũ. */}
-          <div className="w-full shrink-0 rounded-2xl p-2 sm:p-2.5 border-2 border-emerald-300/70 bg-gradient-to-b from-white via-white to-emerald-50/70 shadow-[0_5px_0_rgba(5,150,105,0.18),0_14px_24px_-16px_rgba(5,150,105,0.6)] flex flex-row flex-nowrap lg:flex-wrap items-center gap-2 overflow-x-auto touch-auto lg:overflow-visible custom-scrollbar dark:from-slate-900 dark:via-slate-900">
-            {/* Left: Modals & Wardrobe */}
-            <div className="flex flex-nowrap lg:flex-wrap shrink-0 items-center gap-1.5 [&>button]:shrink-0 [&>button]:whitespace-nowrap">
-              <button
-                onClick={() => handleOpenShop('shop')}
-                className="btn-3d btn-3d-amber px-3.5 py-2 min-h-[40px] text-xs font-black text-slate-950 cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-102 touch-manipulation dark:text-slate-200"
-                title="Mở Cửa Hàng & Phòng Thử Đồ Thời Trang"
-              >
-                <ShoppingBag className="w-4 h-4" />
-                <span>Cửa Hàng & Thử Đồ</span>
-              </button>
 
-              <button
-                onClick={() => handleOpenShop('wardrobe')}
-                className="btn-3d btn-3d-white px-3.5 py-2 min-h-[40px] text-xs font-black text-slate-800 cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-102 touch-manipulation dark:text-slate-200"
-                title="Mở Tủ Đồ Cá Nhân"
-              >
-                <Shirt className="w-4 h-4 text-emerald-600 dark:text-emerald-300" />
-                <span>Tủ Đồ</span>
-              </button>
+              Theo đúng đặc tả: thanh công cụ CHỈ có 3 nút hành động
+              (Ném Bóng, Gọi Bé, Đi Ngủ). Mọi thao tác khác với thú cưng được
+              thực hiện bằng cách chạm vào vật thể ngay trên bản đồ (≥44px).
 
+              Trước đây có 8 nút xếp cạnh nhau trong một hàng `flex-nowrap`. Đo được:
+              ở 393px, "Ném Bóng" nằm ở [537..641], "Gọi Bé" [647..728],
+              "Đi Ngủ" [734..816] — TẤT CẢ ngoài khung nhìn; ở iPad 768px "Gọi Bé"
+              kết thúc ở 789 và "Đi Ngủ" ở 881. Tức là chức năng chính của trang
+              không dùng được trên điện thoại.
+
+              Nay: 3 nút hành động + 1 nút "Thêm" (mở menu 5 mục mở modal). Đủ nhỏ để
+              luôn vừa mọi khung nhìn, và không mất chức năng nào.
+
+              Mọi nút ≥44px chiều cao để chạm được bằng ngón tay. */}
+          <div className="w-full shrink-0 rounded-2xl p-2 sm:p-2.5 border-2 border-emerald-300/70 bg-gradient-to-b from-white via-white to-emerald-50/70 shadow-[0_5px_0_rgba(5,150,105,0.18),0_14px_24px_-16px_rgba(5,150,105,0.6)] flex flex-row flex-nowrap items-center gap-2 dark:from-slate-900 dark:via-slate-900">
+            {/* 3 nút hành động — theo đúng đặc tả, không thêm không bớt. */}
+            <button
+              onClick={() => farmRef.current?.tossBall()}
+              className="px-2.5 sm:px-3 py-2 min-h-[44px] bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl border-b-[3px] border-amber-600/70 text-[12px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-[0_3px_8px_-4px_rgba(217,119,6,0.5)] hover:-translate-y-0.5 active:translate-y-0.5 active:border-b-0 active:shadow-none touch-manipulation"
+              title="Ném bóng cho thú cưng nhặt"
+            >
+              <span aria-hidden>🎾</span>
+              <span>Ném Bóng</span>
+            </button>
+
+            <button
+              onClick={() => farmRef.current?.callPet()}
+              className="px-2.5 sm:px-3 py-2 min-h-[44px] bg-white hover:bg-slate-100 text-slate-800 rounded-2xl border border-slate-300 border-b-[3px] border-b-slate-400/70 text-[12px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 active:border-b hover:scale-100 touch-manipulation dark:bg-slate-900 hover:dark:bg-slate-800 dark:text-slate-200 dark:border-white/10"
+              title="Gọi thú cưng lại gần bạn"
+            >
+              <Volume2 className="w-4 h-4 text-blue-600 dark:text-blue-300" />
+              <span>Gọi Bé</span>
+            </button>
+
+            <button
+              onClick={() => {
+                const next = farmRef.current?.toggleSleep();
+                if (next !== undefined) {
+                  setFarmState((prev) => ({ ...prev, isSleeping: next }));
+                }
+              }}
+              className={`px-2.5 sm:px-3 py-2 min-h-[44px] text-[12px] sm:text-xs font-black rounded-2xl border-b-[3px] transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 ${
+                farmState.isSleeping
+                  ? 'bg-sky-500 text-white border-sky-400 ring-2 ring-sky-300'
+                  : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700 dark:bg-white dark:text-slate-900 dark:border-white/10'
+              }`}
+              title="Cho thú cưng chợp mắt hoặc đánh thức"
+            >
+              <span aria-hidden>💤</span>
+              <span>{farmState.isSleeping ? 'Thức Dậy' : 'Đi Ngủ'}</span>
+            </button>
+
+            {/* Menu "Thêm": gom các nút chỉ mở modal để thanh công cụ vừa khung. */}
+            <div className="relative shrink-0">
               <button
                 onClick={() => {
                   sound.playClick();
-                  setShowHabitatModal(true);
+                  setShowMoreMenu((v) => !v);
                 }}
-                className="btn-3d btn-3d-emerald px-3 py-2 min-h-[40px] text-xs font-black text-white cursor-pointer flex items-center gap-1.5 shadow-md hover:scale-102 touch-manipulation"
-                title="Đổi Cảnh Quan Sân Vườn"
+                aria-expanded={showMoreMenu}
+                aria-haspopup="menu"
+                title="Thêm chức năng"
+                className="px-2.5 sm:px-3 py-2 min-h-[44px] min-w-[44px] rounded-2xl border border-slate-300 border-b-[3px] border-b-slate-400 bg-white hover:bg-slate-100 text-slate-800 text-[12px] sm:text-xs font-black transition cursor-pointer flex items-center justify-center gap-1 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 active:border-b touch-manipulation dark:bg-slate-900 hover:dark:bg-slate-800 dark:text-slate-200 dark:border-white/10"
               >
-                <Trees className="w-4 h-4" />
-                <span>Cảnh Quan</span>
+                <MoreHorizontal className="w-4 h-4" />
+                <span className="hidden sm:inline">Thêm</span>
               </button>
 
-              <button
-                onClick={() => {
-                  sound.playClick();
-                  setShowSwitchModal(true);
-                }}
-                className="px-2.5 py-2 min-h-[40px] rounded-2xl border border-slate-200 border-b-[3px] border-b-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[12px] sm:text-xs font-black cursor-pointer flex items-center gap-1 transition hover:-translate-y-0.5 active:translate-y-0.5 active:border-b touch-manipulation dark:border-white/10 dark:bg-slate-900 hover:dark:bg-slate-800 dark:text-slate-300"
-                title="Chọn Nuôi Linh Vật Khác"
-              >
-                <RefreshCw className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-                <span className="hidden md:inline">Đổi Bé</span>
-              </button>
-            </div>
-
-            {/* Right: Farm Interaction & Movement Tools */}
-            <div className="flex flex-nowrap lg:flex-wrap shrink-0 items-center gap-1.5 lg:ml-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap">
-              <button
-                onClick={() => {
-                  sound.playClick();
-                  setShowFeedModal(true);
-                }}
-                className="px-2.5 sm:px-3 py-1.5 min-h-[36px] bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl border-b-[3px] border-emerald-800/70 text-[12px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-[0_3px_8px_-4px_rgba(6,95,70,0.5)] hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0.5 active:border-b-0 active:shadow-none"
-                title="Cho thú cưng ăn thực đơn bổ dưỡng"
-              >
-                <Utensils className="w-3.5 h-3.5" />
-                <span>Cho Ăn</span>
-              </button>
-
-              {/* Map action buttons removed: every pet action is now triggered by
-                  clicking its object directly on the map (see PixelFarmGame).
-                  mapActionButtons catalog kept below as reference. */}
-
-              <button
-                onClick={() => farmRef.current?.tossBall()}
-                className="px-2.5 sm:px-3 py-1.5 min-h-[36px] bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl border-b-[3px] border-amber-600/70 text-[12px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-[0_3px_8px_-4px_rgba(217,119,6,0.5)] hover:-translate-y-0.5 active:translate-y-0.5 active:border-b-0 active:shadow-none touch-manipulation"
-                title="Ném bóng cho thú cưng nhặt"
-              >
-                <span>🎾</span>
-                <span>Ném Bóng</span>
-              </button>
-
-              <button
-                onClick={() => farmRef.current?.callPet()}
-                className="px-2.5 sm:px-3 py-1.5 min-h-[36px] bg-white hover:bg-slate-100 text-slate-800 rounded-2xl border border-slate-300 border-b-[3px] border-b-slate-400/70 text-[12px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 active:border-b hover:scale-100 touch-manipulation dark:bg-slate-900 hover:dark:bg-slate-800 dark:text-slate-200 dark:border-white/10"
-                title="Gọi thú cưng lại gần bạn"
-              >
-                <Volume2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-300" />
-                <span>Gọi Bé</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  const next = farmRef.current?.toggleSleep();
-                  if (next !== undefined) {
-                    setFarmState((prev) => ({ ...prev, isSleeping: next }));
-                  }
-                }}
-                className={`px-2.5 sm:px-3 py-1.5 min-h-[36px] text-[12px] sm:text-xs font-black rounded-2xl border-b-[3px] transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 ${
-                  farmState.isSleeping
-                    ? 'bg-sky-500 text-white border-sky-400 ring-2 ring-sky-300'
-                    : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700 dark:bg-white dark:text-slate-900 dark:border-white/10'
-                }`}
-                title="Cho thú cưng chợp mắt hoặc đánh thức"
-              >
-                <span>💤</span>
-                <span>{farmState.isSleeping ? 'Thức Dậy' : 'Đi Ngủ'}</span>
-              </button>
+              {showMoreMenu && (
+                <>
+                  {/* Lớp phủ đóng menu khi chạm ra ngoài. */}
+                  <button
+                    type="button"
+                    aria-label="Đóng menu"
+                    className="fixed inset-0 z-40 cursor-default"
+                    onClick={() => setShowMoreMenu(false)}
+                  />
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-full mt-2 z-50 w-56 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-slate-900"
+                  >
+                    <MoreItem
+                      icon={<Utensils className="w-4 h-4 text-emerald-600" />}
+                      label="Cho Ăn"
+                      hint="Thực đơn bổ dưỡng"
+                      onClick={() => {
+                        setShowMoreMenu(false);
+                        setShowFeedModal(true);
+                      }}
+                    />
+                    <MoreItem
+                      icon={<ShoppingBag className="w-4 h-4 text-amber-600" />}
+                      label="Cửa Hàng & Thử Đồ"
+                      onClick={() => {
+                        setShowMoreMenu(false);
+                        handleOpenShop('shop');
+                      }}
+                    />
+                    <MoreItem
+                      icon={<Shirt className="w-4 h-4 text-emerald-600 dark:text-emerald-300" />}
+                      label="Tủ Đồ"
+                      onClick={() => {
+                        setShowMoreMenu(false);
+                        handleOpenShop('wardrobe');
+                      }}
+                    />
+                    <MoreItem
+                      icon={<Trees className="w-4 h-4 text-teal-600" />}
+                      label="Cảnh Quan"
+                      onClick={() => {
+                        setShowMoreMenu(false);
+                        setShowHabitatModal(true);
+                      }}
+                    />
+                    <MoreItem
+                      icon={<RefreshCw className="w-4 h-4 text-slate-500 dark:text-slate-400" />}
+                      label="Đổi Bé"
+                      hint="Nuôi linh vật khác"
+                      onClick={() => {
+                        setShowMoreMenu(false);
+                        setShowSwitchModal(true);
+                      }}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
