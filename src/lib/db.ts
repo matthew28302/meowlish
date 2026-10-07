@@ -218,6 +218,8 @@ function createDb(): Database.Database {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique ON users(email);
+
     CREATE TABLE IF NOT EXISTS bookmarks (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,

@@ -645,12 +645,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Tên tài khoản này được bảo lưu cho Quản trị viên.' }, { status: 400 });
       }
 
+      // Generic error message to prevent account enumeration
+      const conflictError = { error: 'Tên đăng nhập hoặc email đã được sử dụng.', status: 409 };
+
       const existing = db.prepare('SELECT id FROM users WHERE username = ?').get(cleanUsername);
       if (existing) {
-        return NextResponse.json(
-          { error: 'Tên đăng nhập này đã tồn tại, vui lòng chọn tên khác' },
-          { status: 409 }
-        );
+        return NextResponse.json(conflictError);
       }
 
       const cleanEmail = (email || '').trim().toLowerCase().slice(0, 100);
@@ -664,10 +664,7 @@ export async function POST(request: Request) {
 
         const existingEmail = db.prepare('SELECT id FROM users WHERE email = ?').get(cleanEmail);
         if (existingEmail) {
-          return NextResponse.json(
-            { error: 'Địa chỉ email này đã được sử dụng cho một tài khoản khác.' },
-            { status: 409 }
-          );
+          return NextResponse.json(conflictError);
         }
       }
 
