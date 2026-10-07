@@ -21,17 +21,39 @@ if (typeof setInterval !== 'undefined') {
 }
 
 /**
- * Extract client IP from Request headers
+ * Lấy IP thật của client.
+ *
+ * Vì sao KHÔNG lấy phần tử ĐẦU của `x-forwarded-for`: header này do CLIENT tự
+ * gửi, còn edge/proxy chỉ APPEND thêm vào CUỐI. Kẻ tấn công đặt sẵn
+ * `x-forwarded-for: 1.2.3.4` thì chuỗi thành `1.2.3.4, <IP thật>`; lấy phần tử
+ * đầu là lấy giá trị do kẻ tấn công tự chọn ⇒ **đổi header mỗi request là vô
+ * hiệu toàn bộ rate limit của ứng dụng**. Đã đo trên production: 70 request
+ * cùng một IP giả tới endpoint giới hạn 60/phút → 0 lần nào bị 429.
+ *
+ * Phần tử CUỐI là giá trị do hạ tầng tin cậy thêm vào, nằm ngoài tầm kiểm soát
+ * của client.
+ *
+ * Giới hạn: cách này chặn được giả mạo header, KHÔNG chặn được việc dồn request
+ * từ nhiều IP khác nhau — việc đó cần kho đếm dùng chung giữa các instance
+ * serverless (Vercel KV/Redis). Xem docs/security-audit-2026-10.md.
  */
 export function getClientIp(request: Request): string {
+  const fromPlatform = request.headers.get('x-vercel-forwarded-for');
+  if (fromPlatform) {
+    const parts = fromPlatform.split(',').map((s) => s.trim()).filter(Boolean);
+    if (parts.length > 0) return parts[parts.length - 1];
+  }
+
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) {
-    return forwarded.split(',')[0].trim();
+    const parts = forwarded.split(',').map((s) => s.trim()).filter(Boolean);
+    if (parts.length > 1) return parts[parts.length - 1];
+    if (parts.length === 1) return parts[0];
   }
+
   const realIp = request.headers.get('x-real-ip');
-  if (realIp) {
-    return realIp.trim();
-  }
+  if (realIp && realIp.trim()) return realIp.trim();
+
   return '127.0.0.1';
 }
 

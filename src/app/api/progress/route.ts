@@ -135,6 +135,10 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         alreadyCompleted: true,
+        // Client dùng cờ này để KHÔNG hiện "+N coins" khi thực tế không được cộng.
+        rewarded: false,
+        awarded: { exp: 0, coins: 0 },
+        message: 'Bạn đã hoàn thành mục này rồi — tiến độ vẫn được lưu, nhưng không cộng thưởng lần 2.',
         progress: existing || null,
       });
     }
@@ -143,18 +147,24 @@ export async function POST(request: Request) {
     // chống trùng. Hạn mức thưởng theo ngày chặn nốt đường đó: tổng phần thưởng
     // học tập trong ngày bị giới hạn cứng, không thể vượt bằng cách bịa itemId.
     if (!consumeProgressBudget(userId, today, safeCoins, safeExp)) {
-      // Hoàn tác dòng vừa chèn. Nếu không, người dùng mất luôn item này mà không
-      // nhận được thưởng: lần gọi lại sẽ thành "đã hoàn thành" và không bao giờ
-      // nhận được nữa.
-      db.prepare('DELETE FROM progress WHERE id = ?').run(id);
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Bạn đã nhận đủ phần thưởng học tập hôm nay. Hãy quay lại vào ngày mai nhé!',
-          budgetReached: true,
-        },
-        { status: 429 }
-      );
+      // QUAN TRỌNG: KHÔNG xoá dòng progress vừa chèn.
+      // Bản sửa trước xoá dòng này, khiến học viên mất vĩnh viễn tiến độ sau khi
+      // làm bài xong, và UI không đọc `budgetReached` nên không có một dòng thông
+      // báo nào. Giờ: giữ nguyên tiến độ, chỉ không cộng thưởng, và trả 200 để
+      // client hiển thị đúng.
+      const saved = db
+        .prepare('SELECT id, score FROM progress WHERE user_id = ? AND module_type = ? AND item_id = ?')
+        .get(userId, cleanModule, cleanItem) as { id: string; score: number } | undefined;
+      return NextResponse.json({
+        success: true,
+        budgetReached: true,
+        rewarded: false,
+        awarded: { exp: 0, coins: 0 },
+        message:
+          'Hôm nay bạn đã nhận đủ phần thưởng học tập rồi. Tiến độ vẫn được lưu bình thường, ' +
+          'phần thưởng sẽ hồi lại vào ngày mai.',
+        progress: saved || null,
+      });
     }
 
     // Update user EXP, streak, and coins
@@ -199,6 +209,14 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       user: updatedUser,
+      // Số THỰC TẾ đã cộng, sau khi clamp. Client phải hiển thị đúng số này.
+      //
+      // Vì sao thêm `awarded`: trước đây UI tự in số phần thưởng lấy từ catalog
+      // (ví dụ "+280 Coins" khi làm bộ thi) trong khi server clamp còn 50 ⇒ người
+      // dùng thấy quảng cáo một đằng, nhận một nẻo. Giờ client đọc số server trả
+      // về nên không còn lệch.
+      rewarded: true,
+      awarded: { exp: safeExp, coins: safeCoins },
       expGained: safeExp,
       coinsGained: safeCoins,
     });

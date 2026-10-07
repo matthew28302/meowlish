@@ -54,6 +54,9 @@ export default function AuthModal({
   const [savedAccounts, setSavedAccounts] = useState<AuthUser[]>([]);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
   const [switchingId, setSwitchingId] = useState<string | null>(null);
+  // Tài khoản đang chờ nhập mật khẩu để chuyển phiên (xem handleSwitchToAccount).
+  const [switchTarget, setSwitchTarget] = useState<AuthUser | null>(null);
+  const [switchPassword, setSwitchPassword] = useState('');
 
   // Sync saved accounts on modal open
   useEffect(() => {
@@ -362,39 +365,62 @@ export default function AuthModal({
 
   const handleSwitchToAccount = async (targetAccount: AuthUser) => {
     sound.playClick();
-    setSwitchingId(targetAccount.id);
     setError(null);
     setSuccessMsg(null);
 
+    // Chuyển tài khoản PHẢI đăng nhập lại bằng mật khẩu, không chỉ đổi hồ sơ ở
+    // localStorage.
+    //
+    // Vì sao: bản vá IDOR đã gỡ việc `GET /api/auth?userId=<tài khoản khác>` trả
+    // hồ sơ đầy đủ, giờ chỉ còn `{id, username, status}`. Nếu cứ
+    // `setStoredUser(data.user)` thì giao diện hiện tài khoản mới nhưng cookie
+    // phiên vẫn là tài khoản CŨ ⇒ mọi thao tác ghi (lưu bookmark, ghi tiến độ,
+    // mua đồ…) trả 403 "IDOR". Người dùng bấm "đổi tài khoản" xong thì mọi thứ
+    // hỏng và không có lối ra. Đã xác nhận trên production.
+    setSwitchTarget(targetAccount);
+    setSwitchPassword('');
+  };
+
+  /** Đăng nhập bằng tài khoản đã lưu (có mật khẩu), rồi cập nhật giao diện. */
+  const performSwitchLogin = async (targetAccount: AuthUser, password: string) => {
+    setSwitchingId(targetAccount.id);
     try {
-      const res = await fetch(`/api/auth?userId=${targetAccount.id}`);
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'login',
+          username: targetAccount.username,
+          password,
+        }),
+      });
       const data = await res.json();
-      if (!res.ok || data.status === 'disabled' || data.error?.includes('vô hiệu hóa')) {
-        setError(data.error || `Tài khoản @${targetAccount.username} đã bị vô hiệu hóa bởi Quản trị viên.`);
+
+      if (!res.ok) {
         sound.playWrong();
-        removeSavedAccount(targetAccount.id);
-        return;
-      }
-      if (res.ok && data.user) {
-        if (data.user.status === 'disabled') {
-          setError(`Tài khoản @${targetAccount.username} đã bị vô hiệu hóa bởi Quản trị viên.`);
-          sound.playWrong();
-          removeSavedAccount(targetAccount.id);
+        if (data.requires_2fa) {
+          setSwitchTarget(null);
+          setLoginRequires2fa(true);
+          setUserOtpSessionId(data.sessionId);
+          setUserMaskedEmail(data.maskedEmail);
+          setSuccessMsg(data.message || 'Mã xác thực đã gửi tới email tài khoản bạn chọn.');
           return;
         }
-        setStoredUser(data.user);
-        onAuthChange(data.user);
-        sound.playCelebration();
-        setSuccessMsg(`Đã chuyển sang tài khoản @${data.user.username}!`);
-      } else {
-        setStoredUser(targetAccount);
-        onAuthChange(targetAccount);
-        sound.playSuccess();
+        if (/vô hiệu hóa|không tồn tại/i.test(data.error || '')) {
+          removeSavedAccount(targetAccount.id);
+          setSwitchTarget(null);
+        }
+        setError(data.error || 'Không đăng nhập được tài khoản này.');
+        return;
       }
+
+      setStoredUser(data.user);
+      onAuthChange(data.user);
+      setSwitchTarget(null);
+      sound.playCelebration();
+      setSuccessMsg(`Đã chuyển sang tài khoản @${data.user.username}!`);
     } catch {
-      setStoredUser(targetAccount);
-      onAuthChange(targetAccount);
-      sound.playSuccess();
+      setError('Lỗi kết nối máy chủ, vui lòng thử lại.');
     } finally {
       setSwitchingId(null);
     }
@@ -552,6 +578,50 @@ export default function AuthModal({
                     </div>
 
                     <div className="space-y-1.5 pt-1">
+                      {/* Ô nhập mật khẩu để chuyển tài khoản: bắt buộc phải xác thực
+                          lại, nếu không giao diện đổi tài khoản nhưng cookie phiên vẫn
+                          là tài khoản cũ ⇒ mọi thao tác ghi đều bị chặn 403. */}
+                      {switchTarget && (
+                        <div className="p-3 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40">
+                          <div className="text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-2">
+                            Nhập mật khẩu để chuyển sang @{switchTarget.username}
+                          </div>
+                          <input
+                            type="password"
+                            value={switchPassword}
+                            onChange={(e) => setSwitchPassword(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && switchPassword) {
+                                performSwitchLogin(switchTarget, switchPassword);
+                              }
+                            }}
+                            placeholder="Mật khẩu"
+                            autoFocus
+                            className="w-full px-3 py-2 mb-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => performSwitchLogin(switchTarget, switchPassword)}
+                              disabled={!switchPassword || switchingId === switchTarget.id}
+                              className="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 min-h-[44px]"
+                            >
+                              {switchingId === switchTarget.id ? 'Đang chuyển…' : 'Chuyển tài khoản'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSwitchTarget(null);
+                                setSwitchPassword('');
+                              }}
+                              className="px-3 py-2 text-xs font-bold rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 min-h-[44px]"
+                            >
+                              Huỷ
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       {savedAccounts
                         .filter((acc) => acc.id !== currentUser.id)
                         .map((acc) => (

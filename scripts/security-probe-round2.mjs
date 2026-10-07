@@ -114,17 +114,25 @@ for (let i = 0; i < 5; i++) {
 }
 ck('gọi lại cùng item KHÔNG được thưởng lần nữa', duplicates === 5, `${duplicates}/5 bị chặn replay`);
 
-// itemId mới liên tục: hạn mức ngày phải chặn
+// itemId mới liên tục: hạn mức ngày phải chặn việc cộng thưởng vô hạn.
+// Kiểm tra THUỘC TÍNH (budgetReached && không cộng thưởng), KHÔNG kiểm mã HTTP:
+// server cố ý trả 200 để không làm mất tiến độ học tập của người dùng.
 let budgetBlocked = false;
-for (let i = 0; i < 20; i++) {
+let rewardedAfterCap = 0;
+for (let i = 0; i < 40; i++) {
   const r = await fetch(BASE + '/api/progress', {
     method: 'POST',
     headers: { ...session, 'content-type': 'application/json' },
     body: JSON.stringify({ userId: 'user_demo_default', moduleType: 'vocab', itemId: `probe_bi_a_${i}_${Date.now()}`, score: 90, expGained: 100, coinsGained: 50 }),
   });
-  if (r.status === 429) { budgetBlocked = true; break; }
+  const b = await r.json().catch(() => ({}));
+  if (b.budgetReached) {
+    budgetBlocked = true;
+    if (b.rewarded === true || (b.awarded?.coins ?? 0) > 0) rewardedAfterCap++;
+  }
 }
-ck('hạn mức thưởng ngày chặn việc bịa itemId vô hạn', budgetBlocked, budgetBlocked ? 'đã bị chặn 429' : 'KHÔNG bị chặn');
+ck('hạn mức thưởng ngày có hiệu lực (báo budgetReached)', budgetBlocked, budgetBlocked ? 'đã chạm trần' : 'KHÔNG chạm trần');
+ck('sau khi chạm trần KHÔNG còn cộng thưởng', rewardedAfterCap === 0, `${rewardedAfterCap} lần bị cộng nhầm`);
 
 // ---- 6. Mã phiếu hỗ trợ của người khác ----
 const tk = await fetch(`${BASE}/api/support?ticketId=TK-XXXX`, { headers: noAuth });

@@ -863,8 +863,17 @@ export function rewardCooldownRemaining(userId: string, kind: RewardKind): numbe
   return Math.max(0, row.claimed_at + cfg.cooldownMs - Date.now());
 }
 
-/** Trần phần thưởng học tập mỗi ngày — chặn mint coins bằng cách bịa itemId. */
-export const PROGRESS_DAILY_CAP = { coins: 250, exp: 500 } as const;
+/**
+ * Trần phần thưởng học tập mỗi ngày — chặn việc bịa `itemId` để farm vô hạn.
+ *
+ * Con số này phải ĐỦ lớn cho một ngày học thật, vì bên cạnh nó còn có clamp
+ * `safeExp ≤ 100` / `safeCoins ≤ 50` cho từng lần hoàn thành. Trần 250/500 là
+ * bằng đúng 5 lần hoàn thành — một buổi học nghiêm túc là vượt, người học bị cắt
+ * thưởng giữa chừng mà không hiểu vì sao. Số hiện tại để dư để một ngày học
+ * thật sự không bao giờ chạm trần; trần vẫn chặn được khai thác vì kẻ tấn công
+ * bịa itemId liên tục sẽ vượt trần rất nhanh.
+ */
+export const PROGRESS_DAILY_CAP = { coins: 600, exp: 1200 } as const;
 
 /**
  * Tiêu thụ hạn mức phần thưởng học tập trong ngày, nguyên tử.
@@ -874,7 +883,10 @@ export const PROGRESS_DAILY_CAP = { coins: 250, exp: 500 } as const;
  * thể cùng vượt trần.
  */
 export function consumeProgressBudget(userId: string, day: string, coins: number, exp: number): boolean {
-  if (coins <= 0 && exp <= 0) return true;
+  // Lần hoàn thành không có phần thưởng (0/0) vẫn phải ghi nhận để không bị coi là
+  // vượt trần, nhưng cũng không được coi là "miễn phí vô hạn" — bên gọi sẽ xử lý
+  // việc ghi tiến độ.
+  if (coins < 0 || exp < 0) return false;
   const res = db
     .prepare(
       `INSERT INTO progress_daily_budget (user_id, day, coins_spent, exp_spent)

@@ -8,6 +8,9 @@ import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { syncDbToS3Now, refreshIfRemoteNewer } from '@/lib/s3Sync';
 
+/** Khoảng nghỉ giữa hai lần tưới cùng một luống (chống tưới lặp để làm cây chín tức thì). */
+const WATER_COOLDOWN_MS = 60 * 1000;
+
 function ensurePet(userId: string) {
   let pet = db.prepare('SELECT * FROM user_pets WHERE user_id = ?').get(userId) as any;
   if (!pet) {
@@ -322,7 +325,18 @@ export async function GET(request: Request) {
       // Cờ quyền thú cưng đặc quyền do SERVER tính. Client không được tự tính:
       // việc đó đòi hỏi biết danh sách email được cấp quyền, mà danh sách đó
       // không được phép nằm trong bundle client (PII thật — đã từng bị lộ).
-      cinnamorollAccess: checkCinnamorollAccess(auth.user as any),
+      //
+      // Khách (guest) phải nhận `locked_not_logged_in` chứ không phải
+      // `locked_unauthorized_email`: hàng demo trong DB không có email nên hàm
+      // trả về "email không hợp lệ", khiến UI rơi vào nhánh "chỉ dành cho quản
+      // trị viên" với nút Đóng, không có đường đăng nhập. Trạng thái
+      // `locked_not_logged_in` mới đúng và có sẵn thông điệp mời đăng nhập.
+      cinnamorollAccess: auth.isGuest
+        ? { isUnlocked: false, status: 'locked_not_logged_in' as const, message: '' }
+        : checkCinnamorollAccess(auth.user as any),
+      // Cờ cho UI biết đang hiển thị dữ liệu tài khoản demo dùng chung, để không
+      // trộn lẫn với dữ liệu cá nhân của người dùng.
+      isGuest: auth.isGuest,
       pet: {
         ...pet,
         meta: petMeta,
@@ -657,32 +671,55 @@ export async function POST(request: Request) {
     // 8. ACTION: WATER CROPS / TƯỚI NƯỚC
     if (action === 'water_crop') {
       const now = Date.now();
+      // Cooldown tưới: mỗi luống chỉ tưới được 1 lần trong WATER_COOLDOWN_MS.
+      //
+      // Vì sao cần: `watered_at` trước đây được GHI nhưng không bao giờ ĐỌC lại,
+      // còn mỗi lần tưới nhân thời gian còn lại × 0.65. Gọi liên tục ~11–30 lần
+      // làm cây chín tức thì, từ đó vô hiệu hoá hoàn toàn điều kiện "cây đã chín"
+      // của `harvest_crop`. Đo được: 39 request → +1920 coins / +560 EXP, 0 giây chờ.
+      let watered = 0;
+      let skippedCooldown = 0;
+
+      const boostPlot = (p: any) => {
+        if (!p?.crop_type || !p?.harvest_ready_at) return;
+        const lastWatered = parseInt(p.watered_at, 10);
+        if (Number.isFinite(lastWatered) && now - lastWatered < WATER_COOLDOWN_MS) {
+          skippedCooldown++;
+          return;
+        }
+        const currentTarget = parseInt(p.harvest_ready_at, 10);
+        const remaining = Math.max(0, currentTarget - now);
+        const boostedTarget = String(now + Math.floor(remaining * 0.65)); // 35% speedup
+        db.prepare('UPDATE pet_farm_plots SET watered_at = ?, harvest_ready_at = ? WHERE id = ?')
+          .run(String(now), boostedTarget, p.id);
+        watered++;
+      };
+
       if (body.plotIndex === 'all') {
         const plots = db.prepare('SELECT * FROM pet_farm_plots WHERE user_id = ?').all(userId) as any[];
-        for (const p of plots) {
-          if (p.crop_type && p.harvest_ready_at) {
-            const currentTarget = parseInt(p.harvest_ready_at, 10);
-            const remaining = Math.max(0, currentTarget - now);
-            const boostedTarget = String(now + Math.floor(remaining * 0.65)); // 35% speedup
-            db.prepare('UPDATE pet_farm_plots SET watered_at = ?, harvest_ready_at = ? WHERE id = ?').run(String(now), boostedTarget, p.id);
-          }
-        }
+        for (const p of plots) boostPlot(p);
       } else {
         const parsedPlot = parseInt(body.plotIndex, 10);
-        const p = db.prepare('SELECT * FROM pet_farm_plots WHERE user_id = ? AND plot_index = ?').get(userId, parsedPlot) as any;
-        if (p && p.harvest_ready_at) {
-          const currentTarget = parseInt(p.harvest_ready_at, 10);
-          const remaining = Math.max(0, currentTarget - now);
-          const boostedTarget = String(now + Math.floor(remaining * 0.65));
-          db.prepare('UPDATE pet_farm_plots SET watered_at = ?, harvest_ready_at = ? WHERE id = ?').run(String(now), boostedTarget, p.id);
-        }
+        const p = db.prepare('SELECT * FROM pet_farm_plots WHERE user_id = ? AND plot_index = ?')
+          .get(userId, parsedPlot) as any;
+        if (p) boostPlot(p);
       }
 
       const farmPlots = db.prepare('SELECT * FROM pet_farm_plots WHERE user_id = ? ORDER BY plot_index ASC').all(userId);
-      void syncDbToS3Now();
+      // Chỉ đồng bộ S3 khi thật sự có thay đổi — tránh phình WAL do request vô ích.
+      if (watered > 0) void syncDbToS3Now();
+
+      const cooldownMinutes = Math.max(1, Math.round(WATER_COOLDOWN_MS / 60000));
+      const message = watered === 0
+        ? (skippedCooldown > 0
+          ? `Vừa tưới rồi — mỗi luống chỉ tưới được 1 lần mỗi ${cooldownMinutes} phút.`
+          : 'Chưa có cây nào cần tưới.')
+        : `Đã tưới ${watered} luống! Cây lớn nhanh hơn 35%.`;
+
       return NextResponse.json({
-        success: true,
-        message: 'Đã tưới nước mát rượi cho cây trồng! Tốc độ lớn tăng vọt!',
+        success: watered > 0,
+        message,
+        wateredCount: watered,
         farmPlots,
       });
     }

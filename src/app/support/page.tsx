@@ -143,6 +143,10 @@ export default function SupportPage() {
   // History state
   const [myTickets, setMyTickets] = useState<TicketItem[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false);
+  // Khách chưa đăng nhập chỉ thấy metadata phiếu — cần giải thích rõ thay vì
+  // hiện card trắng trơn khiến tưởng ứng dụng lỗi.
+  const [historyRedacted, setHistoryRedacted] = useState<boolean>(false);
+  const [historyError, setHistoryError] = useState<string>('');
   const [historySearchQuery, setHistorySearchQuery] = useState<string>('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -182,6 +186,14 @@ export default function SupportPage() {
       const data = await res.json();
       if (res.ok && data.tickets) {
         setMyTickets(data.tickets);
+        // Server chỉ trả metadata cho khách chưa đăng nhập (để không lộ nội
+        // dung phiếu của người khác). Không có cờ báo thì UI hiện một card trắng
+        // trơn: không tiêu đề, không nội dung, không trả lời admin — trông như
+        // lỗi mà không có lý do.
+        setHistoryRedacted(Boolean(data.redacted));
+        setHistoryError('');
+      } else if (!res.ok) {
+        setHistoryError(data.error || 'Không tải được lịch sử phiếu hỗ trợ.');
       }
     } catch {
       // Ignored
@@ -1638,6 +1650,22 @@ export default function SupportPage() {
                       Đang tải danh sách phiếu hỗ trợ của bạn...
                     </div>
                   </div>
+                ) : historyError ? (
+                  <div className="bg-amber-50 rounded-3xl p-8 text-center border border-amber-200 shadow-sm space-y-2 dark:bg-amber-950/30 dark:border-amber-800">
+                    <div className="text-3xl">⚠️</div>
+                    <p className="text-xs font-bold text-amber-900 dark:text-amber-300">{historyError}</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playClick();
+                        setHistoryError('');
+                        fetchTicketHistory(undefined, undefined, historySearchQuery);
+                      }}
+                      className="text-xs font-bold text-amber-900 underline min-h-[44px] dark:text-amber-200"
+                    >
+                      Thử lại
+                    </button>
+                  </div>
                 ) : myTickets.length === 0 ? (
                   <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm space-y-3 dark:bg-slate-900 dark:border-white/10">
                     <div className="text-4xl">📭</div>
@@ -1660,6 +1688,29 @@ export default function SupportPage() {
                   </div>
                 ) : (
                   <div className="space-y-3.5">
+                    {/* Khách chưa đăng nhập chỉ thấy metadata. Phải nói rõ lý do,
+                        nếu không các phiếu hiện ra trống trơn như lỗi ứng dụng. */}
+                    {historyRedacted && (
+                      <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
+                        <span className="text-xl leading-none" aria-hidden="true">🔒</span>
+                        <div className="text-xs text-amber-900 dark:text-amber-200 space-y-2">
+                          <p className="font-bold">
+                            Bạn đang xem danh sách rút gọn — nội dung phiếu và trả lời của Ban
+                            Quản Trị chỉ hiển thị với tài khoản đã đăng nhập.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              sound.playClick();
+                              window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'login' } }));
+                            }}
+                            className="font-black underline min-h-[44px]"
+                          >
+                            Đăng nhập để xem đầy đủ
+                          </button>
+                        </div>
+                      </div>
+                    )}
                     {myTickets.map((ticket) => {
                       const formattedCode = ticket.id.startsWith('#') ? ticket.id : `#${ticket.id}`;
                       let categoryBadgeColor = 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-white/10';
