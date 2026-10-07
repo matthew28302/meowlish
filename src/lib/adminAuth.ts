@@ -17,22 +17,37 @@ async function resolveIpv4(host: string): Promise<string> {
 }
 
 /**
- * Email nhận OTP quản trị — lấy từ biến môi trường, KHÔNG ghi trong source.
+ * Email nhận OTP quản trị.
  *
- * Repo này public. Email trước đây nằm trong mã nguồn công khai, tức bất kỳ ai
- * cũng biết chính xác mã OTP 2FA của cổng quản trị sẽ được gửi tới đâu. Đưa sang
- * biến môi trường và fail-closed khi thiếu.
+ * Thứ tự ưu tiên:
+ *   1. `ADMIN_EMAIL` từ biến môi trường.
+ *   2. Email của chính tài khoản `admin` trong bảng `users`.
+ *   3. Không có ⇒ ném lỗi rõ ràng.
+ *
+ * Vì sao không chỉ dựa vào biến môi trường: bản đầu tiên chỉ đọc `ADMIN_EMAIL`
+ * và fail-closed, nên nếu Vercel chưa có biến đó thì bước gửi OTP ném lỗi và
+ * **quản trị viên không đăng nhập được dù mật khẩu đúng** — đúng triệu chứng
+ * đang gặp. Đọc thêm từ DB để hệ thống tự chạy được mà không cần cấu hình thủ
+ * công, đồng thời email vẫn không nằm trong mã nguồn công khai.
  */
 export function getAdminEmail(): string {
-  const email = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
-  if (email) return email;
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(
-      'ADMIN_EMAIL bat buoc khi chay production — noi OTP quan tri duoc gui. ' +
-        'Thieu bien nay thi khong the xac thuc 2FA cho cong /duahau.'
-    );
+  const fromEnv = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+  if (fromEnv) return fromEnv;
+
+  try {
+    const row = db.prepare("SELECT email FROM users WHERE username = 'admin'").get() as
+      | { email?: string | null }
+      | undefined;
+    const fromDb = (row?.email || '').trim().toLowerCase();
+    if (fromDb) return fromDb;
+  } catch (err) {
+    logger.warn('[Admin Auth] Khong doc duoc email admin tu DB:', { error: err });
   }
-  return 'admin@localhost';
+
+  throw new Error(
+    'Chua cau hinh email nhan OTP quan tri: thieu bien moi truong ADMIN_EMAIL ' +
+      'va tai khoan admin chua co email trong CSDL.'
+  );
 }
 
 /**
