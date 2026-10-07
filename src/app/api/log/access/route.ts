@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { logAccess } from '@/lib/systemLogs';
-import { getClientIp } from '@/lib/rateLimit';
+import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { verifyAdminToken } from '@/lib/adminAuth';
 import { verifyUserSessionToken } from '@/lib/userAuth';
 import { db } from '@/lib/db';
@@ -36,6 +36,17 @@ export async function POST(request: Request) {
   try {
     const clientIp = getClientIp(request);
     const userAgent = request.headers.get('user-agent') || '';
+
+    // Rate limiting: chống spam log access
+    const rateCheck = checkRateLimit({
+      key: `log_access:${clientIp}`,
+      maxAttempts: 60, // 60 requests per minute
+      windowMs: 60 * 1000,
+    });
+    if (!rateCheck.allowed) {
+      return rateLimitExceededResponse('Quá nhiều yêu cầu ghi log truy cập. Vui lòng chờ một chút.', rateCheck.resetInSeconds);
+    }
+
     const body = await request.json().catch(() => ({}));
     const pathname: string = String(body.pathname || '/').trim();
     const title: string = String(body.title || '').trim();
@@ -96,6 +107,11 @@ export async function POST(request: Request) {
           if (clientUsername) username = clientUsername;
         }
       }
+    }
+
+    // Chỉ ghi log cho user đã xác thực (không phải guest)
+    if (!userId) {
+      return NextResponse.json({ success: true, skipped: 'guest' });
     }
 
     const pageDesc = PAGE_NAMES[pathname] || (title ? `${title} (${pathname})` : `Trang ${pathname}`);
