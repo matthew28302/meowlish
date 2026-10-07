@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db, hashPassword, verifyDbIntegrity } from '@/lib/db';
-import { getSyncStatus, uploadDbToS3, syncDbToS3Now } from '@/lib/s3Sync';
+import { getSyncStatus, uploadDbToS3, syncDbToS3Now, persistCriticalWrite } from '@/lib/s3Sync';
 import { verifyAdminToken } from '@/lib/adminAuth';
 import { getClientIp } from '@/lib/rateLimit';
 import { logAccess, logError } from '@/lib/systemLogs';
@@ -230,22 +230,55 @@ export async function POST(request: Request) {
 
     // 5. ACTION: ĐỔI MẬT KHẨU CHO USER (SET PASSWORD)
     if (action === 'set_password') {
-      if (!newPassword || newPassword.trim().length < 4) {
-        return NextResponse.json({ error: 'Mật khẩu mới phải có ít nhất 4 ký tự.' }, { status: 400 });
+      if (!newPassword || newPassword.trim().length < 8) {
+        return NextResponse.json({ error: 'Mật khẩu mới phải có ít nhất 8 ký tự.' }, { status: 400 });
       }
       const newHash = hashPassword(newPassword.trim());
-      db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, targetUserId);
 
-      logger.info(`Admin reset password for user ${targetUser.username}`);
+      // Phải chờ ghi xong VÀ kiểm tra lại trên dữ liệu đã đẩy lên.
+      //
+      // Trước đây: `syncDbToS3Now().catch(...)` không await rồi trả "thành công"
+      // ngay. Hai hệ quả đã xảy ra thật:
+      //   1. Upload lỗi thì người dùng vẫn thấy báo thành công.
+      //   2. Instance khác ghi đè cả file SQLite sau đó ⇒ thay đổi biến mất.
+      //      Đúng trường hợp mật khẩu admin bị mất: fingerprint hash trong DB không
+      //      đổi sau nhiều lần đổi mật khẩu.
+      const result = await persistCriticalWrite(
+        `admin_set_password:${targetUser.username}`,
+        () => {
+          db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, targetUserId);
+        },
+        () => {
+          const row = db
+            .prepare('SELECT password_hash FROM users WHERE id = ?')
+            .get(targetUserId) as { password_hash: string } | undefined;
+          return Boolean(row && row.password_hash === newHash);
+        }
+      );
+
+      logger.info(`Admin reset password for user ${targetUser.username} (persisted=${result.persisted})`);
       logAccess({
         username: 'admin',
         action: 'admin_set_password',
         ip: clientIp,
         user_agent: userAgent,
-        status: 'success',
-        details: `Đặt lại mật khẩu cho tài khoản @${targetUser.username} (${targetUserId})`,
+        status: result.persisted ? 'success' : 'failed',
+        details:
+          `Đặt lại mật khẩu cho tài khoản @${targetUser.username} (${targetUserId})` +
+          (result.persisted ? '' : ` — KHONG ghi duoc len kho trung tam sau ${result.attempts} lan`),
       });
-      syncDbToS3Now().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
+
+      if (!result.persisted) {
+        return NextResponse.json(
+          {
+            error:
+              'Máy chủ đã đổi mật khẩu nhưng KHÔNG ghi được vào kho trung tâm dữ liệu. ' +
+              'Thử lại sau ít giây để tránh mất thay đổi.',
+          },
+          { status: 502 }
+        );
+      }
+
       return NextResponse.json({
         success: true,
         message: `Đã đổi mật khẩu mới cho tài khoản ${targetUser.username} thành công!`,

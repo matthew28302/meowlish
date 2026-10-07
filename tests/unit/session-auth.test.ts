@@ -7,8 +7,7 @@
  * `meowlish_user_session=<userId của nạn nhân>` là đọc/ghi được tài khoản đó.
  * Các test dưới đây dùng đúng mẫu tấn công đó.
  */
-import { describe, it, expect, beforeAll } from 'vitest';
-import crypto from 'crypto';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import type {
   verifyUserSessionToken as VerifyFn,
   createUserSessionToken as CreateFn,
@@ -16,18 +15,11 @@ import type {
 } from '@/lib/userAuth';
 
 // Đặt AUTH_SALT TRƯỚC khi nạp module: `userAuth` đọc biến này ở module scope.
-// Nhờ vậy test không cần nhân bản secret fallback trong source — test tự nhân bản
-// secret là nguyên nhân test hỏng mỗi lần ta đổi cơ chế fallback.
 process.env.AUTH_SALT = 'test-only-auth-salt-0123456789abcdef';
 
 let verifyUserSessionToken: typeof VerifyFn;
 let createUserSessionToken: typeof CreateFn;
 let getAuthenticatedUser: typeof AuthFn;
-
-const SECRET = process.env.AUTH_SALT;
-const sign = (payload: string) =>
-  crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
-const b64 = (s: string) => Buffer.from(s).toString('base64url');
 
 function requestWithCookie(cookie: string | null, method = 'GET', url = 'https://x/') {
   const headers: Record<string, string> = {};
@@ -41,6 +33,22 @@ beforeAll(async () => {
   createUserSessionToken = mod.createUserSessionToken;
   getAuthenticatedUser = mod.getAuthenticatedUser;
 });
+
+/**
+ * Đổi 1 ký tự cuối của phần chữ ký.
+ *
+ * Test KHÔNG tự tính HMAC bằng secret riêng: `password.test.ts` cũng sửa
+ * `process.env.AUTH_SALT` và gọi `vi.resetModules()`, nên nếu hai file chạy
+ * chung worker thì `SESSION_SECRET` của module có thể lệch với giá trị test dùng
+ * để ký ⇒ test chập chờn theo thứ tự chạy. Sửa chữ ký trên token do chính hệ
+ * thống cấp thì không còn phụ thuộc trạng thái dùng chung đó.
+ */
+function tamperSignature(token: string): string {
+  const parts = token.split('.');
+  const sig = parts[1];
+  const flipped = sig.slice(0, -1) + (sig.endsWith('a') ? 'b' : 'a');
+  return `${parts[0]}.${flipped}`;
+}
 
 describe('verifyUserSessionToken', () => {
   beforeAll(() => {
@@ -59,14 +67,20 @@ describe('verifyUserSessionToken', () => {
   });
 
   it('TỪ CHỐI token có payload hợp lệ nhưng chữ ký sai', () => {
-    const payload = `user_1791298260433_rh7b:${Date.now() + 60_000}`;
-    const forged = `${b64(payload)}.${sign(payload).slice(0, 63)}f`;
-    expect(verifyUserSessionToken(forged)).toBeNull();
+    const valid = createUserSessionToken('user_1791298260433_rh7b');
+    expect(verifyUserSessionToken(tamperSignature(valid))).toBeNull();
   });
 
   it('TỪ CHỐI token hết hạn', () => {
-    const payload = `user_123:${Date.now() - 1000}`;
-    expect(verifyUserSessionToken(`${b64(payload)}.${sign(payload)}`)).toBeNull();
+    // Đồng hồ giả để token vừa cấp bị xem là đã hết hạn, thay vì tự tính HMAC.
+    vi.useFakeTimers();
+    try {
+      const token = createUserSessionToken('user_123');
+      vi.advanceTimersByTime(15 * 24 * 60 * 60 * 1000 + 1000);
+      expect(verifyUserSessionToken(token)).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('TỪ CHỐI token rác, rỗng, thiếu dấu chấm', () => {
@@ -77,8 +91,7 @@ describe('verifyUserSessionToken', () => {
 
   it('giữ được userId chứa dấu hai chấm', () => {
     const userId = 'user_x:y';
-    const payload = `${userId}:${Date.now() + 60_000}`;
-    expect(verifyUserSessionToken(`${b64(payload)}.${sign(payload)}`)).toBe(userId);
+    expect(verifyUserSessionToken(createUserSessionToken(userId))).toBe(userId);
   });
 
   it('token của người dùng khác không thể dùng để đọc dữ liệu người này', () => {
