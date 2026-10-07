@@ -16,6 +16,7 @@
  *   - userEmailOtpTemplate        (verify_email / 2fa_login / toggle_2fa)
  *   - adminOtpTemplate            (admin 2FA)
  *   - passwordResetTemplate       (forgot-password: mật khẩu tạm thời)
+ *   - passwordResetLinkTemplate   (forgot-password: link đặt lại mật khẩu one-time token)
  *   - supportAckTemplate          (xác nhận đã tiếp nhận phiếu hỗ trợ)
  *   - supportAdminAlertTemplate   (thông báo phiếu hỗ trợ mới tới admin)
  *   - supportReplyTemplate        (phản hồi của admin gửi cho người dùng)
@@ -428,7 +429,55 @@ ${signature()}`;
 }
 
 // ---------------------------------------------------------------------------
-// 4. Support — xác nhận đã tiếp nhận phiếu (gửi cho người dùng)
+// 5. Forgot password — link đặt lại mật khẩu (one-time token, TTL 60 phút)
+// ---------------------------------------------------------------------------
+export function passwordResetLinkTemplate({
+  displayName,
+  username,
+  resetLink,
+}: {
+  displayName?: string | null;
+  username: string;
+  resetLink: string;
+}): RenderedEmail {
+  const subject = 'Đặt lại mật khẩu tài khoản Meowlish';
+  const name = (displayName || '').trim() || username;
+  const reason = `yêu cầu đặt lại mật khẩu trên ${APP_URL}`;
+
+  const body = `              ${heading('Đặt lại mật khẩu')}
+              ${paragraph(`Chào ${name},`)}
+              ${paragraph(`Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản "${username}".`)}
+              ${paragraph('Nhấn nút bên dưới để đặt lại mật khẩu — link chỉ dùng được 1 lần và hết hạn sau 60 phút:')}
+              ${accentButton(resetLink, 'Đặt lại mật khẩu ngay')}
+              ${paragraph('Nếu nút không hoạt động, hãy sao chép link sau vào trình duyệt:', `font-size:13px; color:${C.muted};`)}
+              ${paragraph(`<a href="${escapeHtml(resetLink)}" style="color:${C.accent}; word-break:break-all;">${escapeHtml(resetLink)}</a>`, `font-size:13px; color:${C.muted};`)}
+              ${paragraph('Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này. Tài khoản của bạn vẫn an toàn.', `font-size:13px; color:${C.muted};`)}
+              ${signature()}`;
+
+  const html = layout({
+    preheader: 'Link đặt lại mật khẩu tài khoản Meowlish của bạn.',
+    title: subject,
+    body,
+    reason,
+  });
+
+  const text = [
+    `Chào ${name},`,
+    '',
+    `Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản "${username}".`,
+    '',
+    `Nhấn vào link dưới để đặt lại mật khẩu (chỉ dùng 1 lần, hết hạn sau 60 phút):`,
+    resetLink,
+    '',
+    'Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.',
+    textFooter(reason),
+  ].join('\n');
+
+  return { subject, html, text };
+}
+
+// ---------------------------------------------------------------------------
+// 6. Support — xác nhận đã tiếp nhận phiếu (gửi cho người dùng)
 // ---------------------------------------------------------------------------
 export function supportAckTemplate({
   name,

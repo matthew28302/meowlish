@@ -396,6 +396,18 @@ function createDb(): Database.Database {
     CREATE INDEX IF NOT EXISTS idx_farm_livestock_user ON pet_farm_livestock(user_id);
     CREATE INDEX IF NOT EXISTS idx_friends_user ON user_friends(user_id);
     CREATE INDEX IF NOT EXISTS idx_chat_created ON pet_chat_messages(created_at);
+
+    -- Token đặt lại mật khẩu dùng 1 lần, hash SHA-256, TTL 60 phút.
+    -- Trước đây: sinh mật khẩu ngẫu nhiên gửi trực tiếp qua email — token
+    -- không expire, không thể thu hồi, email bị intercept = mất tài khoản.
+    CREATE TABLE IF NOT EXISTS password_reset_tokens (
+      token_hash TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      expires_at INTEGER NOT NULL,
+      used_at INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
   `);
 
   // Migration: thêm password_changed_at cho DB cũ (chưa có cột này).

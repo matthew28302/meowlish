@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { db, hashPassword, verifyPassword } from '@/lib/db';
+import { db } from '@/lib/db';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { logAccess, logEmail, logError } from '@/lib/systemLogs';
 import { persistCriticalWrite } from '@/lib/s3Sync';
 import logger from '@/lib/logger';
-import { passwordResetTemplate, mailFrom, EMAIL_BRAND } from '@/lib/emailTemplates';
+import { passwordResetLinkTemplate, mailFrom, EMAIL_BRAND } from '@/lib/emailTemplates';
 import dns from 'dns';
 import crypto from 'crypto';
 
@@ -105,10 +105,6 @@ export async function POST(request: Request) {
 
     const recipientEmail = user.email;
 
-    // Generate a new cryptographically secure random password
-    const newPassword = crypto.randomBytes(4).toString('hex') + Math.floor(1000 + Math.random() * 9000);
-    const pwdHash = hashPassword(newPassword);
-
     // KHÔNG có giá trị dự phòng hardcode cho thông tin SMTP: repo này là PUBLIC,
     // nên một `|| 'mat-khau-that'` là lộ mật khẩu email cho cả internet. Thiếu
     // biến môi trường thì báo lỗi rõ ràng thay vì im lặng dùng khoá cũ.
@@ -147,11 +143,26 @@ export async function POST(request: Request) {
       ...({ family: 4 } as any),
     });
 
-    // Nội dung email (presentation only — không đổi logic sinh mật khẩu/lưu DB)
-    const resetEmail = passwordResetTemplate({
+    // Tạo one-time reset token (raw gửi qua email, hash lưu DB)
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = Date.now() + 60 * 60 * 1000; // 60 phút
+
+    // Lưu token hash vào DB
+    db.prepare(`
+      INSERT INTO password_reset_tokens (token_hash, user_id, expires_at)
+      VALUES (?, ?, ?)
+    `).run(tokenHash, user.id, expiresAt);
+
+    // Tạo reset link
+    const baseUrl = process.env.APP_URL || 'https://www.meowlish.io.vn';
+    const resetLink = `${baseUrl}/reset-password?token=${rawToken}`;
+
+    // Nội dung email với link đặt lại mật khẩu
+    const resetEmail = passwordResetLinkTemplate({
       displayName: user.display_name,
       username: user.username,
-      newPassword,
+      resetLink,
     });
 
     const mailOptions = {
@@ -165,33 +176,7 @@ export async function POST(request: Request) {
 
     try {
       await transporter.sendMail(mailOptions);
-      // CHỈ cập nhật mật khẩu trong CSDL KHI email đã được gửi thành công đến người dùng!
-      // Ghi rồi kiểm tra lại: nếu bản ghi bị instance khác ghi đè mất thì người dùng
-      // sẽ nhận mật khẩu mà không dùng được (báo sai pass) — phải báo lỗi rõ ràng.
-      const applyReset = () => {
-        db.prepare('UPDATE users SET password_hash = ?, password_changed_at = ? WHERE id = ?').run(pwdHash, Date.now(), user.id);
-      };
-      const resetPersisted = () => {
-        const row = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(user.id) as
-          | { password_hash: string }
-          | undefined;
-        return !!row && verifyPassword(newPassword, row.password_hash).ok;
-      };
-      const persistReset = await persistCriticalWrite(
-        `đặt lại mật khẩu @${user.username}`,
-        applyReset,
-        resetPersisted
-      );
-
-      if (!persistReset.persisted) {
-        logger.error(`Đặt lại mật khẩu @${user.username} không lưu được lên Filebase sau ${persistReset.attempts} lần thử.`);
-        return NextResponse.json(
-          { error: 'Chưa lưu được mật khẩu mới lên máy chủ. Vui lòng yêu cầu lại sau ít phút!' },
-          { status: 503 }
-        );
-      }
-
-      logger.info(`Successfully sent password reset email to: ${recipientEmail}`);
+      logger.info(`Successfully sent password reset link email to: ${recipientEmail}`);
 
       logEmail({
         recipient: recipientEmail,
@@ -207,12 +192,12 @@ export async function POST(request: Request) {
         ip: clientIp,
         user_agent: userAgent,
         status: 'success',
-        details: `Đã gửi mật khẩu khôi phục qua email ${recipientEmail}`,
+        details: `Đã gửi link đặt lại mật khẩu qua email ${recipientEmail}`,
       });
 
       return NextResponse.json({
         success: true,
-        message: 'Mật khẩu mới đã được gửi đến email đăng ký của bạn. Vui lòng kiểm tra hộp thư!',
+        message: 'Link đặt lại mật khẩu đã được gửi đến email đăng ký của bạn. Vui lòng kiểm tra hộp thư!',
       });
     } catch (mailErr) {
       logger.error('Failed to send SMTP password reset email', { error: mailErr });
@@ -233,7 +218,6 @@ export async function POST(request: Request) {
         severity: 'error',
       });
 
-      // BẢO MẬT: Tuyệt đối không để lộ mật khẩu trong response kể cả khi SMTP lỗi!
       return NextResponse.json({
         error: 'Không thể gửi email lúc này. Vui lòng thử lại sau giây lát hoặc liên hệ hỗ trợ.',
       }, { status: 500 });
