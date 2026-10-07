@@ -19,6 +19,7 @@ import {
   ExternalLink,
   Loader2,
   CheckCircle2,
+  AlertCircle,
   Zap,
   ChevronLeft,
   ChevronRight,
@@ -42,7 +43,20 @@ export default function EncyclopediaPage() {
   const [activeLevel, setActiveLevel] = useState<string>('all');
   const [selectedEntry, setSelectedEntry] = useState<any | null>(null);
   const [savedIds, setSavedIds] = useState<Record<string, boolean>>({});
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
+  const notifTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setNotification({ message, type });
+    if (type === 'success') sound.playSuccess();
+    else sound.playWrong();
+    if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
+    notifTimerRef.current = setTimeout(() => setNotification(null), 3500);
+  };
 
   // Server Search State (26,500+ words from SQLite)
   const [searchResults, setSearchResults] = useState<{
@@ -228,6 +242,12 @@ export default function EncyclopediaPage() {
     sound.playClick();
     const currentUser = getStoredUser();
 
+    // Chưa đăng nhập: không gửi request vô nghĩa, báo rõ cho người dùng.
+    if (!currentUser) {
+      showToast('Vui lòng đăng nhập để lưu từ vựng.', 'error');
+      return;
+    }
+
     try {
       const res = await fetch('/api/bookmarks', {
         method: 'POST',
@@ -246,9 +266,16 @@ export default function EncyclopediaPage() {
       if (res.ok) {
         sound.playSuccess();
         setSavedIds((prev) => ({ ...prev, [item.id || item.word]: true }));
+        showToast('Đã lưu vào sổ tay của bạn.');
+      } else if (res.status === 401 || res.status === 403) {
+        // Trước đây nhánh này rơi vào `catch`/không làm gì — người dùng
+        // bấm nútBookmark mà không thấy phản hồi nào.
+        showToast('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.', 'error');
+      } else {
+        showToast('Không thể lưu từ vựng. Vui lòng thử lại.', 'error');
       }
     } catch {
-      // ignore
+      showToast('Lỗi kết nối máy chủ. Vui lòng thử lại.', 'error');
     }
   };
 
@@ -256,6 +283,24 @@ export default function EncyclopediaPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 lg:pb-12 space-y-8 overflow-x-hidden">
+      {/* Toast Notification — feedback cho bookmark/save */}
+      {notification && (
+        <div
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl shadow-2xl border text-xs sm:text-sm font-black flex items-center gap-2 animate-bounce ${
+            notification.type === 'success'
+              ? 'bg-emerald-700 border-emerald-400 text-white'
+              : 'bg-rose-700 border-rose-400 text-white'
+          }`}
+        >
+          {notification.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4" />
+          ) : (
+            <AlertCircle className="w-4 h-4" />
+          )}
+          <span>{notification.message}</span>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-emerald-600/15 border-2 border-emerald-400/30">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
