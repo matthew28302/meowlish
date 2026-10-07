@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+
+import type { Metadata } from 'next';
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -36,6 +38,11 @@ interface CambridgeSense {
   viTrans: string;
   examples: string[];
 }
+
+export const metadata: Metadata = {
+  title: 'Bách Khoa Toàn Thư Tiếng Anh 26.500+ Từ - Meowlish',
+  description: 'Tra cứu từ vựng tiếng Anh với phiên âm IPA, giải nghĩa chi tiết, collocations, ví dụ tình huống IT và đời sống. Lưu từ vào sổ tay cá nhân.',
+};
 
 export default function EncyclopediaPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -84,16 +91,16 @@ export default function EncyclopediaPage() {
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
   const categories = [
-    { id: 'all', label: 'Tất Cả Mục Từ (26.500+)', icon: Database },
-    { id: 'toeic', label: '🎯 Từ Vựng TOEIC', icon: Briefcase },
-    { id: 'vstep', label: '🎓 Từ Vựng VSTEP', icon: GraduationCap },
-    { id: 'it-dev', label: '💻 IT: Code & Dev', icon: Code2 },
-    { id: 'it-arch', label: '🏗️ IT: Kiến Trúc', icon: Database },
-    { id: 'it-scrum', label: '⏱️ IT: Scrum & Agile', icon: Sparkles },
-    { id: 'workplace', label: '💼 Công Sở & Họp', icon: Briefcase },
-    { id: 'phrasal-verbs', label: '🧩 Phrasal Verbs', icon: Layers },
-    { id: 'idioms', label: '💡 Idioms Giao Tiếp', icon: Sparkles },
-    { id: 'daily', label: '☕ Đời Sống & Chào Hỏi', icon: Coffee },
+    { id: 'all', label: 'Táº¥t Cáº£ Má»¥c Tá»« (26.500+)', icon: Database },
+    { id: 'toeic', label: 'ðŸŽ¯ Tá»« Vá»±ng TOEIC', icon: Briefcase },
+    { id: 'vstep', label: 'ðŸŽ“ Tá»« Vá»±ng VSTEP', icon: GraduationCap },
+    { id: 'it-dev', label: 'ðŸ’» IT: Code & Dev', icon: Code2 },
+    { id: 'it-arch', label: 'ðŸ—ï¸ IT: Kiáº¿n TrÃºc', icon: Database },
+    { id: 'it-scrum', label: 'â±ï¸ IT: Scrum & Agile', icon: Sparkles },
+    { id: 'workplace', label: 'ðŸ’¼ CÃ´ng Sá»Ÿ & Há»p', icon: Briefcase },
+    { id: 'phrasal-verbs', label: 'ðŸ§© Phrasal Verbs', icon: Layers },
+    { id: 'idioms', label: 'ðŸ’¡ Idioms Giao Tiáº¿p', icon: Sparkles },
+    { id: 'daily', label: 'â˜• Äá»i Sá»‘ng & ChÃ o Há»i', icon: Coffee },
   ];
 
   const levels = ['all', 'A1', 'A2', 'B1', 'B2', 'C1'];
@@ -171,11 +178,11 @@ export default function EncyclopediaPage() {
         setAiResult(data.data);
       } else {
         sound.playError();
-        setCrawlerError(data.error || 'Lỗi xử lý dịch thuật AI.');
+        setCrawlerError(data.error || 'Lá»—i xá»­ lÃ½ dá»‹ch thuáº­t AI.');
       }
     } catch {
       sound.playError();
-      setCrawlerError('Lỗi kết nối máy chủ dịch thuật AI Groq.');
+      setCrawlerError('Lá»—i káº¿t ná»‘i mÃ¡y chá»§ dá»‹ch thuáº­t AI Groq.');
     } finally {
       setIsTranslatingAI(false);
     }
@@ -200,10 +207,10 @@ export default function EncyclopediaPage() {
         setCrawledResult(data.entry);
       } else {
         sound.playError();
-        setCrawlerError(data.error || `Không tìm thấy từ "${q}" trên Cambridge English-Vietnamese.`);
+        setCrawlerError(data.error || `KhÃ´ng tÃ¬m tháº¥y tá»« "${q}" trÃªn Cambridge English-Vietnamese.`);
       }
     } catch {
-      setCrawlerError('Lỗi kết nối máy chủ crawler.');
+      setCrawlerError('Lá»—i káº¿t ná»‘i mÃ¡y chá»§ crawler.');
     } finally {
       setIsCrawling(false);
     }
@@ -242,9 +249,9 @@ export default function EncyclopediaPage() {
     sound.playClick();
     const currentUser = getStoredUser();
 
-    // Chưa đăng nhập: không gửi request vô nghĩa, báo rõ cho người dùng.
+    // ChÆ°a Ä‘Äƒng nháº­p: khÃ´ng gá»­i request vÃ´ nghÄ©a, bÃ¡o rÃµ cho ngÆ°á»i dÃ¹ng.
     if (!currentUser) {
-      showToast('Vui lòng đăng nhập để lưu từ vựng.', 'error');
+      showToast('Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ lÆ°u tá»« vá»±ng.', 'error');
       return;
     }
 
@@ -258,7 +265,7 @@ export default function EncyclopediaPage() {
           phonetic: item.ipa,
           translation: item.meaningVi,
           contextSentence: item.exampleSentences?.[0]?.en || item.allSenses?.[0]?.examples?.[0] || '',
-          note: item.detailedExplanation || 'Được tra cứu từ Bách Khoa Toàn Thư',
+          note: item.detailedExplanation || 'ÄÆ°á»£c tra cá»©u tá»« BÃ¡ch Khoa ToÃ n ThÆ°',
           tags: item.category || 'general',
         }),
       });
@@ -266,16 +273,16 @@ export default function EncyclopediaPage() {
       if (res.ok) {
         sound.playSuccess();
         setSavedIds((prev) => ({ ...prev, [item.id || item.word]: true }));
-        showToast('Đã lưu vào sổ tay của bạn.');
+        showToast('ÄÃ£ lÆ°u vÃ o sá»• tay cá»§a báº¡n.');
       } else if (res.status === 401 || res.status === 403) {
-        // Trước đây nhánh này rơi vào `catch`/không làm gì — người dùng
-        // bấm nútBookmark mà không thấy phản hồi nào.
-        showToast('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.', 'error');
+        // TrÆ°á»›c Ä‘Ã¢y nhÃ¡nh nÃ y rÆ¡i vÃ o `catch`/khÃ´ng lÃ m gÃ¬ â€” ngÆ°á»i dÃ¹ng
+        // báº¥m nÃºtBookmark mÃ  khÃ´ng tháº¥y pháº£n há»“i nÃ o.
+        showToast('PhiÃªn lÃ m viá»‡c Ä‘Ã£ háº¿t háº¡n. Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i.', 'error');
       } else {
-        showToast('Không thể lưu từ vựng. Vui lòng thử lại.', 'error');
+        showToast('KhÃ´ng thá»ƒ lÆ°u tá»« vá»±ng. Vui lÃ²ng thá»­ láº¡i.', 'error');
       }
     } catch {
-      showToast('Lỗi kết nối máy chủ. Vui lòng thử lại.', 'error');
+      showToast('Lá»—i káº¿t ná»‘i mÃ¡y chá»§. Vui lÃ²ng thá»­ láº¡i.', 'error');
     }
   };
 
@@ -283,7 +290,7 @@ export default function EncyclopediaPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 lg:pb-12 space-y-8 overflow-x-hidden">
-      {/* Toast Notification — feedback cho bookmark/save */}
+      {/* Toast Notification â€” feedback cho bookmark/save */}
       {notification && (
         <div
           className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-2xl shadow-2xl border text-xs sm:text-sm font-black flex items-center gap-2 animate-bounce ${
@@ -306,13 +313,13 @@ export default function EncyclopediaPage() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-black tracking-wide text-white border border-white/25">
-              <BookOpen className="w-3.5 h-3.5 text-amber-300" /> BÁCH KHOA TOÀN THƯ TỪ ĐIỂN ANH - VIỆT
+              <BookOpen className="w-3.5 h-3.5 text-amber-300" /> BÃCH KHOA TOÃ€N THÆ¯ Tá»ª ÄIá»‚N ANH - VIá»†T
             </div>
             <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
-              Từ Điển 26.500+ Mục Từ & Cambridge Trực Tiếp
+              Tá»« Äiá»ƒn 26.500+ Má»¥c Tá»« & Cambridge Trá»±c Tiáº¿p
             </h1>
             <p className="text-emerald-50 text-xs sm:text-sm leading-relaxed font-medium">
-              Kho dữ liệu khổng lồ <b>26.500+ từ vựng</b> chuẩn quốc tế (TOEIC, VSTEP, IT Dev/Arch/Scrum, giao tiếp đời sống) tích hợp phiên âm IPA, giải nghĩa tiếng Việt chi tiết, ví dụ song ngữ, phát âm bản xứ và crawler trực tiếp từ <b>Cambridge Dictionary</b>.
+              Kho dá»¯ liá»‡u khá»•ng lá»“ <b>26.500+ tá»« vá»±ng</b> chuáº©n quá»‘c táº¿ (TOEIC, VSTEP, IT Dev/Arch/Scrum, giao tiáº¿p Ä‘á»i sá»‘ng) tÃ­ch há»£p phiÃªn Ã¢m IPA, giáº£i nghÄ©a tiáº¿ng Viá»‡t chi tiáº¿t, vÃ­ dá»¥ song ngá»¯, phÃ¡t Ã¢m báº£n xá»© vÃ  crawler trá»±c tiáº¿p tá»« <b>Cambridge Dictionary</b>.
             </p>
           </div>
 
@@ -322,14 +329,14 @@ export default function EncyclopediaPage() {
               onClick={() => sound.playClick()}
               className="btn-3d btn-3d-amber px-4 py-2.5 text-xs font-black text-slate-950 shadow-md cursor-pointer dark:text-slate-200"
             >
-              <Bookmark className="w-4 h-4" /> Sổ Bookmark
+              <Bookmark className="w-4 h-4" /> Sá»• Bookmark
             </Link>
             <Link
               href="/flashcards"
               onClick={() => sound.playClick()}
               className="btn-3d btn-3d-white px-4 py-2.5 text-xs font-black text-slate-800 shadow-md cursor-pointer dark:text-slate-200"
             >
-              <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> Lật Flashcard 3D
+              <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> Láº­t Flashcard 3D
             </Link>
           </div>
         </div>
@@ -353,7 +360,7 @@ export default function EncyclopediaPage() {
                   handleAITranslate();
                 }
               }}
-              placeholder="Nhập từ hoặc câu/đoạn văn tiếng Anh để AI dịch & giải nghĩa (VD: bottleneck, I am swamped...)"
+              placeholder="Nháº­p tá»« hoáº·c cÃ¢u/Ä‘oáº¡n vÄƒn tiáº¿ng Anh Ä‘á»ƒ AI dá»‹ch & giáº£i nghÄ©a (VD: bottleneck, I am swamped...)"
               className="w-full pl-12 pr-10 py-3 bg-slate-50 border-2 border-slate-200 focus:border-emerald-500 rounded-2xl text-sm font-medium focus:outline-none focus:bg-white transition dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900"
             />
             {searchQuery && (
@@ -376,15 +383,15 @@ export default function EncyclopediaPage() {
               onClick={() => handleAITranslate()}
               disabled={isTranslatingAI || !searchQuery.trim()}
               className="btn-3d btn-3d-emerald px-5 py-3 min-h-[44px] text-xs font-black shadow-md cursor-pointer whitespace-nowrap disabled:opacity-50 flex items-center gap-1.5 touch-manipulation"
-              title="Dịch thuật thông minh & giải nghĩa chuẩn ngữ cảnh bằng Groq AI siêu tốc"
+              title="Dá»‹ch thuáº­t thÃ´ng minh & giáº£i nghÄ©a chuáº©n ngá»¯ cáº£nh báº±ng Groq AI siÃªu tá»‘c"
             >
               {isTranslatingAI ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-amber-300" /> Đang dịch AI...
+                  <Loader2 className="w-4 h-4 animate-spin text-amber-300" /> Äang dá»‹ch AI...
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300" /> Dịch AI (Groq)
+                  <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300" /> Dá»‹ch AI (Groq)
                 </>
               )}
             </button>
@@ -393,7 +400,7 @@ export default function EncyclopediaPage() {
               onClick={() => handleCrawl()}
               disabled={isCrawling || !searchQuery.trim()}
               className="btn-3d btn-3d-white px-4 py-3 min-h-[44px] text-xs font-black shadow-sm cursor-pointer whitespace-nowrap disabled:opacity-50 text-slate-700 hover:text-emerald-700 border border-slate-300 flex items-center gap-1.5 touch-manipulation dark:text-slate-300 hover:dark:text-emerald-300 dark:border-white/10"
-              title="Crawl định nghĩa từ từ điển Cambridge"
+              title="Crawl Ä‘á»‹nh nghÄ©a tá»« tá»« Ä‘iá»ƒn Cambridge"
             >
               {isCrawling ? (
                 <>
@@ -411,7 +418,7 @@ export default function EncyclopediaPage() {
         {/* Quick Pick Words Chips */}
         <div className="flex items-center gap-1.5 flex-wrap pt-1">
           <span className="text-xs text-slate-500 font-black flex items-center gap-1 dark:text-slate-400">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" /> Thử tra nhanh bằng AI:
+            <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" /> Thá»­ tra nhanh báº±ng AI:
           </span>
           {quickPicks.map((word) => (
             <button
@@ -454,7 +461,7 @@ export default function EncyclopediaPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs dark:border-white/10">
           <div className="flex items-center gap-2">
             <span className="text-slate-400 font-semibold flex items-center gap-1">
-              <Filter className="w-3.5 h-3.5" /> Cấp độ CEFR:
+              <Filter className="w-3.5 h-3.5" /> Cáº¥p Ä‘á»™ CEFR:
             </span>
             {levels.map((lvl) => (
               <button
@@ -470,17 +477,17 @@ export default function EncyclopediaPage() {
                     : 'text-slate-500 hover:text-slate-900 bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:bg-white/10'
                 }`}
               >
-                {lvl === 'all' ? 'Tất cả' : lvl}
+                {lvl === 'all' ? 'Táº¥t cáº£' : lvl}
               </button>
             ))}
           </div>
 
           <div className="text-slate-500 text-xs font-bold flex items-center gap-1.5 dark:text-slate-400">
             {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600 dark:text-emerald-300" />}
-            <span>Tìm thấy <b>{searchResults.total.toLocaleString()}</b> mục từ</span>
-            <span className="text-slate-300">•</span>
+            <span>TÃ¬m tháº¥y <b>{searchResults.total.toLocaleString()}</b> má»¥c tá»«</span>
+            <span className="text-slate-300">â€¢</span>
             <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 dark:text-emerald-300 dark:bg-emerald-950 dark:border-emerald-800">
-              ⚡ SQLite Cache 0.1ms
+              âš¡ SQLite Cache 0.1ms
             </span>
           </div>
         </div>
@@ -496,14 +503,14 @@ export default function EncyclopediaPage() {
                 <div className="space-y-2 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-black px-3 py-1 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white flex items-center gap-1 shadow-xs">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Bản Dịch Ngữ Cảnh Tự Nhiên (Groq AI)
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Báº£n Dá»‹ch Ngá»¯ Cáº£nh Tá»± NhiÃªn (Groq AI)
                     </span>
                     <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-200 dark:bg-indigo-950 dark:text-indigo-200 dark:border-indigo-800">
-                      Sắc thái: {aiResult.tone}
+                      Sáº¯c thÃ¡i: {aiResult.tone}
                     </span>
                     {aiResult.source === 'cache' && (
                       <span className="text-[12px] font-mono px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 font-bold dark:text-amber-200 dark:bg-amber-900">
-                        ⚡ SQLite Cache 0.1ms
+                        âš¡ SQLite Cache 0.1ms
                       </span>
                     )}
                   </div>
@@ -517,9 +524,9 @@ export default function EncyclopediaPage() {
                   <button
                     onClick={() => speakText(aiResult.originalText)}
                     className="btn-3d btn-3d-emerald px-4 py-2 text-xs font-black shadow-md cursor-pointer"
-                    title="Nghe phát âm cả câu"
+                    title="Nghe phÃ¡t Ã¢m cáº£ cÃ¢u"
                   >
-                    <Volume2 className="w-4 h-4" /> Nghe Câu
+                    <Volume2 className="w-4 h-4" /> Nghe CÃ¢u
                   </button>
                   <button
                     onClick={(e) =>
@@ -535,7 +542,7 @@ export default function EncyclopediaPage() {
                     }
                     className="btn-3d btn-3d-white px-4 py-2 text-xs font-black text-slate-800 shadow-md cursor-pointer dark:text-slate-200"
                   >
-                    <Bookmark className="w-4 h-4 text-indigo-600 dark:text-indigo-300" /> Lưu Bookmark
+                    <Bookmark className="w-4 h-4 text-indigo-600 dark:text-indigo-300" /> LÆ°u Bookmark
                   </button>
                 </div>
               </div>
@@ -543,7 +550,7 @@ export default function EncyclopediaPage() {
               {/* Natural Vietnamese Translation */}
               <div className="p-4 sm:p-5 bg-white rounded-2xl border border-indigo-200 shadow-xs space-y-2 dark:bg-slate-900 dark:border-indigo-800">
                 <div className="text-xs font-black text-indigo-600 uppercase tracking-wider dark:text-indigo-300">
-                  🇻🇳 Bản dịch tiếng Việt tự nhiên:
+                  ðŸ‡»ðŸ‡³ Báº£n dá»‹ch tiáº¿ng Viá»‡t tá»± nhiÃªn:
                 </div>
                 <div className="text-lg sm:text-xl font-black text-slate-900 leading-snug dark:text-slate-100">
                   {aiResult.vietnameseTranslation}
@@ -554,7 +561,7 @@ export default function EncyclopediaPage() {
               {aiResult.nuanceExplanation && (
                 <div className="p-4 bg-amber-50/80 rounded-2xl border border-amber-200 text-xs sm:text-sm text-amber-950 space-y-1 dark:border-amber-800 dark:text-amber-200">
                   <div className="font-black text-amber-900 flex items-center gap-1.5 dark:text-amber-200">
-                    <span>💡 Phân tích sắc thái giao tiếp & ngữ cảnh:</span>
+                    <span>ðŸ’¡ PhÃ¢n tÃ­ch sáº¯c thÃ¡i giao tiáº¿p & ngá»¯ cáº£nh:</span>
                   </div>
                   <p className="leading-relaxed font-medium">
                     {aiResult.nuanceExplanation}
@@ -566,14 +573,14 @@ export default function EncyclopediaPage() {
               {aiResult.keyPhrases && aiResult.keyPhrases.length > 0 && (
                 <div className="space-y-2">
                   <div className="text-xs font-black text-slate-700 uppercase tracking-wider dark:text-slate-300">
-                    Các cụm từ & thành ngữ then chốt trong câu:
+                    CÃ¡c cá»¥m tá»« & thÃ nh ngá»¯ then chá»‘t trong cÃ¢u:
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                     {aiResult.keyPhrases.map((kp: any, kIdx: number) => (
                       <div key={kIdx} className="p-3 bg-white rounded-xl border border-slate-200 text-xs space-y-1 shadow-xs dark:bg-slate-900 dark:border-white/10">
                         <div className="font-bold text-indigo-700 flex items-center justify-between dark:text-indigo-300">
                           <span>{kp.en}</span>
-                          <span className="text-[12px] font-medium text-slate-600 dark:text-slate-400">→ {kp.vi}</span>
+                          <span className="text-[12px] font-medium text-slate-600 dark:text-slate-400">â†’ {kp.vi}</span>
                         </div>
                         {kp.explanation && (
                           <div className="text-[12px] text-slate-500 italic dark:text-slate-400">
@@ -589,7 +596,7 @@ export default function EncyclopediaPage() {
               {/* Alternative Styles (Casual vs Formal) */}
               {aiResult.alternativeTranslations && aiResult.alternativeTranslations.length > 0 && (
                 <div className="p-4 bg-white/80 rounded-2xl border border-slate-200 space-y-2 text-xs dark:bg-slate-900/80 dark:border-white/10">
-                  <div className="font-black text-slate-700 dark:text-slate-300">Các cách diễn đạt tương đương:</div>
+                  <div className="font-black text-slate-700 dark:text-slate-300">CÃ¡c cÃ¡ch diá»…n Ä‘áº¡t tÆ°Æ¡ng Ä‘Æ°Æ¡ng:</div>
                   <div className="space-y-1.5">
                     {aiResult.alternativeTranslations.map((alt: any, aIdx: number) => (
                       <div key={aIdx} className="flex items-start gap-2">
@@ -610,14 +617,14 @@ export default function EncyclopediaPage() {
                 <div>
                   <div className="flex items-center gap-2.5 flex-wrap">
                     <span className="text-xs font-black px-3 py-1 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white flex items-center gap-1 shadow-xs">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Giải Nghĩa Chuyên Sâu (Groq AI)
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Giáº£i NghÄ©a ChuyÃªn SÃ¢u (Groq AI)
                     </span>
                     <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800">
                       {aiResult.partOfSpeech}
                     </span>
                     {aiResult.source === 'cache' && (
                       <span className="text-[12px] font-mono px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 font-bold dark:text-amber-200 dark:bg-amber-900">
-                        ⚡ SQLite Cache 0.1ms
+                        âš¡ SQLite Cache 0.1ms
                       </span>
                     )}
                   </div>
@@ -633,9 +640,9 @@ export default function EncyclopediaPage() {
                   <button
                     onClick={() => speakText(aiResult.word)}
                     className="btn-3d btn-3d-emerald px-4 py-2.5 text-xs font-black shadow-md cursor-pointer"
-                    title="Phát âm chuẩn (TTS)"
+                    title="PhÃ¡t Ã¢m chuáº©n (TTS)"
                   >
-                    <Volume2 className="w-4 h-4" /> Nghe Phát Âm
+                    <Volume2 className="w-4 h-4" /> Nghe PhÃ¡t Ã‚m
                   </button>
                   <button
                     onClick={(e) =>
@@ -651,7 +658,7 @@ export default function EncyclopediaPage() {
                     }
                     className="btn-3d btn-3d-white px-4 py-2.5 text-xs font-black text-slate-800 shadow-md cursor-pointer dark:text-slate-200"
                   >
-                    <Bookmark className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> Lưu Bookmark
+                    <Bookmark className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> LÆ°u Bookmark
                   </button>
                 </div>
               </div>
@@ -659,7 +666,7 @@ export default function EncyclopediaPage() {
               {/* Primary Meaning */}
               <div className="p-4 sm:p-5 bg-white rounded-2xl border border-emerald-200 space-y-1.5 shadow-xs dark:bg-slate-900 dark:border-emerald-800">
                 <div className="text-xs font-black text-emerald-700 uppercase tracking-wider dark:text-emerald-300">
-                  🇻🇳 Nghĩa tiếng Việt chuẩn ngữ cảnh:
+                  ðŸ‡»ðŸ‡³ NghÄ©a tiáº¿ng Viá»‡t chuáº©n ngá»¯ cáº£nh:
                 </div>
                 <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100">
                   {aiResult.meaningVi}
@@ -675,7 +682,7 @@ export default function EncyclopediaPage() {
               {aiResult.collocations && aiResult.collocations.length > 0 && (
                 <div className="space-y-1.5">
                   <div className="text-xs font-black text-slate-600 uppercase tracking-wider dark:text-slate-400">
-                    Cụm từ thường đi kèm (Collocations):
+                    Cá»¥m tá»« thÆ°á»ng Ä‘i kÃ¨m (Collocations):
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {aiResult.collocations.map((col: string, cIdx: number) => (
@@ -698,7 +705,7 @@ export default function EncyclopediaPage() {
               {aiResult.exampleSentences && aiResult.exampleSentences.length > 0 && (
                 <div className="space-y-2">
                   <div className="text-xs font-black text-slate-600 uppercase tracking-wider dark:text-slate-400">
-                    Mẫu câu ví dụ song ngữ thực tế:
+                    Máº«u cÃ¢u vÃ­ dá»¥ song ngá»¯ thá»±c táº¿:
                   </div>
                   <div className="grid grid-cols-1 gap-2.5">
                     {aiResult.exampleSentences.map((eg: any, eIdx: number) => (
@@ -710,17 +717,17 @@ export default function EncyclopediaPage() {
                           <button
                             onClick={() => speakText(eg.en)}
                             className="p-1 hover:bg-slate-100 rounded text-emerald-600 cursor-pointer shrink-0 hover:dark:bg-slate-800 dark:text-emerald-300"
-                            title="Nghe câu"
+                            title="Nghe cÃ¢u"
                           >
                             <Volume2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                         <div className="text-emerald-700 font-medium dark:text-emerald-300">
-                          → {eg.vi}
+                          â†’ {eg.vi}
                         </div>
                         {eg.context && (
                           <div className="text-[12px] text-slate-400 font-bold">
-                            Ngữ cảnh: {eg.context}
+                            Ngá»¯ cáº£nh: {eg.context}
                           </div>
                         )}
                       </div>
@@ -733,7 +740,7 @@ export default function EncyclopediaPage() {
               {aiResult.proTips && (
                 <div className="p-4 bg-amber-50/80 rounded-2xl border border-amber-200 text-xs sm:text-sm text-amber-950 space-y-1 dark:border-amber-800 dark:text-amber-200">
                   <div className="font-black text-amber-900 flex items-center gap-1.5 dark:text-amber-200">
-                    <span>💡 Bí quyết sư phạm & lưu ý giao tiếp:</span>
+                    <span>ðŸ’¡ BÃ­ quyáº¿t sÆ° pháº¡m & lÆ°u Ã½ giao tiáº¿p:</span>
                   </div>
                   <p className="leading-relaxed font-medium">
                     {aiResult.proTips}
@@ -744,7 +751,7 @@ export default function EncyclopediaPage() {
               {/* Synonyms */}
               {aiResult.synonyms && aiResult.synonyms.length > 0 && (
                 <div className="flex items-center gap-2 flex-wrap text-xs pt-1">
-                  <span className="font-bold text-slate-500 dark:text-slate-400">Từ đồng nghĩa:</span>
+                  <span className="font-bold text-slate-500 dark:text-slate-400">Tá»« Ä‘á»“ng nghÄ©a:</span>
                   {aiResult.synonyms.map((syn: string, sIdx: number) => (
                     <button
                       key={sIdx}
@@ -771,11 +778,11 @@ export default function EncyclopediaPage() {
             <div>
               <div className="flex items-center gap-2.5">
                 <span className="text-xs font-black px-3 py-1 rounded-full bg-emerald-600 text-white flex items-center gap-1 shadow-xs">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Kết quả trực tiếp từ Cambridge English-Vietnamese
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Káº¿t quáº£ trá»±c tiáº¿p tá»« Cambridge English-Vietnamese
                 </span>
                 {crawledResult.source === 'cache' && (
                   <span className="text-[12px] font-mono px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 font-bold dark:text-amber-200 dark:bg-amber-900">
-                    ⚡ SQLite Cache 0.1ms
+                    âš¡ SQLite Cache 0.1ms
                   </span>
                 )}
               </div>
@@ -783,7 +790,7 @@ export default function EncyclopediaPage() {
                 {crawledResult.word}
               </h2>
               <div className="text-base font-ipa text-emerald-700 mt-1 font-semibold tracking-wide dark:text-emerald-300">
-                {crawledResult.ipa} • <span className="italic text-slate-600 font-sans text-sm dark:text-slate-400">{crawledResult.partOfSpeech}</span>
+                {crawledResult.ipa} â€¢ <span className="italic text-slate-600 font-sans text-sm dark:text-slate-400">{crawledResult.partOfSpeech}</span>
               </div>
             </div>
 
@@ -791,15 +798,15 @@ export default function EncyclopediaPage() {
               <button
                 onClick={() => handlePlayAudio(crawledResult)}
                 className="btn-3d btn-3d-emerald px-4 py-2.5 text-xs font-black shadow-md cursor-pointer"
-                title="Phát âm bản xứ"
+                title="PhÃ¡t Ã¢m báº£n xá»©"
               >
-                <Volume2 className="w-4 h-4" /> Nghe Phát Âm
+                <Volume2 className="w-4 h-4" /> Nghe PhÃ¡t Ã‚m
               </button>
               <button
                 onClick={(e) => handleSaveBookmark(e, crawledResult)}
                 className="btn-3d btn-3d-white px-4 py-2.5 text-xs font-black text-slate-800 shadow-md cursor-pointer dark:text-slate-200"
               >
-                <Bookmark className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> Lưu Bookmark
+                <Bookmark className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> LÆ°u Bookmark
               </button>
             </div>
           </div>
@@ -807,7 +814,7 @@ export default function EncyclopediaPage() {
           {/* Primary Meaning */}
           <div className="p-4 bg-white rounded-2xl border border-emerald-200 space-y-1.5 shadow-xs dark:bg-slate-900 dark:border-emerald-800">
             <div className="text-base font-black text-emerald-800 flex items-center gap-1.5 dark:text-emerald-200">
-              <span>🇻🇳 Định nghĩa tiếng Việt:</span>
+              <span>ðŸ‡»ðŸ‡³ Äá»‹nh nghÄ©a tiáº¿ng Viá»‡t:</span>
               <span>{crawledResult.meaningVi}</span>
             </div>
             {crawledResult.detailedExplanation && (
@@ -821,7 +828,7 @@ export default function EncyclopediaPage() {
           {crawledResult.allSenses && crawledResult.allSenses.length > 0 && (
             <div className="space-y-3">
               <div className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                Các ngữ nghĩa và ví dụ câu (Cambridge Crawler):
+                CÃ¡c ngá»¯ nghÄ©a vÃ  vÃ­ dá»¥ cÃ¢u (Cambridge Crawler):
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {crawledResult.allSenses.map((sense: CambridgeSense, sIdx: number) => (
@@ -871,7 +878,7 @@ export default function EncyclopediaPage() {
       {/* Crawler Error Notice */}
       {crawlerError && (
         <div className="p-4 bg-amber-50 border border-amber-300 rounded-2xl text-xs text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200">
-          ⚠️ {crawlerError}
+          âš ï¸ {crawlerError}
         </div>
       )}
 
@@ -879,12 +886,12 @@ export default function EncyclopediaPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
           <span>
-            Hiển thị trang <b>{searchResults.page}</b> / <b>{searchResults.totalPages || 1}</b> (
-            {searchResults.total.toLocaleString()} từ vựng phù hợp)
+            Hiá»ƒn thá»‹ trang <b>{searchResults.page}</b> / <b>{searchResults.totalPages || 1}</b> (
+            {searchResults.total.toLocaleString()} tá»« vá»±ng phÃ¹ há»£p)
           </span>
           {isLoading && (
             <span className="text-emerald-600 flex items-center gap-1 dark:text-emerald-300">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang tải...
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Äang táº£i...
             </span>
           )}
         </div>
@@ -910,11 +917,11 @@ export default function EncyclopediaPage() {
                           {item.level || 'B1'}
                         </span>
                         <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-white/10">
-                          {item.categoryLabel?.split(' ')[0] || '📖'}
+                          {item.categoryLabel?.split(' ')[0] || 'ðŸ“–'}
                         </span>
                       </div>
                       <div className="text-xs text-slate-500 font-ipa mt-0.5 font-semibold tracking-wide dark:text-slate-400">
-                        {item.ipa} • <span className="italic text-slate-600 font-sans dark:text-slate-400">{item.partOfSpeech}</span>
+                        {item.ipa} â€¢ <span className="italic text-slate-600 font-sans dark:text-slate-400">{item.partOfSpeech}</span>
                       </div>
                     </div>
 
@@ -925,7 +932,7 @@ export default function EncyclopediaPage() {
                           e.stopPropagation();
                           handlePlayAudio(item);
                         }}
-                        title="Nghe phát âm chuẩn"
+                        title="Nghe phÃ¡t Ã¢m chuáº©n"
                         className="p-2 hover:bg-emerald-100 rounded-xl text-emerald-700 cursor-pointer transition hover:dark:bg-emerald-950 dark:text-emerald-300"
                       >
                         <Volume2 className="w-4 h-4" />
@@ -936,7 +943,7 @@ export default function EncyclopediaPage() {
                   {/* Vietnamese Meaning Badge */}
                   <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-100 dark:bg-emerald-950 dark:border-emerald-800">
                     <div className="text-xs font-black text-emerald-800 dark:text-emerald-200">
-                      🇻🇳 {item.meaningVi}
+                      ðŸ‡»ðŸ‡³ {item.meaningVi}
                     </div>
                   </div>
 
@@ -963,7 +970,7 @@ export default function EncyclopediaPage() {
                 {/* Bottom Actions */}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs dark:border-white/10">
                   <span className="text-[12px] font-bold text-slate-500 group-hover:text-emerald-700 flex items-center gap-1 transition-colors dark:text-slate-400 group-hover:dark:text-emerald-300">
-                    Chi tiết & ví dụ <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    Chi tiáº¿t & vÃ­ dá»¥ <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                   </span>
                   <button
                     type="button"
@@ -994,7 +1001,7 @@ export default function EncyclopediaPage() {
               disabled={currentPage <= 1}
               className="btn-3d btn-3d-white px-3 py-2 text-xs font-bold disabled:opacity-40 cursor-pointer flex items-center gap-1"
             >
-              <ChevronLeft className="w-4 h-4" /> Trang trước
+              <ChevronLeft className="w-4 h-4" /> Trang trÆ°á»›c
             </button>
 
             <div className="flex items-center gap-1 px-2">
@@ -1037,7 +1044,7 @@ export default function EncyclopediaPage() {
                   {selectedEntry.word}
                 </h2>
                 <div className="text-sm sm:text-base font-ipa text-emerald-700 mt-1 font-semibold tracking-wide dark:text-emerald-300">
-                  {selectedEntry.ipa} • <span className="italic text-slate-600 font-sans text-xs sm:text-sm dark:text-slate-400">{selectedEntry.partOfSpeech}</span>
+                  {selectedEntry.ipa} â€¢ <span className="italic text-slate-600 font-sans text-xs sm:text-sm dark:text-slate-400">{selectedEntry.partOfSpeech}</span>
                 </div>
               </div>
 
@@ -1046,7 +1053,7 @@ export default function EncyclopediaPage() {
                   type="button"
                   onClick={() => handlePlayAudio(selectedEntry)}
                   className="w-11 h-11 flex items-center justify-center bg-emerald-100 hover:bg-emerald-200 rounded-2xl text-emerald-800 cursor-pointer transition shadow-xs touch-manipulation dark:bg-emerald-950 dark:text-emerald-200"
-                  title="Nghe phát âm bản xứ"
+                  title="Nghe phÃ¡t Ã¢m báº£n xá»©"
                 >
                   <Volume2 className="w-5 h-5" />
                 </button>
@@ -1054,7 +1061,7 @@ export default function EncyclopediaPage() {
                   type="button"
                   onClick={() => setSelectedEntry(null)}
                   className="w-11 h-11 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-2xl text-slate-500 hover:text-slate-800 cursor-pointer transition touch-manipulation dark:bg-slate-800 hover:dark:bg-slate-700 dark:text-slate-400 hover:dark:text-slate-200"
-                  title="Đóng"
+                  title="ÄÃ³ng"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1064,10 +1071,10 @@ export default function EncyclopediaPage() {
             {/* Meaning Box */}
             <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 space-y-2 dark:bg-emerald-950 dark:border-emerald-800">
               <div className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-200">
-                Định nghĩa tiếng Việt:
+                Äá»‹nh nghÄ©a tiáº¿ng Viá»‡t:
               </div>
               <div className="text-lg font-black text-slate-900 dark:text-slate-100">
-                🇻🇳 {selectedEntry.meaningVi}
+                ðŸ‡»ðŸ‡³ {selectedEntry.meaningVi}
               </div>
               <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium dark:text-slate-300">
                 {selectedEntry.detailedExplanation}
@@ -1078,7 +1085,7 @@ export default function EncyclopediaPage() {
             {selectedEntry.exampleSentences && selectedEntry.exampleSentences.length > 0 && (
               <div className="space-y-3">
                 <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Ví dụ thực tế song ngữ Anh - Việt:
+                  VÃ­ dá»¥ thá»±c táº¿ song ngá»¯ Anh - Viá»‡t:
                 </div>
                 <div className="space-y-2">
                   {selectedEntry.exampleSentences.map((eg: any, idx: number) => (
@@ -1113,7 +1120,7 @@ export default function EncyclopediaPage() {
             {selectedEntry.collocations && selectedEntry.collocations.length > 0 && (
               <div className="space-y-2">
                 <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Cụm từ thường đi kèm (Collocations):
+                  Cá»¥m tá»« thÆ°á»ng Ä‘i kÃ¨m (Collocations):
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {selectedEntry.collocations.map((col: string, idx: number) => (
@@ -1131,7 +1138,7 @@ export default function EncyclopediaPage() {
             {/* Direct Cambridge External Link */}
             <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs dark:bg-slate-900 dark:border-white/10">
               <span className="text-slate-600 font-medium dark:text-slate-400">
-                Tra cứu sâu hơn trên Cambridge English-Vietnamese:
+                Tra cá»©u sÃ¢u hÆ¡n trÃªn Cambridge English-Vietnamese:
               </span>
               <a
                 href={`https://dictionary.cambridge.org/dictionary/english-vietnamese/${encodeURIComponent(
@@ -1141,7 +1148,7 @@ export default function EncyclopediaPage() {
                 rel="noreferrer"
                 className="inline-flex items-center gap-1 font-bold text-emerald-700 hover:underline dark:text-emerald-300"
               >
-                Mở Cambridge <ExternalLink className="w-3.5 h-3.5" />
+                Má»Ÿ Cambridge <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
 
@@ -1152,14 +1159,14 @@ export default function EncyclopediaPage() {
                 onClick={(e) => handleSaveBookmark(e, selectedEntry)}
                 className="btn-3d btn-3d-amber px-5 py-2.5 text-xs font-black text-slate-950 cursor-pointer dark:text-slate-200"
               >
-                <Bookmark className="w-4 h-4" /> Lưu vào Sổ Từ
+                <Bookmark className="w-4 h-4" /> LÆ°u vÃ o Sá»• Tá»«
               </button>
               <button
                 type="button"
                 onClick={() => setSelectedEntry(null)}
                 className="btn-3d btn-3d-white px-5 py-2.5 text-xs font-bold text-slate-800 cursor-pointer dark:text-slate-200"
               >
-                Đóng
+                ÄÃ³ng
               </button>
             </div>
           </div>
@@ -1167,7 +1174,7 @@ export default function EncyclopediaPage() {
       )}
 
       {/* Mascot Companion Floating Support */}
-      <MascotCompanion message="Bạn đang mở Bách Khoa Toàn Thư 26.500+ từ vựng! Tìm bất cứ từ nào hoặc lọc theo TOEIC, VSTEP, IT để học nha!" />
+      <MascotCompanion message="Báº¡n Ä‘ang má»Ÿ BÃ¡ch Khoa ToÃ n ThÆ° 26.500+ tá»« vá»±ng! TÃ¬m báº¥t cá»© tá»« nÃ o hoáº·c lá»c theo TOEIC, VSTEP, IT Ä‘á»ƒ há»c nha!" />
     </div>
   );
 }

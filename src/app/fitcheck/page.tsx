@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+
+import type { Metadata } from 'next';
 
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
 
@@ -25,6 +27,12 @@ const CASES: Array<{ species: string; outfit: string }> = [
  * TEMPORARY visual verification harness for non-standard torso fits.
  * DELETE before finishing.
  */
+export const metadata: Metadata = {
+  title: 'Fit Check - Meowlish',
+  description: 'Trang kiểm tra thời trang thú cưng nội bộ.',
+  robots: { index: false, follow: false },
+};
+
 export default function FitCheckPage() {
   return (
     <div className="min-h-screen bg-slate-200 p-3">

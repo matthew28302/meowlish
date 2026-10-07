@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+
+import type { Metadata } from 'next';
 
 import React, { useState, useMemo } from 'react';
 import { VOCABULARY_LIST, VocabItem } from '@/lib/data/vocabulary';
@@ -17,29 +19,34 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+export const metadata: Metadata = {
+  title: 'Từ Vựng Tiếng Anh IT & Giao Tiếp - Meowlish',
+  description: 'Học từ vựng tiếng Anh chuyên ngành IT, giao tiếp hàng ngày theo chủ đề với phiên âm IPA, ví dụ thực chiến và bài tập phản xạ.',
+};
+
 export default function VocabularyPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [savedIds, setSavedIds] = useState<Record<string, boolean>>({});
 
   const categories = [
-    { id: 'all', label: 'Tất Cả Từ Vựng' },
-    { id: 'it-scrum', label: '💻 IT: Daily Standup' },
-    { id: 'it-review', label: '🛠️ IT: Code Review' },
-    { id: 'it-bug', label: '🐛 IT: Debug & Bug Triage' },
-    { id: 'it-architecture', label: '🏛️ IT: System Architecture' },
-    { id: 'office-english', label: '🏢 Office & Workplace' },
-    { id: 'daily-smalltalk', label: '🤝 Daily: Small Talk' },
-    { id: 'daily-travel', label: '✈️ Daily: Travel & Commute' },
-    { id: 'daily-cafe', label: '☕ Daily: Cafe & Dining' },
-    { id: 'daily-opinion', label: '💡 Daily: Bày Tỏ Quan Điểm' },
-    { id: 'daily-family', label: '🏠 Daily: Gia Đình & Nhà Cửa' },
-    { id: 'daily-food', label: '🍜 Daily: Ăn Uống & Nấu Nướng' },
-    { id: 'daily-health', label: '💪 Daily: Sức Khỏe & Thể Chất' },
-    { id: 'daily-shopping', label: '🛍️ Daily: Mua Sắm & Tiền Bạc' },
-    { id: 'daily-fun', label: '🎬 Daily: Phim Nhạc & Giải Trí' },
-    { id: 'daily-weather', label: '🌦️ Daily: Thời Tiết & Bốn Mùa' },
-    { id: 'it-interview', label: '🎯 IT: Tech Interview' },
+    { id: 'all', label: 'Táº¥t Cáº£ Tá»« Vá»±ng' },
+    { id: 'it-scrum', label: 'ðŸ’» IT: Daily Standup' },
+    { id: 'it-review', label: 'ðŸ› ï¸ IT: Code Review' },
+    { id: 'it-bug', label: 'ðŸ› IT: Debug & Bug Triage' },
+    { id: 'it-architecture', label: 'ðŸ›ï¸ IT: System Architecture' },
+    { id: 'office-english', label: 'ðŸ¢ Office & Workplace' },
+    { id: 'daily-smalltalk', label: 'ðŸ¤ Daily: Small Talk' },
+    { id: 'daily-travel', label: 'âœˆï¸ Daily: Travel & Commute' },
+    { id: 'daily-cafe', label: 'â˜• Daily: Cafe & Dining' },
+    { id: 'daily-opinion', label: 'ðŸ’¡ Daily: BÃ y Tá» Quan Äiá»ƒm' },
+    { id: 'daily-family', label: 'ðŸ  Daily: Gia ÄÃ¬nh & NhÃ  Cá»­a' },
+    { id: 'daily-food', label: 'ðŸœ Daily: Ä‚n Uá»‘ng & Náº¥u NÆ°á»›ng' },
+    { id: 'daily-health', label: 'ðŸ’ª Daily: Sá»©c Khá»e & Thá»ƒ Cháº¥t' },
+    { id: 'daily-shopping', label: 'ðŸ›ï¸ Daily: Mua Sáº¯m & Tiá»n Báº¡c' },
+    { id: 'daily-fun', label: 'ðŸŽ¬ Daily: Phim Nháº¡c & Giáº£i TrÃ­' },
+    { id: 'daily-weather', label: 'ðŸŒ¦ï¸ Daily: Thá»i Tiáº¿t & Bá»‘n MÃ¹a' },
+    { id: 'it-interview', label: 'ðŸŽ¯ IT: Tech Interview' },
   ];
 
   const filteredWords = useMemo(() => {
@@ -65,7 +72,7 @@ export default function VocabularyPage() {
           phonetic: item.phonetic,
           translation: item.meaningVi,
           contextSentence: item.exampleSentence,
-          note: item.tips || 'Từ vựng từ thư viện',
+          note: item.tips || 'Tá»« vá»±ng tá»« thÆ° viá»‡n',
           tags: item.category,
         }),
       });
@@ -85,13 +92,13 @@ export default function VocabularyPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2 dark:bg-slate-900/20">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Thư Viện Từ Vựng IT & Daily
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" /> ThÆ° Viá»‡n Tá»« Vá»±ng IT & Daily
             </div>
             <h1 className="text-2xl sm:text-3xl font-black">
-              Học Từ Vựng Giao Tiếp Theo Ngữ Cảnh
+              Há»c Tá»« Vá»±ng Giao Tiáº¿p Theo Ngá»¯ Cáº£nh
             </h1>
             <p className="text-emerald-100 text-xs sm:text-sm max-w-2xl mt-1">
-              Phát âm chuẩn IPA, collocations bản xứ, ghi nhớ bằng tình huống thực tế và lưu vào sổ tay cá nhân.
+              PhÃ¡t Ã¢m chuáº©n IPA, collocations báº£n xá»©, ghi nhá»› báº±ng tÃ¬nh huá»‘ng thá»±c táº¿ vÃ  lÆ°u vÃ o sá»• tay cÃ¡ nhÃ¢n.
             </p>
           </div>
           <Link
@@ -99,7 +106,7 @@ export default function VocabularyPage() {
             onClick={() => sound.playClick()}
             className="btn-3d btn-3d-white px-4 py-2.5 min-h-[44px] text-xs font-black text-slate-800 shadow-md transition flex items-center gap-1.5 cursor-pointer touch-manipulation dark:text-slate-200"
           >
-            Lật Flashcard Ôn Tập
+            Láº­t Flashcard Ã”n Táº­p
           </Link>
         </div>
       </div>
@@ -113,7 +120,7 @@ export default function VocabularyPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm kiếm từ vựng (VD: blocker, refactor, cafe...)"
+              placeholder="TÃ¬m kiáº¿m tá»« vá»±ng (VD: blocker, refactor, cafe...)"
               className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:outline-none focus:border-emerald-500 transition"
             />
           </div>
@@ -142,24 +149,24 @@ export default function VocabularyPage() {
 
       {/* Vocabulary Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {/* Empty state: search không trả kết quả -> nói rõ thay vì để trang trắng */}
+        {/* Empty state: search khÃ´ng tráº£ káº¿t quáº£ -> nÃ³i rÃµ thay vÃ¬ Ä‘á»ƒ trang tráº¯ng */}
         {filteredWords.length === 0 && (
           <div
             role="status"
             aria-live="polite"
             className="col-span-full flex flex-col items-center justify-center gap-3 py-16 px-6 text-center bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-3xl"
           >
-            <span className="text-5xl" aria-hidden="true">🔍</span>
+            <span className="text-5xl" aria-hidden="true">ðŸ”</span>
             <h3 className="text-lg font-black text-slate-900 dark:text-white">
-              Không tìm thấy từ nào phù hợp
+              KhÃ´ng tÃ¬m tháº¥y tá»« nÃ o phÃ¹ há»£p
             </h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md">
-              Không có từ nào khớp với từ khóa hoặc nhóm đang chọn. Hãy thử:
+              KhÃ´ng cÃ³ tá»« nÃ o khá»›p vá»›i tá»« khÃ³a hoáº·c nhÃ³m Ä‘ang chá»n. HÃ£y thá»­:
             </p>
             <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 text-left max-w-md list-disc list-inside">
-              <li>Kiểm tra lại chính tả từ khóa (ví dụ: <span className="font-bold">recieve</span> → nhập <span className="font-bold">receive</span>)</li>
-              <li>Bấm <span className="font-bold">Tất Cả Từ Vựng</span> để bỏ giới hạn nhóm đang lọc</li>
-              <li>Hoặc tra cứu trong <span className="font-bold">Bách Khoa Từ Điển</span> (26.500+ mục)</li>
+              <li>Kiá»ƒm tra láº¡i chÃ­nh táº£ tá»« khÃ³a (vÃ­ dá»¥: <span className="font-bold">recieve</span> â†’ nháº­p <span className="font-bold">receive</span>)</li>
+              <li>Báº¥m <span className="font-bold">Táº¥t Cáº£ Tá»« Vá»±ng</span> Ä‘á»ƒ bá» giá»›i háº¡n nhÃ³m Ä‘ang lá»c</li>
+              <li>Hoáº·c tra cá»©u trong <span className="font-bold">BÃ¡ch Khoa Tá»« Äiá»ƒn</span> (26.500+ má»¥c)</li>
             </ul>
             {(searchQuery || activeCategory !== 'all') && (
               <button
@@ -167,7 +174,7 @@ export default function VocabularyPage() {
                 onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}
                 className="mt-1 px-4 py-2.5 min-h-[44px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition cursor-pointer touch-manipulation"
               >
-                🔄 Xóa tìm kiếm & xem tất cả từ
+                ðŸ”„ XÃ³a tÃ¬m kiáº¿m & xem táº¥t cáº£ tá»«
               </button>
             )}
           </div>
@@ -190,7 +197,7 @@ export default function VocabularyPage() {
                       </h3>
                     </div>
                     <span className="text-xs text-slate-500 dark:text-slate-400 font-ipa font-semibold tracking-wide">
-                      {item.phonetic} •{' '}
+                      {item.phonetic} â€¢{' '}
                       <span className="italic text-emerald-600 dark:text-emerald-400 font-sans">
                         {item.type}
                       </span>
@@ -201,7 +208,7 @@ export default function VocabularyPage() {
                       sound.playClick();
                       speakText(item.word);
                     }}
-                    title="Nghe phát âm chuẩn"
+                    title="Nghe phÃ¡t Ã¢m chuáº©n"
                     className="w-10 h-10 flex items-center justify-center bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 rounded-xl hover:bg-emerald-200 transition cursor-pointer touch-manipulation shrink-0"
                   >
                     <Volume2 className="w-4 h-4" />
@@ -211,7 +218,7 @@ export default function VocabularyPage() {
                 {/* Meaning */}
                 <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
                   <div className="text-xs font-bold text-slate-900 dark:text-white">
-                    🇻🇳 {item.meaningVi}
+                    ðŸ‡»ðŸ‡³ {item.meaningVi}
                   </div>
                   <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                     {item.definitionEn}
@@ -221,7 +228,7 @@ export default function VocabularyPage() {
                 {/* Example sentence */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                    <span>Ngữ cảnh câu thực tế:</span>
+                    <span>Ngá»¯ cáº£nh cÃ¢u thá»±c táº¿:</span>
                     <button
                       onClick={() => {
                         sound.playClick();
@@ -229,7 +236,7 @@ export default function VocabularyPage() {
                       }}
                       className="text-emerald-600 hover:underline flex items-center gap-0.5 cursor-pointer text-[10px] dark:text-emerald-300"
                     >
-                      <Volume2 className="w-3 h-3" /> Nghe câu
+                      <Volume2 className="w-3 h-3" /> Nghe cÃ¢u
                     </button>
                   </div>
                   <p className="text-xs font-medium text-slate-800 dark:text-slate-200 bg-emerald-50/40 dark:bg-emerald-950/20 p-2.5 rounded-xl border border-emerald-100 dark:border-emerald-900/40">
@@ -256,7 +263,7 @@ export default function VocabularyPage() {
                   onClick={() => sound.playClick()}
                   className="text-xs text-slate-600 dark:text-slate-300 hover:text-emerald-600 flex items-center gap-1 font-semibold"
                 >
-                  <Mic className="w-3.5 h-3.5 text-emerald-500" /> Luyện Nói
+                  <Mic className="w-3.5 h-3.5 text-emerald-500" /> Luyá»‡n NÃ³i
                 </Link>
 
                 <button
@@ -270,11 +277,11 @@ export default function VocabularyPage() {
                 >
                   {isSaved ? (
                     <>
-                      <Check className="w-3.5 h-3.5" /> Đã Lưu Bookmark
+                      <Check className="w-3.5 h-3.5" /> ÄÃ£ LÆ°u Bookmark
                     </>
                   ) : (
                     <>
-                      <Bookmark className="w-3.5 h-3.5" /> Lưu Sổ Tay
+                      <Bookmark className="w-3.5 h-3.5" /> LÆ°u Sá»• Tay
                     </>
                   )}
                 </button>

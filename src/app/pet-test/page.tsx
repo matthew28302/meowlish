@@ -1,6 +1,14 @@
-'use client';
+﻿'use client';
+
+import type { Metadata } from 'next';
 import React from 'react';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
+
+export const metadata: Metadata = {
+  title: 'Pet Test - Meowlish',
+  description: 'Trang kiểm tra thú cưng nội bộ.',
+  robots: { index: false, follow: false },
+};
 
 export default function PetTestPage() {
   const speciesList = [
@@ -117,8 +125,8 @@ export default function PetTestPage() {
   return (
     <div className="p-8 bg-slate-900 min-h-screen">
       {/* SECTION 1: FASHION FITTING SHOWCASE */}
-      <h1 className="text-white text-3xl font-bold mb-2">🐾 Fashion Fitting Room (Vừa Khít & Sát Pet)</h1>
-      <p className="text-slate-400 mb-8">Kiểm tra toàn bộ mũ nón, trang phục, kính và phụ kiện ôm sát cơ thể thú cưng</p>
+      <h1 className="text-white text-3xl font-bold mb-2">ðŸ¾ Fashion Fitting Room (Vá»«a KhÃ­t & SÃ¡t Pet)</h1>
+      <p className="text-slate-400 mb-8">Kiá»ƒm tra toÃ n bá»™ mÅ© nÃ³n, trang phá»¥c, kÃ­nh vÃ  phá»¥ kiá»‡n Ã´m sÃ¡t cÆ¡ thá»ƒ thÃº cÆ°ng</p>
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6 mb-16">
         {fashionCombos.map((c, idx) => (
@@ -140,7 +148,7 @@ export default function PetTestPage() {
       </div>
 
       {/* SECTION 2: BASE PET PREVIEW */}
-      <h2 className="text-white text-2xl font-bold mb-6">27 Anime Pet Catalog (Bản Gốc 100%)</h2>
+      <h2 className="text-white text-2xl font-bold mb-6">27 Anime Pet Catalog (Báº£n Gá»‘c 100%)</h2>
       <div className="flex flex-wrap gap-6">
         {speciesList.map((s) => (
           <div key={s} className="flex flex-col items-center bg-slate-800/60 p-3 rounded-xl border border-slate-700/60">

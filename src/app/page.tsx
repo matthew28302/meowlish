@@ -1,4 +1,6 @@
-'use client';
+﻿'use client';
+
+import type { Metadata } from 'next';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
@@ -39,6 +41,11 @@ import { getStoredUser, AuthUser, setStoredUser } from '@/lib/auth';
 import { PETS_CATALOG, getPetTitle } from '@/lib/petData';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
 import { LEARNING_PATHS, LearningPath, PathNode } from '@/lib/learningPathsData';
+
+export const metadata: Metadata = {
+  title: 'Trang Chủ - Meowlish',
+  description: 'Meowlish - Nền tảng học tiếng Anh giao tiếp & IT thực chiến với thú cưng 2.5D, ngữ pháp Lego, từ vựng 26.500+ từ và luyện nói AI.',
+};
 
 export default function HomePage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
@@ -222,16 +229,16 @@ export default function HomePage() {
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-black tracking-wide text-white border border-white/25">
-              <Compass className="w-3.5 h-3.5 text-amber-200" /> TIẾNG ANH GIAO TIẾP THỰC CHIẾN IT & ĐỜI SỐNG
+              <Compass className="w-3.5 h-3.5 text-amber-200" /> TIáº¾NG ANH GIAO TIáº¾P THá»°C CHIáº¾N IT & Äá»œI Sá»NG
             </div>
 
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
-              Tự tin nói tiếng Anh{' '}
-              <span className="text-amber-200 drop-shadow-xs">chuẩn bản xứ mỗi ngày!</span>
+              Tá»± tin nÃ³i tiáº¿ng Anh{' '}
+              <span className="text-amber-200 drop-shadow-xs">chuáº©n báº£n xá»© má»—i ngÃ y!</span>
             </h1>
 
             <p className="text-emerald-50 text-xs sm:text-sm leading-relaxed max-w-xl font-medium">
-              Chào mừng bạn trở lại, <b className="text-white font-black underline decoration-amber-300 underline-offset-4">{currentUser?.display_name || 'Học viên'}</b>! Chọn mục tiêu (TOEIC, VSTEP, IELTS, TOEFL, IT Work), học qua mốc lộ trình và thử sức với bài Thi Thử Thực Chiến.
+              ChÃ o má»«ng báº¡n trá»Ÿ láº¡i, <b className="text-white font-black underline decoration-amber-300 underline-offset-4">{currentUser?.display_name || 'Há»c viÃªn'}</b>! Chá»n má»¥c tiÃªu (TOEIC, VSTEP, IELTS, TOEFL, IT Work), há»c qua má»‘c lá»™ trÃ¬nh vÃ  thá»­ sá»©c vá»›i bÃ i Thi Thá»­ Thá»±c Chiáº¿n.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -240,14 +247,14 @@ export default function HomePage() {
                 onClick={() => sound.playClick()}
                 className="btn-arcade px-5 py-3 text-xs sm:text-sm shadow-md cursor-pointer"
               >
-                <Mic className="w-4 h-4" /> Luyện Nói Voice AI Ngay
+                <Mic className="w-4 h-4" /> Luyá»‡n NÃ³i Voice AI Ngay
               </Link>
               <Link
                 href="/exam"
                 onClick={() => sound.playClick()}
                 className="btn-3d btn-3d-white px-5 py-3 text-xs sm:text-sm font-black text-slate-800 shadow-md cursor-pointer dark:text-slate-200"
               >
-                <Trophy className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> Trung Tâm Thi Thử
+                <Trophy className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> Trung TÃ¢m Thi Thá»­
               </Link>
             </div>
           </div>
@@ -256,14 +263,14 @@ export default function HomePage() {
             <MascotCompanion
               mood="happy"
               size="lg"
-              message={`Chào ${currentUser?.display_name || 'bạn'}! Mục tiêu ${currentPath.title} đã sẵn sàng. Hãy vượt mốc hôm nay nhé!`}
+              message={`ChÃ o ${currentUser?.display_name || 'báº¡n'}! Má»¥c tiÃªu ${currentPath.title} Ä‘Ã£ sáºµn sÃ ng. HÃ£y vÆ°á»£t má»‘c hÃ´m nay nhÃ©!`}
             />
           </div>
         </div>
       </section>
 
       {/* ========================================================================= */}
-      {/* SECTION: MULTI-TARGET LEARNING PATH (LỘ TRÌNH HỌC ĐA MỤC TIÊU) */}
+      {/* SECTION: MULTI-TARGET LEARNING PATH (Lá»˜ TRÃŒNH Há»ŒC ÄA Má»¤C TIÃŠU) */}
       {/* ========================================================================= */}
       <section className="space-y-6">
         {/* Header & Goal Selector Bar */}
@@ -271,13 +278,13 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="p-2 bg-emerald-100 text-emerald-800 rounded-2xl text-xl dark:bg-emerald-950 dark:text-emerald-200">🎯</span>
+                <span className="p-2 bg-emerald-100 text-emerald-800 rounded-2xl text-xl dark:bg-emerald-950 dark:text-emerald-200">ðŸŽ¯</span>
                 <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight dark:text-slate-100">
-                  Lộ Trình Học Theo Mục Tiêu Chứng Chỉ & Công Việc
+                  Lá»™ TrÃ¬nh Há»c Theo Má»¥c TiÃªu Chá»©ng Chá»‰ & CÃ´ng Viá»‡c
                 </h2>
               </div>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1 dark:text-slate-400">
-                Lựa chọn chứng chỉ bạn cần hướng tới. Nội dung mốc học và đề thi thử sẽ tự động cập nhật chuẩn hóa!
+                Lá»±a chá»n chá»©ng chá»‰ báº¡n cáº§n hÆ°á»›ng tá»›i. Ná»™i dung má»‘c há»c vÃ  Ä‘á» thi thá»­ sáº½ tá»± Ä‘á»™ng cáº­p nháº­t chuáº©n hÃ³a!
               </p>
             </div>
 
@@ -288,10 +295,10 @@ export default function HomePage() {
               </div>
               <div>
                 <div className="text-xs font-black text-emerald-900 dark:text-emerald-200">
-                  Tiến Độ Lộ Trình Hiện Tại
+                  Tiáº¿n Äá»™ Lá»™ TrÃ¬nh Hiá»‡n Táº¡i
                 </div>
                 <div className="text-[12px] font-extrabold text-emerald-700 dark:text-emerald-300">
-                  Hoàn thành {completedInPath} / {currentPath.nodes.length} mốc bài học
+                  HoÃ n thÃ nh {completedInPath} / {currentPath.nodes.length} má»‘c bÃ i há»c
                 </div>
               </div>
             </div>
@@ -326,7 +333,7 @@ export default function HomePage() {
           <div className={`p-5 rounded-2xl bg-gradient-to-r ${currentPath.color} text-white shadow-md relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4`}>
             <div className="space-y-1 z-10 max-w-2xl">
               <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/20 text-white text-xs font-black border border-white/30 uppercase tracking-wide">
-                <span>{currentPath.icon}</span> ĐANG CHỌN MỤC TIÊU: {currentPath.badge}
+                <span>{currentPath.icon}</span> ÄANG CHá»ŒN Má»¤C TIÃŠU: {currentPath.badge}
               </div>
               <h3 className="text-lg sm:text-xl font-black">{currentPath.title}</h3>
               <p className="text-xs text-white/90 font-medium leading-relaxed">
@@ -405,12 +412,12 @@ export default function HomePage() {
                       </span>
                       {node.isMockTest && (
                         <span className="text-[12px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 dark:bg-rose-950 dark:text-rose-200 dark:border-rose-800">
-                          🔥 Mốc Cuối Thi Thử
+                          ðŸ”¥ Má»‘c Cuá»‘i Thi Thá»­
                         </span>
                       )}
                       {isCompleted && (
                         <span className="text-[12px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">
-                          ✓ Đã Đạt Mốc
+                          âœ“ ÄÃ£ Äáº¡t Má»‘c
                         </span>
                       )}
                     </div>
@@ -429,7 +436,7 @@ export default function HomePage() {
                           key={skIdx}
                           className="text-[12px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md dark:text-slate-400 dark:bg-slate-800"
                         >
-                          • {skill}
+                          â€¢ {skill}
                         </span>
                       ))}
                     </div>
@@ -439,9 +446,9 @@ export default function HomePage() {
                 {/* Right Action Controls & Rewards */}
                 <div className="w-full md:w-auto flex flex-row md:flex-col items-center md:items-end justify-between gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-white/10">
                   <div className="flex items-center gap-2 text-xs font-black text-amber-600 bg-amber-50 px-3 py-1 rounded-xl border border-amber-200 dark:text-amber-300 dark:bg-amber-950 dark:border-amber-800">
-                    <span>⭐ +{node.expReward} EXP</span>
-                    <span>•</span>
-                    <span>🪙 +{node.coinReward}</span>
+                    <span>â­ +{node.expReward} EXP</span>
+                    <span>â€¢</span>
+                    <span>ðŸª™ +{node.coinReward}</span>
                   </div>
 
                   {node.isMockTest ? (
@@ -451,7 +458,7 @@ export default function HomePage() {
                       className="btn-3d btn-3d-amber px-6 py-3 text-xs sm:text-sm font-black text-slate-950 shadow-md cursor-pointer flex items-center gap-2 dark:text-slate-200"
                     >
                       <Trophy className="w-4 h-4" />
-                      <span>Bắt Đầu Bài Thi Thử</span>
+                      <span>Báº¯t Äáº§u BÃ i Thi Thá»­</span>
                     </Link>
                   ) : (
                     <div className="flex items-center gap-2 flex-wrap">
@@ -463,7 +470,7 @@ export default function HomePage() {
                         className="btn-3d btn-3d-white px-4 py-2.5 min-h-[44px] text-xs font-black text-slate-800 cursor-pointer flex items-center gap-1.5 touch-manipulation dark:text-slate-200"
                       >
                         <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-300" />
-                        <span>Xem bài học ({node.lessons.length})</span>
+                        <span>Xem bÃ i há»c ({node.lessons.length})</span>
                       </button>
 
                       {!isCompleted ? (
@@ -473,11 +480,11 @@ export default function HomePage() {
                           className="btn-3d btn-3d-emerald px-4 py-2.5 min-h-[44px] text-xs font-black shadow-md cursor-pointer flex items-center gap-1.5 touch-manipulation"
                         >
                           <Check className="w-4 h-4" />
-                          <span>Đánh dấu xong</span>
+                          <span>ÄÃ¡nh dáº¥u xong</span>
                         </button>
                       ) : (
                         <span className="text-xs font-black text-emerald-700 flex items-center gap-1 bg-emerald-100 px-3 py-2.5 min-h-[44px] rounded-xl dark:text-emerald-300 dark:bg-emerald-950">
-                          <CheckCircle2 className="w-4 h-4" /> Hoàn thành
+                          <CheckCircle2 className="w-4 h-4" /> HoÃ n thÃ nh
                         </span>
                       )}
                     </div>
@@ -501,14 +508,14 @@ export default function HomePage() {
               <div>
                 <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2 dark:text-slate-100">
                   <Zap className="w-5 h-5 text-amber-500 fill-amber-400 animate-flame" />
-                  Phòng Luyện Tập 4 Kỹ Năng Tương Tác
+                  PhÃ²ng Luyá»‡n Táº­p 4 Ká»¹ NÄƒng TÆ°Æ¡ng TÃ¡c
                 </h2>
                 <p className="text-xs text-slate-500 font-medium dark:text-slate-400">
-                  Chấm điểm bằng giọng nói AI, lắp ghép câu Lego và đóng vai tình huống công sở.
+                  Cháº¥m Ä‘iá»ƒm báº±ng giá»ng nÃ³i AI, láº¯p ghÃ©p cÃ¢u Lego vÃ  Ä‘Ã³ng vai tÃ¬nh huá»‘ng cÃ´ng sá»Ÿ.
                 </p>
               </div>
               <span className="badge-arcade">
-                +20 EXP mỗi bài
+                +20 EXP má»—i bÃ i
               </span>
             </div>
 
@@ -529,14 +536,14 @@ export default function HomePage() {
                     </span>
                   </div>
                   <h3 className="text-base font-black text-slate-900 group-hover:text-emerald-700 transition-colors dark:text-slate-100 group-hover:dark:text-emerald-300">
-                    Luyện Nói Voice AI
+                    Luyá»‡n NÃ³i Voice AI
                   </h3>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium dark:text-slate-400">
-                    Nhận diện giọng nói microphone trực tiếp, chấm điểm % phát âm và chỉ ra lỗi sai từng từ.
+                    Nháº­n diá»‡n giá»ng nÃ³i microphone trá»±c tiáº¿p, cháº¥m Ä‘iá»ƒm % phÃ¡t Ã¢m vÃ  chá»‰ ra lá»—i sai tá»«ng tá»«.
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-emerald-700 dark:border-white/10 dark:text-emerald-300">
-                  <span>Vào phòng nói</span>
+                  <span>VÃ o phÃ²ng nÃ³i</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>
@@ -557,14 +564,14 @@ export default function HomePage() {
                     </span>
                   </div>
                   <h3 className="text-base font-black text-slate-900 group-hover:text-teal-700 transition-colors dark:text-slate-100 group-hover:dark:text-teal-300">
-                    Luyện Viết Phản Xạ
+                    Luyá»‡n Viáº¿t Pháº£n Xáº¡
                   </h3>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium dark:text-slate-400">
-                    Lắp ghép các khối từ vựng thành câu hoặc gõ bàn phím phản xạ theo tình huống công việc.
+                    Láº¯p ghÃ©p cÃ¡c khá»‘i tá»« vá»±ng thÃ nh cÃ¢u hoáº·c gÃµ bÃ n phÃ­m pháº£n xáº¡ theo tÃ¬nh huá»‘ng cÃ´ng viá»‡c.
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-teal-700 dark:border-white/10 dark:text-teal-300">
-                  <span>Lắp ghép câu</span>
+                  <span>Láº¯p ghÃ©p cÃ¢u</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>
@@ -585,14 +592,14 @@ export default function HomePage() {
                     </span>
                   </div>
                   <h3 className="text-base font-black text-slate-900 group-hover:text-sky-700 transition-colors dark:text-slate-100 group-hover:dark:text-sky-300">
-                    Luyện Nghe Tốc Độ
+                    Luyá»‡n Nghe Tá»‘c Äá»™
                   </h3>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium dark:text-slate-400">
-                    Audio đàm thoại bản xứ, chế độ nghe chậm 0.75x và trắc nghiệm nghe hiểu ngữ cảnh.
+                    Audio Ä‘Ã m thoáº¡i báº£n xá»©, cháº¿ Ä‘á»™ nghe cháº­m 0.75x vÃ  tráº¯c nghiá»‡m nghe hiá»ƒu ngá»¯ cáº£nh.
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-sky-700 dark:border-white/10 dark:text-sky-300">
-                  <span>Luyện nghe</span>
+                  <span>Luyá»‡n nghe</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>
@@ -613,14 +620,14 @@ export default function HomePage() {
                     </span>
                   </div>
                   <h3 className="text-base font-black text-slate-900 group-hover:text-purple-700 transition-colors dark:text-slate-100 group-hover:dark:text-purple-300">
-                    Đóng Vai Hội Thoại
+                    ÄÃ³ng Vai Há»™i Thoáº¡i
                   </h3>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium dark:text-slate-400">
-                    Mô phỏng buổi họp Daily Scrum với Tech Lead Alex, rèn luyện phản xạ đối đáp tiếng Anh.
+                    MÃ´ phá»ng buá»•i há»p Daily Scrum vá»›i Tech Lead Alex, rÃ¨n luyá»‡n pháº£n xáº¡ Ä‘á»‘i Ä‘Ã¡p tiáº¿ng Anh.
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-purple-700 dark:border-white/10 dark:text-purple-300">
-                  <span>Vào kịch bản</span>
+                  <span>VÃ o ká»‹ch báº£n</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>
@@ -633,16 +640,16 @@ export default function HomePage() {
             <div className="card-arcade card-arcade-emerald p-5 flex flex-col justify-between space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-2xl">🧱</span>
+                  <span className="text-2xl">ðŸ§±</span>
                   <span className="badge-arcade">
-                    Trực quan & Dễ hiểu
+                    Trá»±c quan & Dá»… hiá»ƒu
                   </span>
                 </div>
                 <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100">
-                  Ngữ Pháp Lego & Công Tắc Chuyển Thì
+                  Ngá»¯ PhÃ¡p Lego & CÃ´ng Táº¯c Chuyá»ƒn ThÃ¬
                 </h3>
                 <p className="text-xs text-slate-600 mt-1.5 leading-relaxed font-medium dark:text-slate-400">
-                  Giải thích cấu trúc câu qua 4 khối màu: Chủ ngữ, Động từ, Tân ngữ và Thời gian. Công tắc chuyển thì biến đổi câu tức thì.
+                  Giáº£i thÃ­ch cáº¥u trÃºc cÃ¢u qua 4 khá»‘i mÃ u: Chá»§ ngá»¯, Äá»™ng tá»«, TÃ¢n ngá»¯ vÃ  Thá»i gian. CÃ´ng táº¯c chuyá»ƒn thÃ¬ biáº¿n Ä‘á»•i cÃ¢u tá»©c thÃ¬.
                 </p>
               </div>
               <Link
@@ -650,7 +657,7 @@ export default function HomePage() {
                 onClick={() => sound.playClick()}
                 className="btn-3d btn-3d-slate w-full py-2.5 text-center text-xs font-black shadow-md cursor-pointer"
               >
-                <BookOpen className="w-3.5 h-3.5 text-emerald-400" /> Học Ngữ Pháp Lego Ngay
+                <BookOpen className="w-3.5 h-3.5 text-emerald-400" /> Há»c Ngá»¯ PhÃ¡p Lego Ngay
               </Link>
             </div>
 
@@ -658,16 +665,16 @@ export default function HomePage() {
             <div className="card-arcade card-arcade-amber p-5 flex flex-col justify-between space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-2xl">🃏</span>
+                  <span className="text-2xl">ðŸƒ</span>
                   <span className="badge-arcade">
-                    Lặp Lại Ngắt Quãng SRS
+                    Láº·p Láº¡i Ngáº¯t QuÃ£ng SRS
                   </span>
                 </div>
                 <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100">
-                  Thẻ Ghi Nhớ 3D Flashcard Deck
+                  Tháº» Ghi Nhá»› 3D Flashcard Deck
                 </h3>
                 <p className="text-xs text-slate-600 mt-1.5 leading-relaxed font-medium dark:text-slate-400">
-                  Lật thẻ 3D hai mặt mượt mà, ôn tập ngắt quãng khoa học từ vựng TOEIC, VSTEP, IT và các từ trong Sổ Bookmark.
+                  Láº­t tháº» 3D hai máº·t mÆ°á»£t mÃ , Ã´n táº­p ngáº¯t quÃ£ng khoa há»c tá»« vá»±ng TOEIC, VSTEP, IT vÃ  cÃ¡c tá»« trong Sá»• Bookmark.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -676,28 +683,28 @@ export default function HomePage() {
                   onClick={() => sound.playClick()}
                   className="btn-3d btn-3d-emerald py-2.5 text-center text-xs font-black shadow-md cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5" /> Kho Từ Vựng
+                  <Sparkles className="w-3.5 h-3.5" /> Kho Tá»« Vá»±ng
                 </Link>
                 <Link
                   href="/flashcards"
                   onClick={() => sound.playClick()}
                   className="btn-3d btn-3d-amber py-2.5 text-center text-xs font-black text-slate-950 shadow-md cursor-pointer dark:text-slate-200"
                 >
-                  <Layers className="w-3.5 h-3.5" /> Lật Flashcard
+                  <Layers className="w-3.5 h-3.5" /> Láº­t Flashcard
                 </Link>
               </div>
             </div>
           </section>
 
-          {/* Interactive Bôi Đen Tra Từ */}
+          {/* Interactive BÃ´i Äen Tra Tá»« */}
           <section className="card-arcade card-arcade-teal p-5 space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2 text-xs font-black text-emerald-700 uppercase tracking-wide dark:text-emerald-300">
                 <MousePointerClick className="w-4 h-4 text-emerald-500" />
-                Tính Năng Bôi Đen Tra Từ & Lưu Bookmark Tức Thì
+                TÃ­nh NÄƒng BÃ´i Äen Tra Tá»« & LÆ°u Bookmark Tá»©c ThÃ¬
               </div>
               <span className="text-[12px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full dark:text-slate-400 dark:bg-slate-800">
-                💡 Bôi đen bất kỳ từ nào bên dưới để thử nghiệm:
+                ðŸ’¡ BÃ´i Ä‘en báº¥t ká»³ tá»« nÃ o bÃªn dÆ°á»›i Ä‘á»ƒ thá»­ nghiá»‡m:
               </span>
             </div>
 
@@ -725,14 +732,14 @@ export default function HomePage() {
                 }}
                 className="text-emerald-700 hover:text-emerald-800 font-extrabold flex items-center gap-1.5 cursor-pointer bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 transition dark:text-emerald-300 hover:dark:text-emerald-200 dark:bg-emerald-950 hover:dark:bg-emerald-950 dark:border-emerald-800"
               >
-                <Volume2 className="w-3.5 h-3.5" /> Nghe phát âm mẫu 1x
+                <Volume2 className="w-3.5 h-3.5" /> Nghe phÃ¡t Ã¢m máº«u 1x
               </button>
               <Link
                 href="/bookmarks"
                 onClick={() => sound.playClick()}
                 className="text-slate-600 hover:text-emerald-700 font-bold flex items-center gap-1 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition dark:text-slate-400 hover:dark:text-emerald-300 dark:bg-slate-800 hover:dark:bg-slate-700"
               >
-                <Bookmark className="w-3.5 h-3.5 text-amber-500 fill-amber-400" /> Sổ Bookmark ({stats.bookmarksCount} từ)
+                <Bookmark className="w-3.5 h-3.5 text-amber-500 fill-amber-400" /> Sá»• Bookmark ({stats.bookmarksCount} tá»«)
               </Link>
             </div>
           </section>
@@ -744,12 +751,12 @@ export default function HomePage() {
           <div className="card-arcade card-arcade-sky p-5 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl shadow-xs dark:bg-emerald-950 dark:text-emerald-200">
-                {currentUser?.avatar || '🦉'}
+                {currentUser?.avatar || 'ðŸ¦‰'}
               </div>
               <div>
-                <span className="text-xs text-slate-400 font-medium block">Tài khoản học viên</span>
+                <span className="text-xs text-slate-400 font-medium block">TÃ i khoáº£n há»c viÃªn</span>
                 <h4 className="font-black text-base text-slate-900 leading-tight dark:text-slate-100">
-                  {currentUser?.display_name || 'Học Viên'}
+                  {currentUser?.display_name || 'Há»c ViÃªn'}
                 </h4>
                 <span className="text-[12px] text-slate-500 font-mono dark:text-slate-400">@{currentUser?.username || 'demo'}</span>
               </div>
@@ -760,15 +767,15 @@ export default function HomePage() {
                 onClick={() => sound.playFlame()}
                 className="p-3 rounded-2xl bg-orange-50 border border-orange-200 text-center cursor-pointer hover:scale-105 transition dark:bg-orange-950 dark:border-orange-800"
               >
-                <span className="text-[12px] text-orange-700 block font-semibold dark:text-orange-300">Chuỗi Học</span>
+                <span className="text-[12px] text-orange-700 block font-semibold dark:text-orange-300">Chuá»—i Há»c</span>
                 <span className="text-lg font-black text-orange-600 flex items-center justify-center gap-1 dark:text-orange-300">
-                  🔥 {stats.streak} ngày
+                  ðŸ”¥ {stats.streak} ngÃ y
                 </span>
               </div>
               <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-center dark:bg-amber-950 dark:border-amber-800">
-                <span className="text-[12px] text-amber-700 block font-semibold dark:text-amber-300">Kinh Nghiệm</span>
+                <span className="text-[12px] text-amber-700 block font-semibold dark:text-amber-300">Kinh Nghiá»‡m</span>
                 <span className="text-lg font-black text-amber-600 flex items-center justify-center gap-1 dark:text-amber-300">
-                  ⭐ {stats.exp} EXP
+                  â­ {stats.exp} EXP
                 </span>
               </div>
             </div>
@@ -778,14 +785,14 @@ export default function HomePage() {
           <div className="card-arcade card-arcade-emerald p-5 space-y-3 relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs font-black text-emerald-800 uppercase tracking-wide dark:text-emerald-200">
-                <span>🐾</span> Bạn Đồng Hành
+                <span>ðŸ¾</span> Báº¡n Äá»“ng HÃ nh
               </div>
               <Link
                 href="/pet"
                 onClick={() => sound.playClick()}
                 className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-200 text-xs font-black transition cursor-pointer dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800"
               >
-                <span>🪙</span> {userCoins} Coins
+                <span>ðŸª™</span> {userCoins} Coins
               </Link>
             </div>
 
@@ -828,7 +835,7 @@ export default function HomePage() {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-white/80 border border-emerald-100 rounded-xl p-2 text-center dark:bg-slate-900/80 dark:border-emerald-800">
                     <div className="flex items-center justify-between text-[12px] font-bold text-slate-500 mb-1 dark:text-slate-400">
-                      <span>🍗 No nê</span>
+                      <span>ðŸ— No nÃª</span>
                       <span className="text-emerald-700 font-black dark:text-emerald-300">{userPet.hunger}%</span>
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden dark:bg-slate-800">
@@ -841,7 +848,7 @@ export default function HomePage() {
 
                   <div className="bg-white/80 border border-pink-100 rounded-xl p-2 text-center dark:bg-slate-900/80">
                     <div className="flex items-center justify-between text-[12px] font-bold text-slate-500 mb-1 dark:text-slate-400">
-                      <span>💖 Vui vẻ</span>
+                      <span>ðŸ’– Vui váº»</span>
                       <span className="text-pink-600 font-black">{userPet.happiness}%</span>
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden dark:bg-slate-800">
@@ -858,19 +865,19 @@ export default function HomePage() {
                   onClick={() => sound.playClick()}
                   className="btn-3d btn-3d-emerald w-full py-2.5 text-center text-xs font-black shadow-xs cursor-pointer block"
                 >
-                  Ghé Thăm Khu Vườn & Chăm Thú 🐾
+                  GhÃ© ThÄƒm Khu VÆ°á»n & ChÄƒm ThÃº ðŸ¾
                 </Link>
               </div>
             ) : (
               <div className="text-center py-3 space-y-2">
-                <span className="text-3xl">🐾</span>
-                <p className="text-xs text-slate-600 font-bold dark:text-slate-400">Bạn chưa có thú cưng?</p>
+                <span className="text-3xl">ðŸ¾</span>
+                <p className="text-xs text-slate-600 font-bold dark:text-slate-400">Báº¡n chÆ°a cÃ³ thÃº cÆ°ng?</p>
                 <Link
                   href="/pet"
                   onClick={() => sound.playClick()}
                   className="btn-3d btn-3d-emerald w-full py-2 text-center text-xs font-black cursor-pointer block"
                 >
-                  Nhận Thú Cưng Miễn Phí 🎁
+                  Nháº­n ThÃº CÆ°ng Miá»…n PhÃ­ ðŸŽ
                 </Link>
               </div>
             )}
@@ -880,9 +887,9 @@ export default function HomePage() {
           <div className="card-arcade card-arcade-teal p-5 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs font-black text-emerald-800 uppercase dark:text-emerald-200">
-                <Trophy className="w-4 h-4 text-amber-500" /> Nhiệm Vụ Hôm Nay
+                <Trophy className="w-4 h-4 text-amber-500" /> Nhiá»‡m Vá»¥ HÃ´m Nay
               </div>
-              <span className="text-xs font-black text-emerald-700 dark:text-emerald-300">2 / 3 Hoàn Thành</span>
+              <span className="text-xs font-black text-emerald-700 dark:text-emerald-300">2 / 3 HoÃ n ThÃ nh</span>
             </div>
 
             <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden p-0.5 border border-emerald-100 dark:bg-slate-800 dark:border-emerald-800">
@@ -892,21 +899,21 @@ export default function HomePage() {
             <div className="space-y-2 pt-1">
               <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-emerald-100 text-xs font-bold text-slate-700 dark:bg-slate-900 dark:border-emerald-800 dark:text-slate-300">
                 <span className="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-[12px] dark:bg-emerald-950 dark:text-emerald-300">
-                  ✓
+                  âœ“
                 </span>
-                <span>Tra cứu 1 từ trên Cambridge</span>
+                <span>Tra cá»©u 1 tá»« trÃªn Cambridge</span>
               </div>
               <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-emerald-100 text-xs font-bold text-slate-700 dark:bg-slate-900 dark:border-emerald-800 dark:text-slate-300">
                 <span className="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-[12px] dark:bg-emerald-950 dark:text-emerald-300">
-                  ✓
+                  âœ“
                 </span>
-                <span>Lật 5 Flashcard ôn tập</span>
+                <span>Láº­t 5 Flashcard Ã´n táº­p</span>
               </div>
               <div className="flex items-center gap-2 p-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200">
                 <span className="w-5 h-5 rounded-lg bg-amber-400 text-slate-900 flex items-center justify-center text-[12px]">
-                  ⚡
+                  âš¡
                 </span>
-                <span>Luyện 1 mốc lộ trình (+25 EXP)</span>
+                <span>Luyá»‡n 1 má»‘c lá»™ trÃ¬nh (+25 EXP)</span>
               </div>
             </div>
           </div>
@@ -915,7 +922,7 @@ export default function HomePage() {
           <div className="card-arcade card-arcade-amber p-5 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs font-black text-amber-800 uppercase dark:text-amber-200">
-                <Sparkles className="w-4 h-4 text-amber-500 fill-amber-400" /> Từ Vựng Hôm Nay
+                <Sparkles className="w-4 h-4 text-amber-500 fill-amber-400" /> Tá»« Vá»±ng HÃ´m Nay
               </div>
               <span className="text-[12px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
                 Cambridge Verified
@@ -931,17 +938,17 @@ export default function HomePage() {
                     speakText('collaborate', 0.9);
                   }}
                   className="tap-target p-2 hover:bg-amber-100 rounded-xl text-amber-800 transition cursor-pointer hover:dark:bg-amber-950 dark:text-amber-200"
-                  title="Nghe phát âm"
-                  aria-label={`Nghe phát âm từ collaborate`}
+                  title="Nghe phÃ¡t Ã¢m"
+                  aria-label={`Nghe phÃ¡t Ã¢m tá»« collaborate`}
                 >
                   <Volume2 className="w-4 h-4" />
                 </button>
               </div>
               <div className="text-xs font-mono text-emerald-700 font-bold dark:text-emerald-300">
-                /kəˈlæb.ə.reɪt/ • <i>verb</i>
+                /kÉ™ËˆlÃ¦b.É™.reÉªt/ â€¢ <i>verb</i>
               </div>
               <p className="text-xs text-slate-700 font-medium pt-1 dark:text-slate-300">
-                🇻🇳 <b>Hợp tác, cộng tác</b> cùng nhau làm việc trong dự án công nghệ.
+                ðŸ‡»ðŸ‡³ <b>Há»£p tÃ¡c, cá»™ng tÃ¡c</b> cÃ¹ng nhau lÃ m viá»‡c trong dá»± Ã¡n cÃ´ng nghá»‡.
               </p>
             </div>
 
@@ -951,7 +958,7 @@ export default function HomePage() {
                 onClick={() => sound.playClick()}
                 className="tap-target text-amber-800 hover:text-amber-900 font-black flex items-center gap-1 dark:text-amber-200 hover:dark:text-amber-200"
               >
-                Tra cứu từ điển <ArrowRight className="w-3.5 h-3.5" />
+                Tra cá»©u tá»« Ä‘iá»ƒn <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>
@@ -962,14 +969,14 @@ export default function HomePage() {
       <section className="shrink-0 card-arcade card-arcade-indigo p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl shadow-xs dark:bg-emerald-950 dark:text-emerald-200">
-            💾
+            ðŸ’¾
           </div>
           <div>
             <span className="font-black text-slate-800 block text-xs sm:text-sm dark:text-slate-200">
-              Mục tiêu & Tiến độ Lộ trình được lưu trực tiếp vào CSDL SQLite
+              Má»¥c tiÃªu & Tiáº¿n Ä‘á»™ Lá»™ trÃ¬nh Ä‘Æ°á»£c lÆ°u trá»±c tiáº¿p vÃ o CSDL SQLite
             </span>
             <span className="text-slate-500 font-medium dark:text-slate-400">
-              Tài khoản: <b className="text-slate-800 dark:text-slate-200">@{currentUser?.username || 'chưa đăng nhập'}</b> • Mục tiêu: <b className="text-emerald-700 uppercase dark:text-emerald-300">{activeTargetCode}</b> • Tệp CSDL: <code>data/english_learning.db</code>
+              TÃ i khoáº£n: <b className="text-slate-800 dark:text-slate-200">@{currentUser?.username || 'chÆ°a Ä‘Äƒng nháº­p'}</b> â€¢ Má»¥c tiÃªu: <b className="text-emerald-700 uppercase dark:text-emerald-300">{activeTargetCode}</b> â€¢ Tá»‡p CSDL: <code>data/english_learning.db</code>
             </span>
           </div>
         </div>
@@ -978,7 +985,7 @@ export default function HomePage() {
           onClick={triggerCelebrate}
           className="btn-3d btn-3d-emerald px-4 py-2.5 text-xs font-black shadow-md cursor-pointer shrink-0"
         >
-          <Sparkles className="w-4 h-4 text-amber-300" /> Bắn Pháo Hoa Ăn Mừng
+          <Sparkles className="w-4 h-4 text-amber-300" /> Báº¯n PhÃ¡o Hoa Ä‚n Má»«ng
         </button>
       </section>
 
@@ -991,14 +998,14 @@ export default function HomePage() {
             <button
               onClick={() => setSelectedNodeModal(null)}
               className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 cursor-pointer touch-manipulation hover:dark:text-slate-300 dark:bg-slate-800 hover:dark:bg-slate-700"
-              title="Đóng"
+              title="ÄÃ³ng"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="space-y-2 pr-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black dark:bg-emerald-950 dark:text-emerald-200">
-                <Target className="w-3.5 h-3.5" /> MỤC TIÊU: {selectedNodeModal.targetScore}
+                <Target className="w-3.5 h-3.5" /> Má»¤C TIÃŠU: {selectedNodeModal.targetScore}
               </div>
               <h3 className="text-xl font-black text-slate-900 dark:text-slate-100">{selectedNodeModal.stageTitle}</h3>
               <p className="text-xs text-slate-600 leading-relaxed font-medium dark:text-slate-400">
@@ -1008,7 +1015,7 @@ export default function HomePage() {
 
             <div className="space-y-3 border-t border-slate-100 pt-4 dark:border-white/10">
               <div className="text-xs font-black text-slate-400 uppercase tracking-wider">
-                Danh sách bài luyện tập phù hợp mốc này ({selectedNodeModal.lessons.length}):
+                Danh sÃ¡ch bÃ i luyá»‡n táº­p phÃ¹ há»£p má»‘c nÃ y ({selectedNodeModal.lessons.length}):
               </div>
 
               {selectedNodeModal.lessons.map((lesson, lIdx) => (
@@ -1041,7 +1048,7 @@ export default function HomePage() {
 
             <div className="pt-2 flex items-center justify-between gap-3 border-t border-slate-100 dark:border-white/10">
               <div className="text-xs font-black text-amber-600 dark:text-amber-300">
-                Thưởng: ⭐ +{selectedNodeModal.expReward} EXP • 🪙 +{selectedNodeModal.coinReward} Coins
+                ThÆ°á»Ÿng: â­ +{selectedNodeModal.expReward} EXP â€¢ ðŸª™ +{selectedNodeModal.coinReward} Coins
               </div>
 
               {!completedNodeIds[selectedNodeModal.id] ? (
@@ -1053,11 +1060,11 @@ export default function HomePage() {
                   className="btn-3d btn-3d-emerald px-5 py-2.5 text-xs font-black shadow-md cursor-pointer flex items-center gap-1.5"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Đánh dấu hoàn thành</span>
+                  <span>ÄÃ¡nh dáº¥u hoÃ n thÃ nh</span>
                 </button>
               ) : (
                 <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-xl dark:text-emerald-300 dark:bg-emerald-950">
-                  ✓ Mốc này đã đạt!
+                  âœ“ Má»‘c nÃ y Ä‘Ã£ Ä‘áº¡t!
                 </span>
               )}
             </div>
