@@ -542,6 +542,9 @@ export async function POST(request: Request) {
         }
         updates.push('password_hash = ?');
         params.push(hashPassword(cleanNew));
+        // Revoke tất cả session hiện tại khi đổi mật khẩu
+        updates.push('password_changed_at = ?');
+        params.push(Date.now());
       }
 
       if (updates.length === 0) {
@@ -879,7 +882,7 @@ export async function POST(request: Request) {
     // Nhờ vậy dữ liệu tự lành dần mà không cần reset mật khẩu cho người dùng.
     if (pwdCheck.needsRehash) {
       try {
-        db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hashPassword(cleanPassword), user.id);
+        db.prepare('UPDATE users SET password_hash = ?, password_changed_at = ? WHERE id = ?').run(hashPassword(cleanPassword), Date.now(), user.id);
         void syncDbToS3Now();
         logger.info(`[Auth] Đã nâng cấp hash mật khẩu cho @${cleanUsername} (${pwdCheck.scheme} -> scrypt)`);
       } catch (err) {

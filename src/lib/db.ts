@@ -214,6 +214,7 @@ function createDb(): Database.Database {
       last_active_date TEXT,
       exp INTEGER DEFAULT 50,
       level INTEGER DEFAULT 1,
+      password_changed_at INTEGER DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -396,6 +397,15 @@ function createDb(): Database.Database {
     CREATE INDEX IF NOT EXISTS idx_friends_user ON user_friends(user_id);
     CREATE INDEX IF NOT EXISTS idx_chat_created ON pet_chat_messages(created_at);
   `);
+
+  // Migration: thêm password_changed_at cho DB cũ (chưa có cột này).
+  // Bỏ qua lỗi — chỉ apply khi cột chưa tồn tại.
+  try {
+    const userCols = db.prepare('PRAGMA table_info(users)').all() as { name: string }[];
+    if (!userCols.some((c) => c.name === 'password_changed_at')) {
+      db.exec('ALTER TABLE users ADD COLUMN password_changed_at INTEGER DEFAULT 0');
+    }
+  } catch {}
 
   // Migration: Ensure 'coins' and 'email' columns exist
   try {

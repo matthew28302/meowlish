@@ -299,7 +299,7 @@ export async function POST(request: Request) {
       const result = await persistCriticalWrite(
         `admin_set_password:${targetUser.username}`,
         () => {
-          db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, targetUserId);
+          db.prepare('UPDATE users SET password_hash = ?, password_changed_at = ? WHERE id = ?').run(newHash, Date.now(), targetUserId);
         },
         () => {
           const row = db

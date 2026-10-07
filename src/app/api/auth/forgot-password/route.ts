@@ -169,7 +169,7 @@ export async function POST(request: Request) {
       // Ghi rồi kiểm tra lại: nếu bản ghi bị instance khác ghi đè mất thì người dùng
       // sẽ nhận mật khẩu mà không dùng được (báo sai pass) — phải báo lỗi rõ ràng.
       const applyReset = () => {
-        db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(pwdHash, user.id);
+        db.prepare('UPDATE users SET password_hash = ?, password_changed_at = ? WHERE id = ?').run(pwdHash, Date.now(), user.id);
       };
       const resetPersisted = () => {
         const row = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(user.id) as

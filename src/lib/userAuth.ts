@@ -230,8 +230,10 @@ const SESSION_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
  * Tạo token phiên đăng nhập có chữ ký bảo mật HMAC-SHA256 chống giả mạo cookie
  */
 export function createUserSessionToken(userId: string): string {
-  const expiresAt = Date.now() + SESSION_TTL_MS;
-  const payload = `${userId}:${expiresAt}`;
+  const now = Date.now();
+  const expiresAt = now + SESSION_TTL_MS;
+  // Payload: userId:expiresAt:issuedAt — iat dùng để revoke session khi đổi mật khẩu
+  const payload = `${userId}:${expiresAt}:${now}`;
   const sig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
   return `${Buffer.from(payload).toString('base64url')}.${sig}`;
 }
@@ -260,11 +262,28 @@ export function verifyUserSessionToken(token?: string | null): string | null {
     if (sig.length !== expectedSig.length) return null;
     if (!crypto.timingSafeEqual(Buffer.from(sig, 'hex'), Buffer.from(expectedSig, 'hex'))) return null;
 
-    // userId có thể chứa dấu ':' → cắt từ dấu phân cách CUỐI cùng.
-    const sep = payload.lastIndexOf(':');
-    const userId = payload.slice(0, sep);
-    const exp = parseInt(payload.slice(sep + 1), 10);
-    if (!userId || !Number.isFinite(exp) || exp <= Date.now()) return null;
+    // Payload format: userId:expiresAt:issuedAt
+    // userId có thể chứa dấu ':' → cắt 2 phần CUỐI (exp, iat).
+    const lastSep = payload.lastIndexOf(':');
+    const secondLastSep = payload.lastIndexOf(':', lastSep - 1);
+    if (lastSep === -1 || secondLastSep === -1) return null;
+    const userId = payload.slice(0, secondLastSep);
+    const exp = parseInt(payload.slice(secondLastSep + 1, lastSep), 10);
+    const iat = parseInt(payload.slice(lastSep + 1), 10);
+    if (!userId || !Number.isFinite(exp) || !Number.isFinite(iat) || exp <= Date.now()) return null;
+
+    // Session revocation: nếu token được cấp TRƯỚC khi đổi mật khẩu → reject.
+    // Bỏ qua lỗi (DB cũ chưa có cột password_changed_at) — chỉ apply
+    // khi cột tồn tại; migration trong db.ts sẽ thêm cột cho DB mới.
+    try {
+      const user = db.prepare('SELECT password_changed_at FROM users WHERE id = ?').get(userId) as
+        | { password_changed_at: number }
+        | undefined;
+      if (user && user.password_changed_at > iat) return null;
+    } catch {
+      // Cột password_changed_at chưa tồn tại (DB cũ) — bỏ qua check revoke.
+    }
+
     return userId;
   } catch {
     // Token không hợp lệ
