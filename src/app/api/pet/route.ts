@@ -699,9 +699,17 @@ export async function POST(request: Request) {
         const currentTarget = parseInt(p.harvest_ready_at, 10);
         const remaining = Math.max(0, currentTarget - now);
         const boostedTarget = String(now + Math.floor(remaining * 0.65)); // 35% speedup
-        db.prepare('UPDATE pet_farm_plots SET watered_at = ?, harvest_ready_at = ? WHERE id = ?')
-          .run(String(now), boostedTarget, p.id);
-        watered++;
+        // Conditional UPDATE: chỉ ghi nếu watered_at vẫn chưa đổi kể từ lần đọc.
+        // Trước đây UPDATE vô điều kiện → 2 request song song cùng đọc watered_at cũ
+        // rồi cùng ghi, vô hiệu hoàn toàn cooldown.
+        const result = db.prepare(
+          `UPDATE pet_farm_plots
+           SET watered_at = ?, harvest_ready_at = ?
+           WHERE id = ?
+             AND (watered_at IS NULL OR watered_at = '' OR ? - CAST(watered_at AS INTEGER) >= ?)`
+        ).run(String(now), boostedTarget, p.id, String(now), WATER_COOLDOWN_MS);
+        if (result.changes > 0) watered++;
+        else skippedCooldown++;
       };
 
       if (body.plotIndex === 'all') {

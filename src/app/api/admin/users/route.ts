@@ -165,25 +165,39 @@ export async function POST(request: Request) {
     // 2. ACTION: KHÓA / MỞ KHÓA TÀI KHOẢN (ENABLE / DISABLE)
     if (action === 'toggle_status') {
       const nextStatus = targetUser.status === 'disabled' ? 'active' : 'disabled';
-      db.prepare('UPDATE users SET status = ? WHERE id = ?').run(nextStatus, targetUserId);
 
-      // Nếu vô hiệu hóa, dọn dẹp các phiên xác thực OTP tạm thời
-      if (nextStatus === 'disabled') {
-        try {
-          db.prepare('DELETE FROM user_otp_sessions WHERE user_id = ?').run(targetUserId);
-        } catch {}
-      }
+      const result = await persistCriticalWrite(
+        `admin_toggle_status:${targetUser.username}`,
+        () => {
+          db.prepare('UPDATE users SET status = ? WHERE id = ?').run(nextStatus, targetUserId);
+          // Nếu vô hiệu hóa, dọn dẹp các phiên xác thực OTP tạm thời
+          if (nextStatus === 'disabled') {
+            try { db.prepare('DELETE FROM user_otp_sessions WHERE user_id = ?').run(targetUserId); } catch {}
+          }
+        },
+        () => {
+          const row = db.prepare('SELECT status FROM users WHERE id = ?').get(targetUserId) as { status: string } | undefined;
+          return Boolean(row && row.status === nextStatus);
+        }
+      );
 
-      logger.info(`Admin toggled status for user ${targetUser.username} to ${nextStatus}`);
+      logger.info(`Admin toggled status for user ${targetUser.username} to ${nextStatus} (persisted=${result.persisted})`);
       logAccess({
         username: 'admin',
         action: 'admin_toggle_user_status',
         ip: clientIp,
         user_agent: userAgent,
-        status: 'success',
-        details: `Đổi trạng thái tài khoản @${targetUser.username} (${targetUserId}) sang "${nextStatus}"`,
+        status: result.persisted ? 'success' : 'failed',
+        details: `Đổi trạng thái tài khoản @${targetUser.username} (${targetUserId}) sang "${nextStatus}"` + (result.persisted ? '' : ` — KHONG ghi duoc len kho trung tam`),
       });
-      syncDbToS3Now().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
+
+      if (!result.persisted) {
+        return NextResponse.json(
+          { error: 'Máy chủ đã đổi trạng thái nhưng KHÔNG ghi được vào kho trung tâm. Thử lại sau ít giây.' },
+          { status: 502 }
+        );
+      }
+
       return NextResponse.json({
         success: true,
         message: nextStatus === 'active' ? `Đã kích hoạt lại tài khoản ${targetUser.username} thành công!` : `Đã vô hiệu hóa tài khoản ${targetUser.username}. Tài khoản này sẽ bị đăng xuất ngay lập tức khỏi ứng dụng.`,
@@ -194,18 +208,33 @@ export async function POST(request: Request) {
     // 3. ACTION: CHỈNH SỬA SỐ COIN (SET COIN)
     if (action === 'set_coins') {
       const parsedCoins = Math.max(0, parseInt(coins, 10) || 0);
-      db.prepare('UPDATE users SET coins = ? WHERE id = ?').run(parsedCoins, targetUserId);
 
-      logger.info(`Admin set coins for user ${targetUser.username} to ${parsedCoins}`);
+      const result = await persistCriticalWrite(
+        `admin_set_coins:${targetUser.username}`,
+        () => { db.prepare('UPDATE users SET coins = ? WHERE id = ?').run(parsedCoins, targetUserId); },
+        () => {
+          const row = db.prepare('SELECT coins FROM users WHERE id = ?').get(targetUserId) as { coins: number } | undefined;
+          return Boolean(row && row.coins === parsedCoins);
+        }
+      );
+
+      logger.info(`Admin set coins for user ${targetUser.username} to ${parsedCoins} (persisted=${result.persisted})`);
       logAccess({
         username: 'admin',
         action: 'admin_set_coins',
         ip: clientIp,
         user_agent: userAgent,
-        status: 'success',
-        details: `Cập nhật số xu của @${targetUser.username} (${targetUserId}) thành ${parsedCoins.toLocaleString()} Coins`,
+        status: result.persisted ? 'success' : 'failed',
+        details: `Cập nhật số xu của @${targetUser.username} (${targetUserId}) thành ${parsedCoins.toLocaleString()} Coins` + (result.persisted ? '' : ` — KHONG ghi duoc len kho trung tam`),
       });
-      syncDbToS3Now().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
+
+      if (!result.persisted) {
+        return NextResponse.json(
+          { error: 'Máy chủ đã đổi số xu nhưng KHÔNG ghi được vào kho trung tâm. Thử lại sau ít giây.' },
+          { status: 502 }
+        );
+      }
+
       return NextResponse.json({
         success: true,
         message: `Đã cập nhật số xu cho tài khoản ${targetUser.username} thành ${parsedCoins.toLocaleString()} Coins! 🪙`,
@@ -217,18 +246,33 @@ export async function POST(request: Request) {
     if (action === 'set_level') {
       const parsedLevel = Math.max(1, parseInt(level, 10) || 1);
       const parsedExp = exp !== undefined ? Math.max(0, parseInt(exp, 10) || 0) : (parsedLevel - 1) * 100;
-      db.prepare('UPDATE users SET level = ?, exp = ? WHERE id = ?').run(parsedLevel, parsedExp, targetUserId);
 
-      logger.info(`Admin set level for user ${targetUser.username} to Lv.${parsedLevel} (${parsedExp} EXP)`);
+      const result = await persistCriticalWrite(
+        `admin_set_level:${targetUser.username}`,
+        () => { db.prepare('UPDATE users SET level = ?, exp = ? WHERE id = ?').run(parsedLevel, parsedExp, targetUserId); },
+        () => {
+          const row = db.prepare('SELECT level, exp FROM users WHERE id = ?').get(targetUserId) as { level: number; exp: number } | undefined;
+          return Boolean(row && row.level === parsedLevel && row.exp === parsedExp);
+        }
+      );
+
+      logger.info(`Admin set level for user ${targetUser.username} to Lv.${parsedLevel} (${parsedExp} EXP) (persisted=${result.persisted})`);
       logAccess({
         username: 'admin',
         action: 'admin_set_level',
         ip: clientIp,
         user_agent: userAgent,
-        status: 'success',
-        details: `Cập nhật cấp độ @${targetUser.username} (${targetUserId}) thành Lv.${parsedLevel} (${parsedExp} EXP)`,
+        status: result.persisted ? 'success' : 'failed',
+        details: `Cập nhật cấp độ @${targetUser.username} (${targetUserId}) thành Lv.${parsedLevel} (${parsedExp} EXP)` + (result.persisted ? '' : ` — KHONG ghi duoc len kho trung tam`),
       });
-      syncDbToS3Now().catch((err) => logger.warn('[Admin API] S3 auto-sync error:', { error: err }));
+
+      if (!result.persisted) {
+        return NextResponse.json(
+          { error: 'Máy chủ đã đổi cấp độ nhưng KHÔNG ghi được vào kho trung tâm. Thử lại sau ít giây.' },
+          { status: 502 }
+        );
+      }
+
       return NextResponse.json({
         success: true,
         message: `Đã cập nhật cấp độ cho tài khoản ${targetUser.username} thành Lv.${parsedLevel} (${parsedExp} EXP)! ⭐`,
@@ -313,20 +357,31 @@ export async function POST(request: Request) {
         db.prepare('DELETE FROM users WHERE id = ?').run(uid);
       });
 
-      deleteUserTransaction(targetUserId);
+      const result = await persistCriticalWrite(
+        `admin_delete_user:${targetUser.username}`,
+        () => { deleteUserTransaction(targetUserId); },
+        () => {
+          const row = db.prepare('SELECT id FROM users WHERE id = ?').get(targetUserId);
+          return !row; // user không còn tồn tại = xóa thành công
+        }
+      );
 
-      logger.info(`Admin deleted user ${targetUser.username} (ID: ${targetUserId})`);
+      logger.info(`Admin deleted user ${targetUser.username} (ID: ${targetUserId}) (persisted=${result.persisted})`);
       logAccess({
         username: 'admin',
         action: 'admin_delete_user',
         ip: clientIp,
         user_agent: userAgent,
-        status: 'success',
-        details: `Xóa vĩnh viễn tài khoản @${targetUser.username} (${targetUserId})`,
+        status: result.persisted ? 'success' : 'failed',
+        details: `Xóa vĩnh viễn tài khoản @${targetUser.username} (${targetUserId})` + (result.persisted ? '' : ` — KHONG ghi duoc len kho trung tam`),
       });
 
-      // Đồng bộ ngay lập tức lên Filebase S3
-      syncDbToS3Now().catch((err) => logger.warn('[Admin API] S3 auto-sync after delete error:', { error: err }));
+      if (!result.persisted) {
+        return NextResponse.json(
+          { error: 'Máy chủ đã xóa tài khoản nhưng KHÔNG ghi được vào kho trung tâm. Thử lại sau ít giây.' },
+          { status: 502 }
+        );
+      }
 
       return NextResponse.json({
         success: true,

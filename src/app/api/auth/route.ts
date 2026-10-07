@@ -683,24 +683,35 @@ export async function POST(request: Request) {
       // user kangyoungha chỉ còn trong english_learning.conflict.db.
       // INSERT OR IGNORE giúp apply() idempotent để ghi lại được nhiều lần.
       const applyRegistration = () => {
-        // Tài khoản mới nhận 1000 Coins mặc định
-        db.prepare(`
-          INSERT OR IGNORE INTO users (id, username, email, password_hash, display_name, avatar, streak, last_active_date, exp, level, coins, role, status, two_factor_enabled, email_verified)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1000, 'user', 'active', 0, ?)
-        `).run(id, cleanUsername, cleanEmail || null, pwdHash, name, '🐱', 1, today, 50, 1, emailVerifiedStatus);
+        // Transaction: 3 INSERT phải cùng thành công hoặc cùng thất bại.
+        // Trước đây chạy 3 lệnh riêng lẻ — nếu INSERT user_pets lỗi giữa chừng,
+        // user đã tạo nhưng không có thú cưng khởi đầu.
+        const registerTx = db.transaction(() => {
+          // Tài khoản mới nhận 1000 Coins mặc định
+          db.prepare(`
+            INSERT OR IGNORE INTO users (id, username, email, password_hash, display_name, avatar, streak, last_active_date, exp, level, coins, role, status, two_factor_enabled, email_verified)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1000, 'user', 'active', 0, ?)
+          `).run(id, cleanUsername, cleanEmail || null, pwdHash, name, '🐱', 1, today, 50, 1, emailVerifiedStatus);
 
-        // Tự động cấp thú cưng khởi đầu cho tài khoản mới
-        db.prepare(`
-          INSERT OR IGNORE INTO user_pets (user_id, pet_type, pet_name, level, exp, hunger, happiness, energy, selected_habitat, equipped_hat, equipped_outfit, equipped_accessory)
-          VALUES (?, 'cat', 'Meowlish', 1, 0, 90, 95, 100, 'emerald_garden', 'grad_cap', 'none', 'none')
-        `).run(id);
+          // Tự động cấp thú cưng khởi đầu cho tài khoản mới
+          db.prepare(`
+            INSERT OR IGNORE INTO user_pets (user_id, pet_type, pet_name, level, exp, hunger, happiness, energy, selected_habitat, equipped_hat, equipped_outfit, equipped_accessory)
+            VALUES (?, 'cat', 'Meowlish', 1, 0, 90, 95, 100, 'emerald_garden', 'grad_cap', 'none', 'none')
+          `).run(id);
 
-        db.prepare(`
-          INSERT OR IGNORE INTO pet_inventory (id, user_id, item_id, item_type, is_equipped)
-          VALUES (?, ?, 'grad_cap', 'hat', 1)
-        `).run(`inv_${id}_1`, id);
+          db.prepare(`
+            INSERT OR IGNORE INTO pet_inventory (id, user_id, item_id, item_type, is_equipped)
+            VALUES (?, ?, 'grad_cap', 'hat', 1)
+          `).run(`inv_${id}_1`, id);
+        });
+        registerTx();
       };
-      const registrationPersisted = () => !!db.prepare('SELECT id FROM users WHERE id = ?').get(id);
+      // Verify phải kiểm tra cả username — trước đây chỉ SELECT id,
+      // nếu id bị chiếm bởi instance khác giữa chừng thì verify vẫn pass.
+      const registrationPersisted = () => {
+        const row = db.prepare('SELECT id, username FROM users WHERE id = ?').get(id) as { id: string; username: string } | undefined;
+        return Boolean(row && row.username === cleanUsername);
+      };
 
       const persistResult = await persistCriticalWrite(
         `đăng ký tài khoản @${cleanUsername}`,
