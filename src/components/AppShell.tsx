@@ -680,14 +680,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           // did nothing. Keep those roots at content height so MAIN scrolls.
           // .flex-1 excluded: pet page root is intentionally a full-height
           // internal scroller.
-          className="flex-1 min-h-0 flex flex-col w-full overflow-y-auto overscroll-y-contain custom-scrollbar pb-24 lg:pb-0 [&>div.overflow-x-hidden:not(.flex-1)]:shrink-0"
+          className="flex-1 min-h-0 flex flex-col w-full overflow-y-auto overscroll-y-contain custom-scrollbar lg:pb-0 scroll-pb-32 [&>div.overflow-x-hidden:not(.flex-1)]:shrink-0"
         >
           {children}
         </main>
-      </div>
 
-      {/* 3. MOBILE BOTTOM NAVIGATION (Native App Feel on Handheld Devices) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 border-t border-slate-200/90 dark:border-white/10 h-16 pb-[calc(env(safe-area-inset-bottom,0px))] flex items-center justify-around px-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+      {/* 3. MOBILE BOTTOM NAVIGATION — inside the flex-col container so it takes
+          space and content never scrolls underneath it. Trước đây là `fixed
+          bottom-0` ⇒ nav nổi trên nội dung và che nút. */}
+      <nav className="lg:hidden shrink-0 bg-white dark:bg-slate-900 border-t border-slate-200/90 dark:border-white/10 h-16 pb-[calc(env(safe-area-inset-bottom,0px))] flex items-center justify-around px-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
         {mobilePrimaryLinks.map((link) => {
           const Icon = link.icon;
           const isActive = pathname === link.href;
@@ -736,6 +737,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <span>Thêm</span>
         </button>
       </nav>
+      </div>
 
       {/* 4. MOBILE SLIDE-OVER DRAWER (When pressing Menu on Mobile) */}
       {mobileDrawerOpen && (
