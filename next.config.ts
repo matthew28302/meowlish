@@ -62,14 +62,17 @@ const contentSecurityPolicy = [
   // `unsafe-eval` CHỈ thêm ở môi trường phát triển: React dùng eval() để dựng lại
   // callstack khi debug. Ở production React không cần, nên không cho phép — bật ở
   // production sẽ làm CSP vô hiệu với tấn công XSS chèn script.
+  // Cloudflare Web Analytics: script beacon từ static.cloudflareinsights.com,
+  // và gửi kết quả về cloudflareinsights.com. Thiếu cả hai thì CSP chặn im lặng,
+  // analytics chết và console báo lỗi trên mọi trang — đo được ở cả 16/16 trang.
   process.env.NODE_ENV === 'production'
-    ? "script-src 'self' 'unsafe-inline'"
-    : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    ? "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com"
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
   "media-src 'self' data: blob:",
-  "connect-src 'self'",
+  "connect-src 'self' https://cloudflareinsights.com https://static.cloudflareinsights.com",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
