@@ -177,30 +177,33 @@ export async function POST(request: Request) {
     } | undefined;
 
     if (user) {
-      const newExp = (user.exp || 0) + safeExp;
-      const newCoins = (user.coins || 0) + safeCoins;
-      const newLevel = Math.floor(newExp / 200) + 1;
-
       let newStreak = user.streak || 1;
       if (user.last_active_date !== today) {
         newStreak = (user.streak || 0) + 1;
       }
 
+      // PHẢI cộng trong SQL, không tính trong RAM rồi ghi đè giá trị đã đọc.
+      //
+      // Bản trước: `SELECT coins` rồi `UPDATE SET coins = <số đã đọc>` ⇒ đọc-rồi-ghi.
+      // Đo được: 5 request "hoàn thành bài" chạy song song, mỗi cái hợp lệ +50 coins
+      // ⇒ kết quả 1050 thay vì 1250, mất 200 coins mà không có lỗi nào, không log.
+      // Lỗi này tồn tại dù CSDL là SQLite hay Postgres.
+      //
+      // `level` vẫn phải tính từ tổng mới nên dùng biểu thức phụ thuộc giá trị vừa
+      // cập nhật — SQLite/Postgres đều tính được trong cùng câu UPDATE.
       db.prepare(`
-        UPDATE users 
-        SET exp = ?, level = ?, streak = ?, coins = ?, last_active_date = ?
+        UPDATE users
+        SET exp = exp + ?,
+            level = CAST((exp + ?) / 200 AS INTEGER) + 1,
+            streak = ?,
+            coins = coins + ?,
+            last_active_date = ?
         WHERE id = ?
-      `).run(newExp, newLevel, newStreak, newCoins, today, userId);
+      `).run(safeExp, safeExp, newStreak, safeCoins, today, userId);
 
-      // Also award pet EXP to pet if user has a pet
-      try {
-        const pet = db.prepare('SELECT exp FROM user_pets WHERE user_id = ?').get(userId) as { exp: number } | undefined;
-        if (pet) {
-          const newPetExp = (pet.exp || 0) + 8;
-          const newPetLevel = Math.floor(newPetExp / 50) + 1;
-          db.prepare('UPDATE user_pets SET exp = ?, level = ? WHERE user_id = ?').run(newPetExp, newPetLevel, userId);
-        }
-      } catch {}
+      // Cộng EXP cho thú cưng — cũng phải cộng trong SQL.
+      db.prepare('UPDATE user_pets SET level = CAST((exp + 8) / 50 AS INTEGER) + 1, exp = exp + 8 WHERE user_id = ?')
+        .run(userId);
     }
 
     const updatedUser = db.prepare('SELECT id, username, display_name, avatar, streak, exp, level, coins, target_exam, created_at FROM users WHERE id = ?').get(userId);

@@ -140,6 +140,31 @@ export interface DbHandle {
 /** Chỉ phần `unsafe` mà ta thực sự gọi. */
 type Executor = { unsafe: (sql: string, params?: never[]) => Promise<unknown[]> };
 
+/**
+ * Lấy số dòng bị ảnh hưởng từ kết quả của postgres.js.
+ *
+ * postgres.js trả về MẢNG CÁC DÒNG, không trả số dòng bị ảnh hưởng. Với
+ * `UPDATE`/`DELETE` không có `RETURNING` thì mảng luôn rỗng ⇒ `rows.length === 0`
+ * dù câu lệnh đã sửa hàng loạt dòng.
+ *
+ * Bản cũ trả `changes: rows.length` ⇒ mọi câu `UPDATE` đều báo `changes === 0`.
+ * Nếu chuyển sang Postgres nguyên trạng thì 6 tính năng hỏng ngay:
+ *   - `claimTimedReward` không bao giờ trả thưởng PVP/đua
+ *   - `consumeProgressBudget` không bao giờ cộng thưởng học tập
+ *   - `/api/progress` không bao giờ ghi được item mới
+ *   - mua vật phẩm / trừ coins báo "không đủ coins" dù còn đủ
+ *   - `finish_battle_room` không bao giờ trao thưởng
+ *
+ * Cách đúng: đọc `result.count` mà postgres.js đính kèm, fallback về `rows.length`.
+ */
+function affectedRows(rows: Record<string, unknown>[], raw: unknown): number {
+  if (raw && typeof raw === 'object') {
+    const count = (raw as { count?: unknown }).count;
+    if (typeof count === 'number' && Number.isFinite(count)) return count;
+  }
+  return rows.length;
+}
+
 function buildStatement(exec: Executor, sqlText: string): PreparedStatement {
   const translated = toPgPlaceholders(sqlText);
   const run = (params: SqlParam[]) =>
@@ -158,8 +183,13 @@ function buildStatement(exec: Executor, sqlText: string): PreparedStatement {
       return rows as unknown as T[];
     },
     async run(...params: SqlParam[]): Promise<RunResult> {
-      const rows = await run(params);
-      return { changes: rows.length };
+      // Gọi trực tiếp để giữ được object kết quả gốc (chứa `count`).
+      const raw = (await exec.unsafe(
+        translated,
+        params.map((p) => (p === undefined ? null : p)) as unknown as never[]
+      )) as unknown;
+      const rows = (Array.isArray(raw) ? raw : []) as Record<string, unknown>[];
+      return { changes: affectedRows(rows, raw) };
     },
   };
 }
@@ -170,6 +200,7 @@ function buildStatement(exec: Executor, sqlText: string): PreparedStatement {
  */
 export const pgDb: DbHandle & {
   transaction<T>(fn: (t: DbHandle) => Promise<T>): Promise<T>;
+  exec(sqlText: string): Promise<void>;
   end(): Promise<void>;
 } = {
   prepare(sqlText: string): PreparedStatement {
@@ -190,6 +221,24 @@ export const pgDb: DbHandle & {
       return fn(handle);
     });
     return out as T;
+  },
+
+  /**
+   * Chạy SQL không tham số (DDL, `SET`, v.v.).
+   *
+   * SQLite có `db.exec()` và code đang dùng ở nhiều nơi; Postgres không có câu
+   * tương đương một lệnh. Ở đây chỉ chấp nhận SQL không có tham số — không nối
+   * chuỗi từ input của người dùng vào đây.
+   */
+  async exec(sqlText: string): Promise<void> {
+    const trimmed = sqlText.trim();
+    if (!trimmed) return;
+    if (trimmed.includes('?') || /\$[0-9]+/.test(trimmed)) {
+      throw new Error(
+        'pgDb.exec() khong chap nhan tham so. Dung prepare() cho cau lenh co bien.'
+      );
+    }
+    await getClient().unsafe(trimmed);
   },
 
   async end() {

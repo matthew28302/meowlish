@@ -749,9 +749,30 @@ export async function POST(request: Request) {
       const earnedCoins = crop.harvestCoins;
       const earnedExp = crop.harvestExp;
 
+      // Phải XOÁ LUỐNG trước, có điều kiện, rồi mới trả tiền.
+      //
+      // Bản trước trả tiền rồi xoá luống ở hai câu lệnh riêng ⇒ 4 request thu hoạch
+      // CÙNG một luống chín đều thấy cây còn trên đĩa và đều được trả tiền.
+      // Đo được: coins = 200 thay vì 50, cả 4 request đều báo "thành công" — đây là
+      // lỗ hổng farm coins, không chỉ là mất tiền oan.
+      //
+      // Điều kiện `crop_type = ?` đảm bảo chỉ request nào xoá được luống mới được
+      // trả tiền, nên request chạy song song chỉ một request thắng.
+      const cleared = db
+        .prepare(
+          "UPDATE pet_farm_plots SET crop_type = null, stage = 'empty', planted_at = null, watered_at = null, harvest_ready_at = null WHERE id = ? AND crop_type = ?"
+        )
+        .run(plot.id, plot.crop_type).changes;
+
+      if (cleared === 0) {
+        return NextResponse.json(
+          { error: 'Luống này vừa được thu hoạch bởi một thao tác khác.' },
+          { status: 409 }
+        );
+      }
+
       db.prepare('UPDATE users SET coins = coins + ?, exp = exp + ? WHERE id = ?').run(earnedCoins, earnedExp, userId);
       db.prepare('UPDATE user_pets SET exp = exp + ? WHERE user_id = ?').run(earnedExp, userId);
-      db.prepare("UPDATE pet_farm_plots SET crop_type = null, stage = 'empty', planted_at = null, watered_at = null, harvest_ready_at = null WHERE id = ?").run(plot.id);
 
       const farmPlots = db.prepare('SELECT * FROM pet_farm_plots WHERE user_id = ? ORDER BY plot_index ASC').all(userId);
       const freshUser = db.prepare('SELECT id, coins, exp FROM users WHERE id = ?').get(userId) as any;
