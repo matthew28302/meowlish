@@ -8,9 +8,10 @@ import { cleanCollocations } from '@/lib/collocations';
 /**
  * 60s thay vì mặc định 10s của Vercel.
  *
- * Route này ghi `dictionary_cache` vào SQLite — mỗi cache miss là một DB write,
- * và trên production có thể kích hoạt upload DB 67MB lên Filebase. Mạng chậm
- * (20Mbit/s) thì 10s không đủ ⇒ 504 giữa chừng.
+ * Route này có thể ghi cache khi tra từ — nhưng từ khi tách file, `dictionary_cache`
+ * nằm trong dictionary.db (dictDb) KHÔNG BAO GIỜ đồng bộ lên S3, nên tra từ
+ * không còn kích upload DB 67MB. Phần ghi còn lại (ai_translation_cache qua Groq/
+ * Gemini) nằm trong DB chính, giờ chỉ còn ~3.5MB.
  */
 export const maxDuration = 60;
 

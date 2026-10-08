@@ -1,4 +1,9 @@
 import { NextResponse } from 'next/server';
+// Ghi chú kiến trúc (sau khi tách từ điển): route này KHÔNG truy vấn bảng
+// dictionary_* nào — smartTranslateWithAI chỉ ghi `ai_translation_cache` trong
+// DB CHÍNH (dữ liệu nhỏ, gắn user, thuộc diện đồng bộ S3 ~3.5MB). Toàn bộ
+// dictionary_entries/dictionary_cache đã chuyển sang dictDb ở search route +
+// cambridgeCrawler.
 import { smartTranslateWithAI } from '@/lib/groqTranslator';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 

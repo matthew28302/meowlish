@@ -99,7 +99,15 @@ try {
 
   const db = new Database(tmp, { readonly: true });
   users = Number(db.prepare('SELECT COUNT(*) c FROM users').get().c);
-  dict = Number(db.prepare('SELECT COUNT(*) c FROM dictionary_entries').get().c);
+  // Sau khi tách từ điển (scripts/split-dictionary.mjs --apply), DB CHÍNH không
+  // còn bảng dictionary_entries — từ điển sống ở file riêng dictionary.db.
+  // Backup tạo trước khi tách vẫn có bảng này; backup sau khi tách thì không —
+  // không coi "thiếu bảng từ điển" là lỗi.
+  try {
+    dict = Number(db.prepare('SELECT COUNT(*) c FROM dictionary_entries').get().c);
+  } catch {
+    dict = -2; // -2 = DB chính đã tách từ điển (hợp lệ sau 2026-10)
+  }
   integrity = String(db.pragma('integrity_check', { simple: true }));
   db.close();
   fs.rmSync(path.dirname(tmp), { recursive: true, force: true });
@@ -110,8 +118,8 @@ try {
 }
 row('integrity_check = ok', 'ok', integrity);
 row('Co duoc so tai khoan > 0', true, users > 0);
-row('Co duoc so tu dien > 0', true, dict > 0);
-console.log(`  (ban backup co ${users} tai khoan, ${dict} tu dien)`);
+row('Co duoc so tu dien > 0', true, dict > 0 || dict === -2);
+console.log(`  (ban backup co ${users} tai khoan, ${dict === -2 ? 'tu dien da tach ra file rieng' : dict + ' tu dien'})`);
 
 // --- 5: key nguon khong bi dong vao ---
 const src = await s3.send(new HeadObjectCommand({ Bucket: bucket, Key: 'english_learning.db' }));

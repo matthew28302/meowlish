@@ -5,6 +5,17 @@ import fs from 'fs';
 import path from 'path';
 import logger from './logger';
 
+// File ĐỒNG BỘ lên S3 chỉ có MỘT: english_learning.db (~3.5MB user data sau khi
+// tách từ điển — xem docs/db-sync.md). Từ điển tĩnh sống ở file RIÊNG
+// data/dictionary.db (dictDb trong src/lib/db.ts) và CÓ BẤT BIẾN:
+//   1. KHÔNG BAO GIỜ upload/đồng bộ dictionary.db trong module này —
+//      getDbFingerprint() và sendPut() chỉ đụng đúng dbPath
+//      (english_learning.db + WAL của nó), mọi ghi vào dictionary_cache
+//      không bao giờ kích upload.
+//   2. Bản gốc từ điển nằm ở key S3 `english_learning_dictionary.db`, upload
+//      MỘT LẦN bằng scripts/upload-dictionary.mjs (người chủ động chạy),
+//      cold-start tải về bằng scripts/restore-s3.js --dictionary (30s timeout,
+//      MISS thì app vẫn chạy với từ điển rỗng — search graceful, không crash).
 const DB_FILENAME = 'english_learning.db';
 const isVercel = process.env.VERCEL === '1';
 const dbDir = isVercel ? path.join('/tmp', 'data') : path.join(process.cwd(), 'data');
@@ -222,6 +233,9 @@ const autoSync: AutoSyncState = (global.__autoSyncState ??= {
  * - Ghi dữ liệu mới → WAL đổi size/mtime → phát hiện được ngay.
  * - Checkpoint → file chính đổi mtime/size → cũng phát hiện được.
  * - File -shm bị loại trừ vì chỉ là lock index, thay đổi vô nghĩa.
+ * - CHỈ theo dõi english_learning.db: dictionary.db (dictDb) cố tình KHÔNG
+ *   tham gia fingerprint — ghi cache khi tra từ không được coi là thay đổi
+ *   cần upload (bất biến đã ghi ở đầu file).
  * ĐỊNH DÀNG NÀY PHẢI KHỚP VỚI localFingerprint() TRONG scripts/restore-s3.js
  * và scripts/sync-to-filebase.mjs (đọc cùng sync_state.json).
  */

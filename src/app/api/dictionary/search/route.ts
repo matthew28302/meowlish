@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { dictDb } from '@/lib/db';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { cleanCollocations } from '@/lib/collocations';
 
 /**
- * 60s thay vì mặc định 10s của Vercel — route quét bảng dictionary_entries
- * 63MB (đã đo: LIKE full-scan ~87ms ×2) và có thể ghi cache khi tra Cambridge.
+ * Route đọc từ điển tĩnh từ FILE RIÊNG dictionary.db (dictDb) — file này
+ * KHÔNG bao giờ được đồng bộ lên S3, nên tra từ không còn kích upload 67MB
+ * như trước. Nếu cold start Vercel chưa restore kịp từ điển (MISS/timeout),
+ * dictDb mở với bảng rỗng → trả danh sách trống graceful, không crash.
  */
 export const maxDuration = 60;
 
@@ -54,11 +56,14 @@ export async function GET(request: Request) {
 
     // Count total matches
     const countSql = `SELECT COUNT(*) as total FROM dictionary_entries ${whereSql}`;
-    const countRow = db.prepare(countSql).get(...params) as { total: number } | undefined;
-    const total = countRow?.total || 0;
 
-    // Get paginated items
-    const querySql = `
+    let countRow: { total: number } | undefined;
+    let rows: any[];
+    try {
+      countRow = dictDb.prepare(countSql).get(...params) as { total: number } | undefined;
+
+      // Get paginated items
+      const querySql = `
       SELECT word, ipa, part_of_speech as partOfSpeech, category, category_label as categoryLabel,
              level, meaning_vi as meaningVi, detailed_explanation as detailedExplanation,
              examples_json, collocations_json, audio_url as audioUrl, data_json
@@ -75,15 +80,31 @@ export async function GET(request: Request) {
       LIMIT ? OFFSET ?
     `;
 
-    const queryParams = [
-      ...params,
-      q || '',
-      `${q || ''}%`,
-      limit,
-      offset
-    ];
+      const queryParams = [
+        ...params,
+        q || '',
+        `${q || ''}%`,
+        limit,
+        offset
+      ];
 
-    const rows = db.prepare(querySql).all(...queryParams) as any[];
+      rows = dictDb.prepare(querySql).all(...queryParams) as any[];
+    } catch (dictErr) {
+      // Cold-start restore từ điển MISS/timeout hoặc file hỏng: trả danh sách
+      // RỖNG graceful thay vì 500 — UI vẫn hoạt động, user data không liên quan.
+      console.error('Dictionary DB chưa sẵn sàng — trả kết quả rỗng graceful:', dictErr);
+      return NextResponse.json({
+        success: true,
+        total: 0,
+        page,
+        limit,
+        totalPages: 0,
+        items: [],
+        dictionaryUnavailable: true,
+      });
+    }
+
+    const total = countRow?.total || 0;
 
     const items = rows.map((r, idx) => {
       let examples = [];

@@ -38,6 +38,14 @@ const S3_BUCKET = process.env.FILEBASE_BUCKET_NAME || 'meowlish-db';
 const DB_FILENAME = 'english_learning.db';
 const REMOTE_REAL_DB_BYTES = 1_000_000; // remote >= mức này = "có dữ liệu thật"
 
+// --- Từ điển tĩnh (file RIÊNG, không tham gia cơ chế sync/của DB chính) ---
+// Key S3 do scripts/upload-dictionary.mjs đẩy lên MỘT LẦN; cold start tải về
+// khi chưa có. KHÔNG đụng sync_state.json/.s3_restored — từ điển là nội dung
+// tĩnh, bản remote chính là chân lý, không có tranh chấp last-write-wins.
+const DICT_FILENAME = 'dictionary.db';
+const REMOTE_DICT_OBJECT = 'english_learning_dictionary.db';
+const MIN_VALID_DICT_BYTES = 1_000_000; // < mức này coi như từ điển trống/hỏng
+
 // --- Helpers phải GIỐNG HỆT s3Sync.ts (cùng định dạng để so sánh được) ---
 
 /** `etag:"..."` hoặc `lm:<ms>` */
@@ -60,21 +68,22 @@ function localFingerprint() {
   return `${main}|wal:${wal}`;
 }
 
-function localInfo() {
+function localInfo(p) {
+  p = p || dbPath;
   const info = { exists: false, size: 0, dataTimeMs: 0, headerOk: false };
   try {
-    const st = fs.statSync(dbPath);
+    const st = fs.statSync(p);
     info.exists = true;
     info.size = st.size;
     info.dataTimeMs = st.mtimeMs;
   } catch {}
   try {
-    const st = fs.statSync(`${dbPath}-wal`);
+    const st = fs.statSync(`${p}-wal`);
     if (st.mtimeMs > info.dataTimeMs) info.dataTimeMs = st.mtimeMs;
   } catch {}
   if (info.exists && info.size >= 16) {
     try {
-      const fd = fs.openSync(dbPath, 'r');
+      const fd = fs.openSync(p, 'r');
       const buf = Buffer.alloc(16);
       fs.readSync(fd, buf, 0, 16, 0);
       fs.closeSync(fd);
@@ -244,4 +253,112 @@ async function restore() {
   }
 }
 
-restore();
+/**
+ * Cold-start restore TỪ ĐIỂN TĨNH (--dictionary):
+ * tải key english_learning_dictionary.db về dbDir/dictionary.db.
+ *
+ * Khác với DB chính: KHÔNG có quy tắc tranh chấp (nội dung tĩnh, remote chính
+ * là chân lý, dictionary_cache chỉ là cache mất được) và KHÔNG đụng
+ * sync_state.json. MISS (chưa ai upload key) hoặc lỗi mạng thì:
+ *   - MISS key  → exit 0 (bình thường — app chạy với từ điển rỗng, search
+ *                 trả kết quả rỗng graceful);
+ *   - lỗi khác  → exit 1 (db.ts bắt, log, app vẫn mở dictionary.db rỗng).
+ */
+async function restoreDictionary() {
+  const dictPath = path.join(dbDir, DICT_FILENAME);
+  const dictMarker = path.join(dbDir, '.dictionary_restored');
+  const local = localInfo(dictPath);
+
+  if (local.headerOk && local.size >= MIN_VALID_DICT_BYTES) {
+    console.log(`[S3 Restore] dictionary.db cục bộ đã hợp lệ (${(local.size / 1024 / 1024).toFixed(2)} MB) → giữ nguyên.`);
+    if (!fs.existsSync(dictMarker)) {
+      try { fs.writeFileSync(dictMarker, new Date().toISOString()); } catch {}
+    }
+    process.exit(0);
+  }
+
+  const s3 = new S3Client({
+    endpoint: S3_ENDPOINT,
+    region: S3_REGION,
+    credentials: {
+      accessKeyId: S3_ACCESS_KEY,
+      secretAccessKey: S3_SECRET_KEY,
+    },
+    forcePathStyle: true,
+  });
+
+  // --- HEAD key từ điển ---
+  let head;
+  try {
+    const h = await s3.send(new HeadObjectCommand({ Bucket: S3_BUCKET, Key: REMOTE_DICT_OBJECT }));
+    head = { size: h.ContentLength || 0, lastModifiedMs: h.LastModified ? h.LastModified.getTime() : 0 };
+    console.log(`[S3 Restore] Remote dictionary: ${(head.size / 1024 / 1024).toFixed(2)} MB, LastModified=${new Date(head.lastModifiedMs).toISOString()}`);
+  } catch (err) {
+    const notFound = err && (err.name === 'NotFound' || (err.$metadata && err.$metadata.httpStatusCode === 404));
+    if (notFound) {
+      // MISS: KHÔNG phải lỗi — app vẫn chạy với từ điển rỗng (graceful).
+      console.log(
+        `[S3 Restore] MISS: chưa có ${REMOTE_DICT_OBJECT} trên Filebase — ` +
+          'app sẽ chạy với từ điển rỗng. Chạy scripts/upload-dictionary.mjs để đẩy bản lên.'
+      );
+      process.exit(0);
+    }
+    console.error(`[S3 Restore] Không đọc được metadata từ điển: ${err.message || String(err)}`);
+    process.exit(1);
+  }
+
+  // --- Tải về, xác thực RỒI mới lắp vào chỗ ---
+  const tmpPath = `${dictPath}.restore.tmp`;
+  try {
+    console.log(`[S3 Restore] Downloading dictionary (${S3_BUCKET}/${REMOTE_DICT_OBJECT})...`);
+    const response = await s3.send(new GetObjectCommand({ Bucket: S3_BUCKET, Key: REMOTE_DICT_OBJECT }));
+    if (!response.Body) throw new Error('S3 GetObject returned empty body');
+    const buffer = Buffer.from(await response.Body.transformToByteArray());
+
+    const header = buffer.subarray(0, 16).toString('utf8');
+    if (!header.startsWith('SQLite format 3')) {
+      throw new Error('Downloaded dictionary is not a valid SQLite database header');
+    }
+    if (buffer.length < MIN_VALID_DICT_BYTES) {
+      throw new Error(`Dictionary quá nhỏ (${buffer.length} bytes) — không phải bản thật`);
+    }
+
+    if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
+
+    // Xác thực SQL-level TRƯỚC KHI thay file: quick_check + đếm mục từ
+    fs.writeFileSync(tmpPath, buffer);
+    const probe = new (require('better-sqlite3'))(tmpPath, { readonly: true });
+    try {
+      const check = probe.pragma('quick_check');
+      const ok = Array.isArray(check) && check.length === 1 && check[0].quick_check === 'ok';
+      if (!ok) throw new Error(`quick_check không ok: ${JSON.stringify(check)}`);
+      const entries = probe.prepare('SELECT COUNT(*) c FROM dictionary_entries').get().c;
+      if (entries < 1000) throw new Error(`dictionary_entries chỉ có ${entries} dòng — bản tải về khả năng sai`);
+      console.log(`[S3 Restore] Bản tải về hợp lệ: quick_check ok, ${entries} mục từ.`);
+    } finally {
+      probe.close();
+    }
+
+    // Xóa WAL/SHM cũ của dictionary.db (nếu có) trước khi thay
+    try {
+      if (fs.existsSync(`${dictPath}-wal`)) fs.unlinkSync(`${dictPath}-wal`);
+      if (fs.existsSync(`${dictPath}-shm`)) fs.unlinkSync(`${dictPath}-shm`);
+    } catch {}
+
+    fs.renameSync(tmpPath, dictPath);
+    fs.writeFileSync(dictMarker, new Date().toISOString());
+    console.log(`[S3 Restore] Successfully restored dictionary (${(buffer.length / 1024 / 1024).toFixed(2)} MB) to ${dictPath}`);
+    process.exit(0);
+  } catch (err) {
+    console.error(`[S3 Restore] Failed to restore dictionary: ${err.message || String(err)}`);
+    try { if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath); } catch {}
+    // exit 1: db.ts log cảnh báo, app vẫn mở dictionary.db rỗng (graceful, không crash)
+    process.exit(1);
+  }
+}
+
+if (process.argv.includes('--dictionary')) {
+  restoreDictionary();
+} else {
+  restore();
+}

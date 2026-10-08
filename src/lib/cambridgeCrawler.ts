@@ -1,4 +1,7 @@
-import { db } from './db';
+// Từ điển/cache tra từ sống ở FILE RIÊNG dictionary.db (dictDb) — KHÔNG bao giờ
+// đồng bộ lên S3. Schema (dictionary_cache) do createDictDb() trong ./db.ts tạo,
+// nên ở đây không còn cần CREATE TABLE ở module scope nữa.
+import { dictDb } from './db';
 
 export interface CambridgeSense {
   enDef: string;
@@ -18,13 +21,8 @@ export interface CrawledDictionaryResult {
 }
 
 // Ensure cache table exists in SQLite
-db.exec(`
-  CREATE TABLE IF NOT EXISTS dictionary_cache (
-    word TEXT PRIMARY KEY,
-    data_json TEXT NOT NULL,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
-  );
-`);
+// (schema do createDictDb() trong src/lib/db.ts đảm nhận — không tạo ở đây nữa
+// để dictDb chỉ mở khi thật sự tra từ, cold start nhẹ hơn)
 
 export async function crawlCambridgeDictionary(rawWord: string): Promise<CrawledDictionaryResult | null> {
   const cleanWord = rawWord.trim().toLowerCase();
@@ -32,7 +30,7 @@ export async function crawlCambridgeDictionary(rawWord: string): Promise<Crawled
 
   // 1. Check local cache first for instant 1ms response
   try {
-    const cached = db.prepare('SELECT data_json FROM dictionary_cache WHERE word = ?').get(cleanWord) as { data_json: string } | undefined;
+    const cached = dictDb.prepare('SELECT data_json FROM dictionary_cache WHERE word = ?').get(cleanWord) as { data_json: string } | undefined;
     if (cached) {
       const parsed = JSON.parse(cached.data_json);
       return { ...parsed, source: 'cache' };
@@ -127,7 +125,7 @@ export async function crawlCambridgeDictionary(rawWord: string): Promise<Crawled
 
           // Save to SQLite cache for instant subsequent lookups
           try {
-            db.prepare(`
+            dictDb.prepare(`
               INSERT OR REPLACE INTO dictionary_cache (word, data_json, created_at)
               VALUES (?, ?, CURRENT_TIMESTAMP)
             `).run(cleanWord, JSON.stringify(result));
@@ -191,7 +189,7 @@ export async function crawlCambridgeDictionary(rawWord: string): Promise<Crawled
       };
 
       try {
-        db.prepare(`
+        dictDb.prepare(`
           INSERT OR REPLACE INTO dictionary_cache (word, data_json, created_at)
           VALUES (?, ?, CURRENT_TIMESTAMP)
         `).run(cleanWord, JSON.stringify(result));

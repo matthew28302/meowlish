@@ -11,10 +11,15 @@ if (!fs.existsSync(dbDir)) {
 }
 
 const dbPath = path.join(dbDir, 'english_learning.db');
+// Từ điển tĩnh (dictionary_entries + FTS + dictionary_cache) sống ở FILE RIÊNG:
+// file DB chính phải nhỏ (~3.5MB user data) để mỗi lần sync S3 không đẩy 67MB.
+const dictDbPath = path.join(dbDir, 'dictionary.db');
 
 declare global {
   // eslint-disable-next-line no-var
   var __dbInstance: Database.Database | undefined;
+  // eslint-disable-next-line no-var
+  var __dictDbInstance: Database.Database | undefined;
 }
 
 /**
@@ -814,6 +819,165 @@ function ensureSyncMeta(db: Database.Database): void {
 export const db: Database.Database = new Proxy({} as Database.Database, {
   get(_target, prop) {
     const instance = getDatabase();
+    const val = (instance as any)[prop];
+    if (typeof val === 'function') {
+      return val.bind(instance);
+    }
+    return val;
+  },
+});
+
+// ---------------------------------------------------------------------------
+// TỪ ĐIỂN TĨNH — FILE RIÊNG data/dictionary.db (KHÔNG BAO GIỜ đồng bộ lên S3)
+//
+// Vì sao tách file (audit SRE 2026-10-08): 95% dung lượng english_learning.db là
+// dictionary_entries 37.9MB + dictionary_cache 24.6MB + FTS ~1.4MB — nội dung
+// tĩnh, không phải user data. Mỗi mutation/tra từ đều upload CẢ FILE 67MB lên
+// Filebase (~8GB/giờ/instance). Tách ra thì file đồng bộ chỉ còn ~3.5MB và
+// dictionary_cache (ghi khi tra từ) không còn kích upload.
+//
+// BẢO TOÀN BẤT BIẾN (đọc kỹ trước khi sửa s3Sync.ts / restore-s3.js):
+//   - dictionary.db KHÔNG BAO GIỜ được auto-upload: s3Sync.ts chỉ theo dõi và
+//     đẩy đúng english_learning.db (getDbFingerprint/sendPut chỉ đụng dbPath).
+//   - Bản gốc remote nằm ở key S3 english_learning_dictionary.db, upload MỘT
+//     LẦN bằng scripts/upload-dictionary.mjs (user chủ động chạy).
+//   - Cold start Vercel: restore-s3.js --dictionary tải key đó về dbDir —
+//     timeout riêng (30s), MISS/thất bại thì app VẪN CHẠY với từ điển rỗng:
+//     API search trả kết quả rỗng graceful, không crash.
+// ---------------------------------------------------------------------------
+
+/** Key S3 chứa bản từ điển tĩnh (upload một lần bằng scripts/upload-dictionary.mjs). */
+const REMOTE_DICT_OBJECT = 'english_learning_dictionary.db';
+/** Từ điển hợp lệ phải ≥ 1MB (thực tế ~64MB; dưới 1MB coi như trống/hỏng). */
+const MIN_VALID_DICT_BYTES = 1_000_000;
+/** Timeout riêng cho cold-start restore từ điển (DB chính dùng 35s riêng của nó). */
+const DICT_RESTORE_TIMEOUT_MS = 30_000;
+
+/**
+ * Khôi phục dictionary.db từ Filebase S3 TRƯỚC KHI mở kết nối (đối xứng với
+ * ensureDatabaseRestoredSync). Chỉ chạy khi: Vercel cold start (chưa có marker),
+ * hoặc file cục bộ trống/hỏng. Thất bại KHÔNG được ném lỗi — app vẫn chạy, API
+ * từ điển trả kết quả rỗng.
+ */
+function ensureDictionaryRestoredSync(): void {
+  try {
+    let localSize = 0;
+    try {
+      if (fs.existsSync(dictDbPath)) localSize = fs.statSync(dictDbPath).size;
+    } catch {}
+
+    const dictMarkerPath = path.join(dbDir, '.dictionary_restored');
+    const needsRestore = (isVercel && !fs.existsSync(dictMarkerPath)) || localSize < MIN_VALID_DICT_BYTES;
+    if (!needsRestore) return;
+
+    const scriptPath = path.join(process.cwd(), 'scripts', 'restore-s3.js');
+    if (!fs.existsSync(scriptPath)) {
+      console.warn(`[Dict DB] Thiếu script ${scriptPath} — không thể khôi phục từ điển từ Filebase.`);
+      return;
+    }
+
+    console.log(`[Dict DB] Cold-start / thiếu dictionary.db -> tải ${REMOTE_DICT_OBJECT} từ Filebase S3...`);
+    try {
+      execFileSync(process.execPath, [scriptPath, '--dictionary'], {
+        stdio: 'inherit',
+        timeout: DICT_RESTORE_TIMEOUT_MS,
+      });
+    } catch (err: any) {
+      // MISS/timeout: KHÔNG crash — app chạy tiếp với từ điển trống.
+      console.warn('[Dict DB] Khôi phục từ điển thất bại/MISS:', err?.message || String(err));
+    }
+
+    let afterSize = 0;
+    try {
+      if (fs.existsSync(dictDbPath)) afterSize = fs.statSync(dictDbPath).size;
+    } catch {}
+    if (afterSize < MIN_VALID_DICT_BYTES) {
+      console.warn(
+        '[Dict DB] Từ điển vẫn trống sau restore — API search sẽ trả kết quả rỗng (graceful), ' +
+          'các phần khác của app hoạt động bình thường.'
+      );
+    }
+  } catch (err: any) {
+    console.warn('[Dict DB] Cold-start restore notice:', err?.message || String(err));
+  }
+}
+
+function getDictDatabase(): Database.Database {
+  if (!global.__dictDbInstance || !global.__dictDbInstance.open) {
+    global.__dictDbInstance = createDictDb();
+  }
+  return global.__dictDbInstance;
+}
+
+function createDictDb(): Database.Database {
+  ensureDictionaryRestoredSync();
+  // readonly: false vì dictionary_cache cần ghi (cache khi tra từ) — nhưng ghi
+  // vào đây KHÔNG bao giờ kích upload S3 (xem bất biến ở trên).
+  const dict = new Database(dictDbPath);
+  dict.pragma('journal_mode = WAL');
+  dict.pragma('busy_timeout = 5000');
+  dict.pragma('synchronous = NORMAL');
+
+  // Schema phải khớp scripts/split-dictionary.mjs (nguồn gốc dữ liệu) — sửa thì
+  // sửa cả hai nơi + chạy lại split.
+  dict.exec(`
+    CREATE TABLE IF NOT EXISTS dictionary_entries (
+      word TEXT PRIMARY KEY,
+      ipa TEXT,
+      part_of_speech TEXT,
+      category TEXT,
+      category_label TEXT,
+      level TEXT,
+      meaning_vi TEXT,
+      detailed_explanation TEXT,
+      examples_json TEXT,
+      collocations_json TEXT,
+      audio_url TEXT,
+      data_json TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_entries_word ON dictionary_entries(word);
+    CREATE INDEX IF NOT EXISTS idx_entries_category ON dictionary_entries(category);
+    CREATE INDEX IF NOT EXISTS idx_entries_level ON dictionary_entries(level);
+
+    CREATE TABLE IF NOT EXISTS dictionary_cache (
+      word TEXT PRIMARY KEY,
+      data_json TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  // FTS5 external-content: index do 'rebuild' của split script sinh ra; nếu
+  // file restore về thiếu FTS thì tạo rỗng (không route nào phụ thuộc MATCH).
+  try {
+    dict.exec(`
+      CREATE VIRTUAL TABLE IF NOT EXISTS dictionary_fts USING fts5(
+        word,
+        meaning_vi,
+        content='dictionary_entries',
+        content_rowid='rowid'
+      );
+    `);
+  } catch (err) {
+    console.warn('[Dict DB] FTS init notice:', err);
+  }
+
+  let entries = 0;
+  try {
+    entries = (dict.prepare('SELECT COUNT(*) c FROM dictionary_entries').get() as { c: number }).c;
+  } catch {}
+  if (entries === 0) {
+    console.warn(
+      `[Dict DB] Mở dictionary.db với 0 mục từ (cold-start restore MISS hoặc chưa chạy split) — ` +
+        'search trả kết quả rỗng, không crash.'
+    );
+  } else {
+    console.log(`[Dict DB] Mở dictionary.db: ${entries.toLocaleString('vi-VN')} mục từ (KHÔNG đồng bộ S3).`);
+  }
+  return dict;
+}
+
+export const dictDb: Database.Database = new Proxy({} as Database.Database, {
+  get(_target, prop) {
+    const instance = getDictDatabase();
     const val = (instance as any)[prop];
     if (typeof val === 'function') {
       return val.bind(instance);
