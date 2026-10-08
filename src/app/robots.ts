@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = 'https://www.meowlish.io.vn';
+const BASE_URL = 'https://meowlish.io.vn';
 
 export default function robots(): MetadataRoute.Robots {
   return {

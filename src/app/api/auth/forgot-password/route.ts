@@ -155,7 +155,7 @@ export async function POST(request: Request) {
     `).run(tokenHash, user.id, expiresAt);
 
     // Tạo reset link
-    const baseUrl = process.env.APP_URL || 'https://www.meowlish.io.vn';
+    const baseUrl = process.env.APP_URL || 'https://meowlish.io.vn';
     const resetLink = `${baseUrl}/reset-password?token=${rawToken}`;
 
     // Nội dung email với link đặt lại mật khẩu

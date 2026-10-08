@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = 'https://www.meowlish.io.vn';
+const BASE_URL = 'https://meowlish.io.vn';
 
 // Các trang public chính thức — không bao gồm trang dev/test (duahau, pet-test, fitcheck).
 const PUBLIC_ROUTES = [

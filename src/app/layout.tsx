@@ -17,6 +17,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Canonical là non-www — khớp Google Search Console property `meowlish.io.vn`.
+  // www 308-redirect về non-www (cấu hình ở Vercel → Settings → Domains).
+  // metadataBase để Next giải mọi URL tương đối (OG, canonical) về đúng host.
+  metadataBase: new URL('https://meowlish.io.vn'),
   title: 'Meowlish - Học Tiếng Anh Giao Tiếp & IT Thực Chiến',
   description: 'Nền tảng học tiếng Anh giao tiếp phản xạ, ngữ pháp Lego trực quan, từ vựng IT, luyện nói Speech AI, bôi đen tra từ và Flashcard Spaced Repetition.',
 };

@@ -23,7 +23,7 @@
  */
 
 /** URL gốc của site — dùng cho mọi link trong email. */
-export const APP_URL = (process.env.APP_URL || 'https://www.meowlish.io.vn').replace(/\/+$/, '');
+export const APP_URL = (process.env.APP_URL || 'https://meowlish.io.vn').replace(/\/+$/, '');
 
 /** Thông tin thương hiệu dùng trong footer / chữ ký. */
 export const EMAIL_BRAND = {
@@ -33,8 +33,9 @@ export const EMAIL_BRAND = {
   contactEmail: process.env.CONTACT_EMAIL || process.env.SMTP_USER || 'admin@imfishball.id.vn',
   /** Địa chỉ vật lý (đặt qua env BRAND_ADDRESS để thay thế). */
   address: process.env.BRAND_ADDRESS || 'TP. Hồ Chí Minh, Việt Nam',
-  supportUrl: `${(process.env.APP_URL || 'https://www.meowlish.io.vn').replace(/\/+$/, '')}/support`,
-  adminUrl: `${(process.env.APP_URL || 'https://www.meowlish.io.vn').replace(/\/+$/, '')}/duahau`,
+  supportUrl: `${(process.env.APP_URL || 'https://meowlish.io.vn').replace(/\/+$/, '')}/support`,
+  // Canonical là non-www (khớp Google Search Console). www 308-redirect về non-www.
+  adminUrl: `${(process.env.APP_URL || 'https://meowlish.io.vn').replace(/\/+$/, '')}/duahau`,
 } as const;
 
 export interface RenderedEmail {
