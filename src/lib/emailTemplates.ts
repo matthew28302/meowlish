@@ -236,6 +236,175 @@ function signature(): string {
   return `<p style="margin:24px 0 0 0; font-size:15px; color:${C.text};">Trân trọng,<br /><strong>Đội ngũ ${EMAIL_BRAND.name}</strong></p>`;
 }
 
+// ---------------------------------------------------------------------------
+// Design tokens — bộ "meow" (template hình mèo, dùng cho OTP + quên mật khẩu)
+// ---------------------------------------------------------------------------
+const M = {
+  pageBg: '#E8F6ED',
+  cardBorder: '#FFD9E3',
+  pink: '#E0568B',
+  pinkSoft: '#F06292',
+  pinkDeep: '#D63D74',
+  pinkPale: '#FFF0F5',
+  pinkLine: '#FFB6C9',
+  title: '#4A3A52',
+  text: '#7A6A85',
+  muted: '#9A8AA5',
+  faint: '#C9A8B8',
+  paw: '#F2B8CD',
+  badgeBg: '#FFF3E2',
+  badgeText: '#9A6B4F',
+  badgeLine: '#E8B98A',
+  footerBg: '#F2FAF5',
+  link: '#FFD9E3',
+  softText: '#B9A8C2',
+  softText2: '#D8BFD0',
+  softText3: '#D8C9DE',
+} as const;
+
+/**
+ * URL ảnh GIF tĩnh phục vụ từ `public/`.
+ * Vì sao KHÔNG nhúng base64: Gmail và đa số client không render được ảnh
+ * `data:` URI → hiện ô trắng. Xem docs ghi chú ở temp/email_*.html.
+ * Ảnh nằm ở public/<file> nên được phục vụ tại `${APP_URL}/<file>` khi deploy.
+ */
+function assetUrl(file: string): string {
+  return `${APP_URL}/${file}`;
+}
+
+/** Khung email "meow": logo, hero GIF, tiêu đề, nội dung, footer hồng. */
+function meowLayout({
+  preheader,
+  title,
+  headingText,
+  gifFile,
+  gifAlt,
+  sections,
+  footerNote,
+}: {
+  preheader: string;
+  title: string;
+  headingText: string;
+  gifFile: string;
+  gifAlt: string;
+  /** Các khối <tr> đã dựng sẵn, chèn giữa hero và footer. */
+  sections: string;
+  footerNote: string;
+}): string {
+  const year = new Date().getFullYear();
+  const contact = EMAIL_BRAND.contactEmail;
+  return `<!DOCTYPE html>
+<html lang="vi" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <title>${escapeHtml(title)}</title>
+  <style>
+    @media only screen and (max-width: 620px) {
+      .email-container { width: 100% !important; }
+      .code-digit { width: 44px !important; height: 54px !important; font-size: 26px !important; }
+      .hero-title { font-size: 26px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0; padding:0; word-spacing:normal; background-color:${M.pageBg};">
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">${escapeHtml(preheader)}</div>
+  <center style="width:100%; background-color:${M.pageBg};">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:${M.pageBg};">
+      <tr>
+        <td align="center" style="padding:32px 12px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="email-container" style="width:600px; max-width:600px; background-color:#FFFFFF; border-radius:24px; border:2px solid ${M.cardBorder}; overflow:hidden;">
+            <tr>
+              <td align="center" style="padding:28px 32px 8px 32px; background-color:#FFFFFF;">
+                <div style="font-family:${FONT}; font-size:22px; font-weight:800; color:${M.pink}; letter-spacing:1px;">Meowlish</div>
+                <div style="font-family:${FONT}; font-size:12px; color:${M.faint}; letter-spacing:3px; margin-top:4px;">PURR-FECTLY SECURE</div>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding:20px 40px 0 40px; background-color:#FFFFFF;">
+                <h1 class="hero-title" style="margin:0; font-family:${FONT}; font-size:30px; font-weight:800; color:${M.title}; line-height:1.3;">${escapeHtml(headingText)}</h1>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding:12px 32px 0 32px; background-color:#FFFFFF;">
+                <img src="${escapeHtml(assetUrl(gifFile))}" alt="${escapeHtml(gifAlt)}" width="220" style="display:block; width:220px; max-width:60%; height:auto; border-radius:18px; border:3px solid ${M.link};" />
+              </td>
+            </tr>
+${sections}
+            <tr>
+              <td align="center" style="padding:20px 48px 30px 48px; background-color:${M.footerBg}; border-top:2px dashed ${M.cardBorder};">
+                <p style="margin:0; font-family:${FONT}; font-size:12px; color:${M.softText}; line-height:1.7;">${escapeHtml(footerNote)}</p>
+                <p style="margin:12px 0 0 0; font-family:${FONT}; font-size:12px; color:${M.softText2};">Purr-fect regards,<br /><strong style="color:${M.pink};">Đội ngũ ${escapeHtml(EMAIL_BRAND.name)}</strong></p>
+                <p style="margin:14px 0 0 0; font-family:${FONT}; font-size:11px; color:${M.softText3};">&copy; ${year} ${escapeHtml(EMAIL_BRAND.name)} &middot; ${escapeHtml(EMAIL_BRAND.address)} &middot; <a href="mailto:${escapeHtml(contact)}" style="color:${M.pink}; text-decoration:none;">${escapeHtml(contact)}</a></p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </center>
+</body>
+</html>`;
+}
+
+/** Ô mã 6 số tách từng ô (chỉ nhận chữ số để không vỡ layout). */
+function meowCodeBoxes(otp: string): string {
+  const digits = String(otp).replace(/\D/g, '').padEnd(6, '0').slice(0, 6).split('');
+  const tds = digits
+    .map(
+      (d, i) =>
+        (i > 0 ? '<td style="width:10px;"></td>' : '') +
+        `<td class="code-digit" align="center" style="width:56px; height:68px; background-color:${M.pinkPale}; border:2px solid ${M.pinkLine}; border-radius:14px; font-family:${FONT}; font-size:32px; font-weight:800; color:${M.pinkDeep};">${escapeHtml(d)}</td>`
+    )
+    .join('');
+  return `            <tr>
+              <td align="center" style="padding:24px 32px 0 32px; background-color:#FFFFFF;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+                  <tr>${tds}</tr>
+                </table>
+              </td>
+            </tr>`;
+}
+
+/** Dải dấu chân mèo trang trí. */
+function meowPaws(): string {
+  const paw = '&#128062;';
+  return `            <tr>
+              <td align="center" style="padding:22px 32px 0 32px; background-color:#FFFFFF;">
+                <div style="font-family:${FONT}; font-size:16px; letter-spacing:8px; color:${M.paw};">${paw}&nbsp;&nbsp;${paw}&nbsp;&nbsp;${paw}&nbsp;&nbsp;${paw}&nbsp;&nbsp;${paw}</div>
+              </td>
+            </tr>`;
+}
+
+/** Badge hết hạn (dashed, màu cành). */
+function meowExpiry(note: string): string {
+  return `            <tr>
+              <td align="center" style="padding:16px 32px 0 32px; background-color:#FFFFFF;">
+                <span style="display:inline-block; font-family:${FONT}; font-size:13px; font-weight:700; color:${M.badgeText}; background-color:${M.badgeBg}; border:1px dashed ${M.badgeLine}; border-radius:999px; padding:8px 18px;">${escapeHtml(note)}</span>
+              </td>
+            </tr>`;
+}
+
+/** Nút CTA hồng bo tròn. */
+function meowButton(url: string, label: string): string {
+  return `            <tr>
+              <td align="center" style="padding:24px 32px 8px 32px; background-color:#FFFFFF;">
+                <a href="${escapeHtml(url)}" style="display:inline-block; font-family:${FONT}; font-size:16px; font-weight:800; color:#FFFFFF; text-decoration:none; background-color:${M.pinkSoft}; border-radius:999px; padding:14px 44px;">${escapeHtml(label)}</a>
+              </td>
+            </tr>`;
+}
+
+/** Đoạn giới thiệu canh giữa. */
+function meowParagraph(text: string): string {
+  return `            <tr>
+              <td align="center" style="padding:12px 48px 0 48px; background-color:#FFFFFF;">
+                <p style="margin:0; font-family:${FONT}; font-size:15px; color:${M.text}; line-height:1.7;">${text}</p>
+              </td>
+            </tr>`;
+}
+
 /** Chữ ký plain-text + footer cho bản text. */
 function textFooter(reason: string): string {
   const year = new Date().getFullYear();
@@ -296,18 +465,26 @@ export function userEmailOtpTemplate({
 
   const c = copy[purpose] || copy['verify_email'];
 
-  const body = `              ${heading(c.heading)}
-              ${paragraph(`Chào ${name},`)}
-              ${paragraph(c.intro)}
-${codeBox('Mã xác thực của bạn', otp, 'Mã có hiệu lực trong 10 phút và chỉ dùng một lần.')}
-              ${paragraph('Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email và không chia sẻ mã này với bất kỳ ai.', `font-size:13px; color:${C.muted};`)}
-${signature()}`;
+  // Bản "meow" — bản dựng emerald cũ (layout/heading/codeBox/signature) vẫn dùng
+  // cho admin OTP + support nên không xoá để tránh đụng các template khác.
+  const safeName = escapeHtml(name);
+  const intro = escapeHtml(c.intro);
+  const why = escapeHtml(c.reason);
 
-  const html = layout({
+  const html = meowLayout({
     preheader: `Mã xác thực của bạn là ${otp}. Mã có hiệu lực trong 10 phút.`,
     title: c.subject,
-    body,
-    reason: c.reason,
+    headingText: c.heading,
+    gifFile: 'Dance-cat.gif',
+    gifAlt: 'Mèo con đang nhảy múa vui vẻ',
+    sections: [
+      meowParagraph(`Chào ${safeName},`),
+      meowParagraph(`${intro}<br /><br />Nhập <strong style="color:${M.pink};">${otp.length} con số</strong> bên dưới để tiếp tục. Mã chỉ có hiệu lực trong <strong style="color:${M.pink};">10 phút</strong> và chỉ dùng một lần.`),
+      meowCodeBoxes(otp),
+      meowExpiry('⏰ Mã hết hạn sau 10 phút'),
+      meowPaws(),
+    ].join('\n'),
+    footerNote: `Bạn nhận được email này vì đã ${why}. Nếu không phải bạn, vui lòng bỏ qua — tài khoản vẫn an toàn.`,
   });
 
   const text = [
@@ -445,21 +622,36 @@ export function passwordResetLinkTemplate({
   const name = (displayName || '').trim() || username;
   const reason = `yêu cầu đặt lại mật khẩu trên ${APP_URL}`;
 
-  const body = `              ${heading('Đặt lại mật khẩu')}
-              ${paragraph(`Chào ${name},`)}
-              ${paragraph(`Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản "${username}".`)}
-              ${paragraph('Nhấn nút bên dưới để đặt lại mật khẩu — link chỉ dùng được 1 lần và hết hạn sau 60 phút:')}
-              ${accentButton(resetLink, 'Đặt lại mật khẩu ngay')}
-              ${paragraph('Nếu nút không hoạt động, hãy sao chép link sau vào trình duyệt:', `font-size:13px; color:${C.muted};`)}
-              ${paragraph(`<a href="${escapeHtml(resetLink)}" style="color:${C.accent}; word-break:break-all;">${escapeHtml(resetLink)}</a>`, `font-size:13px; color:${C.muted};`)}
-              ${paragraph('Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này. Tài khoản của bạn vẫn an toàn.', `font-size:13px; color:${C.muted};`)}
-              ${signature()}`;
+// Bản "meow": GIF mèo + khung h1 pink, thay cho bản emerald cũ (layout()).
+  const safeName = escapeHtml(name);
+  const safeUser = escapeHtml(username);
+  const safeResetLink = escapeHtml(resetLink);
 
-  const html = layout({
+  const html = meowLayout({
     preheader: 'Link đặt lại mật khẩu tài khoản Meowlish của bạn.',
     title: subject,
-    body,
-    reason,
+    headingText: 'Quên mật khẩu rồi? Đừng lo nhé!',
+    gifFile: 'cat-forgot.gif',
+    gifAlt: 'Mèo con chóng mặt vì quên mật khẩu',
+    sections: [
+      meowParagraph(`Chào ${safeName},`),
+      meowParagraph(
+        `Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong style="color:${M.pink};">${safeUser}</strong>.<br /><br />Nhấn nút bên dưới để đặt mật khẩu mới. Link chỉ dùng được <strong style="color:${M.pink};">1 lần</strong> và hết hạn sau <strong style="color:${M.pink};">60 phút</strong>.`
+      ),
+      meowButton(safeResetLink, 'Đặt mật khẩu mới'),
+      // Link gốc bắt buộc: nhiều client chặn nút/ảnh, người cần để copy tay.
+      [
+        "            <tr>",
+        '              <td align="center" style="padding:4px 48px 0 48px; background-color:#FFFFFF;">',
+        `                <p style="margin:0 0 8px 0; font-family:${FONT}; font-size:13px; color:${M.muted};">Nếu nút không hoạt động, sao chép link sau vào trình duyệt:</p>`,
+        `                <p style="margin:0; font-family:${FONT}; font-size:12px; color:${M.muted}; word-break:break-all;"><a href="${safeResetLink}" style="color:${M.pinkSoft};">${safeResetLink}</a></p>`,
+        '              </td>',
+        '            </tr>',
+      ].join('\n'),
+      meowExpiry('⏰ Link hết hạn sau 60 phút'),
+      meowPaws(),
+    ].join('\n'),
+    footerNote: `Bạn nhận được email này vì đã ${escapeHtml(reason)}. Nếu không phải bạn, vui lòng bỏ qua — tài khoản vẫn an toàn.`,
   });
 
   const text = [
