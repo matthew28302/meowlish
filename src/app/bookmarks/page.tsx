@@ -63,8 +63,12 @@ export default function BookmarksPage() {
     return () => window.removeEventListener('auth-state-changed', fetchBookmarks);
   }, []);
 
+  // L6b (audit 2026-10-08): thay confirm() native bằng modal nhỏ trong app —
+  // nhất quán với hệ modal styled của trang, thân thiện mobile và hiển thị rõ
+  // từ sẽ bị xoá. Hành vi xoá (DELETE /api/bookmarks?id=) giữ nguyên vẹn.
+  const [deleteTarget, setDeleteTarget] = useState<BookmarkItem | null>(null);
+
   const handleDelete = async (id: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xoá từ vựng này khỏi sổ tay?')) return;
     sound.playClick();
     try {
       const res = await fetch(`/api/bookmarks?id=${id}`, { method: 'DELETE' });
@@ -73,7 +77,14 @@ export default function BookmarksPage() {
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setDeleteTarget(null);
     }
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    handleDelete(deleteTarget.id);
   };
 
   const handleStartEdit = (b: BookmarkItem) => {
@@ -186,21 +197,22 @@ export default function BookmarksPage() {
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-3.5 py-2 bg-white text-orange-700 font-bold rounded-2xl text-xs flex items-center gap-1.5 shadow hover:bg-orange-50 transition cursor-pointer dark:bg-slate-900 dark:text-orange-300 hover:dark:bg-orange-950"
+              className="tap-target px-3.5 py-2 bg-white text-orange-700 font-bold rounded-2xl text-xs flex items-center gap-1.5 shadow hover:bg-orange-50 transition cursor-pointer dark:bg-slate-900 dark:text-orange-300 hover:dark:bg-orange-950"
             >
               <Plus className="w-4 h-4" /> Thêm Từ Mới
             </button>
             <Link
               href="/flashcards"
               onClick={() => sound.playClick()}
-              className="px-4 py-2 bg-slate-900 text-white font-bold rounded-2xl text-xs flex items-center gap-1.5 shadow hover:bg-slate-800 transition cursor-pointer dark:bg-white dark:text-slate-900 hover:dark:bg-white"
+              className="tap-target px-4 py-2 bg-slate-900 text-white font-bold rounded-2xl text-xs flex items-center gap-1.5 shadow hover:bg-slate-800 transition cursor-pointer dark:bg-white dark:text-slate-900 hover:dark:bg-white"
             >
               <Layers className="w-4 h-4 text-amber-400" /> Ôn Bằng Flashcard
             </Link>
             <button
               onClick={handleExportJSON}
               title="Xuất file JSON sao lưu"
-              className="p-2 bg-white/20 hover:bg-white/30 rounded-2xl transition text-white cursor-pointer"
+              aria-label="Xuất file JSON sao lưu"
+              className="tap-target p-2 bg-white/20 hover:bg-white/30 rounded-2xl transition text-white cursor-pointer"
             >
               <Download className="w-4 h-4" />
             </button>
@@ -229,7 +241,7 @@ export default function BookmarksPage() {
                 sound.playClick();
                 setSelectedTag(tag);
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`tap-target px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                 selectedTag === tag
                   ? 'bg-amber-500 text-white'
                   : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
@@ -287,14 +299,16 @@ export default function BookmarksPage() {
                           speakText(b.word);
                         }}
                         title="Nghe phát âm"
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-emerald-600 cursor-pointer transition dark:text-emerald-300"
+                        aria-label="Nghe phát âm"
+                        className="tap-target p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-emerald-600 cursor-pointer transition dark:text-emerald-300"
                       >
                         <Volume2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(b.id)}
+                        onClick={() => setDeleteTarget(b)}
                         title="Xoá khỏi sổ tay"
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-rose-500 cursor-pointer transition"
+                        aria-label="Xoá khỏi sổ tay"
+                        className="tap-target p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-rose-500 cursor-pointer transition"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -323,7 +337,7 @@ export default function BookmarksPage() {
                         />
                         <button
                           onClick={() => handleSaveEdit(b.id)}
-                          className="px-3 py-1 bg-amber-500 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"
+                          className="tap-target px-3 py-1 bg-amber-500 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"
                         >
                           <Check className="w-3.5 h-3.5" /> Lưu Ghi Chú
                         </button>
@@ -335,8 +349,9 @@ export default function BookmarksPage() {
                         </p>
                         <button
                           onClick={() => handleStartEdit(b)}
-                          className="text-slate-400 hover:text-amber-500 p-1 cursor-pointer"
+                          className="tap-target text-slate-400 hover:text-amber-500 p-1 cursor-pointer"
                           title="Sửa ghi chú"
+                          aria-label="Sửa ghi chú"
                         >
                           <Edit3 className="w-3 h-3" />
                         </button>
@@ -357,9 +372,24 @@ export default function BookmarksPage() {
 
       {/* Manual Add Word Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-slate-900 border-2 border-amber-500/40 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-word-title"
+          onKeyDown={(e) => {
+            // H8: Esc đóng modal (backdrop tự viết, giữ pattern hiện có).
+            if (e.key === 'Escape') setShowAddModal(false);
+          }}
+        >
+          <div
+            tabIndex={-1}
+            className="bg-white dark:bg-slate-900 border-2 border-amber-500/40 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4"
+          >
+            <h3
+              id="add-word-title"
+              className="font-extrabold text-lg text-slate-900 dark:text-white"
+            >
               Thêm Từ Vựng Mới Vào Sổ Tay
             </h3>
             <form onSubmit={handleAddManual} className="space-y-3">
@@ -406,18 +436,74 @@ export default function BookmarksPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer dark:text-slate-400"
+                  className="tap-target px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer dark:text-slate-400"
                 >
                   Huỷ
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white cursor-pointer shadow"
+                  className="tap-target px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white cursor-pointer shadow"
                 >
                   Lưu Vào Sổ Tay
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* L6b: Modal xác nhận xoá (thay confirm() native) — dùng pattern
+          backdrop/card của trang, nút mặc định focus là "Giữ lại" để Enter
+          không vô tình xoá, Esc cũng đóng. */}
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-confirm-title"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setDeleteTarget(null);
+          }}
+        >
+          <div className="bg-white dark:bg-slate-900 border-2 border-rose-500/40 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <span
+                aria-hidden="true"
+                className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 flex items-center justify-center text-lg shrink-0"
+              >
+                🗑️
+              </span>
+              <h3
+                id="delete-confirm-title"
+                className="font-extrabold text-lg text-slate-900 dark:text-white"
+              >
+                Xoá khỏi sổ tay?
+              </h3>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Bạn có chắc chắn muốn xoá từ vựng này khỏi sổ tay? Từ{' '}
+              <b className="text-slate-900 dark:text-slate-200">
+                &quot;{deleteTarget.word}&quot;
+              </b>{' '}
+              sẽ bị gỡ khỏi danh sách.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                autoFocus
+                className="tap-target px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                Giữ lại
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="tap-target px-5 py-2.5 min-h-[44px] rounded-xl text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white cursor-pointer shadow"
+              >
+                Xoá
+              </button>
+            </div>
           </div>
         </div>
       )}

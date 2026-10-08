@@ -2,11 +2,11 @@
 
 import type { Metadata } from 'next';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { VOCABULARY_LIST, VocabItem } from '@/lib/data/vocabulary';
 import { sound } from '@/lib/soundFx';
 import { speakText } from '@/lib/speech';
-import { getStoredUser } from '@/lib/auth';
+import { getCurrentUser, getStoredUser } from '@/lib/auth';
 import {
   Sparkles,
   Volume2,
@@ -53,6 +53,52 @@ export default function VocabularyPage() {
       return matchCat && matchSearch;
     });
   }, [activeCategory, searchQuery]);
+
+  // L6 (audit 2026-10-08): sync trạng thái "đã lưu" từ sổ tay khi tải trang.
+  // Trước đây savedIds khởi tạo rỗng nên từ đã có trong sổ vẫn hiện "Lưu Sổ Tay".
+  // Guest chưa đăng nhập (getCurrentUser() = null) → bỏ qua fetch, giữ hành vi cũ.
+  useEffect(() => {
+    let cancelled = false;
+
+    const syncSavedIds = () => {
+      const user = getCurrentUser();
+      if (!user || !user.id) {
+        if (!cancelled) setSavedIds({});
+        return;
+      }
+      // GET /api/bookmarks?userId=... trả { bookmarks: [{ word, ... }] } (row
+      // SQLite). Khớp theo word (lowercase) sang id của VOCABULARY_LIST — khớp
+      // cách server dedupe bookmark theo LOWER(word).
+      fetch(`/api/bookmarks?userId=${user.id}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (cancelled || !data) return;
+          const savedWords = new Set(
+            ((data.bookmarks || []) as Array<{ word?: string }>)
+              .map((b) => (b.word || '').toLowerCase())
+              .filter(Boolean)
+          );
+          setSavedIds(() => {
+            const next: Record<string, boolean> = {};
+            for (const item of VOCABULARY_LIST) {
+              if (savedWords.has(item.word.toLowerCase())) next[item.id] = true;
+            }
+            return next;
+          });
+        })
+        .catch(() => {
+          // Lỗi kết nối: giữ hành vi cũ (savedIds rỗng), không chặn trang.
+        });
+    };
+
+    syncSavedIds();
+    // Đổi tài khoản/đăng xuất giữa chừng → sync lại theo phiên mới.
+    window.addEventListener('auth-state-changed', syncSavedIds);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('auth-state-changed', syncSavedIds);
+    };
+  }, []);
 
   const handleSaveBookmark = async (item: VocabItem) => {
     sound.playClick();
@@ -130,7 +176,7 @@ export default function VocabularyPage() {
                 sound.playClick();
                 setActiveCategory(cat.id);
               }}
-              className={`px-4 py-2 sm:py-2.5 min-h-[42px] rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer border-2 touch-manipulation flex items-center ${
+              className={`tap-target px-4 py-2 sm:py-2.5 min-h-[42px] rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer border-2 touch-manipulation flex items-center ${
                 activeCategory === cat.id
                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                   : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-emerald-400'
@@ -199,12 +245,14 @@ export default function VocabularyPage() {
                     </span>
                   </div>
                   <button
+                    type="button"
                     onClick={() => {
                       sound.playClick();
                       speakText(item.word);
                     }}
                     title="Nghe phát âm chuẩn"
-                    className="w-10 h-10 flex items-center justify-center bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 rounded-xl hover:bg-emerald-200 transition cursor-pointer touch-manipulation shrink-0"
+                    aria-label="Nghe phát âm chuẩn"
+                    className="tap-target w-10 h-10 flex items-center justify-center bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 rounded-xl hover:bg-emerald-200 transition cursor-pointer touch-manipulation shrink-0"
                   >
                     <Volume2 className="w-4 h-4" />
                   </button>
@@ -225,11 +273,12 @@ export default function VocabularyPage() {
                   <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
                     <span>Ngữ cảnh câu thực tế:</span>
                     <button
+                      type="button"
                       onClick={() => {
                         sound.playClick();
                         speakText(item.exampleSentence);
                       }}
-                      className="text-emerald-600 hover:underline flex items-center gap-0.5 cursor-pointer text-[10px] dark:text-emerald-300"
+                      className="tap-target text-emerald-700 hover:underline flex items-center gap-0.5 cursor-pointer text-xs font-bold dark:text-emerald-300"
                     >
                       <Volume2 className="w-3 h-3" /> Nghe câu
                     </button>
@@ -262,9 +311,10 @@ export default function VocabularyPage() {
                 </Link>
 
                 <button
+                  type="button"
                   onClick={() => handleSaveBookmark(item)}
                   disabled={isSaved}
-                  className={`px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer touch-manipulation ${
+                  className={`tap-target px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer touch-manipulation ${
                     isSaved
                       ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
                       : 'bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200'

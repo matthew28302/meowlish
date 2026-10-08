@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import {
   X,
@@ -98,6 +98,84 @@ export default function AuthModal({
   const [twoFaConfirmOpen, setTwoFaConfirmOpen] = useState(false);
   const [twoFaPassword, setTwoFaPassword] = useState('');
   const [isConfirming2fa, setIsConfirming2fa] = useState(false);
+
+  // H8 (audit 2026-10-08): focus-trap + Esc + trả focus về trigger khi đóng.
+  // - Mở modal: nhớ element đang focus (nút trigger), đưa focus vào control đầu
+  //   tiên trong modal — trước đây Tab thoát modal ngay từ nhịp #0 vì focus
+  //   vẫn nằm ở body (ngoài overlay) nên Tab nhảy sang nội dung trang phía sau.
+  // - Tab / Shift-Tab: cycle trong modal, không thoát ra ngoài.
+  // - Esc: đóng modal qua onClose.
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const FOCUSABLE =
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    triggerRef.current = (document.activeElement as HTMLElement) || null;
+
+    // Đưa focus vào control đầu tiên — đợi 1 frame để các node con đã mount.
+    const raf = requestAnimationFrame(() => {
+      const container = modalRef.current;
+      if (!container) return;
+      const first = container.querySelector<HTMLElement>(FOCUSABLE) || container;
+      first.focus();
+    });
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        // Chặn lan truyền để component phía sau không xử lý kép Esc.
+        e.stopPropagation();
+        onCloseRef.current();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const container = modalRef.current;
+      if (!container) return;
+      const focusables = Array.from(
+        container.querySelectorAll<HTMLElement>(FOCUSABLE)
+      ).filter(
+        (el) => el.offsetParent !== null || el === document.activeElement
+      );
+      if (focusables.length === 0) {
+        e.preventDefault();
+        container.focus();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const current = document.activeElement;
+      const inside = current instanceof Node && container.contains(current);
+      if (e.shiftKey) {
+        if (!inside || current === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (!inside || current === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    // capture=true: bắt phím sớm, kể cả khi focus chưa nằm trong modal.
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('keydown', handleKeyDown, true);
+      // Trả focus về trigger khi modal đóng/unmount.
+      const prev = triggerRef.current;
+      if (prev && document.contains(prev)) {
+        prev.focus();
+      }
+      triggerRef.current = null;
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -476,11 +554,22 @@ export default function AuthModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[10000] w-screen h-screen bg-slate-950 overflow-hidden select-none animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="auth-modal-title"
+      ref={modalRef}
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') onClose();
+      }}
+      className="fixed inset-0 z-[10000] w-screen h-screen bg-slate-950 overflow-hidden select-none animate-in fade-in duration-200"
+    >
       {/* Floating Global Close Button */}
       <button
         onClick={onClose}
         title="Đóng cửa sổ"
+        aria-label="Đóng cửa sổ"
         className="absolute top-5 right-5 z-50 p-2.5 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white/90 hover:text-white backdrop-blur-md border border-white/20 transition-all hover:scale-110 cursor-pointer shadow-2xl active:scale-95"
       >
         <X className="w-5 h-5" />
@@ -500,7 +589,10 @@ export default function AuthModal({
                   🐱
                 </div>
                 <div>
-                  <h1 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                  <h1
+                    id="auth-modal-title"
+                    className="text-lg font-black text-slate-900 dark:text-white tracking-tight"
+                  >
                     Meowlish
                   </h1>
                   <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
@@ -738,6 +830,7 @@ export default function AuthModal({
                               <button
                                 type="button"
                                 title="Xóa khỏi danh sách thiết bị này"
+                                aria-label="Xóa khỏi danh sách thiết bị này"
                                 onClick={(e) => handleRemoveAccount(e, acc.id)}
                                 className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition cursor-pointer"
                               >
@@ -999,6 +1092,8 @@ export default function AuthModal({
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                            aria-pressed={showPassword}
                             className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                           >
                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -1122,6 +1217,8 @@ export default function AuthModal({
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                            aria-pressed={showPassword}
                             className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                           >
                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
