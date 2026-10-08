@@ -5,6 +5,15 @@ import { translateWordWithAI, isSingleWordOrTerm } from '@/lib/groqTranslator';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { cleanCollocations } from '@/lib/collocations';
 
+/**
+ * 60s thay vì mặc định 10s của Vercel.
+ *
+ * Route này ghi `dictionary_cache` vào SQLite — mỗi cache miss là một DB write,
+ * và trên production có thể kích hoạt upload DB 67MB lên Filebase. Mạng chậm
+ * (20Mbit/s) thì 10s không đủ ⇒ 504 giữa chừng.
+ */
+export const maxDuration = 60;
+
 export async function GET(request: Request) {
   try {
     const clientIp = getClientIp(request);

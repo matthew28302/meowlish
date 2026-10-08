@@ -62,15 +62,40 @@ export const ADMIN_MASKED_EMAIL = process.env.ADMIN_MASKED_EMAIL || 'a*********@
  * Fail-closed ở production: nếu thiếu `AUTH_SALT`, kẻ tấn công đọc mã nguồn
  * công khai sẽ tự mã hoá được token `role: 'admin'` ⇒ toàn quyền quản trị.
  */
-const ENCRYPTION_KEY = (() => {
+/**
+ * Khóa mã hóa token admin — LAZY, tính ở LẦN DÙNG ĐẦU chứ không phải lúc
+ * module-load.
+ *
+ * Tại sao lazy: `vercel build` cũng chạy với NODE_ENV=production và có thể
+ * đánh giá module mà chưa có env ⇒ throw ở module-load làm gãy build (đã
+ * từng xảy ra, commit 0fb7901 phải gỡ). Lazy thì build không bao giờ chạm,
+ * còn request thật trên Vercel mà thiếu AUTH_SALT thì PHẢI chết — chạy
+ * tiếp nghĩa là ký token bằng secret công khai trong repo, ai cũng giả được
+ * admin (đã tái hiện được trong pentest 2026-10-08).
+ */
+let cachedEncryptionKey: Buffer | null = null;
+function getEncryptionKey(): Buffer {
+  if (cachedEncryptionKey) return cachedEncryptionKey;
+
   const fromEnv = process.env.AUTH_SALT;
   if (fromEnv && fromEnv.trim().length >= 16) {
-    return crypto.createHash('sha256').update(fromEnv).digest();
+    cachedEncryptionKey = crypto.createHash('sha256').update(fromEnv).digest();
+    return cachedEncryptionKey;
   }
-  // Cho phép fallback khi build (Vercel build chạy NODE_ENV=production nhưng chưa có env).
-  // Runtime trên Vercel SẼ có AUTH_SALT từ Settings → Environment Variables.
-  return crypto.createHash('sha256').update('meowlish_admin_super_secret_salt_2026_DEV_ONLY').digest();
-})();
+
+  // Fail-closed THẬT: runtime trên Vercel mà thiếu AUTH_SALT là lỗi cấu hình,
+  // không được rơi về secret công khai.
+  if (process.env.VERCEL === '1') {
+    throw new Error(
+      '[Admin Security] THIEU AUTH_SALT tren Vercel — tu choi thay vi dung secret cong khai. ' +
+        'Set AUTH_SALT >= 16 ky tu trong Settings → Environment Variables.'
+    );
+  }
+
+  // Chỉ còn dev local mới được dùng fallback.
+  cachedEncryptionKey = crypto.createHash('sha256').update('meowlish_admin_super_secret_salt_2026_DEV_ONLY').digest();
+  return cachedEncryptionKey;
+}
 const TOKEN_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 const OTP_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -89,8 +114,9 @@ export function ensureAdminTables() {
 }
 
 // 1. Generate 6-digit random OTP
+// crypto.randomInt = CSPRNG; Math.random bị đoán được (xem ghi chú generateUserOTP).
 export function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return crypto.randomInt(100000, 1000000).toString();
 }
 
 // 2. Hash OTP using SHA-256 + salt to ensure OTP is NEVER stored in plain text
@@ -110,7 +136,7 @@ export function createEncryptedAdminToken(username: string = 'admin'): string {
   });
 
   const iv = crypto.randomBytes(12); // 12 bytes IV for GCM
-  const cipher = crypto.createCipheriv('aes-256-gcm', ENCRYPTION_KEY, iv);
+  const cipher = crypto.createCipheriv('aes-256-gcm', getEncryptionKey(), iv);
   let encrypted = cipher.update(payload, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   const authTag = cipher.getAuthTag().toString('hex');
@@ -131,7 +157,7 @@ export function verifyAdminToken(token: string | null | undefined): boolean {
     const iv = Buffer.from(ivHex, 'hex');
     const authTag = Buffer.from(authTagHex, 'hex');
 
-    const decipher = crypto.createDecipheriv('aes-256-gcm', ENCRYPTION_KEY, iv);
+    const decipher = crypto.createDecipheriv('aes-256-gcm', getEncryptionKey(), iv);
     decipher.setAuthTag(authTag);
     let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
     decrypted += decipher.final('utf8');

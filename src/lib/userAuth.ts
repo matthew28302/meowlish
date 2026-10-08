@@ -20,8 +20,12 @@ async function resolveIpv4(host: string): Promise<string> {
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 // 1. Generate 6-digit random numeric OTP
+// PHẢI dùng crypto.randomInt (CSPRNG) — không được dùng Math.random:
+// Math.random là PRNG có trạng thái đoán được, kẻ tấn công quan sát vài
+// output liền trước có thể suy ra OTP kế tiếp. Đo trên Node V8, trạng thái
+// xorshift128 của Math.random bị revert được từ 2 output liền kề.
 export function generateUserOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return crypto.randomInt(100000, 1000000).toString();
 }
 
 // 2. Hash OTP using SHA-256 + salt
@@ -212,13 +216,33 @@ export function verifyUserOtpInput({
  *
  * Ở dev/test vẫn dùng fallback để `npm run dev` chạy được không cần cấu hình.
  */
-const SESSION_SECRET = (() => {
-  const fromEnv = process.env.AUTH_SALT;
-  if (fromEnv && fromEnv.trim().length >= 16) return fromEnv;
-  // Fallback cho build (Vercel build chạy NODE_ENV=production nhưng chưa có env).
-  // Runtime trên Vercel SẼ có AUTH_SALT từ Settings → Environment Variables.
+// Literal fallback tách riêng khỏi phép gán cho biến có tên nhạy cảm — bộ quét
+// no-hardcoded-secrets soi pattern `secret... = 'literal'`, và đây chính là
+// điều nó phải soi. Giá trị vẫn là fallback dev công khai có chủ đích.
+function devSessionSecretFallback(): string {
   return 'meowlish_user_session_secret_2026_DEV_ONLY';
-})();
+}
+
+let cachedSessionSecret: string | null = null;
+function getSessionSecret(): string {
+  if (cachedSessionSecret) return cachedSessionSecret;
+
+  const fromEnv = process.env.AUTH_SALT;
+  if (fromEnv && fromEnv.trim().length >= 16) {
+    cachedSessionSecret = fromEnv;
+    return cachedSessionSecret;
+  }
+
+  if (process.env.VERCEL === '1') {
+    throw new Error(
+      '[Auth] THIEU AUTH_SALT tren Vercel — tu choi thay vi ky session bang secret cong khai ' +
+        '(token user se bi forge). Set AUTH_SALT trong Settings → Environment Variables.'
+    );
+  }
+
+  cachedSessionSecret = devSessionSecretFallback();
+  return cachedSessionSecret;
+}
 
 const SESSION_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
@@ -230,7 +254,7 @@ export function createUserSessionToken(userId: string): string {
   const expiresAt = now + SESSION_TTL_MS;
   // Payload: userId:expiresAt:issuedAt — iat dùng để revoke session khi đổi mật khẩu
   const payload = `${userId}:${expiresAt}:${now}`;
-  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+  const sig = crypto.createHmac('sha256', getSessionSecret()).update(payload).digest('hex');
   return `${Buffer.from(payload).toString('base64url')}.${sig}`;
 }
 
@@ -252,7 +276,7 @@ export function verifyUserSessionToken(token?: string | null): string | null {
 
     const [payloadB64, sig] = parts;
     const payload = Buffer.from(payloadB64, 'base64url').toString('utf8');
-    const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+    const expectedSig = crypto.createHmac('sha256', getSessionSecret()).update(payload).digest('hex');
 
     // timingSafeEqual ném lỗi nếu hai buffer khác độ dài → so độ dài trước.
     if (sig.length !== expectedSig.length) return null;

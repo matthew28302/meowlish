@@ -3,6 +3,12 @@ import { db } from '@/lib/db';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { cleanCollocations } from '@/lib/collocations';
 
+/**
+ * 60s thay vì mặc định 10s của Vercel — route quét bảng dictionary_entries
+ * 63MB (đã đo: LIKE full-scan ~87ms ×2) và có thể ghi cache khi tra Cambridge.
+ */
+export const maxDuration = 60;
+
 export async function GET(request: Request) {
   try {
     const clientIp = getClientIp(request);

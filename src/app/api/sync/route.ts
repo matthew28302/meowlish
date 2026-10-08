@@ -4,6 +4,16 @@ import { verifyAdminToken } from '@/lib/adminAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import logger from '@/lib/logger';
 
+/**
+ * 60s thay vì mặc định 10s của Vercel.
+ *
+ * POST action upload/download đẩy/kéo NGUYÊN file SQLite 67MB qua mạng
+ * Vercel→Filebase. Trần mặc định 10s chỉ đủ khi ≥56.5Mbit/s — chậm hơn là
+ * 504, và upload bị cắt giữa chừng chính là kịch bản mất dữ liệu mà
+ * docs/db-sync.md tự cảnh báo.
+ */
+export const maxDuration = 60;
+
 // Helper: Check if request has admin rights (via Bearer token or HttpOnly cookie)
 function isAuthorizedAdmin(request: Request): boolean {
   const authHeader = request.headers.get('authorization');

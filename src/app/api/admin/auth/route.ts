@@ -13,6 +13,14 @@ import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/ra
 import { logAccess, logError } from '@/lib/systemLogs';
 import logger from '@/lib/logger';
 
+/**
+ * 60s thay vì mặc định 10s của Vercel.
+ *
+ * Luồng admin login sinh OTP → ghi DB → có thể kích hoạt sync S3 đẩy
+ * file 67MB (đo ~5.4s @100Mbit/s, ~26.8s @20Mbit/s). Trần 10s bị cắt.
+ */
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   const clientIp = getClientIp(request);
   const userAgent = request.headers.get('user-agent') || '';
