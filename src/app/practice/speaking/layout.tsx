@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Luyện Nói AI Voice & Phát Âm IPA - Meowlish',

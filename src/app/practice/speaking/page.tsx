@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import type { Metadata } from 'next';
 
@@ -201,17 +201,17 @@ export default function SpeakingPracticePage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2 dark:bg-slate-900/20">
-              <Mic className="w-3.5 h-3.5 text-amber-300" /> PhÃ²ng Luyá»‡n NÃ³i AI Voice & Shadowing
+              <Mic className="w-3.5 h-3.5 text-amber-300" /> Phòng Luyện Nói AI Voice & Shadowing
             </div>
             <h1 className="text-2xl sm:text-3xl font-black">
-              Luyá»‡n PhÃ¡t Ã‚m & Cháº¥m Äiá»ƒm Giá»ng NÃ³i
+              Luyện Phát Âm & Chấm Điểm Giọng Nói
             </h1>
             <p className="text-emerald-100 text-xs sm:text-sm max-w-2xl mt-1">
-              Há»‡ thá»‘ng tá»± Ä‘á»™ng láº¯ng nghe giá»ng nÃ³i cá»§a báº¡n, phÃ¢n tÃ­ch Ä‘á»™ chuáº©n xÃ¡c tá»«ng tá»« báº±ng thuáº­t toÃ¡n LCS vÃ  cháº¥m Ä‘iá»ƒm pháº£n xáº¡.
+              Hệ thống tự động lắng nghe giọng nói của bạn, phân tích độ chuẩn xác từng từ bằng thuật toán LCS và chấm điểm phản xạ.
             </p>
           </div>
           <div className="text-xs bg-white/10 px-4 py-2 rounded-2xl border border-white/20 font-bold dark:bg-slate-900/10">
-            CÃ¢u {(currentIdx % filteredPrompts.length) + 1} / {filteredPrompts.length}
+            Câu {(currentIdx % filteredPrompts.length) + 1} / {filteredPrompts.length}
           </div>
         </div>
       </div>
@@ -220,13 +220,13 @@ export default function SpeakingPracticePage() {
       {hasSavedSession && (
         <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-200 dark:bg-amber-950 dark:border-amber-800">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">ðŸ“Œ</span>
+            <span className="text-2xl">📌</span>
             <div>
               <h4 className="font-black text-sm text-amber-950 dark:text-amber-200">
-                Báº¡n cÃ³ 1 bÃ i luyá»‡n nÃ³i dá»Ÿ chÆ°a hoÃ n thÃ nh!
+                Bạn có 1 bài luyện nói dở chưa hoàn thành!
               </h4>
               <p className="text-xs text-amber-800 font-medium dark:text-amber-200">
-                Báº¡n muá»‘n tiáº¿p tá»¥c tiáº¿n Ä‘á»™ dá»Ÿ dang hay báº¯t Ä‘áº§u bÃ i má»›i?
+                Bạn muốn tiếp tục tiến độ dở dang hay bắt đầu bài mới?
               </p>
             </div>
           </div>
@@ -240,7 +240,7 @@ export default function SpeakingPracticePage() {
               }}
               className="btn-3d btn-3d-emerald px-4 py-2 text-xs font-black shadow-xs cursor-pointer"
             >
-              â–¶ï¸ Tiáº¿p tá»¥c bÃ i dá»Ÿ
+              ▶️ Tiếp tục bài dở
             </button>
             <button
               onClick={() => {
@@ -250,7 +250,7 @@ export default function SpeakingPracticePage() {
               }}
               className="px-3 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white rounded-xl border border-slate-200 cursor-pointer dark:text-slate-400 hover:dark:text-slate-100 dark:bg-slate-900 dark:border-white/10"
             >
-              Báº¯t Ä‘áº§u bÃ i má»›i
+              Bắt đầu bài mới
             </button>
           </div>
         </div>
@@ -261,9 +261,9 @@ export default function SpeakingPracticePage() {
         <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex items-start gap-3 dark:bg-amber-950 dark:border-amber-800">
           <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5 dark:text-amber-300" />
           <div>
-            <h3 className="text-sm font-black text-amber-900 dark:text-amber-200">TrÃ¬nh duyá»‡t khÃ´ng há»— trá»£ nháº­n diá»‡n giá»ng nÃ³i</h3>
+            <h3 className="text-sm font-black text-amber-900 dark:text-amber-200">Trình duyệt không hỗ trợ nhận diện giọng nói</h3>
             <p className="text-xs text-amber-800 mt-1 dark:text-amber-200">
-              TrÃ¬nh duyá»‡t hiá»‡n táº¡i cá»§a báº¡n khÃ´ng há»— trá»£ Web Speech API. Vui lÃ²ng sá»­ dá»¥ng <strong>Google Chrome</strong> hoáº·c <strong>Microsoft Edge</strong> Ä‘á»ƒ tráº£i nghiá»‡m tÃ­nh nÄƒng luyá»‡n nÃ³i báº±ng microphone. Báº¡n váº«n cÃ³ thá»ƒ dÃ¹ng bá»™ giáº£ láº­p nháº­p vÄƒn báº£n bÃªn dÆ°á»›i Ä‘á»ƒ test cháº¥m Ä‘iá»ƒm.
+              Trình duyệt hiện tại của bạn không hỗ trợ Web Speech API. Vui lòng sử dụng <strong>Google Chrome</strong> hoặc <strong>Microsoft Edge</strong> để trải nghiệm tính năng luyện nói bằng microphone. Bạn vẫn có thể dùng bộ giả lập nhập văn bản bên dưới để test chấm điểm.
             </p>
           </div>
         </div>
@@ -272,7 +272,7 @@ export default function SpeakingPracticePage() {
       {/* Filter Bar */}
       <div className="bg-white rounded-2xl p-3 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center gap-3 dark:bg-slate-900 dark:border-white/10">
         <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0 dark:text-slate-400">
-          <Filter className="w-3.5 h-3.5" /> Lá»c bÃ i:
+          <Filter className="w-3.5 h-3.5" /> Lọc bài:
         </span>
         <div className="flex items-center gap-1.5 flex-wrap">
           {(['all', 'IT', 'Daily'] as const).map((cat) => (
@@ -283,7 +283,7 @@ export default function SpeakingPracticePage() {
                 categoryFilter === cat ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-400 hover:dark:bg-slate-800'
               }`}
             >
-              {cat === 'all' ? 'Táº¥t cáº£' : cat === 'IT' ? 'ðŸ’» IT & Scrum' : 'â˜• Äá»i sá»‘ng'}
+              {cat === 'all' ? 'Tất cả' : cat === 'IT' ? '💻 IT & Scrum' : '☕ Đời sống'}
             </button>
           ))}
         </div>
@@ -297,7 +297,7 @@ export default function SpeakingPracticePage() {
                 difficultyFilter === diff ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 hover:dark:bg-slate-700'
               }`}
             >
-              {diff === 'all' ? 'Má»i cáº¥p Ä‘á»™' : diff === 'Easy' ? 'ðŸŒ± Easy' : diff === 'Medium' ? 'âš¡ Medium' : 'ðŸ”¥ Challenging'}
+              {diff === 'all' ? 'Mọi cấp độ' : diff === 'Easy' ? '🌱 Easy' : diff === 'Medium' ? '⚡ Medium' : '🔥 Challenging'}
             </button>
           ))}
         </div>
@@ -309,14 +309,14 @@ export default function SpeakingPracticePage() {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <span className="text-xs uppercase font-black tracking-wider px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
-              {prompt.category} â€¢ {prompt.topic}
+              {prompt.category} • {prompt.topic}
             </span>
             <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
               prompt.difficulty === 'Easy' ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200' :
               prompt.difficulty === 'Medium' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200' :
               'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200'
             }`}>
-              {prompt.difficulty === 'Easy' ? 'ðŸŒ±' : prompt.difficulty === 'Medium' ? 'âš¡' : 'ðŸ”¥'} {prompt.difficulty}
+              {prompt.difficulty === 'Easy' ? '🌱' : prompt.difficulty === 'Medium' ? '⚡' : '🔥'} {prompt.difficulty}
             </span>
           </div>
 
@@ -328,7 +328,7 @@ export default function SpeakingPracticePage() {
               }}
               className="px-3.5 py-2 min-h-[40px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer border border-emerald-200 touch-manipulation dark:bg-emerald-950 hover:dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
             >
-              <Volume2 className="w-4 h-4" /> Nghe máº«u 1x
+              <Volume2 className="w-4 h-4" /> Nghe mẫu 1x
             </button>
             <button
               onClick={() => {
@@ -337,7 +337,7 @@ export default function SpeakingPracticePage() {
               }}
               className="px-3.5 py-2 min-h-[40px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer touch-manipulation dark:bg-slate-800 hover:dark:bg-slate-700 dark:text-slate-300"
             >
-              <Volume2 className="w-3.5 h-3.5 text-amber-500" /> Cháº­m 0.65x
+              <Volume2 className="w-3.5 h-3.5 text-amber-500" /> Chậm 0.65x
             </button>
           </div>
         </div>
@@ -345,7 +345,7 @@ export default function SpeakingPracticePage() {
         {/* Target Sentence Card */}
         <div className="bg-slate-50 rounded-2xl p-6 border-2 border-dashed border-emerald-400/50 text-center space-y-3 dark:bg-slate-900">
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            CÃ¢u Máº«u Cáº§n NÃ³i:
+            Câu Mẫu Cần Nói:
           </div>
           <p className="text-xl sm:text-2xl font-black text-slate-900 leading-relaxed dark:text-slate-100">
             &quot;{prompt.targetSentence}&quot;
@@ -354,11 +354,11 @@ export default function SpeakingPracticePage() {
             {prompt.phonetic}
           </div>
           <div className="text-xs text-slate-500 italic dark:text-slate-400">
-            ðŸ‡»ðŸ‡³ {prompt.translation}
+            🇻🇳 {prompt.translation}
           </div>
           {prompt.tips && (
             <div className="text-xs text-amber-800 bg-amber-50 p-2.5 rounded-xl border border-amber-200 inline-block dark:text-amber-200 dark:bg-amber-950 dark:border-amber-800">
-              ðŸ’¡ Máº¹o phÃ¡t Ã¢m: {prompt.tips}
+              💡 Mẹo phát âm: {prompt.tips}
             </div>
           )}
         </div>
@@ -395,15 +395,15 @@ export default function SpeakingPracticePage() {
 
           <span className="text-xs sm:text-sm font-bold text-slate-700 text-center max-w-md dark:text-slate-300">
             {!speechSupported
-              ? 'âš ï¸ TrÃ¬nh duyá»‡t chÆ°a há»— trá»£ mic. DÃ¹ng Chrome hoáº·c Edge, hoáº·c nháº­p text bÃªn dÆ°á»›i.'
+              ? '⚠️ Trình duyệt chưa hỗ trợ mic. Dùng Chrome hoặc Edge, hoặc nhập text bên dưới.'
               : isListening
-              ? 'ðŸŽ™ï¸ Äang láº¯ng nghe... NÃ³i xong cÃ¢u rá»“i báº¥m nÃºt Ä‘á» Ä‘á»ƒ dá»«ng vÃ  cháº¥m Ä‘iá»ƒm'
-              : 'ðŸŽ¤ Báº¥m micro rá»“i nÃ³i to, rÃµ rÃ ng theo cÃ¢u máº«u phÃ­a trÃªn'}
+              ? '🎙️ Đang lắng nghe... Nói xong câu rồi bấm nút đỏ để dừng và chấm điểm'
+              : '🎤 Bấm micro rồi nói to, rõ ràng theo câu mẫu phía trên'}
           </span>
 
           {recognizedText && (
             <div className="w-full max-w-lg p-3.5 bg-slate-100 rounded-2xl text-center space-y-1 dark:bg-slate-800">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Há»‡ thá»‘ng nghe Ä‘Æ°á»£c:</span>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Hệ thống nghe được:</span>
               <p className="text-sm font-bold text-slate-900 dark:text-slate-100">&quot;{recognizedText}&quot;</p>
             </div>
           )}
@@ -428,26 +428,26 @@ export default function SpeakingPracticePage() {
                 <div>
                   <h4 className="font-extrabold text-base text-slate-900 dark:text-slate-100">
                     {result.overallScore >= 80
-                      ? 'ðŸŽ‰ PhÃ¡t Ã¢m ráº¥t xuáº¥t sáº¯c!'
+                      ? '🎉 Phát âm rất xuất sắc!'
                       : result.overallScore >= 60
-                      ? 'ðŸ‘ KhÃ¡ tá»‘t! HÃ£y chÃº Ã½ cÃ¡c tá»« mÃ u cam'
-                      : 'ðŸ’ª Cáº§n luyá»‡n thÃªm ngá»¯ Ä‘iá»‡u vÃ  trá»ng Ã¢m nhÃ©!'}
+                      ? '👍 Khá tốt! Hãy chú ý các từ màu cam'
+                      : '💪 Cần luyện thêm ngữ điệu và trọng âm nhé!'}
                   </h4>
                   <span className="text-xs text-slate-500 dark:text-slate-400">
-                    PhÃ¢n tÃ­ch Ä‘á»™ chÃ­nh xÃ¡c theo tá»«ng tá»« bÃªn dÆ°á»›i:
+                    Phân tích độ chính xác theo từng từ bên dưới:
                   </span>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 text-xs">
                 <span className="flex items-center gap-1 text-emerald-600 font-bold dark:text-emerald-300">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Chuáº©n
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Chuẩn
                 </span>
                 <span className="flex items-center gap-1 text-amber-600 font-bold dark:text-amber-300">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Gáº§n Ä‘Ãºng
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Gần đúng
                 </span>
                 <span className="flex items-center gap-1 text-rose-600 font-bold dark:text-rose-300">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> ChÆ°a khá»›p
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Chưa khớp
                 </span>
               </div>
             </div>
@@ -479,7 +479,7 @@ export default function SpeakingPracticePage() {
                     )}
                     {!w.spokenWord && (
                       <span className="text-[9px] opacity-60 font-mono text-rose-600 dark:text-rose-300">
-                        (chÆ°a nghe tháº¥y)
+                        (chưa nghe thấy)
                       </span>
                     )}
                   </div>
@@ -495,7 +495,7 @@ export default function SpeakingPracticePage() {
             onClick={() => setShowManualTest(!showManualTest)}
             className="text-xs text-slate-500 hover:text-emerald-600 underline cursor-pointer dark:text-slate-400 hover:dark:text-emerald-300"
           >
-            {showManualTest ? 'áº¨n bá»™ giáº£ láº­p' : 'âš™ï¸ KhÃ´ng cÃ³ mic? Thá»­ bá»™ giáº£ láº­p nháº­p vÄƒn báº£n Ä‘á»ƒ test cháº¥m Ä‘iá»ƒm'}
+            {showManualTest ? 'Ẩn bộ giả lập' : '⚙️ Không có mic? Thử bộ giả lập nhập văn bản để test chấm điểm'}
           </button>
 
           {showManualTest && (
@@ -505,14 +505,14 @@ export default function SpeakingPracticePage() {
                 value={customInput}
                 onChange={(e) => setCustomInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleManualTestSubmit(); }}
-                placeholder="Nháº­p cÃ¢u báº¡n muá»‘n test cháº¥m Ä‘iá»ƒm..."
+                placeholder="Nhập câu bạn muốn test chấm điểm..."
                 className="flex-1 px-3 py-2 bg-slate-50 border rounded-xl text-xs dark:bg-slate-900"
               />
               <button
                 onClick={handleManualTestSubmit}
                 className="px-3 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold cursor-pointer"
               >
-                Cháº¥m Ä‘iá»ƒm
+                Chấm điểm
               </button>
             </div>
           )}
@@ -525,7 +525,7 @@ export default function SpeakingPracticePage() {
               onClick={handlePrevPrompt}
               className="px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1 cursor-pointer border border-slate-200 touch-manipulation dark:text-slate-400 hover:dark:bg-slate-800 dark:border-white/10"
             >
-              â† CÃ¢u TrÆ°á»›c
+              ← Câu Trước
             </button>
             <button
               onClick={() => {
@@ -535,7 +535,7 @@ export default function SpeakingPracticePage() {
               }}
               className="px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5 cursor-pointer touch-manipulation dark:text-slate-400 hover:dark:bg-slate-800"
             >
-              <RotateCcw className="w-3.5 h-3.5" /> Thá»­ Láº¡i
+              <RotateCcw className="w-3.5 h-3.5" /> Thử Lại
             </button>
           </div>
 
@@ -543,7 +543,7 @@ export default function SpeakingPracticePage() {
             onClick={handleNextPrompt}
             className="btn-3d btn-3d-emerald px-6 py-2.5 min-h-[44px] text-xs font-black shadow-md cursor-pointer touch-manipulation"
           >
-            CÃ¢u Tiáº¿p Theo <ArrowRight className="w-4 h-4" />
+            Câu Tiếp Theo <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -552,7 +552,7 @@ export default function SpeakingPracticePage() {
       <div className="flex justify-center">
         <MascotCompanion
           mood="focused"
-          message="HÃ£y má»Ÿ to kháº©u hÃ¬nh miá»‡ng vÃ  nÃ³i dá»©t khoÃ¡t cÃ¡c Ã¢m cuá»‘i nhÆ° /s/, /t/, /d/ nhÃ©!"
+          message="Hãy mở to khẩu hình miệng và nói dứt khoát các âm cuối như /s/, /t/, /d/ nhé!"
         />
       </div>
     </div>

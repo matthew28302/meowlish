@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Hỗ Trợ & Câu Hỏi Thường Gặp - Meowlish',

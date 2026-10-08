@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import type { Metadata } from 'next';
 
@@ -107,17 +107,17 @@ export default function ListeningPracticePage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2 dark:bg-slate-900/20">
-              <Headphones className="w-3.5 h-3.5 text-amber-300" /> PhÃ²ng Luyá»‡n Nghe Pháº£n Xáº¡
+              <Headphones className="w-3.5 h-3.5 text-amber-300" /> Phòng Luyện Nghe Phản Xạ
             </div>
             <h1 className="text-2xl sm:text-3xl font-black">
-              Luyá»‡n Nghe Há»™i Thoáº¡i IT & Äá»i ThÆ°á»ng
+              Luyện Nghe Hội Thoại IT & Đời Thường
             </h1>
             <p className="text-sky-100 text-xs sm:text-sm max-w-xl mt-1">
-              Nghe audio báº£n xá»©, báº¯t tá»« khoÃ¡ trá»ng tÃ¢m vÃ  tráº£ lá»i cÃ¢u há»i tráº¯c nghiá»‡m ngá»¯ cáº£nh.
+              Nghe audio bản xứ, bắt từ khoá trọng tâm và trả lời câu hỏi trắc nghiệm ngữ cảnh.
             </p>
           </div>
           <div className="text-xs bg-white/10 px-4 py-2 rounded-2xl border border-white/20 font-bold dark:bg-slate-900/10">
-            BÃ i {currentIdx + 1} / {LISTENING_EXERCISES.length}
+            Bài {currentIdx + 1} / {LISTENING_EXERCISES.length}
           </div>
         </div>
       </div>
@@ -126,13 +126,13 @@ export default function ListeningPracticePage() {
       {hasSavedSession && (
         <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-200 dark:bg-amber-950 dark:border-amber-800">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">ðŸ“Œ</span>
+            <span className="text-2xl">📌</span>
             <div>
               <h4 className="font-black text-sm text-amber-950 dark:text-amber-200">
-                Báº¡n cÃ³ 1 bÃ i luyá»‡n nghe dá»Ÿ chÆ°a hoÃ n thÃ nh!
+                Bạn có 1 bài luyện nghe dở chưa hoàn thành!
               </h4>
               <p className="text-xs text-amber-800 font-medium dark:text-amber-200">
-                Báº¡n muá»‘n tiáº¿p tá»¥c tiáº¿n Ä‘á»™ dá»Ÿ dang hay báº¯t Ä‘áº§u bÃ i má»›i?
+                Bạn muốn tiếp tục tiến độ dở dang hay bắt đầu bài mới?
               </p>
             </div>
           </div>
@@ -147,7 +147,7 @@ export default function ListeningPracticePage() {
               }}
               className="btn-3d btn-3d-emerald px-4 py-2 text-xs font-black shadow-xs cursor-pointer"
             >
-              â–¶ï¸ Tiáº¿p tá»¥c bÃ i dá»Ÿ
+              ▶️ Tiếp tục bài dở
             </button>
             <button
               onClick={() => {
@@ -157,7 +157,7 @@ export default function ListeningPracticePage() {
               }}
               className="px-3 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white rounded-xl border border-slate-200 cursor-pointer dark:text-slate-400 hover:dark:text-slate-100 dark:bg-slate-900 dark:border-white/10"
             >
-              Báº¯t Ä‘áº§u bÃ i má»›i
+              Bắt đầu bài mới
             </button>
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function ListeningPracticePage() {
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 dark:bg-slate-900 dark:border-white/10">
         <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
           <span className="text-xs font-black text-slate-400 uppercase tracking-wider shrink-0">
-            Chá»§ Ä‘á»:
+            Chủ đề:
           </span>
           <button
             onClick={() => {
@@ -178,7 +178,7 @@ export default function ListeningPracticePage() {
             }}
             className="px-3 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-black shadow-xs cursor-pointer shrink-0"
           >
-            ðŸŒŸ Táº¥t cáº£ bÃ i nghe
+            🌟 Tất cả bài nghe
           </button>
         </div>
 
@@ -193,7 +193,7 @@ export default function ListeningPracticePage() {
           }}
           className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
         >
-          ðŸŽ² Chá»n Äá» Ngáº«u NhiÃªn
+          🎲 Chọn Đề Ngẫu Nhiên
         </button>
       </div>
 
@@ -201,20 +201,20 @@ export default function ListeningPracticePage() {
       <div className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <span className="text-xs font-black uppercase text-sky-600 dark:text-sky-400 tracking-wider">
-            NgÆ°á»i nÃ³i: {exercise.speakerRole}
+            Người nói: {exercise.speakerRole}
           </span>
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => handlePlayAudio(0.95)}
               className="px-4 py-2.5 min-h-[40px] bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition cursor-pointer touch-manipulation"
             >
-              <Volume2 className="w-4 h-4" /> Nghe Tá»‘c Äá»™ Chuáº©n (1x)
+              <Volume2 className="w-4 h-4" /> Nghe Tốc Độ Chuẩn (1x)
             </button>
             <button
               onClick={() => handlePlayAudio(0.75)}
               className="px-3.5 py-2.5 min-h-[40px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer touch-manipulation"
             >
-              <Volume2 className="w-3.5 h-3.5 text-amber-500" /> Nghe Cháº­m (0.75x)
+              <Volume2 className="w-3.5 h-3.5 text-amber-500" /> Nghe Chậm (0.75x)
             </button>
           </div>
         </div>
@@ -231,7 +231,7 @@ export default function ListeningPracticePage() {
             ))}
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Báº¥m nÃºt &quot;Nghe Tá»‘c Äá»™ Chuáº©n&quot; á»Ÿ trÃªn Ä‘á»ƒ báº¯t Ä‘áº§u nghe Ä‘oáº¡n audio máº«u.
+            Bấm nút &quot;Nghe Tốc Độ Chuẩn&quot; ở trên để bắt đầu nghe đoạn audio mẫu.
           </p>
 
           {/* Transcript Toggle */}
@@ -241,7 +241,7 @@ export default function ListeningPracticePage() {
               className="text-xs text-slate-500 hover:text-sky-600 font-semibold flex items-center gap-1.5 mx-auto cursor-pointer dark:text-slate-400 hover:dark:text-sky-300"
             >
               {showTranscript ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              {showTranscript ? 'áº¨n lá»i thoáº¡i vÄƒn báº£n' : 'Xem lá»i thoáº¡i vÄƒn báº£n (Transcript)'}
+              {showTranscript ? 'Ẩn lời thoại văn bản' : 'Xem lời thoại văn bản (Transcript)'}
             </button>
 
             {showTranscript && (
@@ -250,7 +250,7 @@ export default function ListeningPracticePage() {
                   &quot;{exercise.audioScript}&quot;
                 </p>
                 <p className="text-slate-500 italic dark:text-slate-400">
-                  ðŸ‡»ðŸ‡³ {exercise.transcriptVi}
+                  🇻🇳 {exercise.transcriptVi}
                 </p>
               </div>
             )}
@@ -260,7 +260,7 @@ export default function ListeningPracticePage() {
         {/* Comprehension Question */}
         <div className="space-y-4 pt-2">
           <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-            CÃ¢u há»i: {exercise.question}
+            Câu hỏi: {exercise.question}
           </h3>
 
           <div className="grid grid-cols-1 gap-2.5">
@@ -300,8 +300,8 @@ export default function ListeningPracticePage() {
             >
               <div className="font-bold mb-1">
                 {selectedOption === exercise.correctIndex
-                  ? 'ðŸŽ‰ Ráº¥t chÃ­nh xÃ¡c! (+25 EXP)'
-                  : 'âŒ ChÆ°a chÃ­nh xÃ¡c!'}
+                  ? '🎉 Rất chính xác! (+25 EXP)'
+                  : '❌ Chưa chính xác!'}
               </div>
               {exercise.explanation}
             </div>
@@ -318,14 +318,14 @@ export default function ListeningPracticePage() {
             }}
             className="text-xs font-bold text-slate-500 hover:text-slate-700 flex items-center gap-1 cursor-pointer dark:text-slate-400 hover:dark:text-slate-300"
           >
-            <RotateCcw className="w-3.5 h-3.5" /> Nghe láº¡i tá»« Ä‘áº§u
+            <RotateCcw className="w-3.5 h-3.5" /> Nghe lại từ đầu
           </button>
 
           <button
             onClick={handleNext}
             className="btn-3d btn-3d-slate px-5 py-2.5 min-h-[44px] text-white rounded-2xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-md touch-manipulation"
           >
-            BÃ i Nghe Tiáº¿p Theo <ArrowRight className="w-4 h-4" />
+            Bài Nghe Tiếp Theo <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </div>

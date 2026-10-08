@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import type { Metadata } from 'next';
 
@@ -172,17 +172,17 @@ export default function RoleplayPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2 dark:bg-slate-900/20">
-              <Gamepad2 className="w-3.5 h-3.5 text-amber-300" /> MÃ´ Phá»ng TÃ¬nh Huá»‘ng Thá»±c Táº¿
+              <Gamepad2 className="w-3.5 h-3.5 text-amber-300" /> Mô Phỏng Tình Huống Thực Tế
             </div>
             <h1 className="text-2xl sm:text-3xl font-black">
-              ÄÃ³ng Vai Há»™i Thoáº¡i (Role-play Simulation)
+              Đóng Vai Hội Thoại (Role-play Simulation)
             </h1>
             <p className="text-purple-100 text-xs sm:text-sm max-w-xl mt-1">
-              RÃ¨n luyá»‡n pháº£n xáº¡ Ä‘á»‘i Ä‘Ã¡p trong cÃ¡c tÃ¬nh huá»‘ng thá»±c táº¿: Há»p Daily Scrum, phá»ng váº¥n, trao Ä‘á»•i cÃ´ng viá»‡c, gá»i mÃ³n...
+              Rèn luyện phản xạ đối đáp trong các tình huống thực tế: Họp Daily Scrum, phỏng vấn, trao đổi công việc, gọi món...
             </p>
           </div>
           <div className="text-xs bg-white/10 px-4 py-2 rounded-2xl border border-white/20 font-bold dark:bg-slate-900/10">
-            {ROLEPLAY_SCENARIOS.length} ká»‹ch báº£n
+            {ROLEPLAY_SCENARIOS.length} kịch bản
           </div>
         </div>
       </div>
@@ -191,13 +191,13 @@ export default function RoleplayPage() {
       {hasSavedSession && (
         <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-200 dark:bg-amber-950 dark:border-amber-800">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">ðŸ“Œ</span>
+            <span className="text-2xl">📌</span>
             <div>
               <h4 className="font-black text-sm text-amber-950 dark:text-amber-200">
-                Báº¡n cÃ³ 1 ká»‹ch báº£n Ä‘Ã³ng vai dá»Ÿ chÆ°a hoÃ n thÃ nh!
+                Bạn có 1 kịch bản đóng vai dở chưa hoàn thành!
               </h4>
               <p className="text-xs text-amber-800 font-medium dark:text-amber-200">
-                Báº¡n muá»‘n tiáº¿p tá»¥c tiáº¿n Ä‘á»™ dá»Ÿ dang hay chá»n ká»‹ch báº£n má»›i?
+                Bạn muốn tiếp tục tiến độ dở dang hay chọn kịch bản mới?
               </p>
             </div>
           </div>
@@ -213,7 +213,7 @@ export default function RoleplayPage() {
               }}
               className="btn-3d btn-3d-emerald px-4 py-2 text-xs font-black shadow-xs cursor-pointer"
             >
-              â–¶ï¸ Tiáº¿p tá»¥c ká»‹ch báº£n dá»Ÿ
+              ▶️ Tiếp tục kịch bản dở
             </button>
             <button
               onClick={() => {
@@ -223,7 +223,7 @@ export default function RoleplayPage() {
               }}
               className="px-3 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white rounded-xl border border-slate-200 cursor-pointer dark:text-slate-400 hover:dark:text-slate-100 dark:bg-slate-900 dark:border-white/10"
             >
-              Báº¯t Ä‘áº§u bÃ i má»›i
+              Bắt đầu bài mới
             </button>
           </div>
         </div>
@@ -234,7 +234,7 @@ export default function RoleplayPage() {
         <div className="space-y-4 animate-in fade-in duration-200">
           <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 dark:text-slate-100">
             <Users className="w-5 h-5 text-purple-600 dark:text-purple-300" />
-            Chá»n Ká»‹ch Báº£n Há»™i Thoáº¡i
+            Chọn Kịch Bản Hội Thoại
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {ROLEPLAY_SCENARIOS.map((sc, idx) => (
@@ -246,7 +246,7 @@ export default function RoleplayPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-2xl">{sc.partnerAvatar}</span>
                   <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200 dark:bg-purple-950 dark:text-purple-200 dark:border-purple-800">
-                    {sc.steps.length} lÆ°á»£t Ä‘á»‘i thoáº¡i
+                    {sc.steps.length} lượt đối thoại
                   </span>
                 </div>
                 <h3 className="text-sm font-black text-slate-900 group-hover:text-purple-700 transition-colors leading-snug dark:text-slate-100 group-hover:dark:text-purple-300">
@@ -256,9 +256,9 @@ export default function RoleplayPage() {
                   {sc.situation}
                 </p>
                 <div className="flex items-center justify-between text-xs font-bold text-slate-500 pt-2 border-t border-slate-100 dark:text-slate-400 dark:border-white/10">
-                  <span>Vai báº¡n: <span className="text-purple-700 dark:text-purple-300">{sc.userRole}</span></span>
+                  <span>Vai bạn: <span className="text-purple-700 dark:text-purple-300">{sc.userRole}</span></span>
                   <span className="flex items-center gap-1 text-purple-600 group-hover:translate-x-1 transition-transform dark:text-purple-300">
-                    Báº¯t Ä‘áº§u <ChevronRight className="w-3.5 h-3.5" />
+                    Bắt đầu <ChevronRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
               </button>
@@ -273,7 +273,7 @@ export default function RoleplayPage() {
           <div className="flex items-center justify-between gap-2">
             <div className="p-3 rounded-2xl bg-purple-50 border border-purple-200 flex-1 dark:bg-purple-950 dark:border-purple-800">
               <div className="text-xs font-black uppercase text-purple-700 tracking-wider dark:text-purple-300">
-                Ká»‹ch Báº£n: {scenario.title}
+                Kịch Bản: {scenario.title}
               </div>
               <p className="text-xs text-slate-600 mt-0.5 dark:text-slate-400">
                 {scenario.situation}
@@ -285,7 +285,7 @@ export default function RoleplayPage() {
                 className="px-3 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 cursor-pointer shrink-0 dark:text-slate-400 dark:bg-slate-900 hover:dark:bg-slate-800 dark:border-white/10"
               >
                 <ArrowLeft className="w-3.5 h-3.5 inline mr-1" />
-                Äá»•i ká»‹ch báº£n
+                Đổi kịch bản
               </button>
             )}
           </div>
@@ -300,7 +300,7 @@ export default function RoleplayPage() {
                 }`}
               >
                 <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-lg shrink-0 dark:bg-slate-700">
-                  {msg.isPartner ? scenario.partnerAvatar : 'ðŸ§‘â€ðŸ’»'}
+                  {msg.isPartner ? scenario.partnerAvatar : '🧑‍💻'}
                 </div>
                 <div
                   className={`max-w-md p-4 rounded-2xl shadow-sm text-xs sm:text-sm space-y-1 ${
@@ -318,7 +318,7 @@ export default function RoleplayPage() {
                           speakText(msg.text);
                         }}
                         className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-200 transition cursor-pointer touch-manipulation text-slate-500 hover:text-emerald-600 hover:dark:bg-slate-700 dark:text-slate-400 hover:dark:text-emerald-300"
-                        title="Nghe cÃ¢u nÃ y"
+                        title="Nghe câu này"
                       >
                         <Volume2 className="w-3.5 h-3.5" />
                       </button>
@@ -334,7 +334,7 @@ export default function RoleplayPage() {
           {!isFinished && currentStep && (
             <div className="pt-4 border-t border-slate-100 space-y-4 dark:border-white/10">
               <div className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                Chá»n cÃ¢u pháº£n há»“i phÃ¹ há»£p vÃ  chuyÃªn nghiá»‡p nháº¥t:
+                Chọn câu phản hồi phù hợp và chuyên nghiệp nhất:
               </div>
 
               <div className="space-y-3">
@@ -358,7 +358,7 @@ export default function RoleplayPage() {
                             &quot;{resp.text}&quot;
                           </div>
                           <div className="text-slate-500 text-xs mt-1 dark:text-slate-400">
-                            ðŸ‡»ðŸ‡³ {resp.translation}
+                            🇻🇳 {resp.translation}
                           </div>
                         </div>
                         <button
@@ -369,7 +369,7 @@ export default function RoleplayPage() {
                             speakText(resp.text);
                           }}
                           className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-500 shrink-0 touch-manipulation hover:dark:bg-slate-800"
-                          title="Nghe cÃ¢u"
+                          title="Nghe câu"
                         >
                           <Volume2 className="w-4 h-4" />
                         </button>
@@ -383,7 +383,7 @@ export default function RoleplayPage() {
                               : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200'
                           }`}
                         >
-                          {resp.isPoliteAndEffective ? 'âœ¨ ' : 'âš ï¸ '}
+                          {resp.isPoliteAndEffective ? '✨ ' : '⚠️ '}
                           {resp.feedback}
                         </div>
                       )}
@@ -398,7 +398,7 @@ export default function RoleplayPage() {
                     onClick={handleNextTurn}
                     className="btn-3d btn-3d-emerald px-6 py-2.5 min-h-[44px] text-white rounded-2xl text-xs font-bold transition shadow-md flex items-center gap-1.5 ml-auto cursor-pointer touch-manipulation"
                   >
-                    Tiáº¿p Tá»¥c Há»™i Thoáº¡i <ArrowRight className="w-4 h-4" />
+                    Tiếp Tục Hội Thoại <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               )}
@@ -408,29 +408,29 @@ export default function RoleplayPage() {
           {/* Finished Screen */}
           {isFinished && (
             <div className="p-6 bg-emerald-50 rounded-2xl border-2 border-emerald-500 text-center space-y-3 dark:bg-emerald-950">
-              <div className="text-4xl">ðŸŽ‰</div>
+              <div className="text-4xl">🎉</div>
               <h3 className="text-lg font-black text-emerald-800 dark:text-emerald-200">
-                HoÃ n ThÃ nh Ká»‹ch Báº£n Há»™i Thoáº¡i! (+40 EXP)
+                Hoàn Thành Kịch Bản Hội Thoại! (+40 EXP)
               </h3>
               <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
-                Äiá»ƒm pháº£n xáº¡: {score}/{totalResponses} cÃ¢u tráº£ lá»i chuyÃªn nghiá»‡p ({totalResponses > 0 ? Math.round((score/totalResponses)*100) : 100}%)
+                Điểm phản xạ: {score}/{totalResponses} câu trả lời chuyên nghiệp ({totalResponses > 0 ? Math.round((score/totalResponses)*100) : 100}%)
               </p>
               <p className="text-xs text-slate-600 max-w-md mx-auto dark:text-slate-400">
-                Báº¡n Ä‘Ã£ xá»­ lÃ½ tÃ¬nh huá»‘ng giao tiáº¿p ráº¥t tá»‘t. HÃ£y thá»­ cÃ¡c ká»‹ch báº£n khÃ¡c Ä‘á»ƒ nÃ¢ng cao pháº£n xáº¡!
+                Bạn đã xử lý tình huống giao tiếp rất tốt. Hãy thử các kịch bản khác để nâng cao phản xạ!
               </p>
               <div className="flex items-center justify-center gap-3 pt-2">
                 <button
                   onClick={handleRestart}
                   className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition inline-flex items-center gap-1.5 cursor-pointer dark:bg-white dark:text-slate-900 hover:dark:bg-white"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" /> Thá»±c HÃ nh Láº¡i
+                  <RotateCcw className="w-3.5 h-3.5" /> Thực Hành Lại
                 </button>
                 {ROLEPLAY_SCENARIOS.length > 1 && (
                   <button
                     onClick={() => { sound.playClick(); setMode('select'); }}
                     className="px-5 py-2.5 bg-purple-600 text-white rounded-xl text-xs font-bold hover:bg-purple-700 transition inline-flex items-center gap-1.5 cursor-pointer"
                   >
-                    Chá»n Ká»‹ch Báº£n KhÃ¡c <ArrowRight className="w-3.5 h-3.5" />
+                    Chọn Kịch Bản Khác <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
@@ -442,7 +442,7 @@ export default function RoleplayPage() {
       <div className="flex justify-center">
         <MascotCompanion
           mood="proud"
-          message="Trong mÃ´i trÆ°á»ng IT quá»‘c táº¿, thÃ¡i Ä‘á»™ chá»§ Ä‘á»™ng vÃ  bÃ¡o cÃ¡o Ä‘Ãºng trá»ng tÃ¢m luÃ´n Ä‘Æ°á»£c Ä‘Ã¡nh giÃ¡ cao nháº¥t!"
+          message="Trong môi trường IT quốc tế, thái độ chủ động và báo cáo đúng trọng tâm luôn được đánh giá cao nhất!"
         />
       </div>
     </div>

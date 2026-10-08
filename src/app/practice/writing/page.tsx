@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import type { Metadata } from 'next';
 
@@ -30,8 +30,8 @@ import MascotCompanion from '@/components/MascotCompanion';
 import { getStoredUser } from '@/lib/auth';
 
 const SESSION_KEY = 'session_writing_practice_v2';
-// Lá»‹ch sá»­ cÃ¡c bá»™ Ä‘á» AI Ä‘Ã£ táº¡o (thay tháº¿ session Ä‘Æ¡n dÃ¹ng má»™t láº§n): lÆ°u Ä‘á» +
-// Ä‘Ã¡p Ã¡n tá»«ng cÃ¢u Ä‘á»ƒ lÃ m tiáº¿p, lÃ m láº¡i hoáº·c xÃ³a.
+// Lịch sử các bộ đề AI đã tạo (thay thế session đơn dùng một lần): lưu đề +
+// đáp án từng câu để làm tiếp, làm lại hoặc xóa.
 const HISTORY_KEY = 'writing_exam_history_v1';
 const MAX_HISTORY = 20;
 
@@ -112,16 +112,16 @@ export default function WritingPracticePage() {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
 
-  // Náº¡p lá»‹ch sá»­ Ä‘á» Ä‘Ã£ táº¡o khi má»Ÿ trang
+  // Nạp lịch sử đề đã tạo khi mở trang
   useEffect(() => {
     setExamHistory(loadExamHistory());
   }, []);
 
-  // accessibility: Esc Ä‘Ã³ng Ä‘Æ°á»£c cáº£ 2 modal (trÆ°á»›c Ä‘Ã¢y chá»‰ cÃ³ nÃºt X + click ná»n)
+  // accessibility: Esc đóng được cả 2 modal (trước đây chỉ có nút X + click nền)
   useEscapeToClose(showHistoryModal, () => setShowHistoryModal(false));
   useEscapeToClose(showAiModal, () => { if (!isGeneratingAi) setShowAiModal(false); }, !isGeneratingAi);
 
-  // LÆ°u vá»‹ trÃ­ cÃ¢u Ä‘ang lÃ m vÃ o entry lá»‹ch sá»­ (ká»ƒ cáº£ khi chÆ°a submit)
+  // Lưu vị trí câu đang làm vào entry lịch sử (kể cả khi chưa submit)
   useEffect(() => {
     if (!activeHistoryId) return;
     const next = loadExamHistory().map((e) =>
@@ -240,7 +240,7 @@ export default function WritingPracticePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: prompt.referenceAnswer,
-          context: `TÃ¬nh huá»‘ng: ${prompt.situation}. Dá»‹ch tiáº¿ng Viá»‡t: ${prompt.vietnamesePrompt}. CÃ¢u há»c viÃªn lÃ m: ${userSubmittedText}`,
+          context: `Tình huống: ${prompt.situation}. Dịch tiếng Việt: ${prompt.vietnamesePrompt}. Câu học viên làm: ${userSubmittedText}`,
           mode: 'pedagogical_analysis',
         }),
       });
@@ -249,23 +249,23 @@ export default function WritingPracticePage() {
         const data = await res.json();
         if (data.data && data.data.isPedagogical) {
           const d = data.data;
-          let explanationText = `ðŸ§± Cáº¥u trÃºc ngá»¯ phÃ¡p:\n${d.grammarStructure}\n\n`;
+          let explanationText = `🧱 Cấu trúc ngữ pháp:\n${d.grammarStructure}\n\n`;
           if (d.collocationBreakdown && d.collocationBreakdown.length > 0) {
-            explanationText += `âœ¨ Cá»¥m tá»« trá»ng tÃ¢m & LÃ½ do dÃ¹ng:\n` + d.collocationBreakdown.map((c: any) => `â€¢ ${c.phrase}: ${c.meaning} (${c.usageReason})`).join('\n') + `\n\n`;
+            explanationText += `✨ Cụm từ trọng tâm & Lý do dùng:\n` + d.collocationBreakdown.map((c: any) => `• ${c.phrase}: ${c.meaning} (${c.usageReason})`).join('\n') + `\n\n`;
           }
           if (d.pedagogicalTip) {
-            explanationText += `ðŸ’¡ Máº¹o ghi nhá»› & Lá»—i sai ngÆ°á»i Viá»‡t hay máº¯c:\n${d.pedagogicalTip}\n\n`;
+            explanationText += `💡 Mẹo ghi nhớ & Lỗi sai người Việt hay mắc:\n${d.pedagogicalTip}\n\n`;
           }
           if (d.similarExamples && d.similarExamples.length > 0) {
-            explanationText += `ðŸ“ Máº«u cÃ¢u tá»± nhiÃªn tÆ°Æ¡ng Ä‘Æ°Æ¡ng:\n` + d.similarExamples.map((e: any) => `â€¢ ${e.en} (${e.vi})`).join('\n');
+            explanationText += `📝 Mẫu câu tự nhiên tương đương:\n` + d.similarExamples.map((e: any) => `• ${e.en} (${e.vi})`).join('\n');
           }
           setAiExplanation(explanationText);
         } else {
-          setAiExplanation(`ðŸ§± Cáº¥u trÃºc chuáº©n: ${prompt.referenceAnswer}\nðŸ’¡ Giáº£i thÃ­ch: ${prompt.explanation}\nâœ¨ Cá»¥m tá»« quan trá»ng: ${prompt.keyVocabHints.join(', ')}`);
+          setAiExplanation(`🧱 Cấu trúc chuẩn: ${prompt.referenceAnswer}\n💡 Giải thích: ${prompt.explanation}\n✨ Cụm từ quan trọng: ${prompt.keyVocabHints.join(', ')}`);
         }
       }
     } catch (err) {
-      setAiExplanation(`ðŸ’¡ Giáº£i thÃ­ch thÃªm: ${prompt.explanation}\n\nCáº¥u trÃºc chuáº©n: ${prompt.referenceAnswer}`);
+      setAiExplanation(`💡 Giải thích thêm: ${prompt.explanation}\n\nCấu trúc chuẩn: ${prompt.referenceAnswer}`);
     } finally {
       setIsFetchingAiExplanation(false);
     }
@@ -484,7 +484,7 @@ export default function WritingPracticePage() {
     setIsSubmitted(true);
     setIsCorrect(correct);
 
-    // LÆ°u Ä‘Ã¡p Ã¡n vÃ o lá»‹ch sá»­ Ä‘á» Ä‘ang lÃ m (Ä‘á»ƒ thoÃ¡t ra vÃ o láº¡i lÃ m tiáº¿p)
+    // Lưu đáp án vào lịch sử đề đang làm (để thoát ra vào lại làm tiếp)
     if (activeHistoryId && prompt?.id) {
       persistAnswerToHistory(
         activeHistoryId,
@@ -557,7 +557,7 @@ export default function WritingPracticePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: aiTopicInput,
-          context: 'Táº¡o bá»™ 20 cÃ¢u há»i luyá»‡n táº­p viáº¿t pháº£n xáº¡',
+          context: 'Tạo bộ 20 câu hỏi luyện tập viết phản xạ',
           mode: 'generate_practice_set',
         }),
       });
@@ -571,13 +571,13 @@ export default function WritingPracticePage() {
             const words = sentence.replace(/[^a-zA-Z0-9\s]/g, '').split(/\s+/).filter(Boolean);
             return {
               id: `ai-set-${Date.now()}-${idx}`,
-              situation: `âœ¨ Bá»™ Äá» AI (${idx + 1}/${questions.length}): ${q.situation || aiTopicInput}`,
+              situation: `✨ Bộ Đề AI (${idx + 1}/${questions.length}): ${q.situation || aiTopicInput}`,
               category: 'IT',
               vietnamesePrompt: q.vietnamesePrompt || aiTopicInput,
               referenceAnswer: sentence,
               scrambledWords: words,
               keyVocabHints: q.keyVocabHints || words.slice(0, 3),
-              explanation: q.explanation || 'CÃ¢u luyá»‡n táº­p Ä‘Æ°á»£c táº¡o tá»± Ä‘á»™ng tá»« AI SÆ° Pháº¡m.',
+              explanation: q.explanation || 'Câu luyện tập được tạo tự động từ AI Sư Phạm.',
             };
           });
 
@@ -587,7 +587,7 @@ export default function WritingPracticePage() {
           setAiTopicInput('');
           sound.playCelebration();
 
-          // LÆ°u bá»™ Ä‘á» vÃ o lá»‹ch sá»­ (thay tháº¿ session Ä‘Æ¡n): Ä‘á»ƒ lÃ m tiáº¿p/lÃ m láº¡i
+          // Lưu bộ đề vào lịch sử (thay thế session đơn): để làm tiếp/làm lại
           const entry: ExamHistoryEntry = {
             id: `exam-${Date.now()}`,
             topic: aiTopicInput.trim(),
@@ -609,7 +609,7 @@ export default function WritingPracticePage() {
     }
   };
 
-  // LÆ°u Ä‘Ã¡p Ã¡n cÃ¢u hiá»‡n táº¡i vÃ o entry lá»‹ch sá»­ Ä‘ang lÃ m (náº¿u cÃ³)
+  // Lưu đáp án câu hiện tại vào entry lịch sử đang làm (nếu có)
   const persistAnswerToHistory = (
     entryId: string,
     promptId: string,
@@ -625,11 +625,11 @@ export default function WritingPracticePage() {
     setExamHistory(next);
   };
 
-  // Má»Ÿ Ä‘á» tá»« lá»‹ch sá»­ Ä‘á»ƒ lÃ m tiáº¿p (giá»¯ nguyÃªn Ä‘Ã¡p Ã¡n Ä‘Ã£ Ä‘iá»n)
+  // Mở đề từ lịch sử để làm tiếp (giữ nguyên đáp án đã điền)
   const handleResumeEntry = (entry: ExamHistoryEntry, restart = false) => {
     sound.playClick();
     isRestoringRef.current = true;
-    setCategoryFilter('all'); // Ä‘á» lá»‹ch sá»­ chá»©a Ä‘á»§ loáº¡i â€” reset filter Ä‘á»ƒ tháº¥y háº¿t cÃ¢u
+    setCategoryFilter('all'); // đề lịch sử chứa đủ loại — reset filter để thấy hết câu
     setPromptsList(entry.prompts);
     const idx = restart ? 0 : Math.min(entry.currentIdx, entry.prompts.length - 1);
     setCurrentIdx(idx);
@@ -659,7 +659,7 @@ export default function WritingPracticePage() {
     setShowHistoryModal(false);
   };
 
-  // XÃ³a 1 Ä‘á» khá»i lá»‹ch sá»­
+  // Xóa 1 đề khỏi lịch sử
   const handleDeleteEntry = (entryId: string) => {
     sound.playClick();
     const next = loadExamHistory().filter((e) => e.id !== entryId);
@@ -675,13 +675,13 @@ export default function WritingPracticePage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-bold mb-2 dark:bg-slate-900/20">
-              <PenTool className="w-3.5 h-3.5 text-amber-300 shrink-0" /> PhÃ²ng Luyá»‡n Viáº¿t Pháº£n Xáº¡ Lego
+              <PenTool className="w-3.5 h-3.5 text-amber-300 shrink-0" /> Phòng Luyện Viết Phản Xạ Lego
             </div>
             <h1 className="text-xl sm:text-3xl font-black">
-              Luyá»‡n Viáº¿t CÃ¢u & KÃ©o Tháº£ Khá»‘i Tá»« Giao Tiáº¿p
+              Luyện Viết Câu & Kéo Thả Khối Từ Giao Tiếp
             </h1>
             <p className="text-emerald-100 text-xs sm:text-sm max-w-xl mt-1">
-              Sáº¯p xáº¿p khá»‘i tá»« chuáº©n xÃ¡c, há»— trá»£ kÃ©o tháº£ vá»‹ trÃ­ linh hoáº¡t hoáº·c gÃµ tá»± do theo ngá»¯ cáº£nh IT cÃ´ng sá»Ÿ.
+              Sắp xếp khối từ chuẩn xác, hỗ trợ kéo thả vị trí linh hoạt hoặc gõ tự do theo ngữ cảnh IT công sở.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-2 w-full sm:w-auto shrink-0">
@@ -690,7 +690,7 @@ export default function WritingPracticePage() {
             className="btn-3d btn-3d-amber w-full sm:w-auto px-4 py-2.5 text-xs font-black text-slate-950 shadow-md cursor-pointer flex items-center justify-center gap-1.5 shrink-0 dark:text-slate-200"
           >
             <Zap className="w-4 h-4" />
-            <span>âœ¨ Táº¡o Äá» AI Tá»± Do</span>
+            <span>✨ Tạo Đề AI Tự Do</span>
           </button>
           <button
             onClick={() => {
@@ -699,10 +699,10 @@ export default function WritingPracticePage() {
               setShowHistoryModal(true);
             }}
             className="btn-3d btn-3d-white w-full sm:w-auto px-4 py-2.5 text-xs font-black text-slate-800 shadow-md cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
-            title="Xem láº¡i cÃ¡c bá»™ Ä‘á» Ä‘Ã£ táº¡o vÃ  lÃ m tiáº¿p"
+            title="Xem lại các bộ đề đã tạo và làm tiếp"
           >
             <History className="w-4 h-4 text-emerald-600" />
-            <span>Lá»‹ch Sá»­ Äá» Thi{examHistory.length > 0 ? ` (${examHistory.length})` : ''}</span>
+            <span>Lịch Sử Đề Thi{examHistory.length > 0 ? ` (${examHistory.length})` : ''}</span>
           </button>
           </div>
         </div>
@@ -712,13 +712,13 @@ export default function WritingPracticePage() {
       {hasSavedSession && (
         <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-200 dark:bg-amber-950 dark:border-amber-800">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">ðŸ“Œ</span>
+            <span className="text-2xl">📌</span>
             <div>
               <h4 className="font-black text-sm text-amber-950 dark:text-amber-200">
-                Báº¡n cÃ³ 1 bÃ i luyá»‡n viáº¿t dá»Ÿ chÆ°a hoÃ n thÃ nh!
+                Bạn có 1 bài luyện viết dở chưa hoàn thành!
               </h4>
               <p className="text-xs text-amber-800 font-medium dark:text-amber-200">
-                Báº¡n muá»‘n tiáº¿p tá»¥c tiáº¿n Ä‘á»™ dá»Ÿ dang hay báº¯t Ä‘áº§u bÃ i má»›i?
+                Bạn muốn tiếp tục tiến độ dở dang hay bắt đầu bài mới?
               </p>
             </div>
           </div>
@@ -727,13 +727,13 @@ export default function WritingPracticePage() {
               onClick={handleRestoreSession}
               className="flex-1 sm:flex-initial btn-3d btn-3d-emerald px-4 py-2 text-xs font-black shadow-xs cursor-pointer flex items-center justify-center gap-1"
             >
-              <Play className="w-3.5 h-3.5" /> Tiáº¿p tá»¥c bÃ i dá»Ÿ
+              <Play className="w-3.5 h-3.5" /> Tiếp tục bài dở
             </button>
             <button
               onClick={handleClearSession}
               className="flex-1 sm:flex-initial px-3 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white rounded-xl border border-slate-200 cursor-pointer text-center dark:text-slate-400 hover:dark:text-slate-100 dark:bg-slate-900 dark:border-white/10"
             >
-              Báº¯t Ä‘áº§u bÃ i má»›i
+              Bắt đầu bài mới
             </button>
           </div>
         </div>
@@ -743,12 +743,12 @@ export default function WritingPracticePage() {
       <div className="bg-white rounded-2xl p-3 sm:p-4 border-2 border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 dark:bg-slate-900 dark:border-white/10">
         <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto touch-auto pb-1 sm:pb-0 custom-scrollbar max-w-full">
           <span className="text-xs font-black text-slate-500 flex items-center gap-1 shrink-0 uppercase tracking-wide dark:text-slate-400">
-            <Filter className="w-3.5 h-3.5" /> Chá»§ Ä‘á»:
+            <Filter className="w-3.5 h-3.5" /> Chủ đề:
           </span>
           {[
-            { id: 'all', label: 'Táº¥t cáº£ chá»§ Ä‘á»' },
-            { id: 'IT', label: 'ðŸ’» IT CÃ´ng Sá»Ÿ' },
-            { id: 'Daily', label: 'â˜• Giao Tiáº¿p Äá»i Sá»‘ng' },
+            { id: 'all', label: 'Tất cả chủ đề' },
+            { id: 'IT', label: '💻 IT Công Sở' },
+            { id: 'Daily', label: '☕ Giao Tiếp Đời Sống' },
           ].map((cat) => (
             <button
               key={cat.id}
@@ -769,7 +769,7 @@ export default function WritingPracticePage() {
         </div>
 
         <div className="text-xs font-bold text-slate-500 shrink-0 self-end sm:self-center dark:text-slate-400">
-          CÃ¢u {currentIdx + 1} / {filteredPrompts.length}
+          Câu {currentIdx + 1} / {filteredPrompts.length}
         </div>
       </div>
 
@@ -779,7 +779,7 @@ export default function WritingPracticePage() {
         <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 dark:bg-slate-900 dark:border-white/10">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
             <span className="text-xs font-black uppercase text-emerald-600 tracking-wider dark:text-emerald-300">
-              {prompt.category} â€¢ TÃ¬nh huá»‘ng thá»±c táº¿:
+              {prompt.category} • Tình huống thực tế:
             </span>
             <button
               onClick={() => {
@@ -788,14 +788,14 @@ export default function WritingPracticePage() {
               }}
               className="text-xs text-slate-600 hover:text-emerald-700 underline font-extrabold cursor-pointer self-start sm:self-auto dark:text-slate-400 hover:dark:text-emerald-300"
             >
-              {useFreeType ? 'ðŸ§± Chuyá»ƒn sang xáº¿p khá»‘i tá»« Lego' : 'âŒ¨ï¸ Chuyá»ƒn sang gÃµ bÃ n phÃ­m tá»± do'}
+              {useFreeType ? '🧱 Chuyển sang xếp khối từ Lego' : '⌨️ Chuyển sang gõ bàn phím tự do'}
             </button>
           </div>
           <p className="text-xs sm:text-sm font-black text-slate-900 leading-snug break-words dark:text-slate-100">
             {prompt.situation}
           </p>
           <div className="text-xs sm:text-sm font-bold text-emerald-800 bg-emerald-50 p-2.5 sm:p-3 rounded-xl border border-emerald-200 break-words dark:text-emerald-200 dark:bg-emerald-950 dark:border-emerald-800">
-            ðŸ‡»ðŸ‡³ HÃ£y dá»‹ch sang tiáº¿ng Anh: &quot;{prompt.vietnamesePrompt}&quot;
+            🇻🇳 Hãy dịch sang tiếng Anh: &quot;{prompt.vietnamesePrompt}&quot;
           </div>
         </div>
 
@@ -803,7 +803,7 @@ export default function WritingPracticePage() {
         {prompt.keyVocabHints && prompt.keyVocabHints.length > 0 && (
           <div className="flex items-center gap-2 flex-wrap text-xs text-slate-600 dark:text-slate-400">
             <span className="font-bold flex items-center gap-1 text-amber-600 dark:text-amber-300">
-              <Lightbulb className="w-3.5 h-3.5" /> Gá»£i Ã½ cá»¥m tá»«:
+              <Lightbulb className="w-3.5 h-3.5" /> Gợi ý cụm từ:
             </span>
             {prompt.keyVocabHints.map((hint, idx) => (
               <span
@@ -822,9 +822,9 @@ export default function WritingPracticePage() {
             {/* Target Assembly Area with Drag & Drop */}
             <div className="space-y-1">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] font-bold text-slate-400 px-1 gap-1">
-                <span>VÃ¹ng ghÃ©p cÃ¢u (KÃ©o tháº£ tá»« Ä‘á»ƒ Ä‘á»•i vá»‹ trÃ­ hoáº·c báº¥m vÃ o tá»« Ä‘á»ƒ bá»):</span>
+                <span>Vùng ghép câu (Kéo thả từ để đổi vị trí hoặc bấm vào từ để bỏ):</span>
                 {selectedTokens.length > 0 && (
-                  <span className="shrink-0 text-emerald-600 font-bold dark:text-emerald-300">ÄÃ£ ghÃ©p {selectedTokens.length} tá»«</span>
+                  <span className="shrink-0 text-emerald-600 font-bold dark:text-emerald-300">Đã ghép {selectedTokens.length} từ</span>
                 )}
               </div>
 
@@ -838,7 +838,7 @@ export default function WritingPracticePage() {
               >
                 {selectedTokens.length === 0 ? (
                   <span className="text-xs text-slate-400 italic pointer-events-none">
-                    KÃ©o tháº£ cÃ¡c khá»‘i tá»« bÃªn dÆ°á»›i vÃ o Ä‘Ã¢y hoáº·c báº¥m Ä‘á»ƒ ghÃ©p cÃ¢u hoÃ n chá»‰nh...
+                    Kéo thả các khối từ bên dưới vào đây hoặc bấm để ghép câu hoàn chỉnh...
                   </span>
                 ) : (
                   selectedTokens.map((tok, idx) => (
@@ -846,7 +846,7 @@ export default function WritingPracticePage() {
                       key={idx}
                       data-token-idx={idx}
                       onPointerDown={(e) => handleTokenPointerDown(e, 'selected', idx, tok)}
-                      title="KÃ©o tháº£ Ä‘á»ƒ Ä‘á»•i vá»‹ trÃ­ hoáº·c báº¥m vÃ o Ä‘á»ƒ bá»"
+                      title="Kéo thả để đổi vị trí hoặc bấm vào để bỏ"
                       className={`px-3 py-1.5 sm:px-3.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs sm:text-sm font-black shadow-sm cursor-grab active:cursor-grabbing transition-all transform hover:scale-105 select-none touch-none break-words max-w-full ${
                         activeDrag?.source === 'selected' && activeDrag.index === idx && activeDrag.isDragging
                           ? 'opacity-30 scale-95'
@@ -863,7 +863,7 @@ export default function WritingPracticePage() {
             {/* Available Tokens Pool */}
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-slate-400 px-1">
-                CÃ¡c khá»‘i tá»« cÃ³ sáºµn (KÃ©o tháº£ vÃ o khung trÃªn hoáº·c báº¥m Ä‘á»ƒ thÃªm vÃ o cÃ¢u):
+                Các khối từ có sẵn (Kéo thả vào khung trên hoặc bấm để thêm vào câu):
               </span>
               <div
                 data-drop-zone="pool"
@@ -883,7 +883,7 @@ export default function WritingPracticePage() {
                         ? 'opacity-30 scale-95'
                         : ''
                     }`}
-                    title="KÃ©o tháº£ vÃ o vÃ¹ng ghÃ©p cÃ¢u hoáº·c báº¥m Ä‘á»ƒ thÃªm"
+                    title="Kéo thả vào vùng ghép câu hoặc bấm để thêm"
                   >
                     {tok}
                   </div>
@@ -915,7 +915,7 @@ export default function WritingPracticePage() {
                 setTypedInput(e.target.value);
                 saveCurrentSession();
               }}
-              placeholder="GÃµ cÃ¢u tráº£ lá»i tiáº¿ng Anh cá»§a báº¡n táº¡i Ä‘Ã¢y..."
+              placeholder="Gõ câu trả lời tiếng Anh của bạn tại đây..."
               className="w-full p-3.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-emerald-500 focus:bg-white transition dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900"
             />
           </div>
@@ -927,7 +927,7 @@ export default function WritingPracticePage() {
             onClick={handleReset}
             className="flex-1 sm:flex-initial justify-center px-4 py-2.5 min-h-[44px] text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer bg-slate-50 hover:bg-slate-100 rounded-xl touch-manipulation dark:text-slate-400 hover:dark:text-slate-200 dark:bg-slate-900 hover:dark:bg-slate-800"
           >
-            <RotateCcw className="w-3.5 h-3.5" /> Xáº¿p láº¡i tá»« Ä‘áº§u
+            <RotateCcw className="w-3.5 h-3.5" /> Xếp lại từ đầu
           </button>
 
           <button
@@ -935,7 +935,7 @@ export default function WritingPracticePage() {
             disabled={!useFreeType && selectedTokens.length === 0}
             className="flex-1 sm:flex-initial btn-3d btn-3d-emerald px-6 py-2.5 min-h-[44px] text-xs font-black shadow-md cursor-pointer disabled:opacity-50 touch-manipulation text-center"
           >
-            Kiá»ƒm Tra CÃ¢u Tráº£ Lá»i
+            Kiểm Tra Câu Trả Lời
           </button>
         </div>
 
@@ -952,22 +952,22 @@ export default function WritingPracticePage() {
               {isCorrect ? (
                 <>
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 dark:text-emerald-300" />
-                  <span>ðŸŽ‰ Xuáº¥t sáº¯c! CÃ¢u cá»§a báº¡n hoÃ n toÃ n chÃ­nh xÃ¡c (+25 EXP)</span>
+                  <span>🎉 Xuất sắc! Câu của bạn hoàn toàn chính xác (+25 EXP)</span>
                 </>
               ) : (
                 <>
                   <XCircle className="w-5 h-5 text-rose-600 shrink-0 dark:text-rose-300" />
-                  <span>ChÆ°a hoÃ n toÃ n chuáº©n xÃ¡c, hÃ£y so sÃ¡nh vá»›i cÃ¢u chuáº©n:</span>
+                  <span>Chưa hoàn toàn chuẩn xác, hãy so sánh với câu chuẩn:</span>
                 </>
               )}
             </div>
 
             <div className="text-xs sm:text-sm font-mono font-bold bg-white p-3 rounded-xl border border-emerald-200 break-words dark:bg-slate-900 dark:border-emerald-800">
-              ÄÃ¡p Ã¡n máº«u: &quot;{prompt.referenceAnswer}&quot;
+              Đáp án mẫu: &quot;{prompt.referenceAnswer}&quot;
             </div>
 
             <div className="text-xs leading-relaxed opacity-90 font-medium break-words">
-              ðŸ’¡ Giáº£i thÃ­ch: {prompt.explanation}
+              💡 Giải thích: {prompt.explanation}
             </div>
 
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
@@ -978,11 +978,11 @@ export default function WritingPracticePage() {
               >
                 {isFetchingAiExplanation ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Äang phÃ¢n tÃ­ch AI...
+                    <Loader2 className="w-4 h-4 animate-spin" /> Đang phân tích AI...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4 text-amber-200" /> ðŸ§  AI Giáº£i ThÃ­ch Chi Tiáº¿t SÆ° Pháº¡m
+                    <Sparkles className="w-4 h-4 text-amber-200" /> 🧠 AI Giải Thích Chi Tiết Sư Phạm
                   </>
                 )}
               </button>
@@ -994,14 +994,14 @@ export default function WritingPracticePage() {
                 }}
                 className="w-full sm:w-auto justify-center px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black hover:bg-slate-800 transition inline-flex items-center gap-1.5 cursor-pointer shadow-md dark:bg-white dark:text-slate-900 hover:dark:bg-white"
               >
-                CÃ¢u Tiáº¿p Theo <ArrowRight className="w-4 h-4" />
+                Câu Tiếp Theo <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
             {aiExplanation && (
               <div className="mt-3 p-3.5 sm:p-4 bg-slate-900 text-white rounded-2xl text-xs space-y-2.5 animate-in fade-in border border-amber-500/40 shadow-xl max-w-full overflow-hidden dark:bg-white dark:text-slate-900">
                 <div className="font-black text-amber-300 text-xs flex items-center gap-1.5 border-b border-slate-700 pb-1.5 dark:border-white/10">
-                  <span>ðŸ§ </span> PHÃ‚N TÃCH CHI TIáº¾T Tá»ª AI SÆ¯ PHáº M MEOWLISH
+                  <span>🧠</span> PHÂN TÍCH CHI TIẾT TỪ AI SƯ PHẠM MEOWLISH
                 </div>
                 <div className="whitespace-pre-line leading-relaxed text-slate-200 font-medium break-words">
                   {aiExplanation}
@@ -1015,39 +1015,39 @@ export default function WritingPracticePage() {
       <div className="flex justify-center max-w-full overflow-hidden px-2">
         <MascotCompanion
           mood="happy"
-          message="Báº¡n cÃ³ thá»ƒ kÃ©o tháº£ trá»±c tiáº¿p khá»‘i tá»« Ä‘á»ƒ thay Ä‘á»•i vá»‹ trÃ­ cÃ¢u cá»±c ká»³ linh hoáº¡t Ä‘áº¥y!"
+          message="Bạn có thể kéo thả trực tiếp khối từ để thay đổi vị trí câu cực kỳ linh hoạt đấy!"
         />
       </div>
 
       {/* AI Practice Prompt Generator Modal */}
-      {/* History Modal: cÃ¡c bá»™ Ä‘á» AI Ä‘Ã£ táº¡o + lÃ m tiáº¿p / lÃ m láº¡i / xÃ³a */}
+      {/* History Modal: các bộ đề AI đã tạo + làm tiếp / làm lại / xóa */}
       {showHistoryModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-[calc(100vw-24px)] sm:w-full border-2 border-slate-200 shadow-2xl space-y-4 relative dark:bg-slate-900 dark:border-white/10 max-h-[85dvh] overflow-y-auto custom-scrollbar">
             <button
               onClick={() => setShowHistoryModal(false)}
               className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 cursor-pointer touch-manipulation dark:bg-slate-800 dark:hover:bg-slate-700 dark:hover:text-slate-200"
-              title="ÄÃ³ng"
+              title="Đóng"
             >
               <X className="w-5 h-5" />
             </button>
             <div className="space-y-1 pr-6">
               <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-xs font-black dark:bg-emerald-950 dark:text-emerald-200">
-                <History className="w-3.5 h-3.5" /> Lá»ŠCH Sá»¬ Äá»€ THI
+                <History className="w-3.5 h-3.5" /> LỊCH SỬ ĐỀ THI
               </div>
               <h3 className="text-xl font-black text-slate-900 dark:text-slate-100">
-                CÃ¡c Bá»™ Äá» ÄÃ£ Táº¡o
+                Các Bộ Đề Đã Tạo
               </h3>
               <p className="text-xs text-slate-500 font-medium dark:text-slate-400">
-                Má»—i láº§n táº¡o Ä‘á» Ä‘Æ°á»£c lÆ°u láº¡i kÃ¨m Ä‘Ã¡p Ã¡n Ä‘Ã£ Ä‘iá»n â€” báº¥m vÃ o Ä‘á»ƒ lÃ m tiáº¿p báº¥t cá»© lÃºc nÃ o.
+                Mỗi lần tạo đề được lưu lại kèm đáp án đã điền — bấm vào để làm tiếp bất cứ lúc nào.
               </p>
             </div>
 
             {examHistory.length === 0 ? (
               <div className="py-8 text-center space-y-2">
-                <div className="text-4xl">ðŸ“</div>
+                <div className="text-4xl">📝</div>
                 <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                  ChÆ°a cÃ³ bá»™ Ä‘á» nÃ o. Báº¥m â€œTáº¡o Äá» AI Tá»± Doâ€ Ä‘á»ƒ táº¡o Ä‘á» Ä‘áº§u tiÃªn!
+                  Chưa có bộ đề nào. Bấm “Tạo Đề AI Tự Do” để tạo đề đầu tiên!
                 </p>
               </div>
             ) : (
@@ -1070,9 +1070,9 @@ export default function WritingPracticePage() {
                           {entry.topic}
                         </div>
                         <div className="text-[11px] text-slate-400 font-semibold mt-0.5">
-                          {new Date(entry.createdAt).toLocaleString('vi-VN')} â€¢ {doneCount}/{total} cÃ¢u Ä‘Ã£ lÃ m
-                          {doneCount > 0 && ` â€¢ âœ… ${correctCount} Ä‘Ãºng`}
-                          {activeHistoryId === entry.id && ' â€¢ Äang lÃ m'}
+                          {new Date(entry.createdAt).toLocaleString('vi-VN')} • {doneCount}/{total} câu đã làm
+                          {doneCount > 0 && ` • ✅ ${correctCount} đúng`}
+                          {activeHistoryId === entry.id && ' • Đang làm'}
                         </div>
                       </div>
                       {/* Progress bar */}
@@ -1087,19 +1087,19 @@ export default function WritingPracticePage() {
                           onClick={() => handleResumeEntry(entry, false)}
                           className="py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-black transition cursor-pointer flex items-center justify-center gap-1 active:scale-95"
                         >
-                          <Play className="w-3.5 h-3.5" /> LÃ m tiáº¿p
+                          <Play className="w-3.5 h-3.5" /> Làm tiếp
                         </button>
                         <button
                           onClick={() => handleResumeEntry(entry, true)}
                           className="py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-[11px] font-black transition cursor-pointer flex items-center justify-center gap-1 active:scale-95"
                         >
-                          <RotateCcw className="w-3.5 h-3.5" /> LÃ m láº¡i
+                          <RotateCcw className="w-3.5 h-3.5" /> Làm lại
                         </button>
                         <button
                           onClick={() => handleDeleteEntry(entry.id)}
                           className="py-2 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400 text-[11px] font-black transition cursor-pointer active:scale-95"
                         >
-                          XÃ³a
+                          Xóa
                         </button>
                       </div>
                     </div>
@@ -1117,20 +1117,20 @@ export default function WritingPracticePage() {
             <button
               onClick={() => setShowAiModal(false)}
               className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 cursor-pointer touch-manipulation hover:dark:text-slate-300 dark:bg-slate-800 hover:dark:bg-slate-700"
-              title="ÄÃ³ng"
+              title="Đóng"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="space-y-1 pr-6">
               <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-100 text-amber-900 text-xs font-black dark:bg-amber-950 dark:text-amber-200">
-                <Zap className="w-3.5 h-3.5 text-amber-600 dark:text-amber-300" /> Táº O Äá»€ THI Báº°NG AI
+                <Zap className="w-3.5 h-3.5 text-amber-600 dark:text-amber-300" /> TẠO ĐỀ THI BẰNG AI
               </div>
               <h3 className="text-xl font-black text-slate-900 dark:text-slate-100">
-                Táº¡o BÃ i Táº­p Luyá»‡n Viáº¿t TÃ¹y Chá»n
+                Tạo Bài Tập Luyện Viết Tùy Chọn
               </h3>
               <p className="text-xs text-slate-500 font-medium leading-relaxed dark:text-slate-400">
-                Nháº­p chá»§ Ä‘á» tÃ¬nh huá»‘ng báº¥t ká»³ (VÃ­ dá»¥: ThÆ°Æ¡ng lÆ°á»£ng tÄƒng lÆ°Æ¡ng, giáº£i thÃ­ch lá»—i server vá»›i khÃ¡ch Singapore, gá»i mÃ³n cafe Má»¹...).
+                Nhập chủ đề tình huống bất kỳ (Ví dụ: Thương lượng tăng lương, giải thích lỗi server với khách Singapore, gọi món cafe Mỹ...).
               </p>
             </div>
 
@@ -1138,7 +1138,7 @@ export default function WritingPracticePage() {
               rows={3}
               value={aiTopicInput}
               onChange={(e) => setAiTopicInput(e.target.value)}
-              placeholder="Nháº­p tÃ¬nh huá»‘ng báº¡n muá»‘n thá»±c hÃ nh viáº¿t..."
+              placeholder="Nhập tình huống bạn muốn thực hành viết..."
               className="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-xs font-medium focus:outline-none focus:border-emerald-500 focus:bg-white dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900"
             />
 
@@ -1147,7 +1147,7 @@ export default function WritingPracticePage() {
                 onClick={() => setShowAiModal(false)}
                 className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl dark:text-slate-400 hover:dark:bg-slate-800"
               >
-                Há»§y
+                Hủy
               </button>
               <button
                 onClick={handleGenerateAiPrompt}
@@ -1157,12 +1157,12 @@ export default function WritingPracticePage() {
                 {isGeneratingAi ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-slate-950 dark:text-slate-200" />
-                    <span>AI Ä‘ang táº¡o bá»™ Ä‘á»...</span>
+                    <span>AI đang tạo bộ đề...</span>
                   </>
                 ) : (
                   <>
                     <Zap className="w-4 h-4" />
-                    <span>Táº¡o bÃ i luyá»‡n ngay</span>
+                    <span>Tạo bài luyện ngay</span>
                   </>
                 )}
               </button>

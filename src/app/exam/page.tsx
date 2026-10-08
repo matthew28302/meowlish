@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import type { Metadata } from 'next';
 
@@ -352,7 +352,7 @@ export default function ExamPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* ========================================================================= */}
-      {/* VIEW 1: CATALOG / Bá»˜ Äá»€ THI Lá»°A CHá»ŒN */}
+      {/* VIEW 1: CATALOG / BỘ ĐỀ THI LỰA CHỌN */}
       {/* ========================================================================= */}
       {mode === 'catalog' && (
         <div className="space-y-8 animate-in fade-in duration-200">
@@ -360,18 +360,18 @@ export default function ExamPage() {
             <div className="bg-amber-50 border-2 border-amber-400 rounded-3xl p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in dark:bg-amber-950">
               <div className="flex items-center gap-3.5">
                 <div className="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black text-xl shrink-0 shadow-md">
-                  â±ï¸
+                  ⏱️
                 </div>
                 <div>
                   <h4 className="font-black text-slate-900 text-sm flex items-center gap-2 dark:text-slate-100">
-                    Báº¡n Ä‘ang cÃ³ bÃ i thi thá»­ chÆ°a hoÃ n táº¥t!
+                    Bạn đang có bài thi thử chưa hoàn tất!
                     <span className="text-[10px] bg-amber-200 text-amber-900 font-extrabold px-2 py-0.5 rounded-full uppercase dark:text-amber-200 dark:bg-amber-900">
-                      Äang dá»Ÿ dang
+                      Đang dở dang
                     </span>
                   </h4>
                   <p className="text-xs text-slate-600 font-medium mt-0.5 dark:text-slate-400">
-                    Äá»: <strong className="text-amber-800 dark:text-amber-200">{EXAM_SETS.find((s) => s.id === savedSessionData.selectedSetId)?.vietnameseTitle || 'BÃ i thi dá»Ÿ'}</strong> 
-                    â€¢ ÄÃ£ lÃ m {Object.keys(savedSessionData.userAnswers || {}).length} cÃ¢u há»i
+                    Đề: <strong className="text-amber-800 dark:text-amber-200">{EXAM_SETS.find((s) => s.id === savedSessionData.selectedSetId)?.vietnameseTitle || 'Bài thi dở'}</strong> 
+                    • Đã làm {Object.keys(savedSessionData.userAnswers || {}).length} câu hỏi
                   </p>
                 </div>
               </div>
@@ -380,13 +380,13 @@ export default function ExamPage() {
                   onClick={handleResumeSession}
                   className="flex-1 sm:flex-initial px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black rounded-xl shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <Sparkles className="w-3.5 h-3.5" /> Tiáº¿p Tá»¥c BÃ i Thi Dá»Ÿ
+                  <Sparkles className="w-3.5 h-3.5" /> Tiếp Tục Bài Thi Dở
                 </button>
                 <button
                   onClick={handleDiscardSession}
                   className="px-3 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-black rounded-xl transition cursor-pointer dark:bg-slate-700 dark:text-slate-300"
                 >
-                  Báº¯t Äáº§u Láº¡i
+                  Bắt Đầu Lại
                 </button>
               </div>
             </div>
@@ -398,24 +398,24 @@ export default function ExamPage() {
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-3 max-w-2xl">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-emerald-100 text-xs font-black uppercase tracking-wider dark:bg-slate-900/20">
-                  <Trophy className="w-3.5 h-3.5 text-amber-300" /> Trung TÃ¢m Kháº£o ThÃ­ & Pháº£n Xáº¡ Giao Tiáº¿p
+                  <Trophy className="w-3.5 h-3.5 text-amber-300" /> Trung Tâm Khảo Thí & Phản Xạ Giao Tiếp
                 </div>
                 <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-                  Bá»™ Äá» Kiá»ƒm Tra & Thi Thá»­ Chuáº©n CEFR
+                  Bộ Đề Kiểm Tra & Thi Thử Chuẩn CEFR
                 </h1>
                 <p className="text-emerald-100 text-xs sm:text-sm leading-relaxed font-medium">
-                  ÄÃ¡nh giÃ¡ toÃ n diá»‡n 5 trá»¥ cá»™t giao tiáº¿p: Nghe hiá»ƒu pháº£n xáº¡, Tá»« vá»±ng chuyÃªn ngÃ nh, Ngá»¯ phÃ¡p tá»± nhiÃªn, 
-                  á»¨ng xá»­ tÃ¬nh huá»‘ng (Pragmatics) vÃ  Kháº¯c phá»¥c lá»—i sai ngÆ°á»i Viá»‡t hay máº¯c.
+                  Đánh giá toàn diện 5 trụ cột giao tiếp: Nghe hiểu phản xạ, Từ vựng chuyên ngành, Ngữ pháp tự nhiên, 
+                  Ứng xử tình huống (Pragmatics) và Khắc phục lỗi sai người Việt hay mắc.
                 </p>
                 <div className="flex items-center gap-4 pt-2 text-xs font-bold text-emerald-100 flex-wrap">
                   <span className="flex items-center gap-1.5 bg-emerald-700/60 px-3 py-1 rounded-xl border border-emerald-400/30">
-                    â±ï¸ Báº¥m giá» thá»±c táº¿
+                    ⏱️ Bấm giờ thực tế
                   </span>
                   <span className="flex items-center gap-1.5 bg-emerald-700/60 px-3 py-1 rounded-xl border border-emerald-400/30">
-                    ðŸŽ§ Audio chuáº©n báº£n xá»©
+                    🎧 Audio chuẩn bản xứ
                   </span>
                   <span className="flex items-center gap-1.5 bg-emerald-700/60 px-3 py-1 rounded-xl border border-emerald-400/30">
-                    ðŸª™ ThÆ°á»Ÿng Coin & EXP chÄƒm thÃº
+                    🪙 Thưởng Coin & EXP chăm thú
                   </span>
                 </div>
               </div>
@@ -425,9 +425,9 @@ export default function ExamPage() {
                 <span className="text-3xl font-black text-amber-300">
                   {Object.keys(completedExams).length} / {EXAM_SETS.length}
                 </span>
-                <span className="text-xs text-white/80 font-bold mt-1">Äá» thi Ä‘Ã£ hoÃ n táº¥t</span>
+                <span className="text-xs text-white/80 font-bold mt-1">Đề thi đã hoàn tất</span>
                 <div className="mt-3 text-[11px] bg-white/20 px-3 py-1 rounded-full font-black text-white">
-                  Äáº¡t &ge;70% nháº­n huy hiá»‡u
+                  Đạt &ge;70% nhận huy hiệu
                 </div>
               </div>
             </div>
@@ -438,21 +438,21 @@ export default function ExamPage() {
             {/* Category Filter */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
               <span className="text-xs font-bold text-slate-500 flex items-center gap-1 shrink-0 dark:text-slate-400">
-                <Filter className="w-3.5 h-3.5" /> Chá»§ Ä‘á»:
+                <Filter className="w-3.5 h-3.5" /> Chủ đề:
               </span>
               {[
-                { id: 'all', label: 'Táº¥t cáº£' },
-                { id: 'toeic', label: 'ðŸŽ¯ TOEIC ETS' },
-                { id: 'vstep', label: 'ðŸ‡»ðŸ‡³ VSTEP BGD' },
-                { id: 'ielts', label: 'ðŸ‡¬ðŸ‡§ IELTS' },
-                { id: 'toefl', label: 'ðŸ‡ºðŸ‡¸ TOEFL iBT' },
-                { id: 'it-tech', label: 'ðŸ’» IT Tech' },
-                { id: 'starter', label: 'ðŸŒ± CÄƒn báº£n' },
-                { id: 'daily', label: 'â˜• Äá»i sá»‘ng' },
-                { id: 'workplace', label: 'ðŸ’¼ CÃ´ng sá»Ÿ' },
-                { id: 'negotiation', label: 'ðŸ¤ ÄÃ m phÃ¡n' },
-                { id: 'interview', label: 'ðŸŽ¯ Phá»ng váº¥n' },
-                { id: 'travel', label: 'âœˆï¸ Du lá»‹ch' },
+                { id: 'all', label: 'Tất cả' },
+                { id: 'toeic', label: '🎯 TOEIC ETS' },
+                { id: 'vstep', label: '🇻🇳 VSTEP BGD' },
+                { id: 'ielts', label: '🇬🇧 IELTS' },
+                { id: 'toefl', label: '🇺🇸 TOEFL iBT' },
+                { id: 'it-tech', label: '💻 IT Tech' },
+                { id: 'starter', label: '🌱 Căn bản' },
+                { id: 'daily', label: '☕ Đời sống' },
+                { id: 'workplace', label: '💼 Công sở' },
+                { id: 'negotiation', label: '🤝 Đàm phán' },
+                { id: 'interview', label: '🎯 Phỏng vấn' },
+                { id: 'travel', label: '✈️ Du lịch' },
               ].map((c) => (
                 <button
                   key={c.id}
@@ -473,7 +473,7 @@ export default function ExamPage() {
 
             {/* CEFR Level Filter */}
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Cáº¥p Ä‘á»™:</span>
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Cấp độ:</span>
               {['all', 'A1 - A2', 'B1', 'B1 - B2', 'B2 - C1'].map((lvl) => (
                 <button
                   key={lvl}
@@ -487,7 +487,7 @@ export default function ExamPage() {
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 hover:dark:bg-slate-700'
                   }`}
                 >
-                  {lvl === 'all' ? 'Táº¥t cáº£' : lvl}
+                  {lvl === 'all' ? 'Tất cả' : lvl}
                 </button>
               ))}
             </div>
@@ -544,18 +544,18 @@ export default function ExamPage() {
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs font-bold text-slate-600 dark:border-white/10 dark:text-slate-400">
                       <div className="flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{exam.durationMinutes} phÃºt</span>
+                        <span>{exam.durationMinutes} phút</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                        <span>{exam.questions.length} cÃ¢u há»i</span>
+                        <span>{exam.questions.length} câu hỏi</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-300">
-                        <span>â­</span>
+                        <span>⭐</span>
                         <span>+{exam.expReward} EXP</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-300">
-                        <span>ðŸª™</span>
+                        <span>🪙</span>
                         <span>+{exam.coinReward} Coins</span>
                       </div>
                     </div>
@@ -565,7 +565,7 @@ export default function ExamPage() {
                     onClick={() => handleStartExam(exam)}
                     className="btn-3d btn-3d-emerald w-full py-3 text-center text-xs font-black shadow-md cursor-pointer flex items-center justify-center gap-2"
                   >
-                    <span>{history ? 'Thi láº¡i Ä‘á» nÃ y' : 'Báº¯t Ä‘áº§u lÃ m bÃ i thi'}</span>
+                    <span>{history ? 'Thi lại đề này' : 'Bắt đầu làm bài thi'}</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
@@ -576,7 +576,7 @@ export default function ExamPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* VIEW 2: ACTIVE TESTING / PHÃ’NG THI Báº¤M GIá»œ */}
+      {/* VIEW 2: ACTIVE TESTING / PHÒNG THI BẤM GIỜ */}
       {/* ========================================================================= */}
       {mode === 'testing' && selectedSet && activeQuestion && (
         <div className="space-y-6 animate-in fade-in duration-150">
@@ -586,7 +586,7 @@ export default function ExamPage() {
               <button
                 onClick={() => setShowConfirmModal(true)}
                 className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 cursor-pointer dark:text-slate-400 hover:dark:bg-slate-800"
-                title="ThoÃ¡t phÃ²ng thi"
+                title="Thoát phòng thi"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
@@ -618,7 +618,7 @@ export default function ExamPage() {
               className="btn-3d btn-3d-amber px-4 py-2 text-xs sm:text-sm font-black text-slate-950 shadow-md cursor-pointer flex items-center gap-1.5 dark:text-slate-200"
             >
               <Check className="w-4 h-4" />
-              <span>Ná»™p bÃ i</span>
+              <span>Nộp bài</span>
             </button>
           </div>
 
@@ -658,10 +658,10 @@ export default function ExamPage() {
 
             <div className="hidden sm:flex items-center gap-3 text-[11px] font-bold text-slate-500 shrink-0 dark:text-slate-400">
               <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> ÄÃ£ tráº£ lá»i ({Object.keys(userAnswers).length}/{selectedSet.questions.length})
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> Đã trả lời ({Object.keys(userAnswers).length}/{selectedSet.questions.length})
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Cáº§n xem láº¡i
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Cần xem lại
               </span>
             </div>
           </div>
@@ -672,14 +672,14 @@ export default function ExamPage() {
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-black px-3 py-1 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900">
-                  CÃ¢u {currentQIndex + 1} / {selectedSet.questions.length}
+                  Câu {currentQIndex + 1} / {selectedSet.questions.length}
                 </span>
                 <span className="text-xs font-black px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800">
                   {activeQuestion.sectionName}
                 </span>
                 {activeQuestion.speakerRole && (
                   <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 border border-sky-200 dark:bg-sky-950 dark:text-sky-200 dark:border-sky-800">
-                    ðŸ‘¤ {activeQuestion.speakerRole}
+                    👤 {activeQuestion.speakerRole}
                   </span>
                 )}
               </div>
@@ -694,7 +694,7 @@ export default function ExamPage() {
                 }`}
               >
                 <Flag className="w-3.5 h-3.5" />
-                <span>{flaggedQuestions[activeQuestion.id] ? 'ÄÃ£ Ä‘Ã¡nh dáº¥u xem láº¡i' : 'ÄÃ¡nh dáº¥u xem láº¡i'}</span>
+                <span>{flaggedQuestions[activeQuestion.id] ? 'Đã đánh dấu xem lại' : 'Đánh dấu xem lại'}</span>
               </button>
             </div>
 
@@ -703,10 +703,10 @@ export default function ExamPage() {
               <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-2 border-emerald-200 space-y-3 dark:border-emerald-800 dark:from-emerald-950 dark:via-teal-950 dark:to-sky-950">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black text-emerald-800 uppercase tracking-wide flex items-center gap-1.5 dark:text-emerald-200">
-                    <Headphones className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> Nghe Ä‘oáº¡n há»™i thoáº¡i báº£n xá»©:
+                    <Headphones className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> Nghe đoạn hội thoại bản xứ:
                   </span>
                   <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                    Giá»ng chuáº©n US Business
+                    Giọng chuẩn US Business
                   </span>
                 </div>
 
@@ -721,7 +721,7 @@ export default function ExamPage() {
                     }`}
                   >
                     <Volume2 className="w-4 h-4" />
-                    <span>{isAudioPlaying ? 'Äang phÃ¡t Ã¢m thanh...' : 'Báº¥m nghe Ä‘oáº¡n há»™i thoáº¡i (1x)'}</span>
+                    <span>{isAudioPlaying ? 'Đang phát âm thanh...' : 'Bấm nghe đoạn hội thoại (1x)'}</span>
                   </button>
 
                   <button
@@ -732,7 +732,7 @@ export default function ExamPage() {
                     }}
                     className="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition cursor-pointer dark:bg-slate-900 dark:text-slate-300 hover:dark:bg-slate-800 dark:border-white/10"
                   >
-                    Tá»‘c Ä‘á»™ cháº­m (0.75x)
+                    Tốc độ chậm (0.75x)
                   </button>
                 </div>
               </div>
@@ -794,7 +794,7 @@ export default function ExamPage() {
                 className="btn-3d btn-3d-slate px-4 py-2.5 text-xs font-black shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span>CÃ¢u trÆ°á»›c</span>
+                <span>Câu trước</span>
               </button>
 
               {currentQIndex < selectedSet.questions.length - 1 ? (
@@ -805,7 +805,7 @@ export default function ExamPage() {
                   }}
                   className="btn-3d btn-3d-emerald px-5 py-2.5 text-xs font-black shadow-sm cursor-pointer flex items-center gap-1.5"
                 >
-                  <span>CÃ¢u káº¿ tiáº¿p</span>
+                  <span>Câu kế tiếp</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               ) : (
@@ -814,7 +814,7 @@ export default function ExamPage() {
                   className="btn-3d btn-3d-amber px-6 py-2.5 text-xs font-black text-slate-950 shadow-md cursor-pointer flex items-center gap-1.5 dark:text-slate-200"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Ná»™p bÃ i & Xem Ä‘iá»ƒm</span>
+                  <span>Nộp bài & Xem điểm</span>
                 </button>
               )}
             </div>
@@ -838,31 +838,31 @@ export default function ExamPage() {
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-3 max-w-2xl">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-black uppercase tracking-wider">
-                  {isPassed ? 'ðŸŽ‰ ChÃºc Má»«ng Báº¡n ÄÃ£ VÆ°á»£t Qua!' : 'ðŸ’ª Äá»«ng Náº£n LÃ²ng, HÃ£y Ã”n Táº­p Láº¡i!'}
+                  {isPassed ? '🎉 Chúc Mừng Bạn Đã Vượt Qua!' : '💪 Đừng Nản Lòng, Hãy Ôn Tập Lại!'}
                 </div>
                 <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
                   {selectedSet.vietnameseTitle}
                 </h1>
                 <p className="text-white/90 text-xs sm:text-sm leading-relaxed font-medium">
                   {isPassed
-                    ? `Báº¡n Ä‘Ã£ Ä‘áº¡t ${testPercentage}% (yÃªu cáº§u tá»‘i thiá»ƒu ${selectedSet.passingScore}%). Báº¡n Ä‘Ã£ náº¯m vá»¯ng cÃ¡c tÃ¬nh huá»‘ng vÃ  pháº£n xáº¡ cá»‘t lÃµi cá»§a bÃ i thi!`
-                    : `Báº¡n Ä‘áº¡t ${testPercentage}% (cáº§n ${selectedSet.passingScore}% Ä‘á»ƒ Ä‘áº­u). Xem ká»¹ pháº§n phÃ¢n tÃ­ch lá»—i sai vÃ  bÃ­ kÃ­p pháº£n xáº¡ bÃªn dÆ°á»›i Ä‘á»ƒ lÃ m láº¡i nhÃ©.`}
+                    ? `Bạn đã đạt ${testPercentage}% (yêu cầu tối thiểu ${selectedSet.passingScore}%). Bạn đã nắm vững các tình huống và phản xạ cốt lõi của bài thi!`
+                    : `Bạn đạt ${testPercentage}% (cần ${selectedSet.passingScore}% để đậu). Xem kỹ phần phân tích lỗi sai và bí kíp phản xạ bên dưới để làm lại nhé.`}
                 </p>
 
                 {rewardsAwarded && (
                   <div className="flex items-center gap-3 pt-2">
                     <span className="bg-amber-400 text-slate-950 px-4 py-1.5 rounded-xl font-black text-xs sm:text-sm shadow-md flex items-center gap-1.5">
-                      â­ +{rewardsAwarded.exp} EXP
+                      ⭐ +{rewardsAwarded.exp} EXP
                     </span>
                     <span className="bg-amber-400 text-slate-950 px-4 py-1.5 rounded-xl font-black text-xs sm:text-sm shadow-md flex items-center gap-1.5">
-                      ðŸª™ +{rewardsAwarded.coins} Coins
+                      🪙 +{rewardsAwarded.coins} Coins
                     </span>
                     <Link
                       href="/pet"
                       onClick={() => sound.playClick()}
                       className="text-xs font-black text-white underline decoration-white hover:text-amber-200"
                     >
-                      DÃ¹ng Coin chÄƒm sÃ³c Pet ðŸ¾ &rarr;
+                      Dùng Coin chăm sóc Pet 🐾 &rarr;
                     </Link>
                   </div>
                 )}
@@ -874,14 +874,14 @@ export default function ExamPage() {
                   {testPercentage}%
                 </span>
                 <span className="text-xs font-bold text-white/90 mt-1">
-                  ÄÃºng {testScore} / {selectedSet.questions.length} cÃ¢u
+                  Đúng {testScore} / {selectedSet.questions.length} câu
                 </span>
                 <span
                   className={`mt-3 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider ${
                     isPassed ? 'bg-emerald-400 text-slate-950' : 'bg-rose-200 text-rose-950 dark:bg-rose-900 dark:text-rose-200'
                   }`}
                 >
-                  {isPassed ? 'Äáº T YÃŠU Cáº¦U' : 'CHÆ¯A Äáº T'}
+                  {isPassed ? 'ĐẠT YÊU CẦU' : 'CHƯA ĐẠT'}
                 </span>
               </div>
             </div>
@@ -897,7 +897,7 @@ export default function ExamPage() {
               className="btn-3d btn-3d-slate px-5 py-2.5 text-xs font-black shadow-xs cursor-pointer flex items-center gap-1.5"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Quay láº¡i danh sÃ¡ch Ä‘á» thi</span>
+              <span>Quay lại danh sách đề thi</span>
             </button>
 
             <button
@@ -905,7 +905,7 @@ export default function ExamPage() {
               className="btn-3d btn-3d-emerald px-6 py-2.5 text-xs font-black shadow-md cursor-pointer flex items-center gap-1.5"
             >
               <RotateCcw className="w-4 h-4" />
-              <span>Thi láº¡i Ä‘á» nÃ y</span>
+              <span>Thi lại đề này</span>
             </button>
           </div>
 
@@ -914,10 +914,10 @@ export default function ExamPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2 dark:text-slate-100">
                 <BarChart3 className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
-                PhÃ¢n TÃ­ch Chi Tiáº¿t Tá»«ng CÃ¢u & BÃ­ KÃ­p SÆ° Pháº¡m
+                Phân Tích Chi Tiết Từng Câu & Bí Kíp Sư Phạm
               </h2>
               <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                Hiá»ƒn thá»‹ {selectedSet.questions.length} cÃ¢u
+                Hiển thị {selectedSet.questions.length} câu
               </span>
             </div>
 
@@ -948,11 +948,11 @@ export default function ExamPage() {
                         </span>
                         {isCorrect ? (
                           <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1 dark:text-emerald-300 dark:bg-emerald-950">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> ChÃ­nh xÃ¡c
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Chính xác
                           </span>
                         ) : (
                           <span className="text-xs font-black text-rose-700 bg-rose-100 px-2.5 py-0.5 rounded-full flex items-center gap-1 dark:text-rose-300 dark:bg-rose-950">
-                            <XCircle className="w-3.5 h-3.5" /> ChÆ°a chÃ­nh xÃ¡c
+                            <XCircle className="w-3.5 h-3.5" /> Chưa chính xác
                           </span>
                         )}
                       </div>
@@ -965,7 +965,7 @@ export default function ExamPage() {
                           }}
                           className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-3 py-1 rounded-xl border border-emerald-200 transition cursor-pointer dark:text-emerald-300 hover:dark:text-emerald-200 dark:bg-emerald-950 hover:dark:bg-emerald-950 dark:border-emerald-800"
                         >
-                          <Volume2 className="w-3.5 h-3.5" /> Nghe láº¡i audio
+                          <Volume2 className="w-3.5 h-3.5" /> Nghe lại audio
                         </button>
                       )}
                     </div>
@@ -1003,12 +1003,12 @@ export default function ExamPage() {
                             <div className="shrink-0 flex items-center gap-1">
                               {isCorrectOption && (
                                 <span className="text-[10px] font-black text-emerald-800 bg-emerald-200 px-2 py-0.5 rounded-full dark:text-emerald-200 dark:bg-emerald-900">
-                                  ÄÃ¡p Ã¡n Ä‘Ãºng
+                                  Đáp án đúng
                                 </span>
                               )}
                               {isUserChoice && (
                                 <span className="text-[10px] font-black text-slate-800 bg-slate-200 px-2 py-0.5 rounded-full dark:text-slate-200 dark:bg-slate-700">
-                                  Báº¡n Ä‘Ã£ chá»n
+                                  Bạn đã chọn
                                 </span>
                               )}
                             </div>
@@ -1021,14 +1021,14 @@ export default function ExamPage() {
                     <div className="pt-2 space-y-2.5">
                       <div className="p-3.5 rounded-2xl bg-white border border-slate-200 text-xs text-slate-700 space-y-1 dark:bg-slate-900 dark:border-white/10 dark:text-slate-300">
                         <span className="font-black text-slate-900 block dark:text-slate-100">
-                          ðŸ“– Giáº£i thÃ­ch chi tiáº¿t:
+                          📖 Giải thích chi tiết:
                         </span>
                         <p className="leading-relaxed font-medium">{q.explanation}</p>
                       </div>
 
                       <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 space-y-1 dark:border-amber-800 dark:text-amber-200">
                         <span className="font-black text-amber-950 flex items-center gap-1 dark:text-amber-200">
-                          ðŸ’¡ BÃ­ kÃ­p pháº£n xáº¡ báº£n xá»©:
+                          💡 Bí kíp phản xạ bản xứ:
                         </span>
                         <p className="leading-relaxed font-semibold">{q.pedagogicalTip}</p>
                       </div>
@@ -1053,7 +1053,7 @@ export default function ExamPage() {
               </div>
               <div>
                 <h3 className="text-lg font-black text-slate-900 leading-tight dark:text-slate-100">
-                  XÃ¡c nháº­n ná»™p bÃ i thi?
+                  Xác nhận nộp bài thi?
                 </h3>
                 <p className="text-xs text-slate-500 font-medium dark:text-slate-400">
                   {selectedSet.vietnameseTitle}
@@ -1063,19 +1063,19 @@ export default function ExamPage() {
 
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-2 font-medium dark:bg-slate-900 dark:border-white/10 dark:text-slate-400">
               <div className="flex items-center justify-between">
-                <span>Sá»‘ cÃ¢u Ä‘Ã£ tráº£ lá»i:</span>
+                <span>Số câu đã trả lời:</span>
                 <span className="font-black text-emerald-700 dark:text-emerald-300">
                   {Object.keys(userAnswers).length} / {selectedSet.questions.length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Sá»‘ cÃ¢u cÃ²n bá» trá»‘ng:</span>
+                <span>Số câu còn bỏ trống:</span>
                 <span className="font-black text-rose-600 dark:text-rose-300">
-                  {selectedSet.questions.length - Object.keys(userAnswers).length} cÃ¢u
+                  {selectedSet.questions.length - Object.keys(userAnswers).length} câu
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Thá»i gian cÃ²n láº¡i:</span>
+                <span>Thời gian còn lại:</span>
                 <span className="font-mono font-black text-slate-900 dark:text-slate-100">
                   {formatTime(secondsRemaining)}
                 </span>
@@ -1084,7 +1084,7 @@ export default function ExamPage() {
 
             {selectedSet.questions.length - Object.keys(userAnswers).length > 0 && (
               <p className="text-[11px] font-bold text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200 dark:text-amber-300 dark:bg-amber-950 dark:border-amber-800">
-                âš ï¸ Báº¡n váº«n cÃ²n cÃ¢u há»i chÆ°a chá»n Ä‘Ã¡p Ã¡n. CÃ¡c cÃ¢u chÆ°a tráº£ lá»i sáº½ Ä‘Æ°á»£c tÃ­nh lÃ  0 Ä‘iá»ƒm.
+                ⚠️ Bạn vẫn còn câu hỏi chưa chọn đáp án. Các câu chưa trả lời sẽ được tính là 0 điểm.
               </p>
             )}
 
@@ -1096,14 +1096,14 @@ export default function ExamPage() {
                 }}
                 className="btn-3d btn-3d-slate px-4 py-2 text-xs font-black cursor-pointer"
               >
-                LÃ m tiáº¿p
+                Làm tiếp
               </button>
 
               <button
                 onClick={handleConfirmSubmit}
                 className="btn-3d btn-3d-amber px-5 py-2 text-xs font-black text-slate-950 shadow-md cursor-pointer dark:text-slate-200"
               >
-                Cháº¯c cháº¯n ná»™p bÃ i
+                Chắc chắn nộp bài
               </button>
             </div>
           </div>

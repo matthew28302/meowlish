@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import type { Metadata } from 'next';
 
@@ -64,17 +64,17 @@ interface ChatMessage {
   timestamp: string;
 }
 
-/** CÃ¡c field cá»§a form táº¡o phiáº¿u há»— trá»£ cáº§n validate phÃ­a client */
+/** Các field của form tạo phiếu hỗ trợ cần validate phía client */
 type TicketFieldKey = 'category' | 'name' | 'email' | 'subject' | 'message';
 type TicketFieldErrors = Partial<Record<TicketFieldKey, string>>;
 
-/** Thá»© tá»± Æ°u tiÃªn khi focus + hiá»ƒn thá»‹ banner tá»•ng há»£p (theo thá»© tá»± trÃªn form) */
+/** Thứ tự ưu tiên khi focus + hiển thị banner tổng hợp (theo thứ tự trên form) */
 const TICKET_FIELD_ORDER: TicketFieldKey[] = ['category', 'name', 'email', 'subject', 'message'];
 
-/** Email pháº£i khá»›p vá»›i regex server-side: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ */
+/** Email phải khớp với regex server-side: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ */
 const TICKET_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Sá»‘ kÃ½ tá»± tá»‘i thiá»ƒu cho mÃ´ táº£ chi tiáº¿t */
+/** Số ký tự tối thiểu cho mô tả chi tiết */
 const TICKET_MESSAGE_MIN = 20;
 
 interface FaqArticle {
@@ -94,7 +94,7 @@ export default function SupportPage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
 
   // ==========================================
-  // TAB 1: KNOWLEDGE BASE (Cáº¨M NANG & HÆ¯á»šNG DáºªN)
+  // TAB 1: KNOWLEDGE BASE (CẨM NANG & HƯỚNG DẪN)
   // ==========================================
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'study' | 'pet' | 'coins' | 'security'>('all');
@@ -108,7 +108,7 @@ export default function SupportPage() {
       id: 'welcome',
       role: 'assistant',
       content:
-        'Meow! ChÃ o báº¡n há»c viÃªn! MÃ¬nh lÃ  **Trá»£ LÃ½ MÃ¨o AI Meowlish** ðŸ±âœ¨.\n\nMÃ¬nh cÃ³ thá»ƒ giáº£i Ä‘Ã¡p ngay láº­p tá»©c cÃ¡ch kiáº¿m Coins, cÃ¡ch chÄƒm sÃ³c thÃº cÆ°ng khi Ä‘Ã³i, phÆ°Æ¡ng phÃ¡p há»c Ngá»¯ PhÃ¡p Lego, cÃ¡ch báº­t 2FA, máº¹o lÃ m bÃ i thi hoáº·c báº¥t ká»³ tháº¯c máº¯c nÃ o cá»§a báº¡n. Báº¡n cá»© tá»± nhiÃªn há»i nhÃ©!',
+        'Meow! Chào bạn học viên! Mình là **Trợ Lý Mèo AI Meowlish** 🐱✨.\n\nMình có thể giải đáp ngay lập tức cách kiếm Coins, cách chăm sóc thú cưng khi đói, phương pháp học Ngữ Pháp Lego, cách bật 2FA, mẹo làm bài thi hoặc bất kỳ thắc mắc nào của bạn. Bạn cứ tự nhiên hỏi nhé!',
       provider: 'groq',
       timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
     },
@@ -135,7 +135,7 @@ export default function SupportPage() {
   const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<TicketFieldErrors>({});
 
-  // Refs Ä‘á»ƒ focus vÃ o field Ä‘áº§u tiÃªn bá»‹ lá»—i khi submit
+  // Refs để focus vào field đầu tiên bị lỗi khi submit
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const subjectRef = useRef<HTMLInputElement>(null);
@@ -145,8 +145,8 @@ export default function SupportPage() {
   // History state
   const [myTickets, setMyTickets] = useState<TicketItem[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false);
-  // KhÃ¡ch chÆ°a Ä‘Äƒng nháº­p chá»‰ tháº¥y metadata phiáº¿u â€” cáº§n giáº£i thÃ­ch rÃµ thay vÃ¬
-  // hiá»‡n card tráº¯ng trÆ¡n khiáº¿n tÆ°á»Ÿng á»©ng dá»¥ng lá»—i.
+  // Khách chưa đăng nhập chỉ thấy metadata phiếu — cần giải thích rõ thay vì
+  // hiện card trắng trơn khiến tưởng ứng dụng lỗi.
   const [historyRedacted, setHistoryRedacted] = useState<boolean>(false);
   const [historyError, setHistoryError] = useState<string>('');
   const [historySearchQuery, setHistorySearchQuery] = useState<string>('');
@@ -158,7 +158,7 @@ export default function SupportPage() {
       setCurrentUser(user);
       if (user.display_name) setName(user.display_name);
       if (user.email) setEmail(user.email);
-      // Tá»± Ä‘á»™ng táº£i lá»‹ch sá»­ ticket náº¿u Ä‘Ã£ Ä‘Äƒng nháº­p
+      // Tự động tải lịch sử ticket nếu đã đăng nhập
       fetchTicketHistory(user.id, user.email);
     }
     return () => {
@@ -166,7 +166,7 @@ export default function SupportPage() {
     };
   }, []);
 
-  // Tá»± Ä‘á»™ng cuá»™n chat xuá»‘ng Ä‘Ã¡y khi cÃ³ tin nháº¯n má»›i
+  // Tự động cuộn chat xuống đáy khi có tin nhắn mới
   useEffect(() => {
     if (chatScrollRef.current) {
       chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
@@ -188,14 +188,14 @@ export default function SupportPage() {
       const data = await res.json();
       if (res.ok && data.tickets) {
         setMyTickets(data.tickets);
-        // Server chá»‰ tráº£ metadata cho khÃ¡ch chÆ°a Ä‘Äƒng nháº­p (Ä‘á»ƒ khÃ´ng lá»™ ná»™i
-        // dung phiáº¿u cá»§a ngÆ°á»i khÃ¡c). KhÃ´ng cÃ³ cá» bÃ¡o thÃ¬ UI hiá»‡n má»™t card tráº¯ng
-        // trÆ¡n: khÃ´ng tiÃªu Ä‘á», khÃ´ng ná»™i dung, khÃ´ng tráº£ lá»i admin â€” trÃ´ng nhÆ°
-        // lá»—i mÃ  khÃ´ng cÃ³ lÃ½ do.
+        // Server chỉ trả metadata cho khách chưa đăng nhập (để không lộ nội
+        // dung phiếu của người khác). Không có cờ báo thì UI hiện một card trắng
+        // trơn: không tiêu đề, không nội dung, không trả lời admin — trông như
+        // lỗi mà không có lý do.
         setHistoryRedacted(Boolean(data.redacted));
         setHistoryError('');
       } else if (!res.ok) {
-        setHistoryError(data.error || 'KhÃ´ng táº£i Ä‘Æ°á»£c lá»‹ch sá»­ phiáº¿u há»— trá»£.');
+        setHistoryError(data.error || 'Không tải được lịch sử phiếu hỗ trợ.');
       }
     } catch {
       // Ignored
@@ -208,203 +208,203 @@ export default function SupportPage() {
   // KNOWLEDGE BASE DATA
   // ==========================================
   const faqArticles: FaqArticle[] = [
-    // 1. Há»c táº­p hiá»‡u quáº£ (study)
+    // 1. Học tập hiệu quả (study)
     {
       id: 'study-1',
       category: 'study',
-      icon: 'ðŸ“š',
-      title: 'Lá»™ TrÃ¬nh Há»c Chuáº©n CEFR & BÃ¡ch Khoa 26.500+ Tá»« Vá»±ng',
-      summary: 'KhÃ¡m phÃ¡ tá»« Ä‘iá»ƒn song ngá»¯ chuáº©n ChÃ¢u Ã‚u A1-C2, phÃ¡t Ã¢m IPA vÃ  collocations thá»±c chiáº¿n.',
+      icon: '📚',
+      title: 'Lộ Trình Học Chuẩn CEFR & Bách Khoa 26.500+ Từ Vựng',
+      summary: 'Khám phá từ điển song ngữ chuẩn Châu Âu A1-C2, phát âm IPA và collocations thực chiến.',
       content: [
-        'Há»‡ thá»‘ng tá»« vá»±ng trÃªn Meowlish Ä‘Æ°á»£c phÃ¢n cáº¥p khoa há»c tá»« sÆ¡ cáº¥p A1 Ä‘áº¿n cao cáº¥p C2 chuáº©n khung tham chiáº¿u ChÃ¢u Ã‚u.',
-        'Má»—i tá»« Ä‘á»u tÃ­ch há»£p audio phÃ¡t Ã¢m chuáº©n IPA cá»§a ngÆ°á»i báº£n xá»© Anh - Má»¹, giáº£i nghÄ©a trá»±c quan kÃ¨m cÃ¡c cáº·p collocations vÃ  vÃ­ dá»¥ tÃ¬nh huá»‘ng vÄƒn phÃ²ng IT thá»±c chiáº¿n.',
-        'Báº¡n cÃ³ thá»ƒ tÃ¬m kiáº¿m nhanh vÃ  lÆ°u tá»« vá»±ng yÃªu thÃ­ch vÃ o Sá»• tay tá»« vá»±ng Bookmark Ä‘á»ƒ Ã´n táº­p hÃ ng ngÃ y.',
+        'Hệ thống từ vựng trên Meowlish được phân cấp khoa học từ sơ cấp A1 đến cao cấp C2 chuẩn khung tham chiếu Châu Âu.',
+        'Mỗi từ đều tích hợp audio phát âm chuẩn IPA của người bản xứ Anh - Mỹ, giải nghĩa trực quan kèm các cặp collocations và ví dụ tình huống văn phòng IT thực chiến.',
+        'Bạn có thể tìm kiếm nhanh và lưu từ vựng yêu thích vào Sổ tay từ vựng Bookmark để ôn tập hàng ngày.',
       ],
       actionLink: '/encyclopedia',
-      actionText: 'Tra cá»©u Tá»« Äiá»ƒn BÃ¡ch Khoa',
-      tags: ['tá»« vá»±ng', 'cefr', 'ipa', 'phÃ¡t Ã¢m', 'bÃ¡ch khoa', 'tra tá»«', 'encyclopedia'],
+      actionText: 'Tra cứu Từ Điển Bách Khoa',
+      tags: ['từ vựng', 'cefr', 'ipa', 'phát âm', 'bách khoa', 'tra từ', 'encyclopedia'],
     },
     {
       id: 'study-2',
       category: 'study',
-      icon: 'ðŸ§©',
-      title: 'PhÆ°Æ¡ng PhÃ¡p Ngá»¯ PhÃ¡p Lego GhÃ©p Khá»‘i Trá»±c Quan',
-      summary: 'Há»c cÃ¡ch ghÃ©p cÃ¢u tiáº¿ng Anh báº±ng cÃ¡c khá»‘i mÃ u sáº¯c tá»± nhiÃªn mÃ  khÃ´ng cáº§n há»c váº¹t cÃ´ng thá»©c.',
+      icon: '🧩',
+      title: 'Phương Pháp Ngữ Pháp Lego Ghép Khối Trực Quan',
+      summary: 'Học cách ghép câu tiếng Anh bằng các khối màu sắc tự nhiên mà không cần học vẹt công thức.',
       content: [
-        'Ngá»¯ PhÃ¡p Lego chia nhá» cÃ¡c thÃ nh pháº§n ngá»¯ phÃ¡p thÃ nh cÃ¡c khá»‘i Lego mÃ u sáº¯c trá»±c quan:',
-        'â€¢ Khá»‘i Xanh lÃ¡ (Green): Chá»§ ngá»¯ (Subject) - Ai lÃ m hÃ nh Ä‘á»™ng?',
-        'â€¢ Khá»‘i Cam (Orange): Äá»™ng tá»« (Verb) - HÃ nh Ä‘á»™ng lÃ  gÃ¬?',
-        'â€¢ Khá»‘i TÃ­m (Purple): TÃ¢n ngá»¯ (Object) - Nháº­n tÃ¡c Ä‘á»™ng nÃ o?',
-        'â€¢ Khá»‘i VÃ ng (Yellow): Tráº¡ng tá»« (Adverb) - á»ž Ä‘Ã¢u, khi nÃ o, nhÆ° tháº¿ nÃ o?',
-        'Báº¡n chá»‰ viá»‡c kÃ©o tháº£ cÃ¡c khá»‘i theo Ä‘Ãºng tráº­t tá»± tÆ° duy báº£n xá»©, nÃ£o bá»™ sáº½ ghi nhá»› cáº¥u trÃºc cÃ¢u má»™t cÃ¡ch tá»± Ä‘á»™ng vÃ  pháº£n xáº¡ tá»©c thÃ¬.',
+        'Ngữ Pháp Lego chia nhỏ các thành phần ngữ pháp thành các khối Lego màu sắc trực quan:',
+        '• Khối Xanh lá (Green): Chủ ngữ (Subject) - Ai làm hành động?',
+        '• Khối Cam (Orange): Động từ (Verb) - Hành động là gì?',
+        '• Khối Tím (Purple): Tân ngữ (Object) - Nhận tác động nào?',
+        '• Khối Vàng (Yellow): Trạng từ (Adverb) - Ở đâu, khi nào, như thế nào?',
+        'Bạn chỉ việc kéo thả các khối theo đúng trật tự tư duy bản xứ, não bộ sẽ ghi nhớ cấu trúc câu một cách tự động và phản xạ tức thì.',
       ],
       actionLink: '/grammar',
-      actionText: 'Luyá»‡n Ngá»¯ PhÃ¡p Lego Ngay',
-      tags: ['ngá»¯ phÃ¡p', 'lego', 'grammar', 'ghÃ©p cÃ¢u', 'khá»‘i mÃ u', 'cÃ´ng thá»©c'],
+      actionText: 'Luyện Ngữ Pháp Lego Ngay',
+      tags: ['ngữ pháp', 'lego', 'grammar', 'ghép câu', 'khối màu', 'công thức'],
     },
     {
       id: 'study-3',
       category: 'study',
-      icon: 'ðŸŽ™ï¸',
-      title: 'Luyá»‡n NÃ³i AI Voice & Nháº­n Diá»‡n PhÃ¡t Ã‚m Chuáº©n XÃ¡c',
-      summary: 'CÃ´ng nghá»‡ AI Speech Recognition trá»±c tiáº¿p cháº¥m Ä‘iá»ƒm Ä‘á»™ lÆ°u loÃ¡t vÃ  sá»­a lá»—i phÃ¡t Ã¢m tá»«ng Ã¢m tiáº¿t.',
+      icon: '🎙️',
+      title: 'Luyện Nói AI Voice & Nhận Diện Phát Âm Chuẩn Xác',
+      summary: 'Công nghệ AI Speech Recognition trực tiếp chấm điểm độ lưu loát và sửa lỗi phát âm từng âm tiết.',
       content: [
-        'Báº¡n khÃ´ng cáº§n micro Ä‘áº¯t tiá»n, chá»‰ cáº§n micro tai nghe hoáº·c Ä‘iá»‡n thoáº¡i thÃ´ng thÆ°á»ng.',
-        'Há»‡ thá»‘ng AI Voice phÃ¢n tÃ­ch kháº©u hÃ¬nh Ã¢m tiáº¿t vÃ  Ä‘á»‘i chiáº¿u chuáº©n phiÃªn Ã¢m quá»‘c táº¿ IPA theo thá»i gian thá»±c.',
-        'Äáº·c biá»‡t cÃ³ cÃ¡c bÃ i luyá»‡n nÃ³i theo tÃ¬nh huá»‘ng thá»±c táº¿: Daily Standup, Sprint Planning, Demo sáº£n pháº©m vÃ  phá»ng váº¥n xin viá»‡c tiáº¿ng Anh.',
+        'Bạn không cần micro đắt tiền, chỉ cần micro tai nghe hoặc điện thoại thông thường.',
+        'Hệ thống AI Voice phân tích khẩu hình âm tiết và đối chiếu chuẩn phiên âm quốc tế IPA theo thời gian thực.',
+        'Đặc biệt có các bài luyện nói theo tình huống thực tế: Daily Standup, Sprint Planning, Demo sản phẩm và phỏng vấn xin việc tiếng Anh.',
       ],
       actionLink: '/practice/speaking',
-      actionText: 'Thá»­ Giá»ng CÃ¹ng AI Voice',
-      tags: ['luyá»‡n nÃ³i', 'ai voice', 'phÃ¡t Ã¢m', 'speaking', 'standup', 'micro'],
+      actionText: 'Thử Giọng Cùng AI Voice',
+      tags: ['luyện nói', 'ai voice', 'phát âm', 'speaking', 'standup', 'micro'],
     },
     {
       id: 'study-4',
       category: 'study',
-      icon: 'ðŸ“',
-      title: 'BÃ i Kiá»ƒm Tra Quiz & PhÃ²ng Thi Thá»­ Chuáº©n Quá»‘c Táº¿',
-      summary: 'ÄÃ¡nh giÃ¡ nÄƒng lá»±c sau má»—i Unit vÃ  lÃ m quen Ä‘á»‹nh dáº¡ng Ä‘á» thi TOEIC, IELTS thá»±c chiáº¿n.',
+      icon: '📝',
+      title: 'Bài Kiểm Tra Quiz & Phòng Thi Thử Chuẩn Quốc Tế',
+      summary: 'Đánh giá năng lực sau mỗi Unit và làm quen định dạng đề thi TOEIC, IELTS thực chiến.',
       content: [
-        'Sau má»—i bÃ i há»c tá»« vá»±ng hay ngá»¯ phÃ¡p, há»‡ thá»‘ng Ä‘á»u cung cáº¥p bÃ i Mini-Quiz tá»« 5-10 cÃ¢u tráº¯c nghiá»‡m Ä‘á»ƒ cá»§ng cá»‘ kiáº¿n thá»©c.',
-        'NgoÃ i ra, táº¡i má»¥c Luyá»‡n Thi, há»c viÃªn cÃ³ thá»ƒ thá»­ sá»©c vá»›i cÃ¡c bá»™ Ä‘á» thi thá»­ Ä‘á»‹nh dáº¡ng chuáº©n TOEIC / IELTS cÃ³ Ä‘á»“ng há»“ Ä‘áº¿m ngÆ°á»£c vÃ  báº£ng giáº£i thÃ­ch Ä‘Ã¡p Ã¡n chi tiáº¿t tá»«ng cÃ¢u.',
-        'LÃ m Ä‘Ãºng bÃ i kiá»ƒm tra sáº½ Ä‘em láº¡i lÆ°á»£ng Exp vÃ  Coins thÆ°á»Ÿng ráº¥t lá»›n Ä‘á»ƒ thÄƒng háº¡ng!',
+        'Sau mỗi bài học từ vựng hay ngữ pháp, hệ thống đều cung cấp bài Mini-Quiz từ 5-10 câu trắc nghiệm để củng cố kiến thức.',
+        'Ngoài ra, tại mục Luyện Thi, học viên có thể thử sức với các bộ đề thi thử định dạng chuẩn TOEIC / IELTS có đồng hồ đếm ngược và bảng giải thích đáp án chi tiết từng câu.',
+        'Làm đúng bài kiểm tra sẽ đem lại lượng Exp và Coins thưởng rất lớn để thăng hạng!',
       ],
       actionLink: '/exam',
-      actionText: 'VÃ o PhÃ²ng Luyá»‡n Thi Thá»­',
-      tags: ['kiá»ƒm tra', 'quiz', 'thi thá»­', 'test', 'toeic', 'ielts', 'Ä‘Ã¡nh giÃ¡'],
+      actionText: 'Vào Phòng Luyện Thi Thử',
+      tags: ['kiểm tra', 'quiz', 'thi thử', 'test', 'toeic', 'ielts', 'đánh giá'],
     },
 
-    // 2. NuÃ´i & NÃ¢ng cáº¥p ThÃº cÆ°ng (pet)
+    // 2. Nuôi & Nâng cấp Thú cưng (pet)
     {
       id: 'pet-1',
       category: 'pet',
-      icon: 'ðŸ¾',
-      title: 'LÃ m Quen Vá»›i 4 Linh Váº­t PixelFarm & Chá»‰ Sá»‘ Sá»©c Khá»e',
-      summary: 'KhÃ¡m phÃ¡ CÃº Lexi, MÃ¨o Mochi, CÃºn Taro, CÃ¡o Kitsune vÃ  cÃ¡ch duy trÃ¬ nÄƒng lÆ°á»£ng cho bÃ© cÆ°ng.',
+      icon: '🐾',
+      title: 'Làm Quen Với 4 Linh Vật PixelFarm & Chỉ Số Sức Khỏe',
+      summary: 'Khám phá Cú Lexi, Mèo Mochi, Cún Taro, Cáo Kitsune và cách duy trì năng lượng cho bé cưng.',
       content: [
-        'Khi tham gia Meowlish, báº¡n sáº½ chá»n 1 trong 4 bÃ© cÆ°ng Ä‘á»“ng hÃ nh: CÃº Lexi (thÃ´ng thÃ¡i), MÃ¨o Mochi (tinh nghá»‹ch), CÃºn Taro (trung thÃ nh), CÃ¡o Kitsune (nhanh nháº¹n).',
-        'BÃ© cÆ°ng cÃ³ 3 chá»‰ sá»‘ sá»©c khá»e chÃ­nh:',
-        'â€¢ ÄÃ³i (Hunger): Giáº£m dáº§n theo thá»i gian. Khi Ä‘Ã³i bÃ© sáº½ buá»“n vÃ  khÃ´ng cá»• vÅ© báº¡n há»c táº­p.',
-        'â€¢ Háº¡nh phÃºc (Happiness): TÄƒng khi báº¡n hoÃ n thÃ nh bÃ i há»c, cho Äƒn mÃ³n ngon vÃ  chÆ¡i Ä‘Ã¹a.',
-        'â€¢ NÄƒng lÆ°á»£ng (Energy): Cáº§n thiáº¿t Ä‘á»ƒ tham gia cÃ¡c thá»­ thÃ¡ch mini-game.',
+        'Khi tham gia Meowlish, bạn sẽ chọn 1 trong 4 bé cưng đồng hành: Cú Lexi (thông thái), Mèo Mochi (tinh nghịch), Cún Taro (trung thành), Cáo Kitsune (nhanh nhẹn).',
+        'Bé cưng có 3 chỉ số sức khỏe chính:',
+        '• Đói (Hunger): Giảm dần theo thời gian. Khi đói bé sẽ buồn và không cổ vũ bạn học tập.',
+        '• Hạnh phúc (Happiness): Tăng khi bạn hoàn thành bài học, cho ăn món ngon và chơi đùa.',
+        '• Năng lượng (Energy): Cần thiết để tham gia các thử thách mini-game.',
       ],
       actionLink: '/pet',
-      actionText: 'GhÃ© ThÄƒm NÃ´ng Tráº¡i ThÃº CÆ°ng',
-      tags: ['pet', 'thÃº cÆ°ng', 'chá»‰ sá»‘', 'Ä‘Ã³i', 'háº¡nh phÃºc', 'mochi', 'lexi', 'taro', 'kitsune'],
+      actionText: 'Ghé Thăm Nông Trại Thú Cưng',
+      tags: ['pet', 'thú cưng', 'chỉ số', 'đói', 'hạnh phúc', 'mochi', 'lexi', 'taro', 'kitsune'],
     },
     {
       id: 'pet-2',
       category: 'pet',
-      icon: 'ðŸ²',
-      title: 'ThÃº CÆ°ng Bá»‹ ÄÃ³i ThÃ¬ Pháº£i LÃ m GÃ¬? CÃ¡ch Kiáº¿m Thá»©c Ä‚n',
-      summary: 'HÆ°á»›ng dáº«n cho pet Äƒn no bá»¥ng vÃ  máº¹o nháº­n thá»©c Äƒn thÆ¡m ngon miá»…n phÃ­ má»—i ngÃ y.',
+      icon: '🍲',
+      title: 'Thú Cưng Bị Đói Thì Phải Làm Gì? Cách Kiếm Thức Ăn',
+      summary: 'Hướng dẫn cho pet ăn no bụng và mẹo nhận thức ăn thơm ngon miễn phí mỗi ngày.',
       content: [
-        'BÆ°á»›c 1: Truy cáº­p má»¥c ThÃº CÆ°ng (/pet).',
-        'BÆ°á»›c 2: Báº¥m nÃºt "Cho Äƒn" (Feed) Ä‘á»ƒ tÄƒng chá»‰ sá»‘ no bá»¥ng vÃ  Ä‘á»™ vui váº» cá»§a bÃ© cÆ°ng.',
-        'CÃ¡ch nháº­n thá»©c Äƒn ngon lÃ nh:',
-        'â€¢ HoÃ n thÃ nh má»—i bÃ i há»c Tá»« vá»±ng hay Ngá»¯ phÃ¡p sáº½ nháº­n ngay thá»©c Äƒn thÆ°á»£ng háº¡ng cho pet.',
-        'â€¢ DÃ¹ng Coins tÃ­ch lÅ©y Ä‘á»ƒ sáº¯m thÃªm cÃ¡c mÃ³n Äƒn yÃªu thÃ­ch trong Cá»­a HÃ ng PixelFarm.',
+        'Bước 1: Truy cập mục Thú Cưng (/pet).',
+        'Bước 2: Bấm nút "Cho ăn" (Feed) để tăng chỉ số no bụng và độ vui vẻ của bé cưng.',
+        'Cách nhận thức ăn ngon lành:',
+        '• Hoàn thành mỗi bài học Từ vựng hay Ngữ pháp sẽ nhận ngay thức ăn thượng hạng cho pet.',
+        '• Dùng Coins tích lũy để sắm thêm các món ăn yêu thích trong Cửa Hàng PixelFarm.',
       ],
       actionLink: '/pet',
-      actionText: 'Cho BÃ© CÆ°ng Ä‚n Ngay',
-      tags: ['Ä‘Ã³i', 'cho Äƒn', 'thá»©c Äƒn', 'feed', 'thÃº cÆ°ng', 'pet'],
+      actionText: 'Cho Bé Cưng Ăn Ngay',
+      tags: ['đói', 'cho ăn', 'thức ăn', 'feed', 'thú cưng', 'pet'],
     },
     {
       id: 'pet-3',
       category: 'pet',
-      icon: 'ðŸŽ©',
-      title: 'Cá»­a HÃ ng Thá»i Trang & Thay Äá»•i Cáº£nh Quan Sá»‘ng',
-      summary: 'Sáº¯m nÃ³n phÃ¹ thá»§y, kÃ­nh rÃ¢m coder, vÆ°Æ¡ng miá»‡n vÃ  má»Ÿ khÃ³a cáº£nh quan VÆ°á»n Xanh, LÃ ng LÃ¡.',
+      icon: '🎩',
+      title: 'Cửa Hàng Thời Trang & Thay Đổi Cảnh Quan Sống',
+      summary: 'Sắm nón phù thủy, kính râm coder, vương miện và mở khóa cảnh quan Vườn Xanh, Làng Lá.',
       content: [
-        'Táº¡i Cá»­a HÃ ng ThÃº CÆ°ng, báº¡n cÃ³ thá»ƒ biáº¿n hÃ³a phong cÃ¡ch Ä‘á»™c Ä‘Ã¡o cho bÃ© cÆ°ng cá»§a mÃ¬nh:',
-        'â€¢ NÃ³n & Phá»¥ kiá»‡n: NÃ³n phÃ¹ thá»§y ma thuáº­t, kÃ­nh rÃ¢m coder cool ngáº§u, vÆ°Æ¡ng miá»‡n hoÃ ng gia láº¥p lÃ¡nh.',
-        'â€¢ Trang phá»¥c: Ão choÃ ng phiÃªu lÆ°u, Ä‘á»“ng phá»¥c há»c sinh Meowlish.',
-        'â€¢ Cáº£nh quan mÃ´i trÆ°á»ng sá»‘ng: Äá»•i phong ná»n VÆ°á»n Xanh YÃªn BÃ¬nh, LÃ ng LÃ¡ Ninja Huyá»n BÃ­, hoáº·c Äáº£o Háº£i Táº·c PhiÃªu LÆ°u!',
+        'Tại Cửa Hàng Thú Cưng, bạn có thể biến hóa phong cách độc đáo cho bé cưng của mình:',
+        '• Nón & Phụ kiện: Nón phù thủy ma thuật, kính râm coder cool ngầu, vương miện hoàng gia lấp lánh.',
+        '• Trang phục: Áo choàng phiêu lưu, đồng phục học sinh Meowlish.',
+        '• Cảnh quan môi trường sống: Đổi phong nền Vườn Xanh Yên Bình, Làng Lá Ninja Huyền Bí, hoặc Đảo Hải Tặc Phiêu Lưu!',
       ],
       actionLink: '/pet',
-      actionText: 'VÃ o Cá»­a HÃ ng Thá»i Trang',
-      tags: ['shop', 'cá»­a hÃ ng', 'thá»i trang', 'phá»¥ kiá»‡n', 'nÃ³n', 'Ã¡o', 'cáº£nh quan', 'vÆ°á»n xanh'],
+      actionText: 'Vào Cửa Hàng Thời Trang',
+      tags: ['shop', 'cửa hàng', 'thời trang', 'phụ kiện', 'nón', 'áo', 'cảnh quan', 'vườn xanh'],
     },
 
-    // 3. TÃ­ch lÅ©y Coins & Cá»­a hÃ ng (coins)
+    // 3. Tích lũy Coins & Cửa hàng (coins)
     {
       id: 'coins-1',
       category: 'coins',
-      icon: 'ðŸ’°',
-      title: 'BÃ­ Quyáº¿t Kiáº¿m Tháº­t Nhiá»u Coins Nhanh Nháº¥t',
-      summary: '4 cÃ¡ch siÃªu tá»‘c giÃºp tÃºi xu cá»§a báº¡n luÃ´n Ä‘áº§y áº¯p Ä‘á»ƒ thoáº£i mÃ¡i sáº¯m Ä‘á»“ vÃ  báº£o vá»‡ chuá»—i Streak.',
+      icon: '💰',
+      title: 'Bí Quyết Kiếm Thật Nhiều Coins Nhanh Nhất',
+      summary: '4 cách siêu tốc giúp túi xu của bạn luôn đầy ắp để thoải mái sắm đồ và bảo vệ chuỗi Streak.',
       content: [
-        '1. HoÃ n ThÃ nh BÃ i Há»c ÄÃºng: Má»—i bÃ i há»c má»›i hoÃ n thÃ nh trong Tá»« vá»±ng vÃ  Ngá»¯ PhÃ¡p thÆ°á»Ÿng tá»« +5 Ä‘áº¿n +50 Coins.',
-        '2. Duy TrÃ¬ Chuá»—i Lá»­a Streak: Má»—i ngÃ y cÃ³ Ã­t nháº¥t 1 bÃ i há»c hoÃ n thÃ nh, Streak tá»± Ä‘á»™ng tÄƒng thÃªm 1 ngÃ y.',
-        '3. Thá»­ Sá»©c Vá»›i Quiz & Thi Thá»­: HoÃ n thÃ nh bÃ i kiá»ƒm tra vá»›i Ä‘iá»ƒm sá»‘ cao mang láº¡i thÃªm Coins thÆ°á»Ÿng.',
-        '4. Äáº¥u TrÆ°á»ng & Äua Xe: Tham gia PVP hoáº·c Ä‘ua xe vá»›i má»©c cÆ°á»£c 50â€“500 Coins Ä‘á»ƒ nhÃ¢n Ä‘Ã´i sá»‘ xu.',
+        '1. Hoàn Thành Bài Học Đúng: Mỗi bài học mới hoàn thành trong Từ vựng và Ngữ Pháp thưởng từ +5 đến +50 Coins.',
+        '2. Duy Trì Chuỗi Lửa Streak: Mỗi ngày có ít nhất 1 bài học hoàn thành, Streak tự động tăng thêm 1 ngày.',
+        '3. Thử Sức Với Quiz & Thi Thử: Hoàn thành bài kiểm tra với điểm số cao mang lại thêm Coins thưởng.',
+        '4. Đấu Trường & Đua Xe: Tham gia PVP hoặc đua xe với mức cược 50–500 Coins để nhân đôi số xu.',
       ],
       actionLink: '/pet',
-      actionText: 'VÃ o Trang ThÃº CÆ°ng',
-      tags: ['xu', 'coin', 'coins', 'kiáº¿m xu', 'tiá»n thÆ°á»Ÿng', 'streak'],
+      actionText: 'Vào Trang Thú Cưng',
+      tags: ['xu', 'coin', 'coins', 'kiếm xu', 'tiền thưởng', 'streak'],
     },
     {
       id: 'coins-2',
       category: 'coins',
-      icon: 'ðŸ”¥',
-      title: 'Duy TrÃ¬ Ngá»n Lá»­a Streak',
-      summary: 'CÃ¡ch giá»¯ chuá»—i há»c táº­p liÃªn tá»¥c Ä‘á»ƒ Streak luÃ´n tÄƒng.',
+      icon: '🔥',
+      title: 'Duy Trì Ngọn Lửa Streak',
+      summary: 'Cách giữ chuỗi học tập liên tục để Streak luôn tăng.',
       content: [
-        'Ngá»n lá»­a Streak thá»ƒ hiá»‡n tinh tháº§n kiÃªn trÃ¬ há»c táº­p má»—i ngÃ y cá»§a báº¡n. Streak tá»± Ä‘á»™ng tÄƒng thÃªm 1 má»—i ngÃ y báº¡n hoÃ n thÃ nh báº¥t ká»³ bÃ i há»c nÃ o (Tá»« vá»±ng, Ngá»¯ phÃ¡p, Flashcard...).',
-        'HÃ£y há»c Ä‘á»u Ä‘áº·n má»—i ngÃ y â€” chá»‰ cáº§n 1 bÃ i hoÃ n thÃ nh lÃ  Ä‘á»§ Ä‘á»ƒ giá»¯ ngá»n lá»­a luÃ´n chÃ¡y!',
-        'Máº¹o: Äáº·t lá»‹ch há»c cá»‘ Ä‘á»‹nh 15-20 phÃºt má»—i sÃ¡ng Ä‘á»ƒ khÃ´ng bao giá» bá» lá»¡ má»™t ngÃ y.',
+        'Ngọn lửa Streak thể hiện tinh thần kiên trì học tập mỗi ngày của bạn. Streak tự động tăng thêm 1 mỗi ngày bạn hoàn thành bất kỳ bài học nào (Từ vựng, Ngữ pháp, Flashcard...).',
+        'Hãy học đều đặn mỗi ngày — chỉ cần 1 bài hoàn thành là đủ để giữ ngọn lửa luôn cháy!',
+        'Mẹo: Đặt lịch học cố định 15-20 phút mỗi sáng để không bao giờ bỏ lỡ một ngày.',
       ],
       actionLink: '/flashcards',
-      actionText: 'Báº¯t Äáº§u Láº­t Flashcard',
-      tags: ['streak', 'ngá»n lá»­a', 'chuá»—i ngÃ y', 'flashcard'],
+      actionText: 'Bắt Đầu Lật Flashcard',
+      tags: ['streak', 'ngọn lửa', 'chuỗi ngày', 'flashcard'],
     },
 
-    // 4. Báº£o máº­t tÃ i khoáº£n & 2FA (security)
+    // 4. Bảo mật tài khoản & 2FA (security)
     {
       id: 'sec-1',
       category: 'security',
-      icon: 'ðŸ›¡ï¸',
-      title: 'Báº­t XÃ¡c Thá»±c 2 BÆ°á»›c (2FA) Qua OTP Email Báº£o Vá»‡ TÃ i Khoáº£n',
-      summary: 'KÃ­ch hoáº¡t lá»›p báº£o máº­t nÃ¢ng cao ngÄƒn ngá»«a xÃ¢m nháº­p trÃ¡i phÃ©p vÃ o tÃ i khoáº£n há»c táº­p.',
+      icon: '🛡️',
+      title: 'Bật Xác Thực 2 Bước (2FA) Qua OTP Email Bảo Vệ Tài Khoản',
+      summary: 'Kích hoạt lớp bảo mật nâng cao ngăn ngừa xâm nhập trái phép vào tài khoản học tập.',
       content: [
-        'Báº£o máº­t 2FA giÃºp báº£o vá»‡ sá»‘ dÆ° Coins, Ä‘iá»ƒm Exp vÃ  tiáº¿n Ä‘á»™ há»c táº­p cá»§a báº¡n.',
-        'CÃ¡ch kÃ­ch hoáº¡t:',
-        '1. Báº¥m nÃºt "ÄÄƒng Nháº­p" á»Ÿ gÃ³c trÃªn thanh Ä‘iá»u hÆ°á»›ng Ä‘á»ƒ má»Ÿ khung xÃ¡c thá»±c.',
-        '2. Trong khung Ä‘Ã³, tÃ¬m tháº» "Báº£o Máº­t 2 Lá»›p (2FA)" vÃ  gáº¡t nÃºt Báº­t.',
-        '3. Há»‡ thá»‘ng sáº½ gá»­i mÃ£ OTP 6 chá»¯ sá»‘ Ä‘áº¿n email cá»§a báº¡n Ä‘á»ƒ xÃ¡c thá»±c kÃ­ch hoáº¡t.',
-        'Tá»« cÃ¡c láº§n Ä‘Äƒng nháº­p sau, há»‡ thá»‘ng sáº½ yÃªu cáº§u nháº­p mÃ£ OTP gá»­i vá» email, Ä‘áº£m báº£o chá»‰ cÃ³ báº¡n má»›i cÃ³ quyá»n truy cáº­p!',
+        'Bảo mật 2FA giúp bảo vệ số dư Coins, điểm Exp và tiến độ học tập của bạn.',
+        'Cách kích hoạt:',
+        '1. Bấm nút "Đăng Nhập" ở góc trên thanh điều hướng để mở khung xác thực.',
+        '2. Trong khung đó, tìm thẻ "Bảo Mật 2 Lớp (2FA)" và gạt nút Bật.',
+        '3. Hệ thống sẽ gửi mã OTP 6 chữ số đến email của bạn để xác thực kích hoạt.',
+        'Từ các lần đăng nhập sau, hệ thống sẽ yêu cầu nhập mã OTP gửi về email, đảm bảo chỉ có bạn mới có quyền truy cập!',
       ],
-      tags: ['2fa', 'báº£o máº­t', 'otp', 'email', 'xÃ¡c thá»±c 2 bÆ°á»›c', 'tÃ i khoáº£n'],
+      tags: ['2fa', 'bảo mật', 'otp', 'email', 'xác thực 2 bước', 'tài khoản'],
     },
     {
       id: 'sec-2',
       category: 'security',
-      icon: 'ðŸ”‘',
-      title: 'QuÃªn Máº­t Kháº©u & CÃ¡ch KhÃ´i Phá»¥c Nhanh ChÃ³ng',
-      summary: 'Láº¥y láº¡i quyá»n truy cáº­p tÃ i khoáº£n an toÃ n trong vÃ²ng 1 phÃºt qua email xÃ¡c thá»±c.',
+      icon: '🔑',
+      title: 'Quên Mật Khẩu & Cách Khôi Phục Nhanh Chóng',
+      summary: 'Lấy lại quyền truy cập tài khoản an toàn trong vòng 1 phút qua email xác thực.',
       content: [
-        'Náº¿u báº¡n quÃªn máº­t kháº©u Ä‘Äƒng nháº­p, hÃ£y lÃ m theo cÃ¡c bÆ°á»›c sau:',
-        '1. Báº¥m nÃºt "ÄÄƒng Nháº­p" á»Ÿ gÃ³c trÃªn thanh Ä‘iá»u hÆ°á»›ng.',
-        '2. Chá»n dÃ²ng "QuÃªn máº­t kháº©u?".',
-        '3. Nháº­p tÃªn Ä‘Äƒng nháº­p hoáº·c Ä‘á»‹a chá»‰ email báº¡n Ä‘Ã£ dÃ¹ng Ä‘á»ƒ Ä‘Äƒng kÃ½ tÃ i khoáº£n.',
-        '4. Kiá»ƒm tra há»™p thÆ° (cáº£ má»¥c Há»™p thÆ° Ä‘áº¿n vÃ  Spam) Ä‘á»ƒ nháº­n mÃ£ OTP khÃ´i phá»¥c vÃ  Ä‘áº·t láº¡i máº­t kháº©u má»›i.',
+        'Nếu bạn quên mật khẩu đăng nhập, hãy làm theo các bước sau:',
+        '1. Bấm nút "Đăng Nhập" ở góc trên thanh điều hướng.',
+        '2. Chọn dòng "Quên mật khẩu?".',
+        '3. Nhập tên đăng nhập hoặc địa chỉ email bạn đã dùng để đăng ký tài khoản.',
+        '4. Kiểm tra hộp thư (cả mục Hộp thư đến và Spam) để nhận mã OTP khôi phục và đặt lại mật khẩu mới.',
       ],
-      tags: ['máº­t kháº©u', 'quÃªn máº­t kháº©u', 'password', 'khÃ´i phá»¥c', 'reset'],
+      tags: ['mật khẩu', 'quên mật khẩu', 'password', 'khôi phục', 'reset'],
     },
     {
       id: 'sec-3',
       category: 'security',
-      icon: 'â˜ï¸',
-      title: 'Äá»“ng Bá»™ Tiáº¿n Äá»™ Há»c Táº­p LÃªn ÄÃ¡m MÃ¢y S3 Filebase',
-      summary: 'ToÃ n bá»™ dá»¯ liá»‡u Ä‘Æ°á»£c sao lÆ°u thá»i gian thá»±c, há»c liá»n máº¡ch trÃªn má»i mÃ¡y tÃ­nh vÃ  Ä‘iá»‡n thoáº¡i.',
+      icon: '☁️',
+      title: 'Đồng Bộ Tiến Độ Học Tập Lên Đám Mây S3 Filebase',
+      summary: 'Toàn bộ dữ liệu được sao lưu thời gian thực, học liền mạch trên mọi máy tính và điện thoại.',
       content: [
-        'ToÃ n bá»™ quÃ¡ trÃ¬nh há»c tá»« vá»±ng, sá»• tay bookmark, sá»‘ dÆ° Coins, thÃº cÆ°ng vÃ  chuá»—i Streak Ä‘á»u Ä‘Æ°á»£c Ä‘á»“ng bá»™ tá»± Ä‘á»™ng lÃªn mÃ¡y chá»§ cÆ¡ sá»Ÿ dá»¯ liá»‡u vÃ  sao lÆ°u Ä‘á»‹nh ká»³ lÃªn dá»‹ch vá»¥ Ä‘Ã¡m mÃ¢y Filebase S3 an toÃ n.',
-        'Báº¡n cÃ³ thá»ƒ há»c trÃªn laptop á»Ÿ vÄƒn phÃ²ng, sau Ä‘Ã³ má»Ÿ Ä‘iá»‡n thoáº¡i tiáº¿p tá»¥c lÃ m bÃ i mÃ  khÃ´ng bao giá» lo máº¥t dá»¯ liá»‡u hay bá»‹ tá»¥t háº¡ng!',
+        'Toàn bộ quá trình học từ vựng, sổ tay bookmark, số dư Coins, thú cưng và chuỗi Streak đều được đồng bộ tự động lên máy chủ cơ sở dữ liệu và sao lưu định kỳ lên dịch vụ đám mây Filebase S3 an toàn.',
+        'Bạn có thể học trên laptop ở văn phòng, sau đó mở điện thoại tiếp tục làm bài mà không bao giờ lo mất dữ liệu hay bị tụt hạng!',
       ],
-      tags: ['s3', 'filebase', 'Ä‘á»“ng bá»™', 'sao lÆ°u', 'dá»¯ liá»‡u', 'cloud', 'backup'],
+      tags: ['s3', 'filebase', 'đồng bộ', 'sao lưu', 'dữ liệu', 'cloud', 'backup'],
     },
   ];
 
-  // Lá»c bÃ i viáº¿t Knowledge Base theo search query vÃ  category
+  // Lọc bài viết Knowledge Base theo search query và category
   const filteredFaqArticles = faqArticles.filter((item) => {
     const matchesCat = selectedCategory === 'all' || item.category === selectedCategory;
     if (!matchesCat) return false;
@@ -421,7 +421,7 @@ export default function SupportPage() {
   });
 
   // ==========================================
-  // Xá»¬ LÃ CHAT TRá»¢ LÃ AI
+  // XỬ LÝ CHAT TRỢ LÝ AI
   // ==========================================
   const handleSendAiMessage = async (queryText?: string) => {
     const textToSend = (queryText || inputQuestion).trim();
@@ -441,7 +441,7 @@ export default function SupportPage() {
     setIsAiLoading(true);
 
     try {
-      // Chuáº©n bá»‹ lá»‹ch sá»­ há»™i thoáº¡i gáº§n nháº¥t
+      // Chuẩn bị lịch sử hội thoại gần nhất
       const history = chatMessages.slice(-6).map((m) => ({
         role: m.role,
         content: m.content,
@@ -472,7 +472,7 @@ export default function SupportPage() {
         const errorMsg: ChatMessage = {
           id: `ai_err_${Date.now()}`,
           role: 'assistant',
-          content: 'Meow! ðŸ± Há»‡ thá»‘ng Ä‘ang xá»­ lÃ½ nhiá»u yÃªu cáº§u cÃ¹ng lÃºc. Báº¡n cÃ³ thá»ƒ tham kháº£o má»¥c Cáº©m Nang hoáº·c gá»­i Ticket á»Ÿ tab bÃªn cáº¡nh Ä‘á»ƒ BQT há»— trá»£ nhÃ©!',
+          content: 'Meow! 🐱 Hệ thống đang xử lý nhiều yêu cầu cùng lúc. Bạn có thể tham khảo mục Cẩm Nang hoặc gửi Ticket ở tab bên cạnh để BQT hỗ trợ nhé!',
           provider: 'error_fallback',
           timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
         };
@@ -483,7 +483,7 @@ export default function SupportPage() {
       const errorMsg: ChatMessage = {
         id: `ai_net_err_${Date.now()}`,
         role: 'assistant',
-        content: 'Meow! ðŸ± Lá»—i káº¿t ná»‘i máº¡ng rá»“i. Vui lÃ²ng kiá»ƒm tra láº¡i Ä‘Æ°á»ng truyá»n internet cá»§a báº¡n nhÃ©!',
+        content: 'Meow! 🐱 Lỗi kết nối mạng rồi. Vui lòng kiểm tra lại đường truyền internet của bạn nhé!',
         provider: 'error_fallback',
         timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
       };
@@ -494,9 +494,9 @@ export default function SupportPage() {
   };
 
   // ==========================================
-  // Xá»¬ LÃ Gá»¬I TICKET Há»– TRá»¢
+  // XỬ LÝ GỬI TICKET HỖ TRỢ
   // ==========================================
-  /** XÃ³a lá»—i cá»§a má»™t field cá»¥ thá»ƒ khi ngÆ°á»i dÃ¹ng sá»­a láº¡i giÃ¡ trá»‹ */
+  /** Xóa lỗi của một field cụ thể khi người dùng sửa lại giá trị */
   const clearFieldError = (field: TicketFieldKey) => {
     setFieldErrors((prev) => {
       if (!prev[field]) return prev;
@@ -506,7 +506,7 @@ export default function SupportPage() {
     });
   };
 
-  /** Focus vÃ o field Ä‘áº§u tiÃªn Ä‘ang bá»‹ lá»—i (sau khi React Ä‘Ã£ render lá»—i) */
+  /** Focus vào field đầu tiên đang bị lỗi (sau khi React đã render lỗi) */
   const focusFirstErrorField = (field: TicketFieldKey) => {
     requestAnimationFrame(() => {
       const refs: Partial<Record<TicketFieldKey, React.RefObject<HTMLInputElement | HTMLTextAreaElement | null>>> = {
@@ -520,13 +520,13 @@ export default function SupportPage() {
         target.focus();
         target.scrollIntoView({ block: 'center', behavior: 'smooth' });
       } else {
-        // Field khÃ´ng focus Ä‘Æ°á»£c (vÃ­ dá»¥ danh má»¥c dáº¡ng nÃºt) â†’ focus vá» nÃºt gá»­i
+        // Field không focus được (ví dụ danh mục dạng nút) → focus về nút gửi
         submitButtonRef.current?.focus();
       }
     });
   };
 
-  /** Validate toÃ n bá»™ form, tráº£ vá» lá»—i tiáº¿ng Viá»‡t theo tá»«ng field */
+  /** Validate toàn bộ form, trả về lỗi tiếng Việt theo từng field */
   const validateTicketForm = (): TicketFieldErrors => {
     const errors: TicketFieldErrors = {};
     const cleanName = name.trim();
@@ -535,27 +535,27 @@ export default function SupportPage() {
     const cleanMessage = message.trim();
 
     if (!cleanName) {
-      errors.name = 'Vui lÃ²ng nháº­p há» vÃ  tÃªn cá»§a báº¡n.';
+      errors.name = 'Vui lòng nhập họ và tên của bạn.';
     }
 
     if (!cleanEmail) {
-      errors.email = 'Vui lÃ²ng nháº­p email Ä‘á»ƒ Ban Quáº£n Trá»‹ cÃ³ thá»ƒ gá»­i pháº£n há»“i cho báº¡n.';
+      errors.email = 'Vui lòng nhập email để Ban Quản Trị có thể gửi phản hồi cho bạn.';
     } else if (!TICKET_EMAIL_RE.test(cleanEmail)) {
-      errors.email = 'Email khÃ´ng há»£p lá»‡. VÃ­ dá»¥ Ä‘Ãºng: ban@gmail.com';
+      errors.email = 'Email không hợp lệ. Ví dụ đúng: ban@gmail.com';
     }
 
     if (!category) {
-      errors.category = 'Vui lÃ²ng chá»n danh má»¥c yÃªu cáº§u.';
+      errors.category = 'Vui lòng chọn danh mục yêu cầu.';
     }
 
     if (!cleanSubject) {
-      errors.subject = 'Vui lÃ²ng nháº­p tiÃªu Ä‘á» phiáº¿u.';
+      errors.subject = 'Vui lòng nhập tiêu đề phiếu.';
     }
 
     if (!cleanMessage) {
-      errors.message = 'Vui lÃ²ng mÃ´ táº£ váº¥n Ä‘á» cá»§a báº¡n.';
+      errors.message = 'Vui lòng mô tả vấn đề của bạn.';
     } else if (cleanMessage.length < TICKET_MESSAGE_MIN) {
-      errors.message = `Vui lÃ²ng mÃ´ táº£ váº¥n Ä‘á» rÃµ rÃ ng hÆ¡n (tá»‘i thiá»ƒu ${TICKET_MESSAGE_MIN} kÃ½ tá»±, hiá»‡n má»›i cÃ³ ${cleanMessage.length} kÃ½ tá»±).`;
+      errors.message = `Vui lòng mô tả vấn đề rõ ràng hơn (tối thiểu ${TICKET_MESSAGE_MIN} ký tự, hiện mới có ${cleanMessage.length} ký tự).`;
     }
 
     return errors;
@@ -565,7 +565,7 @@ export default function SupportPage() {
     e.preventDefault();
     setSubmitSuccess(null);
 
-    // ===== VALIDATE PHÃA CLIENT (thÃ´ng bÃ¡o tiáº¿ng Viá»‡t trong DOM) =====
+    // ===== VALIDATE PHÍA CLIENT (thông báo tiếng Việt trong DOM) =====
     const errors = validateTicketForm();
     setFieldErrors(errors);
 
@@ -576,7 +576,7 @@ export default function SupportPage() {
     if (errorMessages.length > 0) {
       const firstErrorField = TICKET_FIELD_ORDER.find((key) => Boolean(errors[key])) as TicketFieldKey;
       setSubmitError(
-        `Vui lÃ²ng sá»­a ${errorMessages.length} thÃ´ng tin cÃ²n thiáº¿u hoáº·c chÆ°a há»£p lá»‡ trÆ°á»›c khi gá»­i phiáº¿u há»— trá»£. Phiáº¿u chÆ°a Ä‘Æ°á»£c gá»­i Ä‘i.`
+        `Vui lòng sửa ${errorMessages.length} thông tin còn thiếu hoặc chưa hợp lệ trước khi gửi phiếu hỗ trợ. Phiếu chưa được gửi đi.`
       );
       sound.playWrong();
       focusFirstErrorField(firstErrorField);
@@ -615,17 +615,17 @@ export default function SupportPage() {
         });
 
         const newId = data.ticketId || '';
-        setSubmitSuccess(data.message || `Phiáº¿u há»— trá»£ #${newId} Ä‘Ã£ Ä‘Æ°á»£c gá»­i thÃ nh cÃ´ng!`);
+        setSubmitSuccess(data.message || `Phiếu hỗ trợ #${newId} đã được gửi thành công!`);
         setCreatedTicketId(newId);
         setFieldErrors({});
 
-        // Reset form ná»™i dung (giá»¯ name & email)
+        // Reset form nội dung (giữ name & email)
         setSubject('');
         setMessage('');
         setRating(5);
         setPriority('medium');
 
-        // Táº£i láº¡i lá»‹ch sá»­ ticket
+        // Tải lại lịch sử ticket
         if (currentUser) {
           fetchTicketHistory(currentUser.id, currentUser.email);
         } else {
@@ -633,11 +633,11 @@ export default function SupportPage() {
         }
       } else {
         sound.playError();
-        setSubmitError(data.error || 'CÃ³ lá»—i xáº£y ra khi táº¡o ticket. Vui lÃ²ng thá»­ láº¡i!');
+        setSubmitError(data.error || 'Có lỗi xảy ra khi tạo ticket. Vui lòng thử lại!');
       }
     } catch {
       sound.playError();
-      setSubmitError('Lá»—i káº¿t ná»‘i mÃ¡y chá»§. Vui lÃ²ng kiá»ƒm tra Ä‘Æ°á»ng truyá»n vÃ  thá»­ láº¡i!');
+      setSubmitError('Lỗi kết nối máy chủ. Vui lòng kiểm tra đường truyền và thử lại!');
     } finally {
       setIsSubmitting(false);
     }
@@ -663,20 +663,20 @@ export default function SupportPage() {
         <div className="max-w-5xl mx-auto relative z-10 text-center space-y-3.5">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-emerald-100 text-xs font-bold uppercase tracking-wider shadow-xs dark:bg-slate-900/20">
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>Trung TÃ¢m Há»— Trá»£ & Trá»£ LÃ½ Há»c ViÃªn Meowlish</span>
+            <span>Trung Tâm Hỗ Trợ & Trợ Lý Học Viên Meowlish</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white">
-            Cáº©m Nang HÆ°á»›ng Dáº«n, Trá»£ LÃ½ AI & Phiáº¿u Há»— Trá»£
+            Cẩm Nang Hướng Dẫn, Trợ Lý AI & Phiếu Hỗ Trợ
           </h1>
 
           <p className="text-emerald-100 text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed">
-            KhÃ¡m phÃ¡ trá»n bá»™ phÆ°Æ¡ng phÃ¡p há»c tiáº¿ng Anh pháº£n xáº¡, bÃ­ kÃ­p chÄƒm sÃ³c thÃº cÆ°ng PixelFarm, tÃ­ch lÅ©y Coins vÃ  trao Ä‘á»•i tá»©c thÃ¬ cÃ¹ng Trá»£ LÃ½ AI hoáº·c gá»­i Ticket Ä‘áº¿n Ban Quáº£n Trá»‹!
+            Khám phá trọn bộ phương pháp học tiếng Anh phản xạ, bí kíp chăm sóc thú cưng PixelFarm, tích lũy Coins và trao đổi tức thì cùng Trợ Lý AI hoặc gửi Ticket đến Ban Quản Trị!
           </p>
 
           {/* MAIN 3 NAVIGATION TABS */}
           <div className="flex flex-wrap items-center justify-center gap-2.5 pt-4">
-            {/* Tab 1: Cáº©m Nang */}
+            {/* Tab 1: Cẩm Nang */}
             <button
               onClick={() => {
                 sound.playClick();
@@ -689,10 +689,10 @@ export default function SupportPage() {
               }`}
             >
               <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-300" />
-              <span>Cáº©m Nang & HÆ°á»›ng Dáº«n</span>
+              <span>Cẩm Nang & Hướng Dẫn</span>
             </button>
 
-            {/* Tab 2: Trá»£ LÃ½ AI */}
+            {/* Tab 2: Trợ Lý AI */}
             <button
               onClick={() => {
                 sound.playClick();
@@ -706,14 +706,14 @@ export default function SupportPage() {
             >
               <Bot className="w-4 h-4 text-slate-950 dark:text-slate-200" />
               <span className="flex items-center gap-1.5">
-                <span>Trá»£ LÃ½ MÃ¨o AI 24/7</span>
+                <span>Trợ Lý Mèo AI 24/7</span>
                 <span className="px-1.5 py-0.2 rounded-full bg-emerald-600 text-white text-[10px] font-bold animate-pulse">
-                  Tá»©c thÃ¬
+                  Tức thì
                 </span>
               </span>
             </button>
 
-            {/* Tab 3: Gá»­i Ticket & Lá»‹ch Sá»­ */}
+            {/* Tab 3: Gửi Ticket & Lịch Sử */}
             <button
               onClick={() => {
                 sound.playClick();
@@ -727,7 +727,7 @@ export default function SupportPage() {
             >
               <MessageSquare className="w-4 h-4 text-indigo-600 dark:text-indigo-300" />
               <span className="flex items-center gap-1.5">
-                <span>Gá»­i Ticket & Lá»‹ch Sá»­</span>
+                <span>Gửi Ticket & Lịch Sử</span>
                 {myTickets.length > 0 && (
                   <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black">
                     {myTickets.length}
@@ -744,7 +744,7 @@ export default function SupportPage() {
       {/* ============================================================== */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 -mt-7 relative z-20">
         {/* ============================================================== */}
-        {/* TAB 1: Cáº¨M NANG & HÆ¯á»šNG DáºªN Sá»¬ Dá»¤NG (KNOWLEDGE BASE)           */}
+        {/* TAB 1: CẨM NANG & HƯỚNG DẪN SỬ DỤNG (KNOWLEDGE BASE)           */}
         {/* ============================================================== */}
         {activeTab === 'guide' && (
           <div className="space-y-6 animate-in fade-in duration-200">
@@ -757,7 +757,7 @@ export default function SupportPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Nháº­p tá»« khÃ³a tÃ¬m kiáº¿m (vd: kiáº¿m coins, thÃº cÆ°ng Ä‘Ã³i, lego, 2fa, luyá»‡n nÃ³i, máº­t kháº©u)..."
+                  placeholder="Nhập từ khóa tìm kiếm (vd: kiếm coins, thú cưng đói, lego, 2fa, luyện nói, mật khẩu)..."
                   className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-2xl pl-11 pr-24 py-3 text-xs sm:text-sm text-slate-900 outline-none transition shadow-inner dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
                 />
                 {searchQuery && (
@@ -765,7 +765,7 @@ export default function SupportPage() {
                     onClick={() => setSearchQuery('')}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition cursor-pointer dark:bg-slate-700 dark:text-slate-300"
                   >
-                    XÃ³a
+                    Xóa
                   </button>
                 )}
               </div>
@@ -774,16 +774,16 @@ export default function SupportPage() {
               <div className="flex flex-wrap items-center gap-1.5 text-xs">
                 <span className="text-slate-400 font-bold flex items-center gap-1 text-[11px]">
                   <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                  Tá»« khÃ³a hot:
+                  Từ khóa hot:
                 </span>
                 {[
-                  'Kiáº¿m Coins',
-                  'ÄÃ³i thÃº cÆ°ng',
-                  'Ngá»¯ phÃ¡p Lego',
-                  'Báº£o máº­t 2FA',
-                  'Luyá»‡n nÃ³i AI',
-                  'ÄÃ³ng bÄƒng streak',
-                  'QuÃªn máº­t kháº©u',
+                  'Kiếm Coins',
+                  'Đói thú cưng',
+                  'Ngữ pháp Lego',
+                  'Bảo mật 2FA',
+                  'Luyện nói AI',
+                  'Đóng băng streak',
+                  'Quên mật khẩu',
                 ].map((kw) => (
                   <button
                     key={kw}
@@ -801,11 +801,11 @@ export default function SupportPage() {
               {/* Category Filter Pills */}
               <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-white/10">
                 {[
-                  { id: 'all', label: 'Táº¥t cáº£ chuyÃªn má»¥c', icon: 'ðŸŒŸ' },
-                  { id: 'study', label: 'Há»c táº­p hiá»‡u quáº£', icon: 'ðŸŽ“' },
-                  { id: 'pet', label: 'NuÃ´i & NÃ¢ng cáº¥p ThÃº cÆ°ng', icon: 'ðŸ¾' },
-                  { id: 'coins', label: 'TÃ­ch lÅ©y Coins & Shop', icon: 'ðŸ’Ž' },
-                  { id: 'security', label: 'Báº£o máº­t tÃ i khoáº£n & 2FA', icon: 'ðŸ›¡ï¸' },
+                  { id: 'all', label: 'Tất cả chuyên mục', icon: '🌟' },
+                  { id: 'study', label: 'Học tập hiệu quả', icon: '🎓' },
+                  { id: 'pet', label: 'Nuôi & Nâng cấp Thú cưng', icon: '🐾' },
+                  { id: 'coins', label: 'Tích lũy Coins & Shop', icon: '💎' },
+                  { id: 'security', label: 'Bảo mật tài khoản & 2FA', icon: '🛡️' },
                 ].map((cat) => (
                   <button
                     key={cat.id}
@@ -829,9 +829,9 @@ export default function SupportPage() {
             {/* RESULTS HEADER */}
             <div className="flex items-center justify-between px-1">
               <div className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-300">
-                Hiá»ƒn thá»‹ {filteredFaqArticles.length} bÃ i hÆ°á»›ng dáº«n
+                Hiển thị {filteredFaqArticles.length} bài hướng dẫn
                 {searchQuery && (
-                  <span className="text-emerald-700 ml-1 dark:text-emerald-300">cho tá»« khÃ³a &quot;{searchQuery}&quot;</span>
+                  <span className="text-emerald-700 ml-1 dark:text-emerald-300">cho từ khóa &quot;{searchQuery}&quot;</span>
                 )}
               </div>
               {searchQuery && (
@@ -839,7 +839,7 @@ export default function SupportPage() {
                   onClick={() => setSearchQuery('')}
                   className="text-xs text-slate-500 hover:text-slate-800 font-bold underline cursor-pointer dark:text-slate-400 hover:dark:text-slate-200"
                 >
-                  Xem táº¥t cáº£
+                  Xem tất cả
                 </button>
               )}
             </div>
@@ -847,13 +847,13 @@ export default function SupportPage() {
             {/* ARTICLES ACCORDION LIST */}
             {filteredFaqArticles.length === 0 ? (
               <div className="bg-white rounded-3xl p-10 text-center border border-slate-200 shadow-sm space-y-3 dark:bg-slate-900 dark:border-white/10">
-                <div className="text-4xl">ðŸ”</div>
+                <div className="text-4xl">🔍</div>
                 <h3 className="font-black text-base text-slate-800 dark:text-slate-200">
-                  KhÃ´ng tÃ¬m tháº¥y bÃ i viáº¿t phÃ¹ há»£p vá»›i &quot;{searchQuery}&quot;
+                  Không tìm thấy bài viết phù hợp với &quot;{searchQuery}&quot;
                 </h3>
                 <p className="text-xs text-slate-500 max-w-md mx-auto dark:text-slate-400">
-                  Báº¡n cÃ³ thá»ƒ thá»­ tÃ¬m kiáº¿m vá»›i tá»« khÃ³a khÃ¡c, hoáº·c báº¥m sang tab{' '}
-                  <strong>Trá»£ LÃ½ MÃ¨o AI 24/7</strong> Ä‘á»ƒ Ä‘Æ°á»£c giáº£i Ä‘Ã¡p ngay láº­p tá»©c!
+                  Bạn có thể thử tìm kiếm với từ khóa khác, hoặc bấm sang tab{' '}
+                  <strong>Trợ Lý Mèo AI 24/7</strong> để được giải đáp ngay lập tức!
                 </p>
                 <button
                   onClick={() => {
@@ -864,7 +864,7 @@ export default function SupportPage() {
                   className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs transition cursor-pointer inline-flex items-center gap-1.5 shadow-sm"
                 >
                   <Bot className="w-3.5 h-3.5" />
-                  <span>Há»i Trá»£ LÃ½ AI Vá» &quot;{searchQuery}&quot;</span>
+                  <span>Hỏi Trợ Lý AI Về &quot;{searchQuery}&quot;</span>
                 </button>
               </div>
             ) : (
@@ -872,19 +872,19 @@ export default function SupportPage() {
                 {filteredFaqArticles.map((article) => {
                   const isOpen = openFaqId === article.id;
                   let categoryBadgeColor = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
-                  let categoryName = 'Tá»•ng quan';
+                  let categoryName = 'Tổng quan';
                   if (article.category === 'study') {
                     categoryBadgeColor = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200';
-                    categoryName = 'Há»c táº­p hiá»‡u quáº£';
+                    categoryName = 'Học tập hiệu quả';
                   } else if (article.category === 'pet') {
                     categoryBadgeColor = 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200';
-                    categoryName = 'ThÃº cÆ°ng PixelFarm';
+                    categoryName = 'Thú cưng PixelFarm';
                   } else if (article.category === 'coins') {
                     categoryBadgeColor = 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200';
-                    categoryName = 'Coins & Cá»­a HÃ ng';
+                    categoryName = 'Coins & Cửa Hàng';
                   } else if (article.category === 'security') {
                     categoryBadgeColor = 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200';
-                    categoryName = 'Báº£o máº­t & 2FA';
+                    categoryName = 'Bảo mật & 2FA';
                   }
 
                   return (
@@ -937,7 +937,7 @@ export default function SupportPage() {
                                 href={article.actionLink}
                                 className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition shadow-xs"
                               >
-                                <span>{article.actionText || 'KhÃ¡m phÃ¡ ngay'}</span>
+                                <span>{article.actionText || 'Khám phá ngay'}</span>
                                 <ArrowRight className="w-3.5 h-3.5" />
                               </Link>
                             </div>
@@ -953,7 +953,7 @@ export default function SupportPage() {
         )}
 
         {/* ============================================================== */}
-        {/* TAB 2: TRá»¢ LÃ MÃˆO AI 24/7 (AI ASSISTANT CHAT)                   */}
+        {/* TAB 2: TRỢ LÝ MÈO AI 24/7 (AI ASSISTANT CHAT)                   */}
         {/* ============================================================== */}
         {activeTab === 'ai' && (
           <div className="bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden flex flex-col h-[720px] max-h-[85vh] animate-in fade-in duration-200 dark:bg-slate-900 dark:border-white/10">
@@ -961,20 +961,20 @@ export default function SupportPage() {
             <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white flex items-center justify-between border-b border-slate-800">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-2xl shadow-md ring-2 ring-white/20">
-                  ðŸ±
+                  🐱
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="font-black text-sm sm:text-base text-white">
-                      Trá»£ LÃ½ MÃ¨o Meowlish AI
+                      Trợ Lý Mèo Meowlish AI
                     </h2>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                      Trá»±c tuyáº¿n 24/7
+                      Trực tuyến 24/7
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-400">
-                    Sá»­ dá»¥ng cÃ´ng nghá»‡ AI Groq LPU & Google Gemini â€¢ Pháº£n há»“i tá»©c thÃ¬
+                    Sử dụng công nghệ AI Groq LPU & Google Gemini • Phản hồi tức thì
                   </p>
                 </div>
               </div>
@@ -987,17 +987,17 @@ export default function SupportPage() {
                       id: 'welcome',
                       role: 'assistant',
                       content:
-                        'Meow! ChÃ o báº¡n! MÃ¬nh Ä‘Ã£ sáºµn sÃ ng láº¯ng nghe má»i cÃ¢u há»i má»›i cá»§a báº¡n vá» Meowlish rá»“i nhÃ©! ðŸ±âœ¨',
+                        'Meow! Chào bạn! Mình đã sẵn sàng lắng nghe mọi câu hỏi mới của bạn về Meowlish rồi nhé! 🐱✨',
                       provider: 'groq',
                       timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
                     },
                   ]);
                 }}
                 className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border border-slate-700 dark:bg-white/80 dark:border-white/10 dark:text-slate-800"
-                title="LÃ m má»›i cuá»™c trÃ² chuyá»‡n"
+                title="Làm mới cuộc trò chuyện"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">LÃ m má»›i</span>
+                <span className="hidden sm:inline">Làm mới</span>
               </button>
             </div>
 
@@ -1005,15 +1005,15 @@ export default function SupportPage() {
             <div className="px-4 py-2.5 bg-slate-100/90 border-b border-slate-200 overflow-x-auto touch-auto flex items-center gap-2 custom-scrollbar dark:bg-slate-800/90 dark:border-white/10">
               <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1 dark:text-slate-400">
                 <Sparkles className="w-3 h-3 text-amber-500" />
-                Gá»£i Ã½ há»i nhanh:
+                Gợi ý hỏi nhanh:
               </span>
               {[
-                { label: 'ðŸ’° Kiáº¿m nhiá»u xu nhanh nháº¥t?', text: 'LÃ m sao Ä‘á»ƒ kiáº¿m nhiá»u xu nháº¥t trÃªn Meowlish?' },
-                { label: 'ðŸ¾ ThÃº cÆ°ng Ä‘Ã³i lÃ m gÃ¬?', text: 'ThÃº cÆ°ng bá»‹ Ä‘Ã³i thÃ¬ pháº£i lÃ m gÃ¬ Ä‘á»ƒ cho Äƒn?' },
-                { label: 'ðŸ§© Ngá»¯ PhÃ¡p Lego lÃ  gÃ¬?', text: 'PhÆ°Æ¡ng phÃ¡p há»c Ngá»¯ PhÃ¡p Lego hoáº¡t Ä‘á»™ng tháº¿ nÃ o?' },
-                { label: 'ðŸ“ LÃ m bÃ i kiá»ƒm tra á»Ÿ Ä‘Ã¢u?', text: 'LÃ m bÃ i kiá»ƒm tra vÃ  thi thá»­ TOEIC/IELTS á»Ÿ Ä‘Ã¢u?' },
-                { label: 'ðŸ”’ Báº­t báº£o máº­t 2FA?', text: 'LÃ m tháº¿ nÃ o Ä‘á»ƒ báº­t báº£o máº­t 2FA qua email?' },
-                { label: 'ðŸ”¥ Giá»¯ ngá»n lá»­a Streak?', text: 'Máº¹o giá»¯ Streak vÃ  Ä‘Ã³ng bÄƒng streak khi báº­n rá»™n?' },
+                { label: '💰 Kiếm nhiều xu nhanh nhất?', text: 'Làm sao để kiếm nhiều xu nhất trên Meowlish?' },
+                { label: '🐾 Thú cưng đói làm gì?', text: 'Thú cưng bị đói thì phải làm gì để cho ăn?' },
+                { label: '🧩 Ngữ Pháp Lego là gì?', text: 'Phương pháp học Ngữ Pháp Lego hoạt động thế nào?' },
+                { label: '📝 Làm bài kiểm tra ở đâu?', text: 'Làm bài kiểm tra và thi thử TOEIC/IELTS ở đâu?' },
+                { label: '🔒 Bật bảo mật 2FA?', text: 'Làm thế nào để bật bảo mật 2FA qua email?' },
+                { label: '🔥 Giữ ngọn lửa Streak?', text: 'Mẹo giữ Streak và đóng băng streak khi bận rộn?' },
               ].map((chip, idx) => (
                 <button
                   key={idx}
@@ -1048,7 +1048,7 @@ export default function SupportPage() {
                           : 'bg-amber-400 text-slate-950 font-black'
                       }`}
                     >
-                      {isUser ? 'ðŸ‘¤' : 'ðŸ±'}
+                      {isUser ? '👤' : '🐱'}
                     </div>
 
                     {/* Bubble Content */}
@@ -1071,10 +1071,10 @@ export default function SupportPage() {
                       >
                         {!isUser && (
                           <span className="flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-300">
-                            {msg.provider === 'groq' && 'âš¡ Groq LPU SiÃªu Tá»‘c'}
-                            {msg.provider === 'gemini' && 'ðŸ¤– Google Gemini AI'}
-                            {msg.provider === 'offline_kb' && 'ðŸ“– Tri Thá»©c Meowlish'}
-                            {msg.provider === 'error_fallback' && 'ðŸ’¡ Ban Quáº£n Trá»‹'}
+                            {msg.provider === 'groq' && '⚡ Groq LPU Siêu Tốc'}
+                            {msg.provider === 'gemini' && '🤖 Google Gemini AI'}
+                            {msg.provider === 'offline_kb' && '📖 Tri Thức Meowlish'}
+                            {msg.provider === 'error_fallback' && '💡 Ban Quản Trị'}
                           </span>
                         )}
                         <span>{msg.timestamp}</span>
@@ -1088,7 +1088,7 @@ export default function SupportPage() {
               {isAiLoading && (
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-xl bg-amber-400 flex items-center justify-center text-sm shrink-0 shadow-xs animate-bounce">
-                    ðŸ±
+                    🐱
                   </div>
                   <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-xs p-3.5 text-xs text-slate-600 shadow-xs flex items-center gap-2 dark:bg-slate-900 dark:border-white/10 dark:text-slate-400">
                     <div className="flex items-center gap-1">
@@ -1096,7 +1096,7 @@ export default function SupportPage() {
                       <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
                       <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce" />
                     </div>
-                    <span>Meowlish Ä‘ang tá»•ng há»£p cÃ¢u tráº£ lá»i cho báº¡n...</span>
+                    <span>Meowlish đang tổng hợp câu trả lời cho bạn...</span>
                   </div>
                 </div>
               )}
@@ -1115,7 +1115,7 @@ export default function SupportPage() {
                   type="text"
                   value={inputQuestion}
                   onChange={(e) => setInputQuestion(e.target.value)}
-                  placeholder="GÃµ cÃ¢u há»i tháº¯c máº¯c cá»§a báº¡n (vd: ThÃº cÆ°ng Ä‘Ã³i lÃ m gÃ¬, cÃ¡ch kiáº¿m coins, ngá»¯ phÃ¡p lego)..."
+                  placeholder="Gõ câu hỏi thắc mắc của bạn (vd: Thú cưng đói làm gì, cách kiếm coins, ngữ pháp lego)..."
                   className="flex-1 bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-2xl px-4 py-3 text-xs sm:text-sm text-slate-900 outline-none transition dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
                   disabled={isAiLoading}
                 />
@@ -1125,7 +1125,7 @@ export default function SupportPage() {
                   className="px-4 sm:px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-emerald-600 text-white font-black text-xs sm:text-sm shadow-md transition cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
-                  <span className="hidden sm:inline">Gá»­i</span>
+                  <span className="hidden sm:inline">Gửi</span>
                 </button>
               </form>
             </div>
@@ -1133,7 +1133,7 @@ export default function SupportPage() {
         )}
 
         {/* ============================================================== */}
-        {/* TAB 3: Gá»¬I TICKET GÃ“P Ã & Lá»ŠCH Sá»¬ PHIáº¾U Há»– TRá»¢                 */}
+        {/* TAB 3: GỬI TICKET GÓP Ý & LỊCH SỬ PHIẾU HỖ TRỢ                 */}
         {/* ============================================================== */}
         {activeTab === 'ticket' && (
           <div className="space-y-6 animate-in fade-in duration-200">
@@ -1151,7 +1151,7 @@ export default function SupportPage() {
                 }`}
               >
                 <Send className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300" />
-                <span>Gá»­i Phiáº¿u Há»— Trá»£ Má»›i</span>
+                <span>Gửi Phiếu Hỗ Trợ Mới</span>
               </button>
 
               <button
@@ -1169,25 +1169,25 @@ export default function SupportPage() {
                 }`}
               >
                 <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-300" />
-                <span>Lá»‹ch Sá»­ Phiáº¿u Há»— Trá»£ ({myTickets.length})</span>
+                <span>Lịch Sử Phiếu Hỗ Trợ ({myTickets.length})</span>
               </button>
             </div>
 
             {/* ---------------------------------------------------------- */}
-            {/* SUB-TAB 1: Gá»¬I PHIáº¾U Há»– TRá»¢ Má»šI                            */}
+            {/* SUB-TAB 1: GỬI PHIẾU HỖ TRỢ MỚI                            */}
             {/* ---------------------------------------------------------- */}
             {ticketSubTab === 'create' && (
               <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md space-y-6 dark:bg-slate-900 dark:border-white/10">
                 <div className="border-b border-slate-100 pb-4 dark:border-white/10">
                   <div className="flex items-center gap-2 text-indigo-600 text-xs font-black uppercase tracking-wider mb-1 dark:text-indigo-300">
                     <FileText className="w-3.5 h-3.5" />
-                    <span>Há»‡ Thá»‘ng Tiáº¿p Nháº­n Ã Kiáº¿n & BÃ¡o Lá»—i</span>
+                    <span>Hệ Thống Tiếp Nhận Ý Kiến & Báo Lỗi</span>
                   </div>
                   <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100">
-                    Táº¡o Phiáº¿u Há»— Trá»£ Chuáº©n #TK-XXXX
+                    Tạo Phiếu Hỗ Trợ Chuẩn #TK-XXXX
                   </h2>
                   <p className="text-xs text-slate-500 mt-1 dark:text-slate-400">
-                    Phiáº¿u sáº½ Ä‘Æ°á»£c mÃ£ hÃ³a, lÆ°u an toÃ n vÃ o CSDL, Ä‘á»“ng bá»™ Ä‘Ã¡m mÃ¢y S3 Filebase vÃ  gá»­i thÃ´ng bÃ¡o tá»©c thÃ¬ Ä‘áº¿n Ban Quáº£n Trá»‹ (/duahau).
+                    Phiếu sẽ được mã hóa, lưu an toàn vào CSDL, đồng bộ đám mây S3 Filebase và gửi thông báo tức thì đến Ban Quản Trị (/duahau).
                   </p>
                 </div>
 
@@ -1206,7 +1206,7 @@ export default function SupportPage() {
                     {createdTicketId && (
                       <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-emerald-200/80">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-emerald-700 dark:text-emerald-300">MÃ£ phiáº¿u há»— trá»£:</span>
+                          <span className="text-xs text-emerald-700 dark:text-emerald-300">Mã phiếu hỗ trợ:</span>
                           <span className="font-mono text-xs sm:text-sm px-2.5 py-0.5 rounded-lg bg-emerald-600 text-white font-black tracking-wider">
                             #{createdTicketId}
                           </span>
@@ -1219,7 +1219,7 @@ export default function SupportPage() {
                             className="px-3 py-1 rounded-xl bg-white text-emerald-800 border border-emerald-300 hover:bg-emerald-100 text-xs font-bold transition cursor-pointer flex items-center gap-1 dark:bg-slate-900 dark:text-emerald-200 dark:border-emerald-800 hover:dark:bg-emerald-950"
                           >
                             {copiedId === createdTicketId ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
-                            <span>{copiedId === createdTicketId ? 'ÄÃ£ sao chÃ©p' : 'Sao chÃ©p mÃ£'}</span>
+                            <span>{copiedId === createdTicketId ? 'Đã sao chép' : 'Sao chép mã'}</span>
                           </button>
 
                           <button
@@ -1230,7 +1230,7 @@ export default function SupportPage() {
                             }}
                             className="px-3 py-1 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-black transition cursor-pointer flex items-center gap-1"
                           >
-                            <span>Xem Lá»‹ch Sá»­ Phiáº¿u</span>
+                            <span>Xem Lịch Sử Phiếu</span>
                             <ArrowRight className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -1270,7 +1270,7 @@ export default function SupportPage() {
                       htmlFor="ticket-category-group"
                       className="block text-xs font-black text-slate-700 mb-2 dark:text-slate-300"
                     >
-                      1. Chá»n danh má»¥c yÃªu cáº§u:
+                      1. Chọn danh mục yêu cầu:
                     </label>
                     <div
                       id="ticket-category-group"
@@ -1279,10 +1279,10 @@ export default function SupportPage() {
                     >
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {[
-                          { id: 'feedback', label: 'GÃ³p Ã½ tÃ­nh nÄƒng', emoji: 'ðŸ’¡', desc: 'Ã tÆ°á»Ÿng má»›i cho website' },
-                          { id: 'bug', label: 'BÃ¡o lá»—i ká»¹ thuáº­t', emoji: 'ðŸž', desc: 'Gáº·p trá»¥c tráº·c, lá»—i giao diá»‡n' },
-                          { id: 'guide', label: 'Tháº¯c máº¯c há»c táº­p', emoji: 'ðŸ“–', desc: 'Cáº§n há»— trá»£ vá» bÃ i há»c' },
-                          { id: 'account', label: 'TÃ i khoáº£n & Báº£o máº­t', emoji: 'ðŸ”’', desc: 'QuÃªn máº­t kháº©u, Ä‘á»•i 2FA' },
+                          { id: 'feedback', label: 'Góp ý tính năng', emoji: '💡', desc: 'Ý tưởng mới cho website' },
+                          { id: 'bug', label: 'Báo lỗi kỹ thuật', emoji: '🐞', desc: 'Gặp trục trặc, lỗi giao diện' },
+                          { id: 'guide', label: 'Thắc mắc học tập', emoji: '📖', desc: 'Cần hỗ trợ về bài học' },
+                          { id: 'account', label: 'Tài khoản & Bảo mật', emoji: '🔒', desc: 'Quên mật khẩu, đổi 2FA' },
                         ].map((cat) => (
                           <button
                             type="button"
@@ -1324,14 +1324,14 @@ export default function SupportPage() {
                   {/* Priority Selection */}
                   <div>
                     <label className="block text-xs font-black text-slate-700 mb-2 dark:text-slate-300">
-                      2. Má»©c Ä‘á»™ Æ°u tiÃªn:
+                      2. Mức độ ưu tiên:
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {[
-                        { id: 'low', label: 'Tháº¥p', emoji: 'ðŸŸ¢', desc: 'GÃ³p Ã½ tham kháº£o' },
-                        { id: 'medium', label: 'Trung bÃ¬nh', emoji: 'ðŸŸ¡', desc: 'Tháº¯c máº¯c chung' },
-                        { id: 'high', label: 'Cao', emoji: 'ðŸŸ ', desc: 'áº¢nh hÆ°á»Ÿng há»c táº­p' },
-                        { id: 'urgent', label: 'Kháº©n cáº¥p', emoji: 'ðŸ”´', desc: 'Lá»—i cháº·n tÃ­nh nÄƒng' },
+                        { id: 'low', label: 'Thấp', emoji: '🟢', desc: 'Góp ý tham khảo' },
+                        { id: 'medium', label: 'Trung bình', emoji: '🟡', desc: 'Thắc mắc chung' },
+                        { id: 'high', label: 'Cao', emoji: '🟠', desc: 'Ảnh hưởng học tập' },
+                        { id: 'urgent', label: 'Khẩn cấp', emoji: '🔴', desc: 'Lỗi chặn tính năng' },
                       ].map((prio) => (
                         <button
                           type="button"
@@ -1367,7 +1367,7 @@ export default function SupportPage() {
                           fieldErrors.name ? 'text-rose-700 dark:text-rose-300' : 'text-slate-700'
                         }`}
                       >
-                        Há» vÃ  tÃªn cá»§a báº¡n:
+                        Họ và tên của bạn:
                       </label>
                       <div className="relative">
                         <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -1380,7 +1380,7 @@ export default function SupportPage() {
                             setName(e.target.value);
                             clearFieldError('name');
                           }}
-                          placeholder="VÃ­ dá»¥: Nguyá»…n VÄƒn Minh"
+                          placeholder="Ví dụ: Nguyễn Văn Minh"
                           aria-invalid={fieldErrors.name ? true : undefined}
                           aria-describedby={fieldErrors.name ? 'support-error-name' : undefined}
                           className={`w-full bg-slate-50 border rounded-xl pl-10 pr-3 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition dark:text-slate-100 ${
@@ -1409,7 +1409,7 @@ export default function SupportPage() {
                           fieldErrors.email ? 'text-rose-700 dark:text-rose-300' : 'text-slate-700'
                         }`}
                       >
-                        Email nháº­n xÃ¡c nháº­n & pháº£n há»“i:
+                        Email nhận xác nhận & phản hồi:
                       </label>
                       <div className="relative">
                         <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -1448,7 +1448,7 @@ export default function SupportPage() {
                   {/* Rating */}
                   <div>
                     <label className="block text-xs font-black text-slate-700 mb-1.5 dark:text-slate-300">
-                      Má»©c Ä‘á»™ hÃ i lÃ²ng cá»§a báº¡n vá» tráº£i nghiá»‡m website:
+                      Mức độ hài lòng của bạn về trải nghiệm website:
                     </label>
                     <div className="flex items-center gap-1.5 p-2 bg-slate-50 rounded-xl border border-slate-200 w-fit dark:bg-slate-900 dark:border-white/10">
                       {[1, 2, 3, 4, 5].map((s) => (
@@ -1469,11 +1469,11 @@ export default function SupportPage() {
                         </button>
                       ))}
                       <span className="text-xs font-bold text-slate-600 ml-2 dark:text-slate-400">
-                        {rating === 5 && 'Tuyá»‡t vá»i! ðŸŒŸ'}
-                        {rating === 4 && 'Ráº¥t tá»‘t ðŸ‘'}
-                        {rating === 3 && 'BÃ¬nh thÆ°á»ng ðŸ‘Œ'}
-                        {rating === 2 && 'Cáº§n cáº£i thiá»‡n thÃªm ðŸ› ï¸'}
-                        {rating === 1 && 'ChÆ°a hÃ i lÃ²ng ðŸ˜ž'}
+                        {rating === 5 && 'Tuyệt vời! 🌟'}
+                        {rating === 4 && 'Rất tốt 👍'}
+                        {rating === 3 && 'Bình thường 👌'}
+                        {rating === 2 && 'Cần cải thiện thêm 🛠️'}
+                        {rating === 1 && 'Chưa hài lòng 😞'}
                       </span>
                     </div>
                   </div>
@@ -1486,7 +1486,7 @@ export default function SupportPage() {
                         fieldErrors.subject ? 'text-rose-700 dark:text-rose-300' : 'text-slate-700'
                       }`}
                     >
-                      TiÃªu Ä‘á» phiáº¿u há»— trá»£:
+                      Tiêu đề phiếu hỗ trợ:
                     </label>
                     <input
                       id="ticket-subject"
@@ -1497,7 +1497,7 @@ export default function SupportPage() {
                         setSubject(e.target.value);
                         clearFieldError('subject');
                       }}
-                      placeholder="TÃ³m táº¯t ngáº¯n gá»n váº¥n Ä‘á» (vd: KhÃ´ng má»Ÿ khÃ³a Ä‘Æ°á»£c cáº£nh quan VÆ°á»n Xanh)"
+                      placeholder="Tóm tắt ngắn gọn vấn đề (vd: Không mở khóa được cảnh quan Vườn Xanh)"
                       aria-invalid={fieldErrors.subject ? true : undefined}
                       aria-describedby={fieldErrors.subject ? 'support-error-subject' : undefined}
                       className={`w-full bg-slate-50 border rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 outline-none transition dark:text-slate-100 ${
@@ -1526,7 +1526,7 @@ export default function SupportPage() {
                         fieldErrors.message ? 'text-rose-700 dark:text-rose-300' : 'text-slate-700'
                       }`}
                     >
-                      MÃ´ táº£ chi tiáº¿t ná»™i dung:
+                      Mô tả chi tiết nội dung:
                     </label>
                     <textarea
                       id="ticket-message"
@@ -1537,7 +1537,7 @@ export default function SupportPage() {
                         setMessage(e.target.value);
                         clearFieldError('message');
                       }}
-                      placeholder="MÃ´ táº£ cá»¥ thá»ƒ cÃ¡c bÆ°á»›c báº¡n thá»±c hiá»‡n, Ä‘Æ°á»ng dáº«n trang web gáº·p sá»± cá»‘ hoáº·c Ã½ tÆ°á»Ÿng tÃ­nh nÄƒng má»›i..."
+                      placeholder="Mô tả cụ thể các bước bạn thực hiện, đường dẫn trang web gặp sự cố hoặc ý tưởng tính năng mới..."
                       aria-invalid={fieldErrors.message ? true : undefined}
                       aria-describedby={`support-hint-message${fieldErrors.message ? ' support-error-message' : ''}`}
                       className={`w-full bg-slate-50 border rounded-xl p-3.5 text-xs sm:text-sm text-slate-900 outline-none transition custom-scrollbar resize-none dark:text-slate-100 ${
@@ -1548,7 +1548,7 @@ export default function SupportPage() {
                       required
                     />
                     <p id="support-hint-message" className="mt-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                      Tá»‘i thiá»ƒu {TICKET_MESSAGE_MIN} kÃ½ tá»± â€” hiá»‡n táº¡i {message.trim().length} kÃ½ tá»±.
+                      Tối thiểu {TICKET_MESSAGE_MIN} ký tự — hiện tại {message.trim().length} ký tự.
                     </p>
                     {fieldErrors.message && (
                       <p
@@ -1571,25 +1571,25 @@ export default function SupportPage() {
                     {isSubmitting ? (
                       <>
                         <RefreshCw className="w-4 h-4 animate-spin" />
-                        <span>Äang mÃ£ hÃ³a & gá»­i phiáº¿u Ä‘áº¿n Ban Quáº£n Trá»‹...</span>
+                        <span>Đang mã hóa & gửi phiếu đến Ban Quản Trị...</span>
                       </>
                     ) : (
                       <>
                         <Send className="w-4 h-4" />
-                        <span>Táº¡o Phiáº¿u Há»— Trá»£ & Gá»­i Äáº¿n Ban Quáº£n Trá»‹</span>
+                        <span>Tạo Phiếu Hỗ Trợ & Gửi Đến Ban Quản Trị</span>
                       </>
                     )}
                   </button>
                 </form>
 
-                {/* Khoáº£ng Ä‘á»‡m cho bottom-nav cá»‘ Ä‘á»‹nh trÃªn mobile (lg:hidden) Ä‘á»ƒ
-                    nÃºt "Táº¡o Phiáº¿u Há»— Trá»£" khÃ´ng bá»‹ Ä‘Ã¨ khi cuá»™n tá»›i cuá»‘i trang. */}
+                {/* Khoảng đệm cho bottom-nav cố định trên mobile (lg:hidden) để
+                    nút "Tạo Phiếu Hỗ Trợ" không bị đè khi cuộn tới cuối trang. */}
                 <div aria-hidden="true" className="h-16 lg:hidden" />
               </div>
             )}
 
             {/* ---------------------------------------------------------- */}
-            {/* SUB-TAB 2: Lá»ŠCH Sá»¬ PHIáº¾U Há»– TRá»¢                            */}
+            {/* SUB-TAB 2: LỊCH SỬ PHIẾU HỖ TRỢ                            */}
             {/* ---------------------------------------------------------- */}
             {ticketSubTab === 'history' && (
               <div className="space-y-4">
@@ -1606,7 +1606,7 @@ export default function SupportPage() {
                           fetchTicketHistory(undefined, undefined, historySearchQuery);
                         }
                       }}
-                      placeholder="Tra cá»©u theo mÃ£ #TK-XXXX hoáº·c email..."
+                      placeholder="Tra cứu theo mã #TK-XXXX hoặc email..."
                       className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 outline-none transition dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
                     />
                   </div>
@@ -1618,7 +1618,7 @@ export default function SupportPage() {
                       className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs"
                     >
                       <Search className="w-3.5 h-3.5" />
-                      <span>Tra cá»©u</span>
+                      <span>Tra cứu</span>
                     </button>
 
                     <button
@@ -1635,7 +1635,7 @@ export default function SupportPage() {
                       className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 dark:bg-slate-800 hover:dark:bg-slate-700 dark:text-slate-300"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isLoadingHistory ? 'animate-spin' : ''}`} />
-                      <span>LÃ m má»›i</span>
+                      <span>Làm mới</span>
                     </button>
                   </div>
                 </div>
@@ -1645,12 +1645,12 @@ export default function SupportPage() {
                   <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm space-y-3 dark:bg-slate-900 dark:border-white/10">
                     <RefreshCw className="w-7 h-7 text-indigo-600 animate-spin mx-auto dark:text-indigo-300" />
                     <div className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                      Äang táº£i danh sÃ¡ch phiáº¿u há»— trá»£ cá»§a báº¡n...
+                      Đang tải danh sách phiếu hỗ trợ của bạn...
                     </div>
                   </div>
                 ) : historyError ? (
                   <div className="bg-amber-50 rounded-3xl p-8 text-center border border-amber-200 shadow-sm space-y-2 dark:bg-amber-950/30 dark:border-amber-800">
-                    <div className="text-3xl">âš ï¸</div>
+                    <div className="text-3xl">⚠️</div>
                     <p className="text-xs font-bold text-amber-900 dark:text-amber-300">{historyError}</p>
                     <button
                       type="button"
@@ -1661,17 +1661,17 @@ export default function SupportPage() {
                       }}
                       className="text-xs font-bold text-amber-900 underline min-h-[44px] dark:text-amber-200"
                     >
-                      Thá»­ láº¡i
+                      Thử lại
                     </button>
                   </div>
                 ) : myTickets.length === 0 ? (
                   <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm space-y-3 dark:bg-slate-900 dark:border-white/10">
-                    <div className="text-4xl">ðŸ“­</div>
+                    <div className="text-4xl">📭</div>
                     <h3 className="font-black text-base text-slate-800 dark:text-slate-200">
-                      Báº¡n chÆ°a cÃ³ phiáº¿u há»— trá»£ nÃ o trong danh sÃ¡ch
+                      Bạn chưa có phiếu hỗ trợ nào trong danh sách
                     </h3>
                     <p className="text-xs text-slate-500 max-w-md mx-auto dark:text-slate-400">
-                      Náº¿u báº¡n tá»«ng gá»­i phiáº¿u há»— trá»£ báº±ng email khÃ¡c hoáº·c cÃ³ mÃ£ ticket riÃªng, hÃ£y nháº­p vÃ o Ã´ tra cá»©u phÃ­a trÃªn nhÃ©!
+                      Nếu bạn từng gửi phiếu hỗ trợ bằng email khác hoặc có mã ticket riêng, hãy nhập vào ô tra cứu phía trên nhé!
                     </p>
                     <button
                       onClick={() => {
@@ -1681,20 +1681,20 @@ export default function SupportPage() {
                       className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs transition cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
                     >
                       <Send className="w-3.5 h-3.5" />
-                      <span>Táº¡o Phiáº¿u Há»— Trá»£ Äáº§u TiÃªn</span>
+                      <span>Tạo Phiếu Hỗ Trợ Đầu Tiên</span>
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-3.5">
-                    {/* KhÃ¡ch chÆ°a Ä‘Äƒng nháº­p chá»‰ tháº¥y metadata. Pháº£i nÃ³i rÃµ lÃ½ do,
-                        náº¿u khÃ´ng cÃ¡c phiáº¿u hiá»‡n ra trá»‘ng trÆ¡n nhÆ° lá»—i á»©ng dá»¥ng. */}
+                    {/* Khách chưa đăng nhập chỉ thấy metadata. Phải nói rõ lý do,
+                        nếu không các phiếu hiện ra trống trơn như lỗi ứng dụng. */}
                     {historyRedacted && (
                       <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
-                        <span className="text-xl leading-none" aria-hidden="true">ðŸ”’</span>
+                        <span className="text-xl leading-none" aria-hidden="true">🔒</span>
                         <div className="text-xs text-amber-900 dark:text-amber-200 space-y-2">
                           <p className="font-bold">
-                            Báº¡n Ä‘ang xem danh sÃ¡ch rÃºt gá»n â€” ná»™i dung phiáº¿u vÃ  tráº£ lá»i cá»§a Ban
-                            Quáº£n Trá»‹ chá»‰ hiá»ƒn thá»‹ vá»›i tÃ i khoáº£n Ä‘Ã£ Ä‘Äƒng nháº­p.
+                            Bạn đang xem danh sách rút gọn — nội dung phiếu và trả lời của Ban
+                            Quản Trị chỉ hiển thị với tài khoản đã đăng nhập.
                           </p>
                           <button
                             type="button"
@@ -1704,7 +1704,7 @@ export default function SupportPage() {
                             }}
                             className="font-black underline min-h-[44px]"
                           >
-                            ÄÄƒng nháº­p Ä‘á»ƒ xem Ä‘áº§y Ä‘á»§
+                            Đăng nhập để xem đầy đủ
                           </button>
                         </div>
                       </div>
@@ -1712,44 +1712,44 @@ export default function SupportPage() {
                     {myTickets.map((ticket) => {
                       const formattedCode = ticket.id.startsWith('#') ? ticket.id : `#${ticket.id}`;
                       let categoryBadgeColor = 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-white/10';
-                      let categoryLabel = 'ðŸ’¬ KhÃ¡c';
+                      let categoryLabel = '💬 Khác';
                       if (ticket.category === 'feedback') {
                         categoryBadgeColor = 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950 dark:text-purple-200 dark:border-purple-800';
-                        categoryLabel = 'ðŸ’¡ GÃ³p Ã½ tÃ­nh nÄƒng';
+                        categoryLabel = '💡 Góp ý tính năng';
                       } else if (ticket.category === 'bug') {
                         categoryBadgeColor = 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950 dark:text-rose-200 dark:border-rose-800';
-                        categoryLabel = 'ðŸž BÃ¡o lá»—i ká»¹ thuáº­t';
+                        categoryLabel = '🐞 Báo lỗi kỹ thuật';
                       } else if (ticket.category === 'guide') {
                         categoryBadgeColor = 'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950 dark:text-sky-200 dark:border-sky-800';
-                        categoryLabel = 'ðŸ“– Tháº¯c máº¯c há»c táº­p';
+                        categoryLabel = '📖 Thắc mắc học tập';
                       } else if (ticket.category === 'account') {
                         categoryBadgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800';
-                        categoryLabel = 'ðŸ”’ TÃ i khoáº£n & Báº£o máº­t';
+                        categoryLabel = '🔒 Tài khoản & Bảo mật';
                       }
 
                       let prioBadge = null;
                       if (ticket.priority === 'urgent') {
                         prioBadge = (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800">
-                            ðŸ”´ Kháº©n cáº¥p
+                            🔴 Khẩn cấp
                           </span>
                         );
                       } else if (ticket.priority === 'high') {
                         prioBadge = (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-orange-50 text-orange-700 border-orange-300 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800">
-                            ðŸŸ  Æ¯u tiÃªn cao
+                            🟠 Ưu tiên cao
                           </span>
                         );
                       } else if (ticket.priority === 'low') {
                         prioBadge = (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800">
-                            ðŸŸ¢ Tháº¥p
+                            🟢 Thấp
                           </span>
                         );
                       } else {
                         prioBadge = (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
-                            ðŸŸ¡ Trung bÃ¬nh
+                            🟡 Trung bình
                           </span>
                         );
                       }
@@ -1769,7 +1769,7 @@ export default function SupportPage() {
                                   type="button"
                                   onClick={() => handleCopyTicketId(ticket.id)}
                                   className="text-slate-400 hover:text-white transition cursor-pointer"
-                                  title="Sao chÃ©p mÃ£ ticket"
+                                  title="Sao chép mã ticket"
                                 >
                                   {copiedId === ticket.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                                 </button>
@@ -1803,10 +1803,10 @@ export default function SupportPage() {
                                   }`}
                                 />
                                 {ticket.status === 'new'
-                                  ? 'Chá» tiáº¿p nháº­n'
+                                  ? 'Chờ tiếp nhận'
                                   : ticket.status === 'processing'
-                                  ? 'Äang xá»­ lÃ½'
-                                  : 'ÄÃ£ giáº£i quyáº¿t'}
+                                  ? 'Đang xử lý'
+                                  : 'Đã giải quyết'}
                               </span>
                             </div>
 
@@ -1831,15 +1831,15 @@ export default function SupportPage() {
                               <div className="flex items-center justify-between flex-wrap gap-2">
                                 <div className="flex items-center gap-2">
                                   <span className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-sm shadow-xs">
-                                    ðŸ‰
+                                    🍉
                                   </span>
                                   <span className="font-black text-xs text-emerald-950 uppercase tracking-wider dark:text-emerald-200">
-                                    Pháº£n Há»“i ChÃ­nh Thá»©c Tá»« Ban Quáº£n Trá»‹
+                                    Phản Hồi Chính Thức Từ Ban Quản Trị
                                   </span>
                                 </div>
                                 {ticket.resolved_at && (
                                   <span className="text-[10px] font-mono text-emerald-700 font-bold dark:text-emerald-300">
-                                    Giáº£i quyáº¿t lÃºc: {new Date(ticket.resolved_at).toLocaleString('vi-VN')}
+                                    Giải quyết lúc: {new Date(ticket.resolved_at).toLocaleString('vi-VN')}
                                   </span>
                                 )}
                               </div>
@@ -1851,7 +1851,7 @@ export default function SupportPage() {
                             <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/80 text-[11px] text-amber-800 flex items-center gap-2 font-medium dark:text-amber-200">
                               <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0 dark:text-amber-300" />
                               <span>
-                                Ban Quáº£n Trá»‹ Ä‘Ã£ nháº­n Ä‘Æ°á»£c phiáº¿u vÃ  Ä‘ang tiáº¿n hÃ nh xá»­ lÃ½. Báº¡n sáº½ nháº­n Ä‘Æ°á»£c thÃ´ng bÃ¡o qua email khi cÃ³ cÃ¢u tráº£ lá»i!
+                                Ban Quản Trị đã nhận được phiếu và đang tiến hành xử lý. Bạn sẽ nhận được thông báo qua email khi có câu trả lời!
                               </span>
                             </div>
                           )}

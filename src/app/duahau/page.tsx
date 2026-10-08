@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import type { Metadata } from 'next';
 
@@ -211,7 +211,7 @@ export default function DuaHauAdminPage() {
 
   // Check saved session on mount
   useEffect(() => {
-    // Äáº£m báº£o khÃ´ng bao giá» tá»“n táº¡i tÃ i khoáº£n admin trong localStorage cá»§a ngÆ°á»i dÃ¹ng
+    // Đảm bảo không bao giờ tồn tại tài khoản admin trong localStorage của người dùng
     try {
       const rawUser = localStorage.getItem('english_for_me_user');
       if (rawUser && rawUser.includes('"username":"admin"')) {
@@ -269,7 +269,7 @@ export default function DuaHauAdminPage() {
         setUsers(data.users || []);
         setStats(data.stats || null);
       } else {
-        showToast(data.error || 'KhÃ´ng thá»ƒ táº£i dá»¯ liá»‡u quáº£n trá»‹', 'error');
+        showToast(data.error || 'Không thể tải dữ liệu quản trị', 'error');
         if (res.status === 401) {
           setIsAuthenticated(false);
           setAdminToken(null);
@@ -278,7 +278,7 @@ export default function DuaHauAdminPage() {
         }
       }
     } catch {
-      showToast('Lá»—i káº¿t ná»‘i mÃ¡y chá»§ quáº£n trá»‹', 'error');
+      showToast('Lỗi kết nối máy chủ quản trị', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -307,18 +307,18 @@ export default function DuaHauAdminPage() {
 
       if (res.ok && data.success) {
         setOtpSessionId(data.sessionId);
-        setOtpMaskedEmail(data.maskedEmail || 'email cá»§a quáº£n trá»‹');
+        setOtpMaskedEmail(data.maskedEmail || 'email của quản trị');
         setLoginStep('otp');
         setOtpCountdown(300);
         setLoginOtp('');
-        setLoginSuccessNotice(data.message || `MÃ£ xÃ¡c thá»±c 2FA 6 sá»‘ Ä‘Ã£ Ä‘Æ°á»£c gá»­i Ä‘áº¿n email ${data.maskedEmail}!`);
+        setLoginSuccessNotice(data.message || `Mã xác thực 2FA 6 số đã được gửi đến email ${data.maskedEmail}!`);
         sound.playSuccess();
       } else {
-        setLoginError(data.error || 'TÃªn Ä‘Äƒng nháº­p hoáº·c máº­t kháº©u quáº£n trá»‹ khÃ´ng Ä‘Ãºng.');
+        setLoginError(data.error || 'Tên đăng nhập hoặc mật khẩu quản trị không đúng.');
         sound.playWrong();
       }
     } catch {
-      setLoginError('Lá»—i káº¿t ná»‘i mÃ¡y chá»§ khi gá»­i mÃ£ xÃ¡c thá»±c báº£o máº­t.');
+      setLoginError('Lỗi kết nối máy chủ khi gửi mã xác thực bảo mật.');
       sound.playWrong();
     } finally {
       setIsRequestingOtp(false);
@@ -330,7 +330,7 @@ export default function DuaHauAdminPage() {
     e.preventDefault();
     const cleanOtp = loginOtp.trim();
     if (!cleanOtp || cleanOtp.length !== 6) {
-      setLoginError('Vui lÃ²ng nháº­p Ä‘áº§y Ä‘á»§ 6 chá»¯ sá»‘ mÃ£ xÃ¡c thá»±c OTP.');
+      setLoginError('Vui lòng nhập đầy đủ 6 chữ số mã xác thực OTP.');
       sound.playWrong();
       return;
     }
@@ -363,13 +363,13 @@ export default function DuaHauAdminPage() {
         fetchAdminData(data.token);
         fetchSummary(data.token);
         fetchSupport(data.token);
-        showToast('XÃ¡c thá»±c 2 lá»›p thÃ nh cÃ´ng! ChÃ o má»«ng Quáº£n trá»‹ viÃªn.', 'success');
+        showToast('Xác thực 2 lớp thành công! Chào mừng Quản trị viên.', 'success');
       } else {
-        setLoginError(data.error || 'MÃ£ xÃ¡c thá»±c khÃ´ng chÃ­nh xÃ¡c.');
+        setLoginError(data.error || 'Mã xác thực không chính xác.');
         sound.playWrong();
       }
     } catch {
-      setLoginError('Lá»—i káº¿t ná»‘i mÃ¡y chá»§ khi xÃ¡c minh mÃ£ OTP.');
+      setLoginError('Lỗi kết nối máy chủ khi xác minh mã OTP.');
       sound.playWrong();
     } finally {
       setIsVerifyingOtp(false);
@@ -399,7 +399,7 @@ export default function DuaHauAdminPage() {
   const executeAdminAction = async (payload: any) => {
     const token = adminToken || sessionStorage.getItem('duahau_admin_token');
     if (!token) {
-      showToast('PhiÃªn lÃ m viá»‡c Ä‘Ã£ háº¿t háº¡n. Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i.', 'error');
+      showToast('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.', 'error');
       setIsAuthenticated(false);
       return;
     }
@@ -425,14 +425,14 @@ export default function DuaHauAdminPage() {
         setSelectedUser(null);
         fetchAdminData(token);
       } else {
-        showToast(data.error || 'Thao tÃ¡c tháº¥t báº¡i', 'error');
+        showToast(data.error || 'Thao tác thất bại', 'error');
         if (res.status === 401) {
           setIsAuthenticated(false);
           sessionStorage.removeItem('duahau_admin_token');
         }
       }
     } catch {
-      showToast('Lá»—i mÃ¡y chá»§ khi thá»±c hiá»‡n thao tÃ¡c', 'error');
+      showToast('Lỗi máy chủ khi thực hiện thao tác', 'error');
     } finally {
       setIsSubmittingAction(false);
     }
@@ -459,14 +459,14 @@ export default function DuaHauAdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast(data.message || 'ÄÃ£ sao lÆ°u lÃªn S3 Filebase thÃ nh cÃ´ng 100%! ðŸš€', 'success');
+        showToast(data.message || 'Đã sao lưu lên S3 Filebase thành công 100%! 🚀', 'success');
         fetchAdminData(token);
       } else {
-        const errMsg = data.message || data.error || (data.s3Status?.lastSyncMessage) || 'Sao lÆ°u Filebase S3 tháº¥t báº¡i';
+        const errMsg = data.message || data.error || (data.s3Status?.lastSyncMessage) || 'Sao lưu Filebase S3 thất bại';
         showToast(errMsg, 'error');
       }
     } catch {
-      showToast('Lá»—i káº¿t ná»‘i S3 Filebase', 'error');
+      showToast('Lỗi kết nối S3 Filebase', 'error');
     } finally {
       setIsBackingUp(false);
     }
@@ -526,10 +526,10 @@ export default function DuaHauAdminPage() {
         setLogPage(data.page || 1);
         if (data.summary) setLogSummary(data.summary);
       } else {
-        showToast(data.error || 'KhÃ´ng thá»ƒ táº£i nháº­t kÃ½ há»‡ thá»‘ng', 'error');
+        showToast(data.error || 'Không thể tải nhật ký hệ thống', 'error');
       }
     } catch {
-      showToast('Lá»—i káº¿t ná»‘i khi táº£i nháº­t kÃ½', 'error');
+      showToast('Lỗi kết nối khi tải nhật ký', 'error');
     } finally {
       setIsLoadingLogs(false);
     }
@@ -560,10 +560,10 @@ export default function DuaHauAdminPage() {
         setSupportMessages(data.messages || []);
         setSupportCounts(data.counts || null);
       } else {
-        showToast(data.error || 'KhÃ´ng thá»ƒ táº£i tin nháº¯n gÃ³p Ã½', 'error');
+        showToast(data.error || 'Không thể tải tin nhắn góp ý', 'error');
       }
     } catch {
-      showToast('Lá»—i káº¿t ná»‘i khi táº£i tin nháº¯n gÃ³p Ã½', 'error');
+      showToast('Lỗi kết nối khi tải tin nhắn góp ý', 'error');
     } finally {
       setIsLoadingSupport(false);
     }
@@ -571,8 +571,8 @@ export default function DuaHauAdminPage() {
 
   // Clear Logs
   const handleClearLogs = async (type: string) => {
-    const typeLabel = type === 'access' ? 'truy cáº­p' : type === 'error' ? 'lá»—i' : 'email';
-    if (!confirm(`Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n xÃ³a toÃ n bá»™ nháº­t kÃ½ ${typeLabel}? Thao tÃ¡c nÃ y khÃ´ng thá»ƒ hoÃ n tÃ¡c.`)) {
+    const typeLabel = type === 'access' ? 'truy cập' : type === 'error' ? 'lỗi' : 'email';
+    if (!confirm(`Bạn có chắc chắn muốn xóa toàn bộ nhật ký ${typeLabel}? Thao tác này không thể hoàn tác.`)) {
       return;
     }
     const token = adminToken || sessionStorage.getItem('duahau_admin_token');
@@ -589,14 +589,14 @@ export default function DuaHauAdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast(data.message || 'ÄÃ£ dá»n dáº¹p nháº­t kÃ½ thÃ nh cÃ´ng', 'success');
+        showToast(data.message || 'Đã dọn dẹp nhật ký thành công', 'success');
         fetchLogs(activeAdminTab, 1);
         fetchSummary();
       } else {
-        showToast(data.error || 'Dá»n dáº¹p tháº¥t báº¡i', 'error');
+        showToast(data.error || 'Dọn dẹp thất bại', 'error');
       }
     } catch {
-      showToast('Lá»—i káº¿t ná»‘i khi xÃ³a nháº­t kÃ½', 'error');
+      showToast('Lỗi kết nối khi xóa nhật ký', 'error');
     }
   };
 
@@ -616,23 +616,23 @@ export default function DuaHauAdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast('Cáº­p nháº­t tráº¡ng thÃ¡i thÃ nh cÃ´ng', 'success');
+        showToast('Cập nhật trạng thái thành công', 'success');
         fetchSupport();
         if (selectedTicket && selectedTicket.id === ticketId) {
           setSelectedTicket({ ...selectedTicket, status: status as any });
         }
       } else {
-        showToast(data.error || 'Cáº­p nháº­t tháº¥t báº¡i', 'error');
+        showToast(data.error || 'Cập nhật thất bại', 'error');
       }
     } catch {
-      showToast('Lá»—i káº¿t ná»‘i khi cáº­p nháº­t', 'error');
+      showToast('Lỗi kết nối khi cập nhật', 'error');
     }
   };
 
   // Reply Support Ticket via Email
   const handleReplySupportTicket = async (ticketId: string) => {
     if (!adminReplyText.trim()) {
-      showToast('Vui lÃ²ng nháº­p ná»™i dung pháº£n há»“i', 'error');
+      showToast('Vui lòng nhập nội dung phản hồi', 'error');
       return;
     }
     const token = adminToken || sessionStorage.getItem('duahau_admin_token');
@@ -657,16 +657,16 @@ export default function DuaHauAdminPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         sound.playCelebration();
-        showToast('ÄÃ£ gá»­i pháº£n há»“i thÃ nh cÃ´ng qua email cho thÃ nh viÃªn!', 'success');
+        showToast('Đã gửi phản hồi thành công qua email cho thành viên!', 'success');
         setAdminReplyText('');
         setSelectedTicket(null);
         fetchSupport();
         fetchSummary();
       } else {
-        showToast(data.error || 'Gá»­i pháº£n há»“i tháº¥t báº¡i', 'error');
+        showToast(data.error || 'Gửi phản hồi thất bại', 'error');
       }
     } catch {
-      showToast('Lá»—i káº¿t ná»‘i khi gá»­i pháº£n há»“i', 'error');
+      showToast('Lỗi kết nối khi gửi phản hồi', 'error');
     } finally {
       setIsReplyingTicket(false);
     }
@@ -674,7 +674,7 @@ export default function DuaHauAdminPage() {
 
   // Delete Support Ticket
   const handleDeleteSupportTicket = async (ticketId: string) => {
-    if (!confirm('Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n xÃ³a tin nháº¯n gÃ³p Ã½ nÃ y?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa tin nhắn góp ý này?')) return;
     const token = adminToken || sessionStorage.getItem('duahau_admin_token');
     if (!token) return;
 
@@ -689,14 +689,14 @@ export default function DuaHauAdminPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast('ÄÃ£ xÃ³a gÃ³p Ã½', 'success');
+        showToast('Đã xóa góp ý', 'success');
         if (selectedTicket?.id === ticketId) setSelectedTicket(null);
         fetchSupport();
       } else {
-        showToast(data.error || 'XÃ³a tháº¥t báº¡i', 'error');
+        showToast(data.error || 'Xóa thất bại', 'error');
       }
     } catch {
-      showToast('Lá»—i káº¿t ná»‘i khi xÃ³a', 'error');
+      showToast('Lỗi kết nối khi xóa', 'error');
     }
   };
 
@@ -728,7 +728,7 @@ export default function DuaHauAdminPage() {
   });
 
   // =========================================================================
-  // VIEW 1: ADMIN LOGIN SCREEN (MÃ€N HÃŒNH ÄÄ‚NG NHáº¬P Báº¢O Máº¬T 2FA DÆ¯A Háº¤U)
+  // VIEW 1: ADMIN LOGIN SCREEN (MÀN HÌNH ĐĂNG NHẬP BẢO MẬT 2FA DƯA HẤU)
   // =========================================================================
   if (!isAuthenticated) {
     return (
@@ -741,18 +741,18 @@ export default function DuaHauAdminPage() {
           {/* Header */}
           <div className="text-center space-y-2 mb-6">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-600 to-emerald-500 text-3xl shadow-lg ring-4 ring-rose-500/20 mb-2">
-              {loginStep === 'credentials' ? 'ðŸ‰' : 'ðŸ›¡ï¸'}
+              {loginStep === 'credentials' ? '🍉' : '🛡️'}
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white flex items-center justify-center gap-2">
-              <span>{loginStep === 'credentials' ? 'Quáº£n Trá»‹ DÆ°a Háº¥u' : 'XÃ¡c Thá»±c 2 Lá»›p (2FA)'}</span>
+              <span>{loginStep === 'credentials' ? 'Quản Trị Dưa Hấu' : 'Xác Thực 2 Lớp (2FA)'}</span>
               <span className="text-xs bg-rose-600 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
                 Admin
               </span>
             </h1>
             <p className="text-xs text-slate-400">
               {loginStep === 'credentials'
-                ? 'Há»‡ thá»‘ng báº£o máº­t AES-256-GCM & XÃ¡c thá»±c qua Email'
-                : 'Nháº­p mÃ£ 6 chá»¯ sá»‘ Ä‘Ã£ Ä‘Æ°á»£c gá»­i tá»›i email quáº£n trá»‹'}
+                ? 'Hệ thống bảo mật AES-256-GCM & Xác thực qua Email'
+                : 'Nhập mã 6 chữ số đã được gửi tới email quản trị'}
             </p>
           </div>
 
@@ -777,7 +777,7 @@ export default function DuaHauAdminPage() {
             <form onSubmit={handleRequestOtp} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                  TÃ i khoáº£n Quáº£n Trá»‹:
+                  Tài khoản Quản Trị:
                 </label>
                 <div className="relative">
                   <input
@@ -793,7 +793,7 @@ export default function DuaHauAdminPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                  Máº­t kháº©u Root:
+                  Mật khẩu Root:
                 </label>
                 <div className="relative">
                   <input
@@ -801,7 +801,7 @@ export default function DuaHauAdminPage() {
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     className="w-full bg-slate-950/80 border border-slate-700 focus:border-rose-500 rounded-2xl px-4 py-2.5 text-sm text-white outline-none transition"
-                    placeholder="Nháº­p máº­t kháº©u quáº£n trá»‹..."
+                    placeholder="Nhập mật khẩu quản trị..."
                     required
                   />
                 </div>
@@ -810,8 +810,8 @@ export default function DuaHauAdminPage() {
               <div className="p-3 bg-slate-950/60 border border-slate-800 rounded-2xl text-[11px] text-slate-400 flex items-start gap-2">
                 <Mail className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
                 <span>
-                  Äá»ƒ báº£o máº­t tuyá»‡t Ä‘á»‘i, há»‡ thá»‘ng sáº½ gá»­i mÃ£ OTP gá»“m 6 chá»¯ sá»‘ vá» email quáº£n trá»‹{' '}
-                  <strong className="text-emerald-400 font-mono">{otpMaskedEmail}</strong> Ä‘á»ƒ báº¡n xÃ¡c thá»±c trÆ°á»›c khi cáº¥p quyá»n truy cáº­p.
+                  Để bảo mật tuyệt đối, hệ thống sẽ gửi mã OTP gồm 6 chữ số về email quản trị{' '}
+                  <strong className="text-emerald-400 font-mono">{otpMaskedEmail}</strong> để bạn xác thực trước khi cấp quyền truy cập.
                 </span>
               </div>
 
@@ -823,12 +823,12 @@ export default function DuaHauAdminPage() {
                 {isRequestingOtp ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Äang gá»­i mÃ£ 2FA tá»›i Email...</span>
+                    <span>Đang gửi mã 2FA tới Email...</span>
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span>Gá»­i MÃ£ XÃ¡c Thá»±c 2FA</span>
+                    <span>Gửi Mã Xác Thực 2FA</span>
                   </>
                 )}
               </button>
@@ -837,7 +837,7 @@ export default function DuaHauAdminPage() {
             /* STEP 2: OTP INPUT */
             <form onSubmit={handleVerifyOtp} className="space-y-4">
               <div className="p-3.5 bg-slate-950/80 border border-emerald-500/30 rounded-2xl text-center space-y-1">
-                <div className="text-[11px] text-slate-400">Email nháº­n mÃ£:</div>
+                <div className="text-[11px] text-slate-400">Email nhận mã:</div>
                 <div className="font-mono text-sm font-bold text-emerald-400 tracking-wider">
                   {otpMaskedEmail}
                 </div>
@@ -845,7 +845,7 @@ export default function DuaHauAdminPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1.5 text-center">
-                  Nháº­p mÃ£ 6 sá»‘ (OTP):
+                  Nhập mã 6 số (OTP):
                 </label>
                 <div className="relative">
                   <input
@@ -856,7 +856,7 @@ export default function DuaHauAdminPage() {
                     value={loginOtp}
                     onChange={(e) => setLoginOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     className="w-full bg-slate-950 border-2 border-emerald-500/50 focus:border-emerald-400 rounded-2xl py-3 text-center text-3xl font-black text-white font-mono tracking-[0.4em] outline-none transition shadow-inner"
-                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢"
+                    placeholder="••••••"
                     required
                   />
                 </div>
@@ -867,7 +867,7 @@ export default function DuaHauAdminPage() {
                 <span className="flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5 text-amber-400" />
                   <span>
-                    Háº¿t háº¡n: <strong className="text-amber-300 font-mono">{Math.floor(otpCountdown / 60)}:{(otpCountdown % 60).toString().padStart(2, '0')}</strong>
+                    Hết hạn: <strong className="text-amber-300 font-mono">{Math.floor(otpCountdown / 60)}:{(otpCountdown % 60).toString().padStart(2, '0')}</strong>
                   </span>
                 </span>
                 <button
@@ -876,7 +876,7 @@ export default function DuaHauAdminPage() {
                   disabled={isRequestingOtp || otpCountdown > 240}
                   className="text-xs text-rose-400 hover:text-rose-300 underline font-bold cursor-pointer disabled:opacity-40 disabled:no-underline"
                 >
-                  {isRequestingOtp ? 'Äang gá»­i...' : 'Gá»­i láº¡i mÃ£'}
+                  {isRequestingOtp ? 'Đang gửi...' : 'Gửi lại mã'}
                 </button>
               </div>
 
@@ -888,12 +888,12 @@ export default function DuaHauAdminPage() {
                 {isVerifyingOtp ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Äang kiá»ƒm tra OTP...</span>
+                    <span>Đang kiểm tra OTP...</span>
                   </>
                 ) : (
                   <>
                     <Shield className="w-4 h-4" />
-                    <span>XÃ¡c Nháº­n & ÄÄƒng Nháº­p</span>
+                    <span>Xác Nhận & Đăng Nhập</span>
                   </>
                 )}
               </button>
@@ -909,7 +909,7 @@ export default function DuaHauAdminPage() {
                   }}
                   className="text-xs text-slate-400 hover:text-white transition cursor-pointer"
                 >
-                  â† Quay láº¡i nháº­p máº­t kháº©u
+                  ← Quay lại nhập mật khẩu
                 </button>
               </div>
             </form>
@@ -922,7 +922,7 @@ export default function DuaHauAdminPage() {
               className="text-xs text-slate-400 hover:text-white transition inline-flex items-center gap-1.5"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Quay láº¡i á»©ng dá»¥ng há»c táº­p</span>
+              <span>Quay lại ứng dụng học tập</span>
             </Link>
           </div>
         </div>
@@ -957,25 +957,25 @@ export default function DuaHauAdminPage() {
       <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-600 to-emerald-500 flex items-center justify-center text-xl shadow-md">
-            ðŸ‰
+            🍉
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-base sm:text-lg font-black tracking-tight text-white">
-                DÆ°a Háº¥u Admin
+                Dưa Hấu Admin
               </h1>
               <span className="text-[10px] bg-rose-600/30 text-rose-400 border border-rose-500/50 px-2 py-0.5 rounded-full font-bold uppercase font-mono">
                 /duahau
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">Trung tÃ¢m quáº£n lÃ½ thÃ nh viÃªn & cÆ¡ sá»Ÿ dá»¯ liá»‡u</p>
+            <p className="text-[11px] text-slate-400">Trung tâm quản lý thành viên & cơ sở dữ liệu</p>
           </div>
         </div>
 
         {/* 2FA Security Status Indicator */}
         <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-emerald-950/50 border border-emerald-500/30 rounded-2xl text-[11px] text-emerald-300 font-semibold shadow-xs">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-          <span>Báº£o máº­t 2FA AES-256-GCM: {otpMaskedEmail}</span>
+          <span>Bảo mật 2FA AES-256-GCM: {otpMaskedEmail}</span>
         </div>
 
         {/* Right Tools */}
@@ -985,14 +985,14 @@ export default function DuaHauAdminPage() {
             onClick={handleTriggerBackup}
             disabled={isBackingUp}
             className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-sky-950 border border-sky-700/60 hover:bg-sky-900 text-sky-300 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
-            title="Thá»±c hiá»‡n sao lÆ°u thá»§ cÃ´ng SQLite lÃªn Filebase S3"
+            title="Thực hiện sao lưu thủ công SQLite lên Filebase S3"
           >
             {isBackingUp ? (
               <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-400" />
             ) : (
               <CloudUpload className="w-3.5 h-3.5" />
             )}
-            <span className="hidden sm:inline">{isBackingUp ? 'Äang sao lÆ°u...' : 'Sao LÆ°u S3'}</span>
+            <span className="hidden sm:inline">{isBackingUp ? 'Đang sao lưu...' : 'Sao Lưu S3'}</span>
             <span className="sm:hidden">{isBackingUp ? '...' : 'S3'}</span>
           </button>
 
@@ -1009,16 +1009,16 @@ export default function DuaHauAdminPage() {
             className="flex items-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Vá» App</span>
+            <span className="hidden sm:inline">Về App</span>
           </Link>
 
           <button
             onClick={handleLogout}
             className="flex items-center gap-1 px-3 py-1.5 bg-rose-950/60 border border-rose-800/80 hover:bg-rose-900 text-rose-300 rounded-xl text-xs font-bold transition cursor-pointer"
-            title="ÄÄƒng xuáº¥t khá»i há»‡ thá»‘ng quáº£n trá»‹"
+            title="Đăng xuất khỏi hệ thống quản trị"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>ThoÃ¡t</span>
+            <span>Thoát</span>
           </button>
         </div>
       </header>
@@ -1030,47 +1030,47 @@ export default function DuaHauAdminPage() {
           {/* Card 1: Total Users */}
           <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 shadow-md space-y-1">
             <div className="flex items-center justify-between text-slate-400 text-xs font-bold">
-              <span>Tá»•ng ThÃ nh ViÃªn</span>
+              <span>Tổng Thành Viên</span>
               <Users className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="text-2xl font-black text-white">{stats?.totalUsers || 0}</div>
-            <div className="text-[11px] text-emerald-400 font-medium">Táº¥t cáº£ tÃ i khoáº£n trong SQLite</div>
+            <div className="text-[11px] text-emerald-400 font-medium">Tất cả tài khoản trong SQLite</div>
           </div>
 
           {/* Card 2: Active Users */}
           <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 shadow-md space-y-1">
             <div className="flex items-center justify-between text-slate-400 text-xs font-bold">
-              <span>Äang Hoáº¡t Äá»™ng</span>
+              <span>Đang Hoạt Động</span>
               <UserCheck className="w-4 h-4 text-sky-400" />
             </div>
             <div className="text-2xl font-black text-sky-400">{stats?.activeUsers || 0}</div>
             <div className="text-[11px] text-slate-400 font-medium">
-              KhÃ³a: <span className="text-rose-400 font-bold">{stats?.disabledUsers || 0}</span> tÃ i khoáº£n
+              Khóa: <span className="text-rose-400 font-bold">{stats?.disabledUsers || 0}</span> tài khoản
             </div>
           </div>
 
           {/* Card 3: Total Coins */}
           <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 shadow-md space-y-1">
             <div className="flex items-center justify-between text-slate-400 text-xs font-bold">
-              <span>Tá»•ng Coins LÆ°u ThÃ´ng</span>
+              <span>Tổng Coins Lưu Thông</span>
               <Coins className="w-4 h-4 text-amber-400" />
             </div>
             <div className="text-2xl font-black text-amber-400">
               {stats?.totalCoins?.toLocaleString() || 0}
             </div>
-            <div className="text-[11px] text-slate-400 font-medium">Sá»‘ dÆ° xu cá»§a má»i thÃ nh viÃªn</div>
+            <div className="text-[11px] text-slate-400 font-medium">Số dư xu của mọi thành viên</div>
           </div>
 
           {/* Card 4: S3 Backup */}
           <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 shadow-md space-y-1">
             <div className="flex items-center justify-between text-slate-400 text-xs font-bold">
-              <span>Sao LÆ°u Filebase</span>
+              <span>Sao Lưu Filebase</span>
               <Database className="w-4 h-4 text-purple-400" />
             </div>
             <div className="text-sm font-black text-emerald-400 truncate">
               {stats?.s3Status?.remoteSize
                 ? `${(stats.s3Status.remoteSize / 1024 / 1024).toFixed(2)} MB (Synced)`
-                : 'Tá»± Ä‘á»™ng 15 phÃºt'}
+                : 'Tự động 15 phút'}
             </div>
             <div className="text-[11px] text-slate-400 truncate font-mono">
               Bucket: {stats?.s3Status?.bucket || 'meowlish-db'}
@@ -1092,7 +1092,7 @@ export default function DuaHauAdminPage() {
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>ThÃ nh ViÃªn</span>
+            <span>Thành Viên</span>
             <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-slate-950/60 font-mono">
               {users.length}
             </span>
@@ -1170,10 +1170,10 @@ export default function DuaHauAdminPage() {
             }`}
           >
             <MessageSquare className="w-4 h-4" />
-            <span>Há»— Trá»£ & GÃ³p Ã</span>
+            <span>Hỗ Trợ & Góp Ý</span>
             {supportCounts?.new && supportCounts.new > 0 ? (
               <span className="px-2 py-0.5 text-[10px] rounded-full bg-amber-400 text-amber-950 font-black font-mono animate-bounce">
-                {supportCounts.new} má»›i
+                {supportCounts.new} mới
               </span>
             ) : (
               <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-slate-950/60 font-mono">
@@ -1195,7 +1195,7 @@ export default function DuaHauAdminPage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="TÃ¬m theo username, tÃªn, email..."
+              placeholder="Tìm theo username, tên, email..."
               className="w-full bg-slate-950 border border-slate-700 rounded-2xl pl-10 pr-4 py-2 text-xs sm:text-sm text-white outline-none focus:border-rose-500 transition"
             />
           </div>
@@ -1210,7 +1210,7 @@ export default function DuaHauAdminPage() {
                   : 'bg-slate-800 text-slate-400 hover:text-white'
               }`}
             >
-              Táº¥t cáº£ ({users.length})
+              Tất cả ({users.length})
             </button>
             <button
               onClick={() => setStatusFilter('active')}
@@ -1220,7 +1220,7 @@ export default function DuaHauAdminPage() {
                   : 'bg-slate-800 text-slate-400 hover:text-white'
               }`}
             >
-              Hoáº¡t Ä‘á»™ng ({users.filter((u) => u.status !== 'disabled').length})
+              Hoạt động ({users.filter((u) => u.status !== 'disabled').length})
             </button>
             <button
               onClick={() => setStatusFilter('disabled')}
@@ -1230,12 +1230,12 @@ export default function DuaHauAdminPage() {
                   : 'bg-slate-800 text-slate-400 hover:text-white'
               }`}
             >
-              Bá»‹ khÃ³a ({users.filter((u) => u.status === 'disabled').length})
+              Bị khóa ({users.filter((u) => u.status === 'disabled').length})
             </button>
             <button
               onClick={() => fetchAdminData()}
               className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer"
-              title="LÃ m má»›i danh sÃ¡ch"
+              title="Làm mới danh sách"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
@@ -1248,20 +1248,20 @@ export default function DuaHauAdminPage() {
             <table className="w-full text-left text-xs sm:text-sm min-w-[720px]">
               <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800 text-[11px] uppercase tracking-wider">
                 <tr>
-                  <th className="py-3 px-4">NgÆ°á»i DÃ¹ng</th>
-                  <th className="py-3 px-4">Tráº¡ng ThÃ¡i</th>
-                  <th className="py-3 px-4">Cáº¥p & EXP</th>
-                  <th className="py-3 px-4">Sá»‘ Xu (Coins)</th>
-                  <th className="py-3 px-4">ThÃº CÆ°ng</th>
-                  <th className="py-3 px-4">Hoáº¡t Äá»™ng</th>
-                  <th className="py-3 px-4 text-right">Quáº£n Trá»‹ Thao TÃ¡c</th>
+                  <th className="py-3 px-4">Người Dùng</th>
+                  <th className="py-3 px-4">Trạng Thái</th>
+                  <th className="py-3 px-4">Cấp & EXP</th>
+                  <th className="py-3 px-4">Số Xu (Coins)</th>
+                  <th className="py-3 px-4">Thú Cưng</th>
+                  <th className="py-3 px-4">Hoạt Động</th>
+                  <th className="py-3 px-4 text-right">Quản Trị Thao Tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
                 {filteredUsers.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-8 text-center text-slate-400 font-medium">
-                      KhÃ´ng tÃ¬m tháº¥y ngÆ°á»i dÃ¹ng nÃ o phÃ¹ há»£p.
+                      Không tìm thấy người dùng nào phù hợp.
                     </td>
                   </tr>
                 ) : (
@@ -1280,7 +1280,7 @@ export default function DuaHauAdminPage() {
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
                             <span className="text-2xl p-1.5 rounded-xl bg-slate-800 border border-slate-700">
-                              {user.avatar || 'ðŸ¦‰'}
+                              {user.avatar || '🦉'}
                             </span>
                             <div>
                               <div className="font-black text-white flex items-center gap-1.5">
@@ -1308,12 +1308,12 @@ export default function DuaHauAdminPage() {
                           {isDisabled ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-500/20 text-rose-400 border border-rose-500/40">
                               <Lock className="w-3 h-3" />
-                              Bá»‹ KhÃ³a
+                              Bị Khóa
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
                               <Unlock className="w-3 h-3" />
-                              Hoáº¡t Äá»™ng
+                              Hoạt Động
                             </span>
                           )}
                         </td>
@@ -1340,11 +1340,11 @@ export default function DuaHauAdminPage() {
                                 {user.pet_name || user.pet_type}
                               </div>
                               <div className="text-[10px] text-emerald-400">
-                                Lv.{user.pet_level || 1} â€¢ {user.pet_type}
+                                Lv.{user.pet_level || 1} • {user.pet_type}
                               </div>
                             </div>
                           ) : (
-                            <span className="text-slate-400 text-xs font-mono">ChÆ°a cÃ³</span>
+                            <span className="text-slate-400 text-xs font-mono">Chưa có</span>
                           )}
                         </td>
 
@@ -1352,10 +1352,10 @@ export default function DuaHauAdminPage() {
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-1 text-xs text-orange-400 font-bold">
                             <Flame className="w-3 h-3" />
-                            <span>{user.streak || 0} ngÃ y</span>
+                            <span>{user.streak || 0} ngày</span>
                           </div>
                           <div className="text-[10px] text-slate-400">
-                            {user.last_active_date || 'Gáº§n Ä‘Ã¢y'}
+                            {user.last_active_date || 'Gần đây'}
                           </div>
                         </td>
 
@@ -1377,7 +1377,7 @@ export default function DuaHauAdminPage() {
                                     ? 'bg-emerald-600/20 text-emerald-300 border-emerald-500 hover:bg-emerald-600 hover:text-white'
                                     : 'bg-rose-600/20 text-rose-300 border-rose-500 hover:bg-rose-600 hover:text-white'
                                 }`}
-                                title={isDisabled ? 'KÃ­ch hoáº¡t láº¡i tÃ i khoáº£n' : 'KhÃ³a tÃ i khoáº£n'}
+                                title={isDisabled ? 'Kích hoạt lại tài khoản' : 'Khóa tài khoản'}
                               >
                                 {isDisabled ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                               </button>
@@ -1391,7 +1391,7 @@ export default function DuaHauAdminPage() {
                                 setModalType('coins');
                               }}
                               className="p-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500 hover:text-slate-950 transition cursor-pointer"
-                              title="Chá»‰nh sá»­a sá»‘ Xu (Set Coins)"
+                              title="Chỉnh sửa số Xu (Set Coins)"
                             >
                               <Coins className="w-4 h-4" />
                             </button>
@@ -1405,7 +1405,7 @@ export default function DuaHauAdminPage() {
                                 setModalType('level');
                               }}
                               className="p-1.5 rounded-xl bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500 hover:text-white transition cursor-pointer"
-                              title="Chá»‰nh sá»­a Cáº¥p Ä‘á»™ & EXP (Set Level)"
+                              title="Chỉnh sửa Cấp độ & EXP (Set Level)"
                             >
                               <Award className="w-4 h-4" />
                             </button>
@@ -1418,7 +1418,7 @@ export default function DuaHauAdminPage() {
                                 setModalType('password');
                               }}
                               className="p-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 hover:text-white transition cursor-pointer"
-                              title="Äáº·t láº¡i máº­t kháº©u cho thÃ nh viÃªn"
+                              title="Đặt lại mật khẩu cho thành viên"
                             >
                               <KeyRound className="w-4 h-4" />
                             </button>
@@ -1431,7 +1431,7 @@ export default function DuaHauAdminPage() {
                                   setModalType('delete');
                                 }}
                                 className="p-1.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-600 hover:text-white transition cursor-pointer"
-                                title="XÃ³a tÃ i khoáº£n vÄ©nh viá»…n"
+                                title="Xóa tài khoản vĩnh viễn"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -1464,7 +1464,7 @@ export default function DuaHauAdminPage() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') fetchLogs('access_logs', 1, logSearch, logFilter);
                     }}
-                    placeholder="TÃ¬m theo user, IP, hÃ nh Ä‘á»™ng, user agent..."
+                    placeholder="Tìm theo user, IP, hành động, user agent..."
                     className="w-full bg-slate-950 border border-slate-700 rounded-2xl pl-10 pr-4 py-2 text-xs sm:text-sm text-white outline-none focus:border-emerald-500 transition"
                   />
                 </div>
@@ -1472,7 +1472,7 @@ export default function DuaHauAdminPage() {
                   onClick={() => fetchLogs('access_logs', 1, logSearch, logFilter)}
                   className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
-                  TÃ¬m
+                  Tìm
                 </button>
               </div>
 
@@ -1484,24 +1484,24 @@ export default function DuaHauAdminPage() {
                     setLogFilter(newFilter);
                     fetchLogs('access_logs', 1, logSearch, newFilter);
                   }}
-                  aria-label="Lá»c hÃ nh Ä‘á»™ng truy cáº­p"
+                  aria-label="Lọc hành động truy cập"
                   className="bg-slate-950 border border-slate-700 rounded-2xl px-3 py-2 text-xs font-semibold text-slate-300 outline-none focus:border-emerald-500"
                 >
-                  <option value="all">Táº¥t cáº£ hÃ nh Ä‘á»™ng</option>
-                  <option value="login_success">ÄÄƒng nháº­p thÃ nh cÃ´ng</option>
-                  <option value="login_failed">ÄÄƒng nháº­p tháº¥t báº¡i</option>
-                  <option value="register_success">ÄÄƒng kÃ½ thÃ nh cÃ´ng</option>
-                  <option value="otp_requested">Gá»­i mÃ£ OTP</option>
-                  <option value="otp_verified">XÃ¡c thá»±c OTP</option>
-                  <option value="support_ticket">Gá»­i gÃ³p Ã½ há»— trá»£</option>
-                  <option value="admin_action">Thao tÃ¡c Admin</option>
-                  <option value="backup_triggered">Sao lÆ°u S3</option>
+                  <option value="all">Tất cả hành động</option>
+                  <option value="login_success">Đăng nhập thành công</option>
+                  <option value="login_failed">Đăng nhập thất bại</option>
+                  <option value="register_success">Đăng ký thành công</option>
+                  <option value="otp_requested">Gửi mã OTP</option>
+                  <option value="otp_verified">Xác thực OTP</option>
+                  <option value="support_ticket">Gửi góp ý hỗ trợ</option>
+                  <option value="admin_action">Thao tác Admin</option>
+                  <option value="backup_triggered">Sao lưu S3</option>
                 </select>
 
                 <button
                   onClick={() => fetchLogs('access_logs', logPage, logSearch, logFilter)}
                   className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-xs font-bold transition cursor-pointer"
-                  title="LÃ m má»›i danh sÃ¡ch"
+                  title="Làm mới danh sách"
                 >
                   <RefreshCw className={`w-4 h-4 ${isLoadingLogs ? 'animate-spin text-emerald-400' : ''}`} />
                 </button>
@@ -1509,10 +1509,10 @@ export default function DuaHauAdminPage() {
                 <button
                   onClick={() => handleClearLogs('access')}
                   className="flex items-center gap-1.5 px-3 py-2 bg-rose-950/50 border border-rose-800/80 hover:bg-rose-900 text-rose-300 rounded-2xl text-xs font-bold transition cursor-pointer"
-                  title="Dá»n dáº¹p log access cÅ©"
+                  title="Dọn dẹp log access cũ"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Dá»n dáº¹p</span>
+                  <span className="hidden sm:inline">Dọn dẹp</span>
                 </button>
               </div>
             </div>
@@ -1523,19 +1523,19 @@ export default function DuaHauAdminPage() {
                 <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[680px]">
                   <thead>
                     <tr className="border-b border-slate-800 bg-slate-950/80 text-[11px] font-black uppercase text-slate-400">
-                      <th className="py-3 px-4">Thá»i gian</th>
-                      <th className="py-3 px-4">NgÆ°á»i dÃ¹ng</th>
-                      <th className="py-3 px-4">HÃ nh Ä‘á»™ng</th>
-                      <th className="py-3 px-4">Äá»‹a chá»‰ IP</th>
-                      <th className="py-3 px-4">Chi tiáº¿t</th>
-                      <th className="py-3 px-4 hidden lg:table-cell">Thiáº¿t bá»‹ (User Agent)</th>
+                      <th className="py-3 px-4">Thời gian</th>
+                      <th className="py-3 px-4">Người dùng</th>
+                      <th className="py-3 px-4">Hành động</th>
+                      <th className="py-3 px-4">Địa chỉ IP</th>
+                      <th className="py-3 px-4">Chi tiết</th>
+                      <th className="py-3 px-4 hidden lg:table-cell">Thiết bị (User Agent)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
                     {accessLogs.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="py-12 text-center text-slate-400 text-xs sm:text-sm">
-                          {isLoadingLogs ? 'Äang táº£i dá»¯ liá»‡u...' : 'KhÃ´ng cÃ³ báº£n ghi nháº­t kÃ½ truy cáº­p nÃ o phÃ¹ há»£p.'}
+                          {isLoadingLogs ? 'Đang tải dữ liệu...' : 'Không có bản ghi nhật ký truy cập nào phù hợp.'}
                         </td>
                       </tr>
                     ) : (
@@ -1551,7 +1551,7 @@ export default function DuaHauAdminPage() {
                             </td>
                             <td className="py-3 px-4">
                               <div className="font-bold text-white flex items-center gap-1.5">
-                                <span>{log.username || 'KhÃ¡ch'}</span>
+                                <span>{log.username || 'Khách'}</span>
                                 {log.username === 'admin' && (
                                   <span className="text-[9px] bg-rose-600/40 text-rose-300 border border-rose-500/40 px-1 py-0.2 rounded font-mono">
                                     ADMIN
@@ -1599,7 +1599,7 @@ export default function DuaHauAdminPage() {
               {/* Pagination */}
               <div className="p-3 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between text-xs text-slate-400">
                 <div>
-                  Tá»•ng cá»™ng: <strong className="text-white font-mono">{logTotal}</strong> báº£n ghi
+                  Tổng cộng: <strong className="text-white font-mono">{logTotal}</strong> bản ghi
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -1640,7 +1640,7 @@ export default function DuaHauAdminPage() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') fetchLogs('error_logs', 1, logSearch, logFilter);
                     }}
-                    placeholder="TÃ¬m theo endpoint, thÃ´ng bÃ¡o lá»—i, IP..."
+                    placeholder="Tìm theo endpoint, thông báo lỗi, IP..."
                     className="w-full bg-slate-950 border border-slate-700 rounded-2xl pl-10 pr-4 py-2 text-xs sm:text-sm text-white outline-none focus:border-rose-500 transition"
                   />
                 </div>
@@ -1648,7 +1648,7 @@ export default function DuaHauAdminPage() {
                   onClick={() => fetchLogs('error_logs', 1, logSearch, logFilter)}
                   className="px-3.5 py-2 bg-rose-700 hover:bg-rose-600 text-white rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
-                  TÃ¬m
+                  Tìm
                 </button>
               </div>
 
@@ -1660,10 +1660,10 @@ export default function DuaHauAdminPage() {
                     setLogFilter(newFilter);
                     fetchLogs('error_logs', 1, logSearch, newFilter);
                   }}
-                  aria-label="Lá»c má»©c Ä‘á»™ lá»—i"
+                  aria-label="Lọc mức độ lỗi"
                   className="bg-slate-950 border border-slate-700 rounded-2xl px-3 py-2 text-xs font-semibold text-slate-300 outline-none focus:border-rose-500"
                 >
-                  <option value="all">Táº¥t cáº£ má»©c Ä‘á»™</option>
+                  <option value="all">Tất cả mức độ</option>
                   <option value="error">Error</option>
                   <option value="critical">Critical</option>
                   <option value="warn">Warning</option>
@@ -1672,7 +1672,7 @@ export default function DuaHauAdminPage() {
                 <button
                   onClick={() => fetchLogs('error_logs', logPage, logSearch, logFilter)}
                   className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-xs font-bold transition cursor-pointer"
-                  title="LÃ m má»›i danh sÃ¡ch"
+                  title="Làm mới danh sách"
                 >
                   <RefreshCw className={`w-4 h-4 ${isLoadingLogs ? 'animate-spin text-rose-400' : ''}`} />
                 </button>
@@ -1680,10 +1680,10 @@ export default function DuaHauAdminPage() {
                 <button
                   onClick={() => handleClearLogs('error')}
                   className="flex items-center gap-1.5 px-3 py-2 bg-rose-950/50 border border-rose-800/80 hover:bg-rose-900 text-rose-300 rounded-2xl text-xs font-bold transition cursor-pointer"
-                  title="Dá»n dáº¹p log error cÅ©"
+                  title="Dọn dẹp log error cũ"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Dá»n dáº¹p</span>
+                  <span className="hidden sm:inline">Dọn dẹp</span>
                 </button>
               </div>
             </div>
@@ -1694,10 +1694,10 @@ export default function DuaHauAdminPage() {
                 <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[680px]">
                   <thead>
                     <tr className="border-b border-slate-800 bg-slate-950/80 text-[11px] font-black uppercase text-slate-400">
-                      <th className="py-3 px-4">Thá»i gian</th>
-                      <th className="py-3 px-4">Má»©c Ä‘á»™</th>
+                      <th className="py-3 px-4">Thời gian</th>
+                      <th className="py-3 px-4">Mức độ</th>
                       <th className="py-3 px-4">Endpoint</th>
-                      <th className="py-3 px-4">ThÃ´ng bÃ¡o lá»—i</th>
+                      <th className="py-3 px-4">Thông báo lỗi</th>
                       <th className="py-3 px-4">IP / User</th>
                       <th className="py-3 px-4 text-center">Stack Trace</th>
                     </tr>
@@ -1706,7 +1706,7 @@ export default function DuaHauAdminPage() {
                     {errorLogs.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="py-12 text-center text-slate-400 text-xs sm:text-sm">
-                          {isLoadingLogs ? 'Äang táº£i dá»¯ liá»‡u...' : 'Há»‡ thá»‘ng an toÃ n! ChÆ°a ghi nháº­n lá»—i nÃ o gáº§n Ä‘Ã¢y.'}
+                          {isLoadingLogs ? 'Đang tải dữ liệu...' : 'Hệ thống an toàn! Chưa ghi nhận lỗi nào gần đây.'}
                         </td>
                       </tr>
                     ) : (
@@ -1750,10 +1750,10 @@ export default function DuaHauAdminPage() {
                                     onClick={() => setExpandedStackId(isExpanded ? null : String(log.id))}
                                     className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold transition cursor-pointer"
                                   >
-                                    {isExpanded ? 'áº¨n' : 'Xem'}
+                                    {isExpanded ? 'Ẩn' : 'Xem'}
                                   </button>
                                 ) : (
-                                  <span className="text-slate-400 text-[11px]">KhÃ´ng cÃ³</span>
+                                  <span className="text-slate-400 text-[11px]">Không có</span>
                                 )}
                               </td>
                             </tr>
@@ -1777,7 +1777,7 @@ export default function DuaHauAdminPage() {
               {/* Pagination */}
               <div className="p-3 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between text-xs text-slate-400">
                 <div>
-                  Tá»•ng cá»™ng: <strong className="text-white font-mono">{logTotal}</strong> báº£n ghi
+                  Tổng cộng: <strong className="text-white font-mono">{logTotal}</strong> bản ghi
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -1818,7 +1818,7 @@ export default function DuaHauAdminPage() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') fetchLogs('email_logs', 1, logSearch, logFilter);
                     }}
-                    placeholder="TÃ¬m theo email, tiÃªu Ä‘á», má»¥c Ä‘Ã­ch..."
+                    placeholder="Tìm theo email, tiêu đề, mục đích..."
                     className="w-full bg-slate-950 border border-slate-700 rounded-2xl pl-10 pr-4 py-2 text-xs sm:text-sm text-white outline-none focus:border-sky-500 transition"
                   />
                 </div>
@@ -1826,7 +1826,7 @@ export default function DuaHauAdminPage() {
                   onClick={() => fetchLogs('email_logs', 1, logSearch, logFilter)}
                   className="px-3.5 py-2 bg-sky-700 hover:bg-sky-600 text-white rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
-                  TÃ¬m
+                  Tìm
                 </button>
               </div>
 
@@ -1838,18 +1838,18 @@ export default function DuaHauAdminPage() {
                     setLogFilter(newFilter);
                     fetchLogs('email_logs', 1, logSearch, newFilter);
                   }}
-                  aria-label="Lá»c tráº¡ng thÃ¡i email"
+                  aria-label="Lọc trạng thái email"
                   className="bg-slate-950 border border-slate-700 rounded-2xl px-3 py-2 text-xs font-semibold text-slate-300 outline-none focus:border-sky-500"
                 >
-                  <option value="all">Táº¥t cáº£ tráº¡ng thÃ¡i</option>
-                  <option value="sent">ÄÃ£ gá»­i thÃ nh cÃ´ng</option>
-                  <option value="failed">Gá»­i tháº¥t báº¡i</option>
+                  <option value="all">Tất cả trạng thái</option>
+                  <option value="sent">Đã gửi thành công</option>
+                  <option value="failed">Gửi thất bại</option>
                 </select>
 
                 <button
                   onClick={() => fetchLogs('email_logs', logPage, logSearch, logFilter)}
                   className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-xs font-bold transition cursor-pointer"
-                  title="LÃ m má»›i danh sÃ¡ch"
+                  title="Làm mới danh sách"
                 >
                   <RefreshCw className={`w-4 h-4 ${isLoadingLogs ? 'animate-spin text-sky-400' : ''}`} />
                 </button>
@@ -1857,10 +1857,10 @@ export default function DuaHauAdminPage() {
                 <button
                   onClick={() => handleClearLogs('email')}
                   className="flex items-center gap-1.5 px-3 py-2 bg-rose-950/50 border border-rose-800/80 hover:bg-rose-900 text-rose-300 rounded-2xl text-xs font-bold transition cursor-pointer"
-                  title="Dá»n dáº¹p log email cÅ©"
+                  title="Dọn dẹp log email cũ"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Dá»n dáº¹p</span>
+                  <span className="hidden sm:inline">Dọn dẹp</span>
                 </button>
               </div>
             </div>
@@ -1871,19 +1871,19 @@ export default function DuaHauAdminPage() {
                 <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[640px]">
                   <thead>
                     <tr className="border-b border-slate-800 bg-slate-950/80 text-[11px] font-black uppercase text-slate-400">
-                      <th className="py-3 px-4">Thá»i gian</th>
-                      <th className="py-3 px-4">NgÆ°á»i nháº­n</th>
-                      <th className="py-3 px-4">Má»¥c Ä‘Ã­ch</th>
-                      <th className="py-3 px-4">TiÃªu Ä‘á» email</th>
-                      <th className="py-3 px-4">Tráº¡ng thÃ¡i</th>
-                      <th className="py-3 px-4">IP gá»­i</th>
+                      <th className="py-3 px-4">Thời gian</th>
+                      <th className="py-3 px-4">Người nhận</th>
+                      <th className="py-3 px-4">Mục đích</th>
+                      <th className="py-3 px-4">Tiêu đề email</th>
+                      <th className="py-3 px-4">Trạng thái</th>
+                      <th className="py-3 px-4">IP gửi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
                     {emailLogs.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="py-12 text-center text-slate-400 text-xs sm:text-sm">
-                          {isLoadingLogs ? 'Äang táº£i dá»¯ liá»‡u...' : 'ChÆ°a ghi nháº­n lá»‹ch sá»­ gá»­i email nÃ o.'}
+                          {isLoadingLogs ? 'Đang tải dữ liệu...' : 'Chưa ghi nhận lịch sử gửi email nào.'}
                         </td>
                       </tr>
                     ) : (
@@ -1891,11 +1891,11 @@ export default function DuaHauAdminPage() {
                         const isSent = log.status === 'sent';
 
                         let purposeLabel = log.purpose;
-                        if (log.purpose === 'register_otp') purposeLabel = 'MÃ£ OTP ÄÄƒng KÃ½';
-                        else if (log.purpose === 'login_otp') purposeLabel = 'MÃ£ OTP ÄÄƒng Nháº­p';
-                        else if (log.purpose === 'admin_otp') purposeLabel = '2FA Quáº£n Trá»‹';
-                        else if (log.purpose === 'support_notification') purposeLabel = 'ThÃ´ng bÃ¡o GÃ³p Ã½';
-                        else if (log.purpose === 'support_reply') purposeLabel = 'Pháº£n há»“i GÃ³p Ã½';
+                        if (log.purpose === 'register_otp') purposeLabel = 'Mã OTP Đăng Ký';
+                        else if (log.purpose === 'login_otp') purposeLabel = 'Mã OTP Đăng Nhập';
+                        else if (log.purpose === 'admin_otp') purposeLabel = '2FA Quản Trị';
+                        else if (log.purpose === 'support_notification') purposeLabel = 'Thông báo Góp ý';
+                        else if (log.purpose === 'support_reply') purposeLabel = 'Phản hồi Góp ý';
 
                         return (
                           <tr key={log.id} className="hover:bg-slate-800/40 transition">
@@ -1917,13 +1917,13 @@ export default function DuaHauAdminPage() {
                               {isSent ? (
                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                                   <Check className="w-3 h-3" />
-                                  <span>ÄÃ£ gá»­i</span>
+                                  <span>Đã gửi</span>
                                 </span>
                               ) : (
                                 <div className="space-y-1">
                                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
                                     <X className="w-3 h-3" />
-                                    <span>Tháº¥t báº¡i</span>
+                                    <span>Thất bại</span>
                                   </span>
                                   {log.error_message && (
                                     <div className="text-[10px] text-rose-400 font-mono truncate max-w-xs" title={log.error_message}>
@@ -1947,7 +1947,7 @@ export default function DuaHauAdminPage() {
               {/* Pagination */}
               <div className="p-3 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between text-xs text-slate-400">
                 <div>
-                  Tá»•ng cá»™ng: <strong className="text-white font-mono">{logTotal}</strong> báº£n ghi
+                  Tổng cộng: <strong className="text-white font-mono">{logTotal}</strong> bản ghi
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -1988,7 +1988,7 @@ export default function DuaHauAdminPage() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') fetchSupport(undefined, supportFilterStatus, supportFilterCategory, supportSearch);
                     }}
-                    placeholder="TÃ¬m theo tÃªn, email, tiÃªu Ä‘á», ná»™i dung..."
+                    placeholder="Tìm theo tên, email, tiêu đề, nội dung..."
                     className="w-full bg-slate-950 border border-slate-700 rounded-2xl pl-10 pr-4 py-2 text-xs sm:text-sm text-white outline-none focus:border-amber-500 transition"
                   />
                 </div>
@@ -1996,7 +1996,7 @@ export default function DuaHauAdminPage() {
                   onClick={() => fetchSupport(undefined, supportFilterStatus, supportFilterCategory, supportSearch)}
                   className="px-3.5 py-2 bg-amber-700 hover:bg-amber-600 text-white rounded-2xl text-xs font-bold transition cursor-pointer"
                 >
-                  TÃ¬m
+                  Tìm
                 </button>
               </div>
 
@@ -2008,20 +2008,20 @@ export default function DuaHauAdminPage() {
                     setSupportFilterCategory(newCat);
                     fetchSupport(undefined, supportFilterStatus, newCat, supportSearch);
                   }}
-                  aria-label="Lá»c thá»ƒ loáº¡i gÃ³p Ã½"
+                  aria-label="Lọc thể loại góp ý"
                   className="bg-slate-950 border border-slate-700 rounded-2xl px-3 py-2 text-xs font-semibold text-slate-300 outline-none focus:border-amber-500"
                 >
-                  <option value="all">Táº¥t cáº£ phÃ¢n loáº¡i</option>
-                  <option value="feedback">ðŸ’¡ GÃ³p Ã½ tÃ­nh nÄƒng</option>
-                  <option value="bug">ðŸ› BÃ¡o lá»—i há»‡ thá»‘ng</option>
-                  <option value="guide">ðŸ“– HÆ°á»›ng dáº«n sá»­ dá»¥ng</option>
-                  <option value="other">ðŸ’¬ KhÃ¡c</option>
+                  <option value="all">Tất cả phân loại</option>
+                  <option value="feedback">💡 Góp ý tính năng</option>
+                  <option value="bug">🐛 Báo lỗi hệ thống</option>
+                  <option value="guide">📖 Hướng dẫn sử dụng</option>
+                  <option value="other">💬 Khác</option>
                 </select>
 
                 <button
                   onClick={() => fetchSupport(undefined, supportFilterStatus, supportFilterCategory, supportSearch)}
                   className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl text-xs font-bold transition cursor-pointer"
-                  title="LÃ m má»›i danh sÃ¡ch"
+                  title="Làm mới danh sách"
                 >
                   <RefreshCw className={`w-4 h-4 ${isLoadingSupport ? 'animate-spin text-amber-400' : ''}`} />
                 </button>
@@ -2041,7 +2041,7 @@ export default function DuaHauAdminPage() {
                     : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
                 }`}
               >
-                Táº¥t cáº£ ({supportCounts?.total || 0})
+                Tất cả ({supportCounts?.total || 0})
               </button>
               <button
                 onClick={() => {
@@ -2054,7 +2054,7 @@ export default function DuaHauAdminPage() {
                     : 'bg-slate-900 border border-slate-800 text-amber-400 hover:text-amber-300'
                 }`}
               >
-                Má»›i tiáº¿p nháº­n ({supportCounts?.new || 0})
+                Mới tiếp nhận ({supportCounts?.new || 0})
               </button>
               <button
                 onClick={() => {
@@ -2067,7 +2067,7 @@ export default function DuaHauAdminPage() {
                     : 'bg-slate-900 border border-slate-800 text-sky-400 hover:text-sky-300'
                 }`}
               >
-                Äang xá»­ lÃ½ ({supportCounts?.processing || 0})
+                Đang xử lý ({supportCounts?.processing || 0})
               </button>
               <button
                 onClick={() => {
@@ -2080,43 +2080,43 @@ export default function DuaHauAdminPage() {
                     : 'bg-slate-900 border border-slate-800 text-emerald-400 hover:text-emerald-300'
                 }`}
               >
-                ÄÃ£ giáº£i quyáº¿t ({supportCounts?.resolved || 0})
+                Đã giải quyết ({supportCounts?.resolved || 0})
               </button>
             </div>
 
             {/* Support Tickets List */}
             {supportMessages.length === 0 ? (
               <div className="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center text-slate-400 text-xs sm:text-sm shadow-md">
-                {isLoadingSupport ? 'Äang táº£i dá»¯ liá»‡u...' : 'ChÆ°a cÃ³ thÆ° gÃ³p Ã½ nÃ o trong má»¥c nÃ y.'}
+                {isLoadingSupport ? 'Đang tải dữ liệu...' : 'Chưa có thư góp ý nào trong mục này.'}
               </div>
             ) : (
               <div className="space-y-4">
                 {supportMessages.map((ticket) => {
                   let catColor = 'bg-slate-800 text-slate-300 border-slate-700';
-                  let catLabel = 'ðŸ’¬ KhÃ¡c';
+                  let catLabel = '💬 Khác';
                   if (ticket.category === 'feedback') {
                     catColor = 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-                    catLabel = 'ðŸ’¡ GÃ³p Ã½';
+                    catLabel = '💡 Góp ý';
                   } else if (ticket.category === 'bug') {
                     catColor = 'bg-rose-500/20 text-rose-300 border-rose-500/30';
-                    catLabel = 'ðŸ› BÃ¡o lá»—i';
+                    catLabel = '🐛 Báo lỗi';
                   } else if (ticket.category === 'guide') {
                     catColor = 'bg-sky-500/20 text-sky-300 border-sky-500/30';
-                    catLabel = 'ðŸ“– Há»c táº­p';
+                    catLabel = '📖 Học tập';
                   } else if (ticket.category === 'account') {
                     catColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-                    catLabel = 'ðŸ”’ TÃ i khoáº£n';
+                    catLabel = '🔒 Tài khoản';
                   }
 
                   let prioBadge = null;
                   if (ticket.priority === 'urgent') {
-                    prioBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-rose-500/20 text-rose-300 border-rose-500/40">ðŸ”´ Kháº©n cáº¥p</span>;
+                    prioBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-rose-500/20 text-rose-300 border-rose-500/40">🔴 Khẩn cấp</span>;
                   } else if (ticket.priority === 'high') {
-                    prioBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-orange-500/20 text-orange-300 border-orange-500/40">ðŸŸ  Æ¯u tiÃªn cao</span>;
+                    prioBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-orange-500/20 text-orange-300 border-orange-500/40">🟠 Ưu tiên cao</span>;
                   } else if (ticket.priority === 'low') {
-                    prioBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-500/20 text-emerald-300 border-emerald-500/40">ðŸŸ¢ Tháº¥p</span>;
+                    prioBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-500/20 text-emerald-300 border-emerald-500/40">🟢 Thấp</span>;
                   } else {
-                    prioBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-amber-500/20 text-amber-300 border-amber-500/40">ðŸŸ¡ Trung bÃ¬nh</span>;
+                    prioBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-amber-500/20 text-amber-300 border-amber-500/40">🟡 Trung bình</span>;
                   }
 
                   return (
@@ -2157,10 +2157,10 @@ export default function DuaHauAdminPage() {
                             }`}
                           >
                             {ticket.status === 'new'
-                              ? 'ðŸŸ¡ Má»›i tiáº¿p nháº­n'
+                              ? '🟡 Mới tiếp nhận'
                               : ticket.status === 'processing'
-                              ? 'ðŸ”µ Äang xá»­ lÃ½'
-                              : 'ðŸŸ¢ ÄÃ£ giáº£i quyáº¿t'}
+                              ? '🔵 Đang xử lý'
+                              : '🟢 Đã giải quyết'}
                           </span>
                         </div>
 
@@ -2173,7 +2173,7 @@ export default function DuaHauAdminPage() {
                       <div className="space-y-1">
                         <div className="text-xs text-slate-400 flex flex-wrap items-center gap-2">
                           <span className="font-bold text-white text-sm">{ticket.name}</span>
-                          <span>â€¢</span>
+                          <span>•</span>
                           <a
                             href={`mailto:${ticket.email}`}
                             className="text-sky-400 hover:underline font-mono"
@@ -2182,7 +2182,7 @@ export default function DuaHauAdminPage() {
                           </a>
                           {ticket.user_id && (
                             <>
-                              <span>â€¢</span>
+                              <span>•</span>
                               <span className="font-mono text-[10px] text-slate-400">ID: {ticket.user_id}</span>
                             </>
                           )}
@@ -2202,7 +2202,7 @@ export default function DuaHauAdminPage() {
                         <div className="p-3 bg-emerald-950/40 border border-emerald-800/60 rounded-2xl text-xs space-y-1">
                           <div className="font-bold text-emerald-400 flex items-center gap-1.5">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Quáº£n trá»‹ viÃªn Ä‘Ã£ pháº£n há»“i:</span>
+                            <span>Quản trị viên đã phản hồi:</span>
                             {ticket.resolved_at && (
                               <span className="text-[10px] font-mono text-emerald-500 font-normal">
                                 ({new Date(ticket.resolved_at).toLocaleString('vi-VN')})
@@ -2219,13 +2219,13 @@ export default function DuaHauAdminPage() {
                       <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-800/60">
                         {/* Status Switchers */}
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] text-slate-400 font-semibold mr-1">Chuyá»ƒn:</span>
+                          <span className="text-[11px] text-slate-400 font-semibold mr-1">Chuyển:</span>
                           {ticket.status !== 'processing' && (
                             <button
                               onClick={() => handleUpdateSupportStatus(ticket.id, 'processing')}
                               className="px-2 py-1 rounded-lg bg-sky-950 text-sky-300 border border-sky-800 text-[10px] font-bold hover:bg-sky-900 transition cursor-pointer"
                             >
-                              Äang xá»­ lÃ½
+                              Đang xử lý
                             </button>
                           )}
                           {ticket.status !== 'resolved' && (
@@ -2233,7 +2233,7 @@ export default function DuaHauAdminPage() {
                               onClick={() => handleUpdateSupportStatus(ticket.id, 'resolved')}
                               className="px-2 py-1 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-800 text-[10px] font-bold hover:bg-emerald-900 transition cursor-pointer"
                             >
-                              ÄÃ£ giáº£i quyáº¿t
+                              Đã giải quyết
                             </button>
                           )}
                           {ticket.status !== 'new' && (
@@ -2241,7 +2241,7 @@ export default function DuaHauAdminPage() {
                               onClick={() => handleUpdateSupportStatus(ticket.id, 'new')}
                               className="px-2 py-1 rounded-lg bg-amber-950 text-amber-300 border border-amber-800 text-[10px] font-bold hover:bg-amber-900 transition cursor-pointer"
                             >
-                              Äáº·t vá» Má»›i
+                              Đặt về Mới
                             </button>
                           )}
                         </div>
@@ -2256,13 +2256,13 @@ export default function DuaHauAdminPage() {
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition cursor-pointer shadow-md"
                           >
                             <Mail className="w-3.5 h-3.5" />
-                            <span>{ticket.admin_reply ? 'Pháº£n há»“i láº¡i' : 'Gá»­i Pháº£n Há»“i Email'}</span>
+                            <span>{ticket.admin_reply ? 'Phản hồi lại' : 'Gửi Phản Hồi Email'}</span>
                           </button>
 
                           <button
                             onClick={() => handleDeleteSupportTicket(ticket.id)}
                             className="p-1.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-600 hover:text-white transition cursor-pointer"
-                            title="XÃ³a gÃ³p Ã½ nÃ y"
+                            title="Xóa góp ý này"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -2283,13 +2283,13 @@ export default function DuaHauAdminPage() {
           <div className="w-full max-w-sm max-h-[90dvh] overflow-y-auto overscroll-y-contain custom-scrollbar bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-5 shadow-2xl space-y-4">
             <div className="flex items-center gap-2 text-amber-400 font-black text-base">
               <Coins className="w-5 h-5" />
-              <span>Chá»‰nh Sá»­a Xu: {selectedUser.username}</span>
+              <span>Chỉnh Sửa Xu: {selectedUser.username}</span>
             </div>
             <p className="text-xs text-slate-400">
-              Cáº­p nháº­t trá»±c tiáº¿p sá»‘ dÆ° Coins cho tÃ i khoáº£n {selectedUser.display_name}.
+              Cập nhật trực tiếp số dư Coins cho tài khoản {selectedUser.display_name}.
             </p>
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">Sá»‘ Coins má»›i:</label>
+              <label className="block text-xs font-bold text-slate-300 mb-1">Số Coins mới:</label>
               <input
                 type="number"
                 min="0"
@@ -2303,7 +2303,7 @@ export default function DuaHauAdminPage() {
                 onClick={() => setModalType(null)}
                 className="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
               >
-                Há»§y
+                Hủy
               </button>
               <button
                 onClick={() =>
@@ -2316,7 +2316,7 @@ export default function DuaHauAdminPage() {
                 disabled={isSubmittingAction}
                 className="flex-1 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs cursor-pointer disabled:opacity-50"
               >
-                LÆ°u Thay Äá»•i
+                Lưu Thay Đổi
               </button>
             </div>
           </div>
@@ -2329,14 +2329,14 @@ export default function DuaHauAdminPage() {
           <div className="w-full max-w-sm max-h-[90dvh] overflow-y-auto overscroll-y-contain custom-scrollbar bg-slate-900 border-2 border-sky-500/60 rounded-3xl p-5 shadow-2xl space-y-4">
             <div className="flex items-center gap-2 text-sky-400 font-black text-base">
               <Award className="w-5 h-5" />
-              <span>Chá»‰nh Sá»­a Cáº¥p Äá»™: {selectedUser.username}</span>
+              <span>Chỉnh Sửa Cấp Độ: {selectedUser.username}</span>
             </div>
             <p className="text-xs text-slate-400">
-              Thiáº¿t láº­p Level vÃ  Ä‘iá»ƒm kinh nghiá»‡m EXP cho {selectedUser.display_name}.
+              Thiết lập Level và điểm kinh nghiệm EXP cho {selectedUser.display_name}.
             </p>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Cáº¥p Äá»™ (Level):</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Cấp Độ (Level):</label>
                 <input
                   type="number"
                   min="1"
@@ -2347,7 +2347,7 @@ export default function DuaHauAdminPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Äiá»ƒm EXP:</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Điểm EXP:</label>
                 <input
                   type="number"
                   min="0"
@@ -2362,7 +2362,7 @@ export default function DuaHauAdminPage() {
                 onClick={() => setModalType(null)}
                 className="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
               >
-                Há»§y
+                Hủy
               </button>
               <button
                 onClick={() =>
@@ -2376,7 +2376,7 @@ export default function DuaHauAdminPage() {
                 disabled={isSubmittingAction}
                 className="flex-1 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-black text-xs cursor-pointer disabled:opacity-50"
               >
-                Cáº­p Nháº­t Level
+                Cập Nhật Level
               </button>
             </div>
           </div>
@@ -2389,18 +2389,18 @@ export default function DuaHauAdminPage() {
           <div className="w-full max-w-sm max-h-[90dvh] overflow-y-auto overscroll-y-contain custom-scrollbar bg-slate-900 border-2 border-rose-500/60 rounded-3xl p-5 shadow-2xl space-y-4">
             <div className="flex items-center gap-2 text-rose-400 font-black text-base">
               <KeyRound className="w-5 h-5" />
-              <span>Äá»•i Máº­t Kháº©u: {selectedUser.username}</span>
+              <span>Đổi Mật Khẩu: {selectedUser.username}</span>
             </div>
             <p className="text-xs text-slate-400">
-              Nháº­p máº­t kháº©u má»›i cho tÃ i khoáº£n {selectedUser.display_name}. Máº­t kháº©u sáº½ Ä‘Æ°á»£c mÃ£ hÃ³a SHA-256 an toÃ n.
+              Nhập mật khẩu mới cho tài khoản {selectedUser.display_name}. Mật khẩu sẽ được mã hóa SHA-256 an toàn.
             </p>
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">Máº­t kháº©u má»›i:</label>
+              <label className="block text-xs font-bold text-slate-300 mb-1">Mật khẩu mới:</label>
               <input
                 type="text"
                 value={newPasswordInput}
                 onChange={(e) => setNewPasswordInput(e.target.value)}
-                placeholder="Nháº­p Ã­t nháº¥t 4 kÃ½ tá»±..."
+                placeholder="Nhập ít nhất 4 ký tự..."
                 className="w-full bg-slate-950 border border-slate-700 focus:border-rose-400 rounded-2xl px-4 py-2.5 text-sm font-mono text-white outline-none"
               />
             </div>
@@ -2409,7 +2409,7 @@ export default function DuaHauAdminPage() {
                 onClick={() => setModalType(null)}
                 className="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
               >
-                Há»§y
+                Hủy
               </button>
               <button
                 onClick={() =>
@@ -2422,7 +2422,7 @@ export default function DuaHauAdminPage() {
                 disabled={isSubmittingAction || newPasswordInput.trim().length < 4}
                 className="flex-1 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-black text-xs cursor-pointer disabled:opacity-50"
               >
-                XÃ¡c Nháº­n Äá»•i
+                Xác Nhận Đổi
               </button>
             </div>
           </div>
@@ -2435,20 +2435,20 @@ export default function DuaHauAdminPage() {
           <div className="w-full max-w-sm max-h-[90dvh] overflow-y-auto overscroll-y-contain custom-scrollbar bg-slate-900 border-2 border-rose-500/80 rounded-3xl p-6 shadow-2xl space-y-4">
             <div className="flex items-center gap-2 text-rose-400 font-black text-base">
               <Trash2 className="w-5 h-5" />
-              <span>XÃ¡c Nháº­n XÃ³a TÃ i Khoáº£n</span>
+              <span>Xác Nhận Xóa Tài Khoản</span>
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n xÃ³a vÄ©nh viá»…n tÃ i khoáº£n <strong className="text-white font-bold">{selectedUser.display_name}</strong> (@{selectedUser.username})?
+              Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản <strong className="text-white font-bold">{selectedUser.display_name}</strong> (@{selectedUser.username})?
             </p>
 
             <div className="bg-rose-950/50 border border-rose-800/80 p-3 rounded-2xl text-[11px] text-rose-200 space-y-1">
               <div className="font-bold flex items-center gap-1.5 text-rose-300">
                 <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                <span>Cáº£nh bÃ¡o há»‡ thá»‘ng:</span>
+                <span>Cảnh báo hệ thống:</span>
               </div>
               <p>
-                ToÃ n bá»™ thÃº cÆ°ng, tá»« vá»±ng bookmark, lá»‹ch sá»­ thi vÃ  tiáº¿n Ä‘á»™ há»c táº­p sáº½ bá»‹ xÃ³a vÄ©nh viá»…n vÃ  khÃ´ng thá»ƒ khÃ´i phá»¥c. CÆ¡ sá»Ÿ dá»¯ liá»‡u sáº½ tá»± Ä‘á»™ng Ä‘á»“ng bá»™ lÃªn Filebase S3 ngay láº­p tá»©c.
+                Toàn bộ thú cưng, từ vựng bookmark, lịch sử thi và tiến độ học tập sẽ bị xóa vĩnh viễn và không thể khôi phục. Cơ sở dữ liệu sẽ tự động đồng bộ lên Filebase S3 ngay lập tức.
               </p>
             </div>
 
@@ -2457,7 +2457,7 @@ export default function DuaHauAdminPage() {
                 onClick={() => setModalType(null)}
                 className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer transition"
               >
-                Há»§y bá»
+                Hủy bỏ
               </button>
               <button
                 onClick={() =>
@@ -2470,7 +2470,7 @@ export default function DuaHauAdminPage() {
                 className="flex-1 py-2.5 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-black text-xs cursor-pointer transition flex items-center justify-center gap-1.5 shadow-lg shadow-rose-950 disabled:opacity-50"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>XÃ³a vÄ©nh viá»…n</span>
+                <span>Xóa vĩnh viễn</span>
               </button>
             </div>
           </div>
@@ -2484,7 +2484,7 @@ export default function DuaHauAdminPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-amber-400 font-black text-base">
                 <Mail className="w-5 h-5" />
-                <span>Pháº£n Há»“i GÃ³p Ã Qua Email</span>
+                <span>Phản Hồi Góp Ý Qua Email</span>
               </div>
               <button
                 onClick={() => setSelectedTicket(null)}
@@ -2497,7 +2497,7 @@ export default function DuaHauAdminPage() {
             {/* Ticket Summary Box */}
             <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-1.5 text-xs">
               <div className="flex items-center justify-between text-slate-400">
-                <span>Gá»­i tá»›i: <strong className="text-white">{selectedTicket.name}</strong> ({selectedTicket.email})</span>
+                <span>Gửi tới: <strong className="text-white">{selectedTicket.name}</strong> ({selectedTicket.email})</span>
                 <span className="font-mono text-[10px]">{new Date(selectedTicket.created_at).toLocaleDateString('vi-VN')}</span>
               </div>
               <div className="text-amber-300 font-bold truncate">
@@ -2511,17 +2511,17 @@ export default function DuaHauAdminPage() {
             {/* Reply Input Form */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-200">
-                Ná»™i dung thÆ° pháº£n há»“i gá»­i tá»›i há»c viÃªn:
+                Nội dung thư phản hồi gửi tới học viên:
               </label>
               <textarea
                 rows={5}
                 value={adminReplyText}
                 onChange={(e) => setAdminReplyText(e.target.value)}
-                placeholder="Nháº­p ná»™i dung tráº£ lá»i, hÆ°á»›ng dáº«n hoáº·c lá»i cáº£m Æ¡n tá»›i thÃ nh viÃªn..."
+                placeholder="Nhập nội dung trả lời, hướng dẫn hoặc lời cảm ơn tới thành viên..."
                 className="w-full bg-slate-950 border border-slate-700 rounded-2xl p-3.5 text-xs sm:text-sm text-white outline-none focus:border-amber-500 transition leading-relaxed resize-none"
               />
               <p className="text-[11px] text-slate-400">
-                âœ‰ï¸ Email nÃ y sáº½ Ä‘Æ°á»£c gá»­i trá»±c tiáº¿p tá»›i hÃ²m thÆ° <strong className="text-white font-mono">{selectedTicket.email}</strong> tá»« ban quáº£n trá»‹ vÃ  tá»± Ä‘á»™ng Ä‘Ã¡nh dáº¥u gÃ³p Ã½ lÃ  <span className="text-emerald-400 font-bold">ÄÃ£ giáº£i quyáº¿t</span>.
+                ✉️ Email này sẽ được gửi trực tiếp tới hòm thư <strong className="text-white font-mono">{selectedTicket.email}</strong> từ ban quản trị và tự động đánh dấu góp ý là <span className="text-emerald-400 font-bold">Đã giải quyết</span>.
               </p>
             </div>
 
@@ -2532,7 +2532,7 @@ export default function DuaHauAdminPage() {
                 onClick={() => setSelectedTicket(null)}
                 className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer transition"
               >
-                Há»§y bá»
+                Hủy bỏ
               </button>
               <button
                 type="button"
@@ -2543,12 +2543,12 @@ export default function DuaHauAdminPage() {
                 {isReplyingTicket ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Äang gá»­i email...</span>
+                    <span>Đang gửi email...</span>
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span>Gá»­i ThÆ° Cho Há»c ViÃªn</span>
+                    <span>Gửi Thư Cho Học Viên</span>
                   </>
                 )}
               </button>

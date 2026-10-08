@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import type { Metadata } from 'next';
 
@@ -42,10 +42,10 @@ import PetSocialHub from '@/components/pet/PetSocialHub';
 import { SocialFriend } from '@/lib/petSocialData';
 
 /**
- * Má»™t má»¥c trong menu "ThÃªm" cá»§a thanh cÃ´ng cá»¥.
+ * Một mục trong menu "Thêm" của thanh công cụ.
  *
- * TÃ¡ch thÃ nh component riÃªng Ä‘á»ƒ 5 má»¥c khÃ´ng láº·p cÃ¹ng má»™t khá»‘i className dÃ i.
- * Má»—i má»¥c cao â‰¥44px Ä‘á»ƒ cháº¡m Ä‘Æ°á»£c báº±ng ngÃ³n tay.
+ * Tách thành component riêng để 5 mục không lặp cùng một khối className dài.
+ * Mỗi mục cao ≥44px để chạm được bằng ngón tay.
  */
 function MoreItem({
   icon,
@@ -80,13 +80,13 @@ function MoreItem({
 
 export default function PetPage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
-  // Tráº¡ng thÃ¡i khá»Ÿi táº¡o pháº£i GIá»NG Há»†T server render (null/true/default).
-  // Äá»c localStorage trong useState initializer sáº½ lÃ m cÃ¢y HTML trÃªn client khÃ¡c
-  // server -> React hydration mismatch. Viá»‡c khÃ´i phá»¥c cache lÃ m á»Ÿ hydrateFromCache()
-  // cháº¡y trong useEffect (SAU khi hydration xong).
+  // Trạng thái khởi tạo phải GIỐNG HỆT server render (null/true/default).
+  // Đọc localStorage trong useState initializer sẽ làm cây HTML trên client khác
+  // server -> React hydration mismatch. Việc khôi phục cache làm ở hydrateFromCache()
+  // chạy trong useEffect (SAU khi hydration xong).
   const [petData, setPetData] = useState<any | null>(null);
-  // Cá» quyá»n Cinnamoroll do server gá»­i (GET /api/pet â†’ `cinnamorollAccess`).
-  // Máº·c Ä‘á»‹nh khoÃ¡: khÃ´ng Ä‘á»£i dá»¯ liá»‡u thÃ¬ khÃ´ng cho Ä‘á»•i sang thÃº cÆ°ng Ä‘áº·c quyá»n.
+  // Cờ quyền Cinnamoroll do server gửi (GET /api/pet → `cinnamorollAccess`).
+  // Mặc định khoá: không đợi dữ liệu thì không cho đổi sang thú cưng đặc quyền.
   const [cinnaServerAccess, setCinnaServerAccess] = useState<{
     isUnlocked: boolean;
     status: string;
@@ -94,7 +94,7 @@ export default function PetPage() {
   }>({
     isUnlocked: false,
     status: 'locked_not_logged_in',
-    message: 'BÃ© Cinnamoroll lÃ  ThÃº CÆ°ng Äá»™c Quyá»n Giá»›i Háº¡n dÃ nh riÃªng cho Quáº£n Trá»‹ ViÃªn (Admin).',
+    message: 'Bé Cinnamoroll là Thú Cưng Độc Quyền Giới Hạn dành riêng cho Quản Trị Viên (Admin).',
   });
   const [inventory, setInventory] = useState<any[]>([]);
   const [gardenDecor, setGardenDecor] = useState<any[]>([]);
@@ -118,7 +118,7 @@ export default function PetPage() {
   const [showShopModal, setShowShopModal] = useState<boolean>(false);
   const [showHabitatModal, setShowHabitatModal] = useState<boolean>(false);
   const [showFeedModal, setShowFeedModal] = useState<boolean>(false);
-  /** Menu "ThÃªm" cá»§a thanh cÃ´ng cá»¥ â€” gom cÃ¡c nÃºt chá»‰ má»Ÿ modal. */
+  /** Menu "Thêm" của thanh công cụ — gom các nút chỉ mở modal. */
   const [showMoreMenu, setShowMoreMenu] = useState<boolean>(false);
   const [showSwitchModal, setShowSwitchModal] = useState<boolean>(false);
   const [switchPetCategory, setSwitchPetCategory] = useState<string>('all');
@@ -158,8 +158,8 @@ export default function PetPage() {
     };
   }, []);
 
-  // KhÃ´i phá»¥c cache tá»« localStorage SAU khi hydration (cháº¡y trÃªn client).
-  // Náº¿u cÃ³ cache => hiá»ƒn thá»‹ pet ngay, khÃ´ng cáº§n chá» fetch.
+  // Khôi phục cache từ localStorage SAU khi hydration (chạy trên client).
+  // Nếu có cache => hiển thị pet ngay, không cần chờ fetch.
   useEffect(() => {
     let hasCache = false;
     try {
@@ -194,7 +194,7 @@ export default function PetPage() {
         if (savedSpecies) {
           setPetData({
             pet_type: savedSpecies,
-            pet_name: PETS_CATALOG[savedSpecies]?.name || 'ThÃº CÆ°ng',
+            pet_name: PETS_CATALOG[savedSpecies]?.name || 'Thú Cưng',
             selected_habitat: savedHab || 'emerald_garden',
             equipped_hat: 'none',
             equipped_outfit: 'none',
@@ -215,15 +215,15 @@ export default function PetPage() {
       });
     } catch {}
 
-    // CÃ³ cache => háº¿t loading, khÃ´ng cáº§n hiá»‡n spinner chá» fetch
+    // Có cache => hết loading, không cần hiện spinner chờ fetch
     if (hasCache) setIsLoading(false);
   }, []);
 
   // Load user and pet data
-  // Nguá»“n tháº­t cho loÃ i/cáº£nh quan Ä‘ang dÃ¹ng lÃ  localStorage (lá»±a chá»n cá»§a user).
-  // Server â€” Ä‘áº·c biá»‡t multi-instance stale read trÃªn production â€” cÃ³ thá»ƒ tráº£
-  // giÃ¡ trá»‹ cÅ© (vd pet_type 'owl' dÃ¹ user Ä‘Ã£ Ä‘á»•i). Ã‰p má»i pet object tá»« server
-  // vá» Ä‘Ãºng lá»±a chá»n local trÆ°á»›c khi Ä‘Æ°a vÃ o state (giá»¯ Ä‘Ãºng ngá»¯ nghÄ©a cÅ©).
+  // Nguồn thật cho loài/cảnh quan đang dùng là localStorage (lựa chọn của user).
+  // Server — đặc biệt multi-instance stale read trên production — có thể trả
+  // giá trị cũ (vd pet_type 'owl' dù user đã đổi). Ép mọi pet object từ server
+  // về đúng lựa chọn local trước khi đưa vào state (giữ đúng ngữ nghĩa cũ).
   const reconcilePetWithLocal = (pet: any) => {
     if (!pet || typeof window === 'undefined') return pet;
     try {
@@ -237,7 +237,7 @@ export default function PetPage() {
       if (savedSpecies && (!pet.pet_type || pet.pet_type === 'owl')) {
         pet.pet_type = savedSpecies;
         pet.meta = PETS_CATALOG[savedSpecies] || pet.meta;
-        // TÃªn Ä‘i theo loÃ i (server stale cÃ³ thá»ƒ tráº£ cáº£ tÃªn cÅ©) â€” láº¥y tá»« catalog
+        // Tên đi theo loài (server stale có thể trả cả tên cũ) — lấy từ catalog
         if (PETS_CATALOG[savedSpecies]) pet.pet_name = PETS_CATALOG[savedSpecies].name;
       } else if (pet.pet_type) {
         localStorage.setItem('pet_selected_species', pet.pet_type);
@@ -313,7 +313,7 @@ export default function PetPage() {
     loadPetData();
   }, []);
 
-  // Láº¯ng nghe thay Ä‘á»•i auth/coins tá»« cÃ¡c trang khÃ¡c (vÃ­ dá»¥: lÃ m bÃ i táº­p kiáº¿m thÃªm xu)
+  // Lắng nghe thay đổi auth/coins từ các trang khác (ví dụ: làm bài tập kiếm thêm xu)
   useEffect(() => {
     const handleAuthChange = () => {
       const user = getStoredUser();
@@ -328,11 +328,11 @@ export default function PetPage() {
     return () => window.removeEventListener('auth-state-changed', handleAuthChange);
   }, []);
 
-  // Action: Petting / Vuá»‘t ve
+  // Action: Petting / Vuốt ve
   const handlePet = async (e?: React.MouseEvent) => {
     sound.playCelebration();
 
-    const happyQuotes = petData?.meta?.happyQuotes || ['Cáº£m Æ¡n báº¡n nha! ðŸ’–'];
+    const happyQuotes = petData?.meta?.happyQuotes || ['Cảm ơn bạn nha! 💖'];
     setPetSpeech(happyQuotes[Math.floor(Math.random() * happyQuotes.length)]);
 
     try {
@@ -352,13 +352,13 @@ export default function PetPage() {
     } catch {}
   };
 
-  // Action: Feed / Cho Äƒn
+  // Action: Feed / Cho ăn
   const handleFeed = async (foodItem: ShopItem) => {
     const isOwned = inventory.some((i) => i.item_id === foodItem.id && (i.quantity === undefined || i.quantity > 0));
     if (!isOwned && userCoins < foodItem.price) {
       sound.playWrong();
       const needed = foodItem.price - userCoins;
-      alert(`ðŸª™ Báº¡n Ä‘ang cÃ³ ${userCoins.toLocaleString()} Coins, cáº§n thÃªm ${needed.toLocaleString()} Coins Ä‘á»ƒ mua mÃ³n Äƒn "${foodItem.name}".\nHÃ£y hoÃ n thÃ nh cÃ¡c bÃ i há»c vÃ  bÃ i kiá»ƒm tra Ä‘á»ƒ tÃ­ch lÅ©y thÃªm Coins nhÃ©!`);
+      alert(`🪙 Bạn đang có ${userCoins.toLocaleString()} Coins, cần thêm ${needed.toLocaleString()} Coins để mua món ăn "${foodItem.name}".\nHãy hoàn thành các bài học và bài kiểm tra để tích lũy thêm Coins nhé!`);
       return;
     }
 
@@ -387,7 +387,7 @@ export default function PetPage() {
         }
         setShowFeedModal(false);
 
-        // Giáº£m sá»‘ lÆ°á»£ng Ä‘á»“ Äƒn trong kho náº¿u dÃ¹ng tá»« kho
+        // Giảm số lượng đồ ăn trong kho nếu dùng từ kho
         setInventory((prev) => {
           const itemIndex = prev.findIndex((i) => i.item_id === foodItem.id);
           if (itemIndex === -1) return prev;
@@ -400,7 +400,7 @@ export default function PetPage() {
           return prev.filter((i) => i.item_id !== foodItem.id);
         });
 
-        const eatSounds = petData?.meta?.eatSounds || ['MÄƒm mÄƒm ngon quÃ¡! ðŸ˜‹'];
+        const eatSounds = petData?.meta?.eatSounds || ['Măm măm ngon quá! 😋'];
         setPetSpeech(eatSounds[Math.floor(Math.random() * eatSounds.length)]);
 
         confetti({
@@ -411,7 +411,7 @@ export default function PetPage() {
       } else {
         const errData = await res.json();
         sound.playError();
-        alert(errData.error || 'KhÃ´ng thá»ƒ cho Äƒn lÃºc nÃ y!');
+        alert(errData.error || 'Không thể cho ăn lúc này!');
       }
     } catch {}
   };
@@ -455,7 +455,7 @@ export default function PetPage() {
       } else {
         const errData = await res.json().catch(() => null);
         sound.playWrong();
-        alert(errData?.error || 'KhÃ´ng thá»ƒ thÃ¡o Ä‘á»“ lÃºc nÃ y!');
+        alert(errData?.error || 'Không thể tháo đồ lúc này!');
         await loadPetData();
       }
     } catch {
@@ -496,8 +496,8 @@ export default function PetPage() {
         body: JSON.stringify({
           userId: currentUser?.id,
           action: 'equip',
-          // Gá»­i TRáº NG THÃI ÄÃCH (item.id hoáº·c 'none') + itemType Ä‘á»ƒ server
-          // SET tÆ°á»ng minh, khÃ´ng toggle theo DB (trÃ¡nh double-toggle).
+          // Gửi TRẠNG THÁI ĐÍCH (item.id hoặc 'none') + itemType để server
+          // SET tường minh, không toggle theo DB (tránh double-toggle).
           itemId: nextVal,
           itemType: item.type,
         }),
@@ -516,11 +516,11 @@ export default function PetPage() {
         });
         window.dispatchEvent(new Event('auth-state-changed'));
       } else {
-        // Server tá»« chá»‘i (chÆ°a sá»Ÿ há»¯u / phiÃªn háº¿t háº¡n...): bÃ¡o lá»—i + Ä‘á»“ng bá»™
-        // láº¡i tá»« server Ä‘á»ƒ há»§y tráº¡ng thÃ¡i optimistic sai lá»‡ch.
+        // Server từ chối (chưa sở hữu / phiên hết hạn...): báo lỗi + đồng bộ
+        // lại từ server để hủy trạng thái optimistic sai lệch.
         const errData = await res.json().catch(() => null);
         sound.playWrong();
-        alert(errData?.error || 'KhÃ´ng thá»ƒ thay Ä‘á»“ cho thÃº cÆ°ng lÃºc nÃ y!');
+        alert(errData?.error || 'Không thể thay đồ cho thú cưng lúc này!');
         await loadPetData();
       }
     } catch {
@@ -532,32 +532,32 @@ export default function PetPage() {
   // Action: Switch Pet Species (Optimistic Update)
   const handleSwitchPet = async (petId: string) => {
     if (petId === 'cinnamoroll') {
-      // DÃ¹ng cá» do SERVER gá»­i kÃ¨m, khÃ´ng tá»± tÃ­nh á»Ÿ client: tÃ­nh á»Ÿ client Ä‘Ã²i
-      // há»i danh sÃ¡ch email Ä‘Æ°á»£c cáº¥p quyá»n â€” mÃ  danh sÃ¡ch Ä‘Ã³ lÃ  PII tháº­t, tuyá»‡t
-      // Ä‘á»‘i khÃ´ng Ä‘Æ°á»£c Ä‘Ã³ng gÃ³i vÃ o bundle (Ä‘Ã£ tá»«ng bá»‹ phÃ¡t hiá»‡n trong JS táº£i
-      // vá» cho má»i khÃ¡ch truy cáº­p /pet).
+      // Dùng cờ do SERVER gửi kèm, không tự tính ở client: tính ở client đòi
+      // hỏi danh sách email được cấp quyền — mà danh sách đó là PII thật, tuyệt
+      // đối không được đóng gói vào bundle (đã từng bị phát hiện trong JS tải
+      // về cho mọi khách truy cập /pet).
       const access = cinnaServerAccess;
       if (!access.isUnlocked) {
         sound.playWrong();
         if (access.status === 'locked_not_logged_in') {
           setSpecialPetModal({
             isOpen: true,
-            title: 'ThÃº CÆ°ng Äá»™c Quyá»n Admin ðŸ”’',
-            message: 'BÃ© Cinnamoroll lÃ  ThÃº CÆ°ng Äá»™c Quyá»n Giá»›i Háº¡n dÃ nh riÃªng cho Quáº£n Trá»‹ ViÃªn (Admin). Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ kiá»ƒm tra Ä‘iá»u kiá»‡n má»Ÿ khoÃ¡!',
+            title: 'Thú Cưng Độc Quyền Admin 🔒',
+            message: 'Bé Cinnamoroll là Thú Cưng Độc Quyền Giới Hạn dành riêng cho Quản Trị Viên (Admin). Vui lòng đăng nhập để kiểm tra điều kiện mở khoá!',
             action: 'login',
           });
         } else if (access.status === 'locked_unverified_email') {
           setSpecialPetModal({
             isOpen: true,
-            title: 'KÃ­ch Hoáº¡t Äáº·c Quyá»n Admin âœ‰ï¸âœ¨',
-            message: 'TÃ i khoáº£n cá»§a báº¡n Ä‘á»§ Ä‘iá»u kiá»‡n kÃ­ch hoáº¡t Ä‘áº·c quyá»n sá»Ÿ há»¯u bÃ© Cinnamoroll! Vui lÃ²ng hoÃ n táº¥t xÃ¡c thá»±c mÃ£ OTP email Ä‘á»ƒ nháº­n bÃ© vá» khu vÆ°á»n cá»§a mÃ¬nh nhÃ©.',
+            title: 'Kích Hoạt Đặc Quyền Admin ✉️✨',
+            message: 'Tài khoản của bạn đủ điều kiện kích hoạt đặc quyền sở hữu bé Cinnamoroll! Vui lòng hoàn tất xác thực mã OTP email để nhận bé về khu vườn của mình nhé.',
             action: 'verify_email',
           });
         } else {
           setSpecialPetModal({
             isOpen: true,
-            title: 'ThÃº CÆ°ng Bá»‹ KhoÃ¡ ðŸ”’',
-            message: 'BÃ© Cinnamoroll lÃ  ThÃº CÆ°ng Äá»™c Quyá»n Giá»›i Háº¡n chá»‰ dÃ nh riÃªng cho Quáº£n Trá»‹ ViÃªn (Admin) Ä‘Æ°á»£c cáº¥p quyá»n Ä‘áº·c biá»‡t.',
+            title: 'Thú Cưng Bị Khoá 🔒',
+            message: 'Bé Cinnamoroll là Thú Cưng Độc Quyền Giới Hạn chỉ dành riêng cho Quản Trị Viên (Admin) được cấp quyền đặc biệt.',
             action: 'close',
           });
         }
@@ -681,7 +681,7 @@ export default function PetPage() {
     if (userCoins < item.price) {
       sound.playWrong();
       const needed = item.price - userCoins;
-      alert(`ðŸª™ Báº¡n Ä‘ang cÃ³ ${userCoins.toLocaleString()} Coins, cáº§n thÃªm ${needed.toLocaleString()} Coins Ä‘á»ƒ sá»Ÿ há»¯u "${item.name}".\nHÃ£y hoÃ n thÃ nh cÃ¡c bÃ i há»c vÃ  thá»­ thÃ¡ch tiáº¿ng Anh Ä‘á»ƒ tÃ­ch lÅ©y thÃªm Coins nhÃ©!`);
+      alert(`🪙 Bạn đang có ${userCoins.toLocaleString()} Coins, cần thêm ${needed.toLocaleString()} Coins để sở hữu "${item.name}".\nHãy hoàn thành các bài học và thử thách tiếng Anh để tích lũy thêm Coins nhé!`);
       return;
     }
 
@@ -701,7 +701,7 @@ export default function PetPage() {
         setUserCoins(data.remainingCoins);
         setInventory((prev) => [...prev, { item_id: item.id, item_type: item.type, quantity: 1 }]);
         
-        // Cáº­p nháº­t láº¡i UI header coins
+        // Cập nhật lại UI header coins
         const stored = getStoredUser();
         if (stored) {
           setStoredUser({ ...stored, coins: data.remainingCoins });
@@ -725,11 +725,11 @@ export default function PetPage() {
       } else {
         const errData = await res.json();
         sound.playError();
-        alert(errData.error || 'Mua váº­t pháº©m tháº¥t báº¡i');
+        alert(errData.error || 'Mua vật phẩm thất bại');
       }
     } catch {
       sound.playError();
-      alert('KhÃ´ng thá»ƒ káº¿t ná»‘i mÃ¡y chá»§ Ä‘á»ƒ mua váº­t pháº©m. Vui lÃ²ng thá»­ láº¡i!');
+      alert('Không thể kết nối máy chủ để mua vật phẩm. Vui lòng thử lại!');
     }
   };
 
@@ -835,80 +835,80 @@ export default function PetPage() {
     switch (currentHabitat) {
       case 'emerald_garden':
         return [
-          { key: 'swim', label: 'BÆ¡i Há»“ Sen', emoji: 'ðŸª·', bg: 'bg-sky-600 hover:bg-sky-500' },
-          { key: 'climb', label: 'TrÃ¨o CÃ¢y TÃ¡o', emoji: 'ðŸŽ', bg: 'bg-emerald-700 hover:bg-emerald-600' },
-          { key: 'jump', label: 'Báº­t Náº¥m LÃ² Xo', emoji: 'ðŸ„', bg: 'bg-rose-500 hover:bg-rose-400' },
-          { key: 'coop', label: 'Cho GÃ  Ä‚n', emoji: 'ðŸ”', bg: 'bg-amber-600 hover:bg-amber-500' },
-          { key: 'veggie', label: 'Thu Hoáº¡ch Rau', emoji: 'ðŸ¥•', bg: 'bg-orange-600 hover:bg-orange-500' },
+          { key: 'swim', label: 'Bơi Hồ Sen', emoji: '🪷', bg: 'bg-sky-600 hover:bg-sky-500' },
+          { key: 'climb', label: 'Trèo Cây Táo', emoji: '🍎', bg: 'bg-emerald-700 hover:bg-emerald-600' },
+          { key: 'jump', label: 'Bật Nấm Lò Xo', emoji: '🍄', bg: 'bg-rose-500 hover:bg-rose-400' },
+          { key: 'coop', label: 'Cho Gà Ăn', emoji: '🐔', bg: 'bg-amber-600 hover:bg-amber-500' },
+          { key: 'veggie', label: 'Thu Hoạch Rau', emoji: '🥕', bg: 'bg-orange-600 hover:bg-orange-500' },
         ];
       case 'sunset_beach':
         return [
-          { key: 'surf', label: 'LÆ°á»›t VÃ¡n SÃ³ng', emoji: 'ðŸ„', bg: 'bg-sky-600 hover:bg-sky-500' },
-          { key: 'climb', label: 'TrÃ¨o CÃ¢y Dá»«a', emoji: 'ðŸŒ´', bg: 'bg-emerald-700 hover:bg-emerald-600' },
-          { key: 'volleyball', label: 'ÄÃ¡nh BÃ³ng Chuyá»n', emoji: 'ðŸ', bg: 'bg-amber-600 hover:bg-amber-500' },
-          { key: 'tiki', label: 'Uá»‘ng NÆ°á»›c Dá»«a Tiki', emoji: 'ðŸ¹', bg: 'bg-rose-600 hover:bg-rose-500' },
-          { key: 'lighthouse', label: 'ÄÃ¨n Háº£i ÄÄƒng', emoji: 'ðŸ—¼', bg: 'bg-indigo-600 hover:bg-indigo-500' },
+          { key: 'surf', label: 'Lướt Ván Sóng', emoji: '🏄', bg: 'bg-sky-600 hover:bg-sky-500' },
+          { key: 'climb', label: 'Trèo Cây Dừa', emoji: '🌴', bg: 'bg-emerald-700 hover:bg-emerald-600' },
+          { key: 'volleyball', label: 'Đánh Bóng Chuyền', emoji: '🏐', bg: 'bg-amber-600 hover:bg-amber-500' },
+          { key: 'tiki', label: 'Uống Nước Dừa Tiki', emoji: '🍹', bg: 'bg-rose-600 hover:bg-rose-500' },
+          { key: 'lighthouse', label: 'Đèn Hải Đăng', emoji: '🗼', bg: 'bg-indigo-600 hover:bg-indigo-500' },
         ];
       case 'cozy_den':
         return [
-          { key: 'code', label: 'GÃµ Code Dev', emoji: 'ðŸ’»', bg: 'bg-indigo-600 hover:bg-indigo-500' },
-          { key: 'climb', label: 'Ká»‡ SÃ¡ch Láº­p TrÃ¬nh', emoji: 'ðŸ“š', bg: 'bg-emerald-700 hover:bg-emerald-600' },
-          { key: 'beanbag', label: 'Náº±m Gháº¿ Beanbag', emoji: 'ðŸ›‹ï¸', bg: 'bg-rose-500 hover:bg-rose-400' },
-          { key: 'coffee', label: 'Pha Espresso', emoji: 'â˜•', bg: 'bg-amber-700 hover:bg-amber-600' },
-          { key: 'server', label: 'Kiá»ƒm Tra Server Rack', emoji: 'ðŸ–¥ï¸', bg: 'bg-cyan-700 hover:bg-cyan-600' },
+          { key: 'code', label: 'Gõ Code Dev', emoji: '💻', bg: 'bg-indigo-600 hover:bg-indigo-500' },
+          { key: 'climb', label: 'Kệ Sách Lập Trình', emoji: '📚', bg: 'bg-emerald-700 hover:bg-emerald-600' },
+          { key: 'beanbag', label: 'Nằm Ghế Beanbag', emoji: '🛋️', bg: 'bg-rose-500 hover:bg-rose-400' },
+          { key: 'coffee', label: 'Pha Espresso', emoji: '☕', bg: 'bg-amber-700 hover:bg-amber-600' },
+          { key: 'server', label: 'Kiểm Tra Server Rack', emoji: '🖥️', bg: 'bg-cyan-700 hover:bg-cyan-600' },
         ];
       case 'sky_castle':
         return [
-          { key: 'fountain', label: 'ÄÃ i Phun Sao Biá»ƒn', emoji: 'â›²', bg: 'bg-sky-600 hover:bg-sky-500' },
-          { key: 'climb', label: 'Báº­c MÃ¢y Cung ÄÃ¬nh', emoji: 'â˜ï¸', bg: 'bg-indigo-600 hover:bg-indigo-500' },
-          { key: 'rainbow', label: 'Cáº§u Vá»“ng Pha LÃª', emoji: 'ðŸŒˆ', bg: 'bg-pink-600 hover:bg-pink-500' },
-          { key: 'treasure', label: 'Má»Ÿ RÆ°Æ¡ng Kim CÆ°Æ¡ng', emoji: 'ðŸ’Ž', bg: 'bg-amber-500 hover:bg-amber-400 text-slate-950' },
-          { key: 'castle', label: 'Cá»•ng ThÃ nh Tháº§n TiÃªn', emoji: 'ðŸ°', bg: 'bg-purple-600 hover:bg-purple-500' },
+          { key: 'fountain', label: 'Đài Phun Sao Biển', emoji: '⛲', bg: 'bg-sky-600 hover:bg-sky-500' },
+          { key: 'climb', label: 'Bậc Mây Cung Đình', emoji: '☁️', bg: 'bg-indigo-600 hover:bg-indigo-500' },
+          { key: 'rainbow', label: 'Cầu Vồng Pha Lê', emoji: '🌈', bg: 'bg-pink-600 hover:bg-pink-500' },
+          { key: 'treasure', label: 'Mở Rương Kim Cương', emoji: '💎', bg: 'bg-amber-500 hover:bg-amber-400 text-slate-950' },
+          { key: 'castle', label: 'Cổng Thành Thần Tiên', emoji: '🏰', bg: 'bg-purple-600 hover:bg-purple-500' },
         ];
       case 'thousand_sunny':
         return [
-          { key: 'helm', label: 'Báº» BÃ¡nh LÃ¡i TÃ u', emoji: 'âš“', bg: 'bg-amber-700 hover:bg-amber-600' },
-          { key: 'jump', label: 'Nháº£y Äáº§u SÆ° Tá»­ Sunny', emoji: 'ðŸ¦', bg: 'bg-yellow-500 hover:bg-yellow-400 text-slate-950' },
-          { key: 'cannon', label: 'Náº¡p Äáº¡i BÃ¡c Cola', emoji: 'ðŸ’£', bg: 'bg-stone-700 hover:bg-stone-600' },
-          { key: 'tangerine', label: 'HÃ¡i Cam Mikan Nami', emoji: 'ðŸŠ', bg: 'bg-orange-500 hover:bg-orange-400' },
-          { key: 'treasure', label: 'Má»Ÿ RÆ°Æ¡ng Kho BÃ¡u', emoji: 'ðŸ’°', bg: 'bg-emerald-600 hover:bg-emerald-500' },
+          { key: 'helm', label: 'Bẻ Bánh Lái Tàu', emoji: '⚓', bg: 'bg-amber-700 hover:bg-amber-600' },
+          { key: 'jump', label: 'Nhảy Đầu Sư Tử Sunny', emoji: '🦁', bg: 'bg-yellow-500 hover:bg-yellow-400 text-slate-950' },
+          { key: 'cannon', label: 'Nạp Đại Bác Cola', emoji: '💣', bg: 'bg-stone-700 hover:bg-stone-600' },
+          { key: 'tangerine', label: 'Hái Cam Mikan Nami', emoji: '🍊', bg: 'bg-orange-500 hover:bg-orange-400' },
+          { key: 'treasure', label: 'Mở Rương Kho Báu', emoji: '💰', bg: 'bg-emerald-600 hover:bg-emerald-500' },
         ];
       case 'konoha_valley':
         return [
-          { key: 'ramen', label: 'Ä‚n MÃ¬ Ichiraku', emoji: 'ðŸœ', bg: 'bg-orange-600 hover:bg-orange-500' },
-          { key: 'hokage', label: 'Leo TÆ°á»£ng Hokage', emoji: 'â›°ï¸', bg: 'bg-stone-600 hover:bg-stone-500' },
-          { key: 'torii', label: 'Äi Qua Cá»•ng Torii', emoji: 'â›©ï¸', bg: 'bg-red-600 hover:bg-red-500' },
-          { key: 'target', label: 'Báº¯n Phi TiÃªu Kunai', emoji: 'ðŸŽ¯', bg: 'bg-amber-600 hover:bg-amber-500' },
-          { key: 'onsen', label: 'NgÃ¢m Suá»‘i Onsen', emoji: 'â™¨ï¸', bg: 'bg-teal-600 hover:bg-teal-500' },
+          { key: 'ramen', label: 'Ăn Mì Ichiraku', emoji: '🍜', bg: 'bg-orange-600 hover:bg-orange-500' },
+          { key: 'hokage', label: 'Leo Tượng Hokage', emoji: '⛰️', bg: 'bg-stone-600 hover:bg-stone-500' },
+          { key: 'torii', label: 'Đi Qua Cổng Torii', emoji: '⛩️', bg: 'bg-red-600 hover:bg-red-500' },
+          { key: 'target', label: 'Bắn Phi Tiêu Kunai', emoji: '🎯', bg: 'bg-amber-600 hover:bg-amber-500' },
+          { key: 'onsen', label: 'Ngâm Suối Onsen', emoji: '♨️', bg: 'bg-teal-600 hover:bg-teal-500' },
         ];
       case 'hogwarts_hall':
         return [
-          { key: 'sorting_hat', label: 'Äá»™i NÃ³n PhÃ¢n Loáº¡i', emoji: 'ðŸ§™', bg: 'bg-purple-700 hover:bg-purple-600' },
-          { key: 'feast', label: 'Dá»± Tiá»‡c Äáº¡i Sáº£nh', emoji: 'ðŸ—', bg: 'bg-amber-600 hover:bg-amber-500' },
-          { key: 'fireplace', label: 'SÆ°á»Ÿi LÃ² Gryffindor', emoji: 'ðŸ”¥', bg: 'bg-red-700 hover:bg-red-600' },
-          { key: 'banners', label: 'Cá» Bá»‘n NhÃ  PhÃ¡p Thuáº­t', emoji: 'ðŸš©', bg: 'bg-indigo-600 hover:bg-indigo-500' },
+          { key: 'sorting_hat', label: 'Đội Nón Phân Loại', emoji: '🧙', bg: 'bg-purple-700 hover:bg-purple-600' },
+          { key: 'feast', label: 'Dự Tiệc Đại Sảnh', emoji: '🍗', bg: 'bg-amber-600 hover:bg-amber-500' },
+          { key: 'fireplace', label: 'Sưởi Lò Gryffindor', emoji: '🔥', bg: 'bg-red-700 hover:bg-red-600' },
+          { key: 'banners', label: 'Cờ Bốn Nhà Pháp Thuật', emoji: '🚩', bg: 'bg-indigo-600 hover:bg-indigo-500' },
         ];
       case 'doraemon_field':
         return [
-          { key: 'pipes', label: 'Ngá»“i 3 á»ng BÃª TÃ´ng', emoji: 'ðŸ§±', bg: 'bg-slate-600 hover:bg-slate-500' },
-          { key: 'anywhere_door', label: 'Má»Ÿ Cá»­a Tháº§n Ká»³', emoji: 'ðŸšª', bg: 'bg-pink-600 hover:bg-pink-500' },
-          { key: 'dorayaki', label: 'Ä‚n BÃ¡nh RÃ¡n Nobita', emoji: 'ðŸ¥ž', bg: 'bg-amber-600 hover:bg-amber-500' },
-          { key: 'pole', label: 'Cá»™t Äiá»‡n Khu Phá»‘', emoji: 'âš¡', bg: 'bg-sky-700 hover:bg-sky-600' },
+          { key: 'pipes', label: 'Ngồi 3 Ống Bê Tông', emoji: '🧱', bg: 'bg-slate-600 hover:bg-slate-500' },
+          { key: 'anywhere_door', label: 'Mở Cửa Thần Kỳ', emoji: '🚪', bg: 'bg-pink-600 hover:bg-pink-500' },
+          { key: 'dorayaki', label: 'Ăn Bánh Rán Nobita', emoji: '🥞', bg: 'bg-amber-600 hover:bg-amber-500' },
+          { key: 'pole', label: 'Cột Điện Khu Phố', emoji: '⚡', bg: 'bg-sky-700 hover:bg-sky-600' },
         ];
       case 'dream_land':
         return [
-          { key: 'warp_star', label: 'CÆ°á»¡i Sao Warp Star', emoji: 'â­', bg: 'bg-yellow-500 hover:bg-yellow-400 text-slate-950' },
-          { key: 'lollipop', label: 'CÃ¢y Káº¹o Báº£y Sáº¯c', emoji: 'ðŸ­', bg: 'bg-pink-500 hover:bg-pink-400' },
-          { key: 'rainbow', label: 'Suá»‘i ThÃ¡c Cáº§u Vá»“ng', emoji: 'ðŸŒˆ', bg: 'bg-violet-600 hover:bg-violet-500' },
-          { key: 'apple', label: 'HÃ¡i TÃ¡o Whispy Woods', emoji: 'ðŸŽ', bg: 'bg-emerald-600 hover:bg-emerald-500' },
-          { key: 'star_rod', label: 'Cáº§u Nguyá»‡n TrÆ°á»£ng Sao', emoji: 'ðŸª„', bg: 'bg-indigo-600 hover:bg-indigo-500' },
+          { key: 'warp_star', label: 'Cưỡi Sao Warp Star', emoji: '⭐', bg: 'bg-yellow-500 hover:bg-yellow-400 text-slate-950' },
+          { key: 'lollipop', label: 'Cây Kẹo Bảy Sắc', emoji: '🍭', bg: 'bg-pink-500 hover:bg-pink-400' },
+          { key: 'rainbow', label: 'Suối Thác Cầu Vồng', emoji: '🌈', bg: 'bg-violet-600 hover:bg-violet-500' },
+          { key: 'apple', label: 'Hái Táo Whispy Woods', emoji: '🍎', bg: 'bg-emerald-600 hover:bg-emerald-500' },
+          { key: 'star_rod', label: 'Cầu Nguyện Trượng Sao', emoji: '🪄', bg: 'bg-indigo-600 hover:bg-indigo-500' },
         ];
       default:
         return [
-          { key: 'swim', label: 'BÆ¡i Há»“ Sen', emoji: 'ðŸª·', bg: 'bg-sky-600 hover:bg-sky-500' },
-          { key: 'climb', label: 'TrÃ¨o CÃ¢y TÃ¡o', emoji: 'ðŸŽ', bg: 'bg-emerald-700 hover:bg-emerald-600' },
-          { key: 'jump', label: 'Báº­t Náº¥m LÃ² Xo', emoji: 'ðŸ„', bg: 'bg-rose-500 hover:bg-rose-400' },
-          { key: 'coop', label: 'Cho GÃ  Ä‚n', emoji: 'ðŸ”', bg: 'bg-amber-600 hover:bg-amber-500' },
+          { key: 'swim', label: 'Bơi Hồ Sen', emoji: '🪷', bg: 'bg-sky-600 hover:bg-sky-500' },
+          { key: 'climb', label: 'Trèo Cây Táo', emoji: '🍎', bg: 'bg-emerald-700 hover:bg-emerald-600' },
+          { key: 'jump', label: 'Bật Nấm Lò Xo', emoji: '🍄', bg: 'bg-rose-500 hover:bg-rose-400' },
+          { key: 'coop', label: 'Cho Gà Ăn', emoji: '🐔', bg: 'bg-amber-600 hover:bg-amber-500' },
         ];
     }
   })();
@@ -916,8 +916,8 @@ export default function PetPage() {
   return (
     <div className="w-full h-full flex-1 min-h-0 flex flex-col p-2 sm:p-3 gap-2 overflow-y-auto custom-scrollbar select-none pb-24 lg:pb-2 overflow-x-hidden">
       {/* ================= MEOWLISH 2D WORLD NAVIGATOR ================= */}
-      {/* touch-auto: ghi Ä‘Ã¨ .custom-scrollbar{touch-action:pan-y} â€” náº¿u khÃ´ng, mobile
-          KHÃ”NG vuá»‘t Ä‘Æ°á»£c sang ngang vÃ  3/5 tab náº±m ngoÃ i mÃ n hÃ¬nh khÃ´ng má»Ÿ Ä‘Æ°á»£c. */}
+      {/* touch-auto: ghi đè .custom-scrollbar{touch-action:pan-y} — nếu không, mobile
+          KHÔNG vuốt được sang ngang và 3/5 tab nằm ngoài màn hình không mở được. */}
       <div className="w-full shrink-0 bg-gradient-to-r from-emerald-900 via-teal-950 to-amber-950 rounded-2xl p-1.5 sm:p-2 border-2 border-emerald-500/50 shadow-lg flex items-center justify-between gap-1.5 overflow-x-auto touch-auto custom-scrollbar">
         <div className="flex items-center gap-1.5 min-w-max">
           <button
@@ -931,8 +931,8 @@ export default function PetPage() {
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
             }`}
           >
-            <span>ðŸŒ¾</span>
-            <span>NÃ´ng Tráº¡i 2.5D (GÃ  & BÃ²)</span>
+            <span>🌾</span>
+            <span>Nông Trại 2.5D (Gà & Bò)</span>
           </button>
 
           <button
@@ -946,8 +946,8 @@ export default function PetPage() {
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
             }`}
           >
-            <span>âš”ï¸</span>
-            <span>Äáº¥u TrÆ°á»ng PvP (Tiáº¿ng Anh)</span>
+            <span>⚔️</span>
+            <span>Đấu Trường PvP (Tiếng Anh)</span>
           </button>
 
           <button
@@ -961,8 +961,8 @@ export default function PetPage() {
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
             }`}
           >
-            <span>ðŸ</span>
-            <span>Äua ThÃº CÆ°ng (Tiáº¿ng Anh)</span>
+            <span>🏁</span>
+            <span>Đua Thú Cưng (Tiếng Anh)</span>
           </button>
 
           <button
@@ -976,8 +976,8 @@ export default function PetPage() {
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
             }`}
           >
-            <span>ðŸ¡</span>
-            <span>SÃ¢n VÆ°á»n Linh Váº­t</span>
+            <span>🏡</span>
+            <span>Sân Vườn Linh Vật</span>
           </button>
 
           <button
@@ -991,8 +991,8 @@ export default function PetPage() {
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
             }`}
           >
-            <span>ðŸ‘¥</span>
-            <span>Phá»‘ XÃ£ Há»™i & Káº¿t ÄÃ´i</span>
+            <span>👥</span>
+            <span>Phố Xã Hội & Kết Đôi</span>
           </button>
         </div>
 
@@ -1005,7 +1005,7 @@ export default function PetPage() {
         </div>
       </div>
 
-      {/* ================= TAB 1: SANCTUARY (KHU VÆ¯á»œN THÃš CÆ¯NG) ================= */}
+      {/* ================= TAB 1: SANCTUARY (KHU VƯỜN THÚ CƯNG) ================= */}
       {gameTab === 'sanctuary' && (
         <div className="flex-1 w-full min-h-0 sm:min-h-[460px] md:min-h-0 relative flex flex-col gap-2">
           <div className="flex-1 w-full relative min-h-[200px] sm:min-h-[460px] md:min-h-0">
@@ -1016,8 +1016,8 @@ export default function PetPage() {
                   <Sparkles className="w-8 h-8 text-amber-300 absolute inset-0 m-auto animate-pulse" />
                 </div>
                 <div className="text-center space-y-1">
-                  <p className="text-lg font-black tracking-wide drop-shadow-md">Äang má»Ÿ cá»­a khu vÆ°á»n thÃº cÆ°ng...</p>
-                  <p className="text-xs text-white/80 font-medium">Chuáº©n bá»‹ khÃ´ng gian vÃ  Ä‘Ã³n thÃº cÆ°ng cá»§a báº¡n vá» nhÃ  ðŸ¡âœ¨</p>
+                  <p className="text-lg font-black tracking-wide drop-shadow-md">Đang mở cửa khu vườn thú cưng...</p>
+                  <p className="text-xs text-white/80 font-medium">Chuẩn bị không gian và đón thú cưng của bạn về nhà 🏡✨</p>
                 </div>
               </div>
             ) : (
@@ -1042,10 +1042,10 @@ export default function PetPage() {
                 isCouple={Boolean(coupleData)}
                 coupleTitle={
                   coupleData?.ring_type === 'ring_diamond'
-                    ? 'âœ¨ UyÃªn Æ¯Æ¡ng HoÃ ng Gia'
+                    ? '✨ Uyên Ương Hoàng Gia'
                     : coupleData?.ring_type === 'ring_gold'
-                    ? 'ðŸŒ¹ Cáº·p ÄÃ´i Ngá»t NgÃ o'
-                    : 'â¤ï¸ Cáº·p ÄÃ´i Tri Ká»·'
+                    ? '🌹 Cặp Đôi Ngọt Ngào'
+                    : '❤️ Cặp Đôi Tri Kỷ'
                 }
               />
             )}
@@ -1053,38 +1053,38 @@ export default function PetPage() {
 
           {/* DEDICATED ACTION TOOLBAR (SEPARATED COMPLETELY OUTSIDE MAP).
 
-              Theo Ä‘Ãºng Ä‘áº·c táº£: thanh cÃ´ng cá»¥ CHá»ˆ cÃ³ 3 nÃºt hÃ nh Ä‘á»™ng
-              (NÃ©m BÃ³ng, Gá»i BÃ©, Äi Ngá»§). Má»i thao tÃ¡c khÃ¡c vá»›i thÃº cÆ°ng Ä‘Æ°á»£c
-              thá»±c hiá»‡n báº±ng cÃ¡ch cháº¡m vÃ o váº­t thá»ƒ ngay trÃªn báº£n Ä‘á»“ (â‰¥44px).
+              Theo đúng đặc tả: thanh công cụ CHỈ có 3 nút hành động
+              (Ném Bóng, Gọi Bé, Đi Ngủ). Mọi thao tác khác với thú cưng được
+              thực hiện bằng cách chạm vào vật thể ngay trên bản đồ (≥44px).
 
-              TrÆ°á»›c Ä‘Ã¢y cÃ³ 8 nÃºt xáº¿p cáº¡nh nhau trong má»™t hÃ ng `flex-nowrap`. Äo Ä‘Æ°á»£c:
-              á»Ÿ 393px, "NÃ©m BÃ³ng" náº±m á»Ÿ [537..641], "Gá»i BÃ©" [647..728],
-              "Äi Ngá»§" [734..816] â€” Táº¤T Cáº¢ ngoÃ i khung nhÃ¬n; á»Ÿ iPad 768px "Gá»i BÃ©"
-              káº¿t thÃºc á»Ÿ 789 vÃ  "Äi Ngá»§" á»Ÿ 881. Tá»©c lÃ  chá»©c nÄƒng chÃ­nh cá»§a trang
-              khÃ´ng dÃ¹ng Ä‘Æ°á»£c trÃªn Ä‘iá»‡n thoáº¡i.
+              Trước đây có 8 nút xếp cạnh nhau trong một hàng `flex-nowrap`. Đo được:
+              ở 393px, "Ném Bóng" nằm ở [537..641], "Gọi Bé" [647..728],
+              "Đi Ngủ" [734..816] — TẤT CẢ ngoài khung nhìn; ở iPad 768px "Gọi Bé"
+              kết thúc ở 789 và "Đi Ngủ" ở 881. Tức là chức năng chính của trang
+              không dùng được trên điện thoại.
 
-              Nay: 3 nÃºt hÃ nh Ä‘á»™ng + 1 nÃºt "ThÃªm" (má»Ÿ menu 5 má»¥c má»Ÿ modal). Äá»§ nhá» Ä‘á»ƒ
-              luÃ´n vá»«a má»i khung nhÃ¬n, vÃ  khÃ´ng máº¥t chá»©c nÄƒng nÃ o.
+              Nay: 3 nút hành động + 1 nút "Thêm" (mở menu 5 mục mở modal). Đủ nhỏ để
+              luôn vừa mọi khung nhìn, và không mất chức năng nào.
 
-              Má»i nÃºt â‰¥44px chiá»u cao Ä‘á»ƒ cháº¡m Ä‘Æ°á»£c báº±ng ngÃ³n tay. */}
+              Mọi nút ≥44px chiều cao để chạm được bằng ngón tay. */}
           <div className="w-full shrink-0 rounded-2xl p-2 sm:p-2.5 border-2 border-emerald-300/70 bg-gradient-to-b from-white via-white to-emerald-50/70 shadow-[0_5px_0_rgba(5,150,105,0.18),0_14px_24px_-16px_rgba(5,150,105,0.6)] flex flex-row flex-nowrap items-center gap-2 dark:from-slate-900 dark:via-slate-900">
-            {/* 3 nÃºt hÃ nh Ä‘á»™ng â€” theo Ä‘Ãºng Ä‘áº·c táº£, khÃ´ng thÃªm khÃ´ng bá»›t. */}
+            {/* 3 nút hành động — theo đúng đặc tả, không thêm không bớt. */}
             <button
               onClick={() => farmRef.current?.tossBall()}
               className="px-2.5 sm:px-3 py-2 min-h-[44px] bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-2xl border-b-[3px] border-amber-600/70 text-[12px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-[0_3px_8px_-4px_rgba(217,119,6,0.5)] hover:-translate-y-0.5 active:translate-y-0.5 active:border-b-0 active:shadow-none touch-manipulation"
-              title="NÃ©m bÃ³ng cho thÃº cÆ°ng nháº·t"
+              title="Ném bóng cho thú cưng nhặt"
             >
-              <span aria-hidden>ðŸŽ¾</span>
-              <span>NÃ©m BÃ³ng</span>
+              <span aria-hidden>🎾</span>
+              <span>Ném Bóng</span>
             </button>
 
             <button
               onClick={() => farmRef.current?.callPet()}
               className="px-2.5 sm:px-3 py-2 min-h-[44px] bg-white hover:bg-slate-100 text-slate-800 rounded-2xl border border-slate-300 border-b-[3px] border-b-slate-400/70 text-[12px] sm:text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 active:border-b hover:scale-100 touch-manipulation dark:bg-slate-900 hover:dark:bg-slate-800 dark:text-slate-200 dark:border-white/10"
-              title="Gá»i thÃº cÆ°ng láº¡i gáº§n báº¡n"
+              title="Gọi thú cưng lại gần bạn"
             >
               <Volume2 className="w-4 h-4 text-blue-600 dark:text-blue-300" />
-              <span>Gá»i BÃ©</span>
+              <span>Gọi Bé</span>
             </button>
 
             <button
@@ -1099,13 +1099,13 @@ export default function PetPage() {
                   ? 'bg-sky-500 text-white border-sky-400 ring-2 ring-sky-300'
                   : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700 dark:bg-white dark:text-slate-900 dark:border-white/10'
               }`}
-              title="Cho thÃº cÆ°ng chá»£p máº¯t hoáº·c Ä‘Ã¡nh thá»©c"
+              title="Cho thú cưng chợp mắt hoặc đánh thức"
             >
-              <span aria-hidden>ðŸ’¤</span>
-              <span>{farmState.isSleeping ? 'Thá»©c Dáº­y' : 'Äi Ngá»§'}</span>
+              <span aria-hidden>💤</span>
+              <span>{farmState.isSleeping ? 'Thức Dậy' : 'Đi Ngủ'}</span>
             </button>
 
-            {/* Menu "ThÃªm": gom cÃ¡c nÃºt chá»‰ má»Ÿ modal Ä‘á»ƒ thanh cÃ´ng cá»¥ vá»«a khung. */}
+            {/* Menu "Thêm": gom các nút chỉ mở modal để thanh công cụ vừa khung. */}
             <div className="relative shrink-0">
               <button
                 onClick={() => {
@@ -1114,19 +1114,19 @@ export default function PetPage() {
                 }}
                 aria-expanded={showMoreMenu}
                 aria-haspopup="menu"
-                title="ThÃªm chá»©c nÄƒng"
+                title="Thêm chức năng"
                 className="px-2.5 sm:px-3 py-2 min-h-[44px] min-w-[44px] rounded-2xl border border-slate-300 border-b-[3px] border-b-slate-400 bg-white hover:bg-slate-100 text-slate-800 text-[12px] sm:text-xs font-black transition cursor-pointer flex items-center justify-center gap-1 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 active:border-b touch-manipulation dark:bg-slate-900 hover:dark:bg-slate-800 dark:text-slate-200 dark:border-white/10"
               >
                 <MoreHorizontal className="w-4 h-4" />
-                <span className="hidden sm:inline">ThÃªm</span>
+                <span className="hidden sm:inline">Thêm</span>
               </button>
 
               {showMoreMenu && (
                 <>
-                  {/* Lá»›p phá»§ Ä‘Ã³ng menu khi cháº¡m ra ngoÃ i. */}
+                  {/* Lớp phủ đóng menu khi chạm ra ngoài. */}
                   <button
                     type="button"
-                    aria-label="ÄÃ³ng menu"
+                    aria-label="Đóng menu"
                     className="fixed inset-0 z-40 cursor-default"
                     onClick={() => setShowMoreMenu(false)}
                   />
@@ -1136,8 +1136,8 @@ export default function PetPage() {
                   >
                     <MoreItem
                       icon={<Utensils className="w-4 h-4 text-emerald-600" />}
-                      label="Cho Ä‚n"
-                      hint="Thá»±c Ä‘Æ¡n bá»• dÆ°á»¡ng"
+                      label="Cho Ăn"
+                      hint="Thực đơn bổ dưỡng"
                       onClick={() => {
                         setShowMoreMenu(false);
                         setShowFeedModal(true);
@@ -1145,7 +1145,7 @@ export default function PetPage() {
                     />
                     <MoreItem
                       icon={<ShoppingBag className="w-4 h-4 text-amber-600" />}
-                      label="Cá»­a HÃ ng & Thá»­ Äá»“"
+                      label="Cửa Hàng & Thử Đồ"
                       onClick={() => {
                         setShowMoreMenu(false);
                         handleOpenShop('shop');
@@ -1153,7 +1153,7 @@ export default function PetPage() {
                     />
                     <MoreItem
                       icon={<Shirt className="w-4 h-4 text-emerald-600 dark:text-emerald-300" />}
-                      label="Tá»§ Äá»“"
+                      label="Tủ Đồ"
                       onClick={() => {
                         setShowMoreMenu(false);
                         handleOpenShop('wardrobe');
@@ -1161,7 +1161,7 @@ export default function PetPage() {
                     />
                     <MoreItem
                       icon={<Trees className="w-4 h-4 text-teal-600" />}
-                      label="Cáº£nh Quan"
+                      label="Cảnh Quan"
                       onClick={() => {
                         setShowMoreMenu(false);
                         setShowHabitatModal(true);
@@ -1169,8 +1169,8 @@ export default function PetPage() {
                     />
                     <MoreItem
                       icon={<RefreshCw className="w-4 h-4 text-slate-500 dark:text-slate-400" />}
-                      label="Äá»•i BÃ©"
-                      hint="NuÃ´i linh váº­t khÃ¡c"
+                      label="Đổi Bé"
+                      hint="Nuôi linh vật khác"
                       onClick={() => {
                         setShowMoreMenu(false);
                         setShowSwitchModal(true);
@@ -1239,7 +1239,7 @@ export default function PetPage() {
               );
             }}
             userId={currentUser?.id}
-            userDisplayName={currentUser?.display_name || currentUser?.username || 'Báº¡n'}
+            userDisplayName={currentUser?.display_name || currentUser?.username || 'Bạn'}
             activeRooms={activeRooms}
             acceptedFriends={acceptedFriends}
             onRefreshData={loadPetData}
@@ -1273,7 +1273,7 @@ export default function PetPage() {
               );
             }}
             userId={currentUser?.id}
-            userDisplayName={currentUser?.display_name || currentUser?.username || 'Báº¡n'}
+            userDisplayName={currentUser?.display_name || currentUser?.username || 'Bạn'}
             activeRooms={activeRooms}
             acceptedFriends={acceptedFriends}
             communityUsers={communityUsers}
@@ -1308,7 +1308,7 @@ export default function PetPage() {
             recentChatList={recentChat}
             onVisitFriendFarm={(f) => {
               sound.playCelebration();
-              setPetSpeech(`Äang ghÃ© thÄƒm nÃ´ng tráº¡i cá»§a ${f.displayName || f.display_name}! ThÃº cÆ°ng Ä‘Ã¡ng yÃªu quÃ¡! ðŸ¡ðŸ’–`);
+              setPetSpeech(`Đang ghé thăm nông trại của ${f.displayName || f.display_name}! Thú cưng đáng yêu quá! 🏡💖`);
               setGameTab('farm');
             }}
             onChallengeFriend={() => {
@@ -1319,20 +1319,20 @@ export default function PetPage() {
         </div>
       )}
 
-      {/* ================= MODAL 1: SHOP & FITTING ROOM (PhÃ²ng Thá»­ Äá»“ & Mua Sáº¯m) ================= */}
+      {/* ================= MODAL 1: SHOP & FITTING ROOM (Phòng Thử Đồ & Mua Sắm) ================= */}
       {showShopModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/70 backdrop-blur-xs">
           <div className="bg-white rounded-2xl sm:rounded-3xl w-[96vw] max-w-4xl h-[92vh] sm:h-[84vh] max-h-[660px] min-h-[420px] flex flex-col shadow-2xl border-2 sm:border-4 border-emerald-500 overflow-hidden dark:bg-slate-900">
             {/* Modal Header */}
             <div className="px-3 sm:px-5 py-2.5 sm:py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <span className="text-xl sm:text-2xl shrink-0">ðŸ›ï¸</span>
+                <span className="text-xl sm:text-2xl shrink-0">🛍️</span>
                 <div className="min-w-0">
                   <h3 className="text-sm sm:text-base md:text-lg font-black leading-tight truncate">
-                    Cá»­a HÃ ng & PhÃ²ng Thá»­ Äá»“
+                    Cửa Hàng & Phòng Thử Đồ
                   </h3>
                   <p className="text-[12px] text-emerald-100 font-medium truncate hidden xs:block">
-                    Chá»n mÃ³n Ä‘á»“ báº¥t ká»³ Ä‘á»ƒ bÃ© máº·c thá»­ ngay láº­p tá»©c!
+                    Chọn món đồ bất kỳ để bé mặc thử ngay lập tức!
                   </p>
                 </div>
               </div>
@@ -1346,7 +1346,7 @@ export default function PetPage() {
                 <button
                   onClick={() => setShowShopModal(false)}
                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer ml-1"
-                  title="ÄÃ³ng cá»­a sá»•"
+                  title="Đóng cửa sổ"
                 >
                   <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
@@ -1367,7 +1367,7 @@ export default function PetPage() {
                       : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border-white/10 hover:dark:bg-slate-900'
                   }`}
                 >
-                  <ShoppingBag className="w-3.5 h-3.5" /> Mua Sáº¯m
+                  <ShoppingBag className="w-3.5 h-3.5" /> Mua Sắm
                 </button>
 
                 <button
@@ -1381,20 +1381,20 @@ export default function PetPage() {
                       : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border-white/10 hover:dark:bg-slate-900'
                   }`}
                 >
-                  <Shirt className="w-3.5 h-3.5" /> Tá»§ Äá»“ Cá»§a TÃ´i
+                  <Shirt className="w-3.5 h-3.5" /> Tủ Đồ Của Tôi
                 </button>
               </div>
 
               {/* Sub-Category Filter Pills */}
               <div className="flex items-center gap-1 overflow-x-auto touch-auto text-xs font-bold py-0.5 custom-scrollbar">
                 {[
-                  { id: 'all', label: 'Táº¥t Cáº£' },
-                  { id: 'hat', label: 'ðŸŽ“ NÃ³n & MÅ©' },
-                  { id: 'outfit', label: 'ðŸ‘• Trang Phá»¥c' },
-                  { id: 'accessory', label: 'ðŸ‘“ Phá»¥ Kiá»‡n' },
-                  { id: 'food', label: 'ðŸ Thá»©c Ä‚n' },
-                  { id: 'decor', label: 'ðŸŒ³ Trang TrÃ­' },
-                  { id: 'habitat', label: 'ðŸ¡ Cáº£nh Quan' },
+                  { id: 'all', label: 'Tất Cả' },
+                  { id: 'hat', label: '🎓 Nón & Mũ' },
+                  { id: 'outfit', label: '👕 Trang Phục' },
+                  { id: 'accessory', label: '👓 Phụ Kiện' },
+                  { id: 'food', label: '🍏 Thức Ăn' },
+                  { id: 'decor', label: '🌳 Trang Trí' },
+                  { id: 'habitat', label: '🏡 Cảnh Quan' },
                 ].map((cat) => (
                   <button
                     key={cat.id}
@@ -1429,9 +1429,9 @@ export default function PetPage() {
                   />
                 </div>
                 <div className="text-left min-w-0">
-                  <div className="text-[9px] font-black text-emerald-800 uppercase tracking-wider dark:text-emerald-200">Äang xem thá»­</div>
+                  <div className="text-[9px] font-black text-emerald-800 uppercase tracking-wider dark:text-emerald-200">Đang xem thử</div>
                   <div className="text-[12px] font-black text-slate-800 max-w-[130px] leading-tight dark:text-slate-200">
-                    {previewHatObj?.name || previewOutfitObj?.name || previewAccessoryObj?.name || 'Äá»“ máº·c Ä‘á»‹nh'}
+                    {previewHatObj?.name || previewOutfitObj?.name || previewAccessoryObj?.name || 'Đồ mặc định'}
                   </div>
                 </div>
               </div>
@@ -1440,16 +1440,16 @@ export default function PetPage() {
                 <button
                   onClick={handleRevertPreview}
                   className="px-2 py-1 rounded-lg bg-white border border-slate-300 text-slate-700 text-[12px] font-bold shadow-xs cursor-pointer active:scale-95 dark:bg-slate-900 dark:border-white/10 dark:text-slate-300"
-                  title="KhÃ´i phá»¥c"
+                  title="Khôi phục"
                 >
                   <RotateCcw className="w-3 h-3" />
                 </button>
                 <button
                   onClick={handleApplyPreview}
                   className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[12px] font-black shadow-xs cursor-pointer flex items-center gap-1 active:scale-95"
-                  title="Máº·c lÃªn bÃ©"
+                  title="Mặc lên bé"
                 >
-                  <Check className="w-3 h-3" /> Máº·c BÃ©
+                  <Check className="w-3 h-3" /> Mặc Bé
                 </button>
               </div>
             </div>
@@ -1460,13 +1460,13 @@ export default function PetPage() {
               <div className="hidden md:flex md:w-68 lg:w-76 shrink-0 bg-gradient-to-b from-emerald-50/90 via-teal-50/50 to-slate-50 p-3.5 border-r border-slate-200 flex-col justify-between items-center text-center overflow-hidden dark:from-emerald-950 dark:via-teal-950 dark:to-slate-900 dark:border-white/10">
                 <div className="w-full">
                   <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[12px] font-black uppercase tracking-wider mb-1 dark:bg-emerald-950 dark:text-emerald-200">
-                    <span>ðŸªž</span> PhÃ²ng Thá»­ Äá»“ Trá»±c Tiáº¿p
+                    <span>🪞</span> Phòng Thử Đồ Trực Tiếp
                   </div>
                   <h4 className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200">
                     {petData?.pet_name || currentPetMeta.name}
                   </h4>
                   <p className="text-[12px] text-slate-500 font-medium dark:text-slate-400">
-                    Nháº¥p vÃ o mÃ³n Ä‘á»“ bÃªn pháº£i Ä‘á»ƒ bÃ© máº·c thá»­ ngay!
+                    Nhấp vào món đồ bên phải để bé mặc thử ngay!
                   </p>
                 </div>
 
@@ -1490,46 +1490,46 @@ export default function PetPage() {
                 {/* Current Preview Status Chips - Compact Layout */}
                 <div className="w-full space-y-1 bg-white/90 backdrop-blur-xs p-2.5 rounded-xl border border-slate-200 text-xs shadow-xs text-left dark:bg-slate-900/90 dark:border-white/10">
                   <div className="flex items-center justify-between text-[12px]">
-                    <span className="font-bold text-slate-500 dark:text-slate-400">ðŸŽ“ NÃ³n:</span>
+                    <span className="font-bold text-slate-500 dark:text-slate-400">🎓 Nón:</span>
                     <span className="font-black text-slate-800 max-w-[110px] leading-tight dark:text-slate-200">
-                      {previewHatObj ? previewHatObj.name : 'KhÃ´ng Ä‘á»™i'}
+                      {previewHatObj ? previewHatObj.name : 'Không đội'}
                     </span>
                     {previewHat && (
                       <button
                         onClick={() => handleUnequip('hat')}
                         className="text-[9px] text-rose-500 hover:text-rose-700 font-black cursor-pointer hover:dark:text-rose-300"
                       >
-                        âœ• ThÃ¡o
+                        ✕ Tháo
                       </button>
                     )}
                   </div>
 
                   <div className="flex items-center justify-between text-[12px]">
-                    <span className="font-bold text-slate-500 dark:text-slate-400">ðŸ‘• Ão:</span>
+                    <span className="font-bold text-slate-500 dark:text-slate-400">👕 Áo:</span>
                     <span className="font-black text-slate-800 max-w-[110px] leading-tight dark:text-slate-200">
-                      {previewOutfitObj ? previewOutfitObj.name : 'KhÃ´ng máº·c'}
+                      {previewOutfitObj ? previewOutfitObj.name : 'Không mặc'}
                     </span>
                     {previewOutfit && (
                       <button
                         onClick={() => handleUnequip('outfit')}
                         className="text-[9px] text-rose-500 hover:text-rose-700 font-black cursor-pointer hover:dark:text-rose-300"
                       >
-                        âœ• ThÃ¡o
+                        ✕ Tháo
                       </button>
                     )}
                   </div>
 
                   <div className="flex items-center justify-between text-[12px]">
-                    <span className="font-bold text-slate-500 dark:text-slate-400">ðŸ‘“ Phá»¥ kiá»‡n:</span>
+                    <span className="font-bold text-slate-500 dark:text-slate-400">👓 Phụ kiện:</span>
                     <span className="font-black text-slate-800 max-w-[110px] leading-tight dark:text-slate-200">
-                      {previewAccessoryObj ? previewAccessoryObj.name : 'KhÃ´ng Ä‘eo'}
+                      {previewAccessoryObj ? previewAccessoryObj.name : 'Không đeo'}
                     </span>
                     {previewAccessory && (
                       <button
                         onClick={() => handleUnequip('accessory')}
                         className="text-[9px] text-rose-500 hover:text-rose-700 font-black cursor-pointer hover:dark:text-rose-300"
                       >
-                        âœ• ThÃ¡o
+                        ✕ Tháo
                       </button>
                     )}
                   </div>
@@ -1540,17 +1540,17 @@ export default function PetPage() {
                   <button
                     onClick={handleRevertPreview}
                     className="btn-3d btn-3d-white py-1.5 text-xs font-black text-slate-700 cursor-pointer flex items-center justify-center gap-1 shadow-xs dark:text-slate-300"
-                    title="KhÃ´i phá»¥c trang phá»¥c ban Ä‘áº§u cá»§a bÃ©"
+                    title="Khôi phục trang phục ban đầu của bé"
                   >
-                    <RotateCcw className="w-3.5 h-3.5" /> KhÃ´i Phá»¥c
+                    <RotateCcw className="w-3.5 h-3.5" /> Khôi Phục
                   </button>
 
                   <button
                     onClick={handleApplyPreview}
                     className="btn-3d btn-3d-emerald py-1.5 text-xs font-black text-white cursor-pointer flex items-center justify-center gap-1 shadow-xs"
-                    title="LÆ°u trang phá»¥c Ä‘ang thá»­ lÃªn ngÆ°á»i bÃ©"
+                    title="Lưu trang phục đang thử lên người bé"
                   >
-                    <Check className="w-3.5 h-3.5" /> Máº·c LÃªn BÃ©
+                    <Check className="w-3.5 h-3.5" /> Mặc Lên Bé
                   </button>
                 </div>
               </div>
@@ -1559,15 +1559,15 @@ export default function PetPage() {
               <div className="flex-1 p-2.5 sm:p-4 overflow-y-auto min-w-0 bg-slate-50/50 dark:bg-slate-900/50">
                 {filteredItems.length === 0 ? (
                   <div className="h-full min-h-[220px] flex flex-col items-center justify-center text-center p-6 space-y-3">
-                    <div className="text-4xl animate-bounce">ðŸŽ’</div>
+                    <div className="text-4xl animate-bounce">🎒</div>
                     <div>
                       <h5 className="font-black text-sm text-slate-800 dark:text-slate-200">
-                        {shopMode === 'wardrobe' ? 'Tá»§ Ä‘á»“ má»¥c nÃ y Ä‘ang trá»‘ng' : 'KhÃ´ng cÃ³ váº­t pháº©m phÃ¹ há»£p'}
+                        {shopMode === 'wardrobe' ? 'Tủ đồ mục này đang trống' : 'Không có vật phẩm phù hợp'}
                       </h5>
                       <p className="text-xs text-slate-500 max-w-xs mt-1 dark:text-slate-400">
                         {shopMode === 'wardrobe'
-                          ? 'BÃ© chÆ°a cÃ³ mÃ³n Ä‘á»“ nÃ o trong má»¥c nÃ y. HÃ£y ghÃ© tab Mua Sáº¯m Má»›i Ä‘á»ƒ sáº¯m sá»­a nhÃ©!'
-                          : 'HÃ£y chá»n má»¥c khÃ¡c trong thanh danh má»¥c á»Ÿ trÃªn nhÃ©!'}
+                          ? 'Bé chưa có món đồ nào trong mục này. Hãy ghé tab Mua Sắm Mới để sắm sửa nhé!'
+                          : 'Hãy chọn mục khác trong thanh danh mục ở trên nhé!'}
                       </p>
                     </div>
                     {shopMode === 'wardrobe' && (
@@ -1578,7 +1578,7 @@ export default function PetPage() {
                         }}
                         className="btn-3d btn-3d-emerald px-4 py-1.5 text-xs font-black text-white cursor-pointer shadow-xs"
                       >
-                        ðŸ›ï¸ Äáº¿n Cá»­a HÃ ng Sáº¯m Äá»“
+                        🛍️ Đến Cửa Hàng Sắm Đồ
                       </button>
                     )}
                   </div>
@@ -1615,17 +1615,17 @@ export default function PetPage() {
                             <div className="flex flex-col items-end gap-0.5">
                               {isPreviewing && (
                                 <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 shadow-xs">
-                                  ðŸ‘€ THá»¬
+                                  👀 THỬ
                                 </span>
                               )}
                               {isActuallyEquipped && (
                                 <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-emerald-600 text-white shadow-xs">
-                                  âœ¨ Máº¶C
+                                  ✨ MẶC
                                 </span>
                               )}
                               {isOwned && !isActuallyEquipped && (
                                 <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200">
-                                  âœ“ ÄÃ£ cÃ³
+                                  ✓ Đã có
                                 </span>
                               )}
                             </div>
@@ -1687,13 +1687,13 @@ export default function PetPage() {
                                 }`}
                               >
                                 {isOwned ? (
-                                  <span>ðŸ½ï¸ Cho Ä‚n (Kho: x{inventory.find(i => i.item_id === item.id)?.quantity || 1})</span>
+                                  <span>🍽️ Cho Ăn (Kho: x{inventory.find(i => i.item_id === item.id)?.quantity || 1})</span>
                                 ) : (
                                   <span>
-                                    ðŸª™ {item.price} xu (Ä‚n Ngay)
+                                    🪙 {item.price} xu (Ăn Ngay)
                                     {userCoins < item.price && (
                                       <span className="text-[9px] font-bold text-amber-700 ml-1 opacity-80 dark:text-amber-300">
-                                        (Thiáº¿u {item.price - userCoins})
+                                        (Thiếu {item.price - userCoins})
                                       </span>
                                     )}
                                   </span>
@@ -1702,7 +1702,7 @@ export default function PetPage() {
                             ) : item.type === 'decor' ? (
                               isOwned ? (
                                 <div className="w-full py-1 text-[12px] font-black rounded-xl bg-slate-100 text-slate-600 border border-slate-200 text-center dark:bg-slate-800 dark:text-slate-400 dark:border-white/10">
-                                  âœ“ ÄÃ£ CÃ³ Trong Kho
+                                  ✓ Đã Có Trong Kho
                                 </div>
                               ) : (
                                 <button
@@ -1716,10 +1716,10 @@ export default function PetPage() {
                                       : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 hover:dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800'
                                   }`}
                                 >
-                                  <span>ðŸª™</span> {item.price} xu
+                                  <span>🪙</span> {item.price} xu
                                   {userCoins < item.price && (
                                     <span className="text-[9px] font-bold text-amber-700 ml-0.5 opacity-85 dark:text-amber-300">
-                                      (Thiáº¿u {item.price - userCoins})
+                                      (Thiếu {item.price - userCoins})
                                     </span>
                                   )}
                                 </button>
@@ -1737,7 +1737,7 @@ export default function PetPage() {
                                       : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-700'
                                   }`}
                                 >
-                                  {petData?.selected_habitat === item.id ? 'âœ“ Äang DÃ¹ng' : 'Ãp Dá»¥ng'}
+                                  {petData?.selected_habitat === item.id ? '✓ Đang Dùng' : 'Áp Dụng'}
                                 </button>
                               ) : (
                                 <button
@@ -1751,10 +1751,10 @@ export default function PetPage() {
                                       : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 hover:dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800'
                                   }`}
                                 >
-                                  <span>ðŸª™</span> {item.price} xu
+                                  <span>🪙</span> {item.price} xu
                                   {userCoins < item.price && (
                                     <span className="text-[9px] font-bold text-amber-700 ml-0.5 opacity-85 dark:text-amber-300">
-                                      (Thiáº¿u {item.price - userCoins})
+                                      (Thiếu {item.price - userCoins})
                                     </span>
                                   )}
                                 </button>
@@ -1771,7 +1771,7 @@ export default function PetPage() {
                                     : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-700'
                                 }`}
                               >
-                                {isActuallyEquipped ? 'ThÃ¡o Ra' : 'Máº·c Ngay'}
+                                {isActuallyEquipped ? 'Tháo Ra' : 'Mặc Ngay'}
                               </button>
                             ) : (
                               <button
@@ -1785,10 +1785,10 @@ export default function PetPage() {
                                     : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 hover:dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800'
                                 }`}
                               >
-                                <span>ðŸª™</span> {item.price} xu
+                                <span>🪙</span> {item.price} xu
                                 {userCoins < item.price && (
                                   <span className="text-[9px] font-bold text-amber-700 ml-0.5 opacity-85 dark:text-amber-300">
-                                    (Thiáº¿u {item.price - userCoins})
+                                    (Thiếu {item.price - userCoins})
                                   </span>
                                 )}
                               </button>
@@ -1805,16 +1805,16 @@ export default function PetPage() {
         </div>
       )}
 
-      {/* ================= MODAL 2: FEED TREATS (Thá»±c ÄÆ¡n Cho Ä‚n) ================= */}
+      {/* ================= MODAL 2: FEED TREATS (Thực Đơn Cho Ăn) ================= */}
       {showFeedModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl border-4 border-amber-400 space-y-3 sm:space-y-4 max-h-[88vh] flex flex-col dark:bg-slate-900">
             <div className="flex items-center justify-between border-b pb-3 shrink-0">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">ðŸœ</span>
+                <span className="text-2xl">🍜</span>
                 <div>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight dark:text-slate-100">Thá»±c ÄÆ¡n Tháº§n Ká»³ Cho ThÃº CÆ°ng</h3>
-                  <p className="text-[12px] text-slate-500 font-medium dark:text-slate-400">Bá»• sung nÄƒng lÆ°á»£ng, chá»‰ sá»‘ Háº¡nh phÃºc vÃ  kinh nghiá»‡m EXP!</p>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight dark:text-slate-100">Thực Đơn Thần Kỳ Cho Thú Cưng</h3>
+                  <p className="text-[12px] text-slate-500 font-medium dark:text-slate-400">Bổ sung năng lượng, chỉ số Hạnh phúc và kinh nghiệm EXP!</p>
                 </div>
               </div>
               <button
@@ -1845,7 +1845,7 @@ export default function PetPage() {
                           </span>
                         ) : (
                           <span className="text-[12px] font-black text-amber-600 shrink-0 dark:text-amber-300">
-                            ðŸª™ {food.price}
+                            🪙 {food.price}
                           </span>
                         )}
                       </div>
@@ -1881,17 +1881,17 @@ export default function PetPage() {
         </div>
       )}
 
-      {/* ================= MODAL 3: HABITAT SWITCHER (Äá»•i Cáº£nh Quan SÃ¢n VÆ°á»n) ================= */}
+      {/* ================= MODAL 3: HABITAT SWITCHER (Đổi Cảnh Quan Sân Vườn) ================= */}
       {showHabitatModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border-4 border-emerald-500 overflow-hidden dark:bg-slate-900">
             {/* Modal Header */}
             <div className="px-5 py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
-                <span className="text-2xl">ðŸ¡</span>
+                <span className="text-2xl">🏡</span>
                 <div>
-                  <h3 className="text-base sm:text-lg font-black leading-tight">Chá»n Cáº£nh Quan Tháº¿ Giá»›i ThÃº CÆ°ng</h3>
-                  <p className="text-[12px] text-emerald-100 font-medium">Bao gá»“m 5 Cáº£nh quan Anime huyá»n thoáº¡i & 4 Cáº£nh quan kinh Ä‘iá»ƒn!</p>
+                  <h3 className="text-base sm:text-lg font-black leading-tight">Chọn Cảnh Quan Thế Giới Thú Cưng</h3>
+                  <p className="text-[12px] text-emerald-100 font-medium">Bao gồm 5 Cảnh quan Anime huyền thoại & 4 Cảnh quan kinh điển!</p>
                 </div>
               </div>
               <button
@@ -1904,50 +1904,50 @@ export default function PetPage() {
 
             {/* Modal Body with Scroll */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5">
-              {/* SECTION 1: Cáº¢NH QUAN ANIME & HUYá»€N THOáº I */}
+              {/* SECTION 1: CẢNH QUAN ANIME & HUYỀN THOẠI */}
               <div>
                 <div className="flex items-center gap-2 mb-2.5">
-                  <span className="text-lg">âœ¨</span>
+                  <span className="text-lg">✨</span>
                   <h4 className="text-xs sm:text-sm font-black text-indigo-700 uppercase tracking-wider dark:text-indigo-300">
-                    Cáº£nh Quan Anime & Ká»³ áº¢o Má»›i (One Piece, Naruto, Hogwarts, Doraemon, Kirby)
+                    Cảnh Quan Anime & Kỳ Ảo Mới (One Piece, Naruto, Hogwarts, Doraemon, Kirby)
                   </h4>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
                     {
                       id: 'thousand_sunny',
-                      name: 'Boong TÃ u Háº£i Táº·c Sunny',
-                      emoji: 'ðŸ´â€â˜ ï¸',
+                      name: 'Boong Tàu Hải Tặc Sunny',
+                      emoji: '🏴‍☠️',
                       badge: 'One Piece',
-                      desc: 'Äáº§u sÆ° tá»­ Sunny ráº¡ng rá»¡, cá»™t buá»“m hiÃªn ngang, rÆ°Æ¡ng vÃ ng chÃ¢u bÃ¡u vÃ  Ä‘áº¡i dÆ°Æ¡ng bao la.',
+                      desc: 'Đầu sư tử Sunny rạng rỡ, cột buồm hiên ngang, rương vàng châu báu và đại dương bao la.',
                     },
                     {
                       id: 'konoha_valley',
-                      name: 'Thung LÅ©ng Nháº«n Giáº£ LÃ ng LÃ¡',
-                      emoji: 'ðŸƒ',
+                      name: 'Thung Lũng Nhẫn Giả Làng Lá',
+                      emoji: '🍃',
                       badge: 'Naruto',
-                      desc: 'VÃ¡ch Ä‘Ã¡ tÆ°á»£ng 4 Hokage, suá»‘i nÆ°á»›c nÃ³ng Onsen, quÃ¡n mÃ¬ Ichiraku vÃ  rá»«ng trÃºc thanh tá»‹nh.',
+                      desc: 'Vách đá tượng 4 Hokage, suối nước nóng Onsen, quán mì Ichiraku và rừng trúc thanh tịnh.',
                     },
                     {
                       id: 'hogwarts_hall',
-                      name: 'Äáº¡i Sáº£nh ÄÆ°á»ng Hogwarts',
-                      emoji: 'âš¡',
+                      name: 'Đại Sảnh Đường Hogwarts',
+                      emoji: '⚡',
                       badge: 'Harry Potter',
-                      desc: 'HÃ ng trÄƒm ngá»n náº¿n bay lÆ¡ lá»­ng, lÃ² sÆ°á»Ÿi Floo xanh ngá»c, bÃ n tiá»‡c vÃ  NÃ³n PhÃ¢n Loáº¡i ká»³ diá»‡u.',
+                      desc: 'Hàng trăm ngọn nến bay lơ lửng, lò sưởi Floo xanh ngọc, bàn tiệc và Nón Phân Loại kỳ diệu.',
                     },
                     {
                       id: 'doraemon_field',
-                      name: 'BÃ£i Äáº¥t Trá»‘ng Doraemon',
-                      emoji: 'ðŸ””',
+                      name: 'Bãi Đất Trống Doraemon',
+                      emoji: '🔔',
                       badge: 'Doraemon',
-                      desc: '3 á»‘ng cá»‘ng bÃª tÃ´ng trÃ²n kinh Ä‘iá»ƒn, CÃ¡nh Cá»­a Tháº§n Ká»³, hÃ ng rÃ o gá»— tuá»•i thÆ¡ vÃ  bÃ¡nh rÃ¡n Dorayaki.',
+                      desc: '3 ống cống bê tông tròn kinh điển, Cánh Cửa Thần Kỳ, hàng rào gỗ tuổi thơ và bánh rán Dorayaki.',
                     },
                     {
                       id: 'dream_land',
-                      name: 'VÆ°Æ¡ng Quá»‘c Giáº¥c MÆ¡ Kirby',
-                      emoji: 'â­',
+                      name: 'Vương Quốc Giấc Mơ Kirby',
+                      emoji: '⭐',
                       badge: 'Kirby Dream Land',
-                      desc: 'CÃ¢y káº¹o mÃºt khá»•ng lá»“ báº£y sáº¯c, NgÃ´i Sao VÃ ng Warp Star, suá»‘i cáº§u vá»“ng vÃ  TrÆ°á»£ng Sao may máº¯n.',
+                      desc: 'Cây kẹo mút khổng lồ bảy sắc, Ngôi Sao Vàng Warp Star, suối cầu vồng và Trượng Sao may mắn.',
                     },
                   ].map((hab) => {
                     const isSelected = petData?.selected_habitat === hab.id;
@@ -1962,7 +1962,7 @@ export default function PetPage() {
                         onClick={() => {
                           if (!isOwned) {
                             sound.playError();
-                            if (confirm(`Báº¡n chÆ°a má»Ÿ khoÃ¡ cáº£nh quan "${hab.name}"! Báº¡n cÃ³ muá»‘n má»Ÿ Cá»­a HÃ ng Ä‘á»ƒ mua ngay khÃ´ng?`)) {
+                            if (confirm(`Bạn chưa mở khoá cảnh quan "${hab.name}"! Bạn có muốn mở Cửa Hàng để mua ngay không?`)) {
                               setShowHabitatModal(false);
                               handleOpenShop('shop');
                               setShopCategory('habitat');
@@ -1993,12 +1993,12 @@ export default function PetPage() {
                           </div>
                           {isSelected && (
                             <span className="text-[12px] font-black px-2 py-0.5 rounded-full bg-indigo-600 text-white">
-                              ÄANG CHá»ŒN
+                              ĐANG CHỌN
                             </span>
                           )}
                           {!isOwned && (
                             <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
-                              CHÆ¯A Má»ž
+                              CHƯA MỞ
                             </span>
                           )}
                         </div>
@@ -2010,20 +2010,20 @@ export default function PetPage() {
                 </div>
               </div>
 
-              {/* SECTION 2: Cáº¢NH QUAN KINH ÄIá»‚N */}
+              {/* SECTION 2: CẢNH QUAN KINH ĐIỂN */}
               <div>
                 <div className="flex items-center gap-2 mb-2.5">
-                  <span className="text-lg">ðŸŒ¿</span>
+                  <span className="text-lg">🌿</span>
                   <h4 className="text-xs sm:text-sm font-black text-emerald-700 uppercase tracking-wider dark:text-emerald-300">
-                    Cáº£nh Quan Kinh Äiá»ƒn & CÃ´ng Nghá»‡
+                    Cảnh Quan Kinh Điển & Công Nghệ
                   </h4>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
-                    { id: 'emerald_garden', name: 'VÆ°á»n NÃ´ng Tráº¡i Xanh', emoji: 'ðŸŒ¿', desc: 'Cá»‘i xay giÃ³ HÃ  Lan, cÃ¢y Ä‘áº¡i thá»¥ hÃ¡i tÃ¡o, Ä‘áº§m sen cÃ¡ Koi lá»™i vÃ  náº¥m nhÃºn ma thuáº­t.' },
-                    { id: 'cozy_den', name: 'CÄƒn PhÃ²ng IT Dev', emoji: 'ðŸ–¥ï¸', desc: 'BÃ n dual monitor gÃµ code fix bug, tá»§ Server 42U, Ä‘á»‡m lÆ°á»i Beanbag vÃ  quáº§y Espresso.' },
-                    { id: 'sunset_beach', name: 'BÃ£i Biá»ƒn Nhiá»‡t Äá»›i', emoji: 'ðŸ–ï¸', desc: 'Bá» cÃ¡t vÃ ng hoÃ ng hÃ´n, sÃ³ng biá»ƒn dáº¡t dÃ o, cÃ¢y dá»«a cong vÃºt vÃ  lá»­a tráº¡i bÃ£i biá»ƒn.' },
-                    { id: 'sky_castle', name: 'LÃ¢u ÄÃ i MÃ¢y Huyá»n áº¢o', emoji: 'ðŸ°', desc: 'Cung Ä‘iá»‡n pha lÃª bá»“ng bá»nh, cáº§u vá»“ng 7 mÃ u, Ä‘Ã i phun nÆ°á»›c thiÃªn tháº§n vÃ  rÆ°Æ¡ng ngá»c bÃ¡u.' },
+                    { id: 'emerald_garden', name: 'Vườn Nông Trại Xanh', emoji: '🌿', desc: 'Cối xay gió Hà Lan, cây đại thụ hái táo, đầm sen cá Koi lội và nấm nhún ma thuật.' },
+                    { id: 'cozy_den', name: 'Căn Phòng IT Dev', emoji: '🖥️', desc: 'Bàn dual monitor gõ code fix bug, tủ Server 42U, đệm lười Beanbag và quầy Espresso.' },
+                    { id: 'sunset_beach', name: 'Bãi Biển Nhiệt Đới', emoji: '🏖️', desc: 'Bờ cát vàng hoàng hôn, sóng biển dạt dào, cây dừa cong vút và lửa trại bãi biển.' },
+                    { id: 'sky_castle', name: 'Lâu Đài Mây Huyền Ảo', emoji: '🏰', desc: 'Cung điện pha lê bồng bềnh, cầu vồng 7 màu, đài phun nước thiên thần và rương ngọc báu.' },
                   ].map((hab) => {
                     const isSelected = petData?.selected_habitat === hab.id;
                     const isOwned =
@@ -2037,7 +2037,7 @@ export default function PetPage() {
                         onClick={() => {
                           if (!isOwned) {
                             sound.playError();
-                            if (confirm(`Báº¡n chÆ°a má»Ÿ khoÃ¡ cáº£nh quan "${hab.name}"! Báº¡n cÃ³ muá»‘n má»Ÿ Cá»­a HÃ ng Ä‘á»ƒ mua ngay khÃ´ng?`)) {
+                            if (confirm(`Bạn chưa mở khoá cảnh quan "${hab.name}"! Bạn có muốn mở Cửa Hàng để mua ngay không?`)) {
                               setShowHabitatModal(false);
                               handleOpenShop('shop');
                               setShopCategory('habitat');
@@ -2063,12 +2063,12 @@ export default function PetPage() {
                           <span className="text-3xl">{hab.emoji}</span>
                           {isSelected && (
                             <span className="text-[12px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">
-                              ÄANG CHá»ŒN
+                              ĐANG CHỌN
                             </span>
                           )}
                           {!isOwned && (
                             <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
-                              CHÆ¯A Má»ž
+                              CHƯA MỞ
                             </span>
                           )}
                         </div>
@@ -2084,17 +2084,17 @@ export default function PetPage() {
         </div>
       )}
 
-      {/* ================= MODAL 4: SWITCH MASCOT SPECIES (Äá»•i ThÃº CÆ°ng) ================= */}
+      {/* ================= MODAL 4: SWITCH MASCOT SPECIES (Đổi Thú Cưng) ================= */}
       {showSwitchModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border-4 border-emerald-500 overflow-hidden dark:bg-slate-900">
             {/* Modal Header */}
             <div className="px-4 sm:px-6 py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
-                <span className="text-2xl">ðŸ¾</span>
+                <span className="text-2xl">🐾</span>
                 <div>
-                  <h3 className="text-base sm:text-lg font-black leading-tight">Chá»n Báº¡n Äá»“ng HÃ nh NuÃ´i DÆ°á»¡ng</h3>
-                  <p className="text-[12px] text-emerald-100 font-medium">Bao gá»“m 27 siÃªu thÃº cÆ°ng Anime, Manga & Linh váº­t tri thá»©c Ä‘á»‰nh cao!</p>
+                  <h3 className="text-base sm:text-lg font-black leading-tight">Chọn Bạn Đồng Hành Nuôi Dưỡng</h3>
+                  <p className="text-[12px] text-emerald-100 font-medium">Bao gồm 27 siêu thú cưng Anime, Manga & Linh vật tri thức đỉnh cao!</p>
                 </div>
               </div>
               <button
@@ -2108,14 +2108,14 @@ export default function PetPage() {
             {/* Universe Filter Tabs */}
             <div className="px-3 sm:px-5 py-2 bg-slate-100 border-b border-slate-200 flex items-center gap-1.5 overflow-x-auto text-xs font-bold shrink-0 dark:bg-slate-800 dark:border-white/10">
               {[
-                { id: 'all', label: 'Táº¥t Cáº£ (27)', emoji: 'âœ¨' },
-                { id: 'one_piece', label: 'One Piece (3)', emoji: 'ðŸ´â€â˜ ï¸' },
-                { id: 'naruto', label: 'Naruto (3)', emoji: 'ðŸ¥' },
-                { id: 'harry_potter', label: 'Harry Potter (3)', emoji: 'âš¡' },
-                { id: 'avengers', label: 'Avengers (3)', emoji: 'ðŸ›¡ï¸' },
-                { id: 'doraemon_kirby', label: 'Doraemon & Kirby (3)', emoji: 'ðŸŒŸ' },
-                { id: 'sanrio', label: 'Sanrio (6)', emoji: 'ðŸŽ€' },
-                { id: 'classic', label: 'Tri Thá»©c (6)', emoji: 'ðŸ¦‰' },
+                { id: 'all', label: 'Tất Cả (27)', emoji: '✨' },
+                { id: 'one_piece', label: 'One Piece (3)', emoji: '🏴‍☠️' },
+                { id: 'naruto', label: 'Naruto (3)', emoji: '🍥' },
+                { id: 'harry_potter', label: 'Harry Potter (3)', emoji: '⚡' },
+                { id: 'avengers', label: 'Avengers (3)', emoji: '🛡️' },
+                { id: 'doraemon_kirby', label: 'Doraemon & Kirby (3)', emoji: '🌟' },
+                { id: 'sanrio', label: 'Sanrio (6)', emoji: '🎀' },
+                { id: 'classic', label: 'Tri Thức (6)', emoji: '🦉' },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -2140,8 +2140,8 @@ export default function PetPage() {
               {[
                 {
                   key: 'one_piece',
-                  title: 'Äáº¡i Háº£i TrÃ¬nh One Piece',
-                  emoji: 'ðŸ´â€â˜ ï¸',
+                  title: 'Đại Hải Trình One Piece',
+                  emoji: '🏴‍☠️',
                   headerBg: 'text-amber-800 bg-amber-100 dark:text-amber-200 dark:bg-amber-950',
                   badgeBg: 'text-amber-700 bg-amber-50 dark:text-amber-300 dark:bg-amber-950',
                   activeBorder: 'border-amber-500 bg-amber-50 ring-2 ring-amber-300 dark:bg-amber-950',
@@ -2149,8 +2149,8 @@ export default function PetPage() {
                 },
                 {
                   key: 'naruto',
-                  title: 'Tháº¿ Giá»›i Nháº«n Giáº£ Naruto',
-                  emoji: 'ðŸ¥',
+                  title: 'Thế Giới Nhẫn Giả Naruto',
+                  emoji: '🍥',
                   headerBg: 'text-orange-800 bg-orange-100 dark:text-orange-200 dark:bg-orange-950',
                   badgeBg: 'text-orange-700 bg-orange-50 dark:text-orange-300 dark:bg-orange-950',
                   activeBorder: 'border-orange-500 bg-orange-50 ring-2 ring-orange-300 dark:bg-orange-950',
@@ -2158,8 +2158,8 @@ export default function PetPage() {
                 },
                 {
                   key: 'harry_potter',
-                  title: 'PhÃ©p Thuáº­t Hogwarts Harry Potter',
-                  emoji: 'âš¡',
+                  title: 'Phép Thuật Hogwarts Harry Potter',
+                  emoji: '⚡',
                   headerBg: 'text-indigo-800 bg-indigo-100 dark:text-indigo-200 dark:bg-indigo-950',
                   badgeBg: 'text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-950',
                   activeBorder: 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-300 dark:bg-indigo-950',
@@ -2167,8 +2167,8 @@ export default function PetPage() {
                 },
                 {
                   key: 'avengers',
-                  title: 'VÅ© Trá»¥ SiÃªu Anh HÃ¹ng Avengers',
-                  emoji: 'ðŸ›¡ï¸',
+                  title: 'Vũ Trụ Siêu Anh Hùng Avengers',
+                  emoji: '🛡️',
                   headerBg: 'text-blue-800 bg-blue-100 dark:text-blue-200 dark:bg-blue-950',
                   badgeBg: 'text-blue-700 bg-blue-50 dark:text-blue-300 dark:bg-blue-950',
                   activeBorder: 'border-blue-500 bg-blue-50 ring-2 ring-blue-300 dark:bg-blue-950',
@@ -2176,8 +2176,8 @@ export default function PetPage() {
                 },
                 {
                   key: 'doraemon_kirby',
-                  title: 'Tháº¿ Ká»· 22 Doraemon & Dream Land Kirby',
-                  emoji: 'ðŸŒŸ',
+                  title: 'Thế Kỷ 22 Doraemon & Dream Land Kirby',
+                  emoji: '🌟',
                   headerBg: 'text-sky-800 bg-sky-100 dark:text-sky-200 dark:bg-sky-950',
                   badgeBg: 'text-sky-700 bg-sky-50 dark:text-sky-300 dark:bg-sky-950',
                   activeBorder: 'border-sky-500 bg-sky-50 ring-2 ring-sky-300 dark:bg-sky-950',
@@ -2185,8 +2185,8 @@ export default function PetPage() {
                 },
                 {
                   key: 'sanrio',
-                  title: 'Tháº¿ Giá»›i Sanrio SiÃªu ÄÃ¡ng YÃªu',
-                  emoji: 'ðŸŽ€',
+                  title: 'Thế Giới Sanrio Siêu Đáng Yêu',
+                  emoji: '🎀',
                   headerBg: 'text-rose-800 bg-rose-100 dark:text-rose-200 dark:bg-rose-950',
                   badgeBg: 'text-rose-700 bg-rose-50 dark:text-rose-300 dark:bg-rose-950',
                   activeBorder: 'border-rose-500 bg-rose-50 ring-2 ring-rose-300 dark:bg-rose-950',
@@ -2194,8 +2194,8 @@ export default function PetPage() {
                 },
                 {
                   key: 'classic',
-                  title: 'Linh Váº­t Tri Thá»©c & Ká»¹ NÄƒng Tiáº¿ng Anh',
-                  emoji: 'ðŸ¦‰',
+                  title: 'Linh Vật Tri Thức & Kỹ Năng Tiếng Anh',
+                  emoji: '🦉',
                   headerBg: 'text-emerald-800 bg-emerald-100 dark:text-emerald-200 dark:bg-emerald-950',
                   badgeBg: 'text-emerald-700 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-950',
                   activeBorder: 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-300 dark:bg-emerald-950',
@@ -2211,7 +2211,7 @@ export default function PetPage() {
                         {sec.title}
                       </h4>
                       <span className={`text-[12px] font-black px-2 py-0.5 rounded-full ${sec.headerBg} ml-auto`}>
-                        {sec.petIds.length} ThÃº CÆ°ng
+                        {sec.petIds.length} Thú Cưng
                       </span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
@@ -2239,10 +2239,10 @@ export default function PetPage() {
                             {isLocked && (
                               <div
                                 className="absolute top-2 right-2 bg-slate-900/90 text-amber-300 text-[9px] font-black px-2 py-0.5 rounded-full shadow-md border border-amber-400/40 flex items-center gap-1 z-10 dark:bg-white/90"
-                                title="ThÃº CÆ°ng Äá»™c Quyá»n Quáº£n Trá»‹ ViÃªn (Admin)"
+                                title="Thú Cưng Độc Quyền Quản Trị Viên (Admin)"
                               >
                                 <Lock className="w-2.5 h-2.5 text-amber-400" />
-                                <span>ÄÃƒ KHÃ“A</span>
+                                <span>ĐÃ KHÓA</span>
                               </div>
                             )}
 
@@ -2262,17 +2262,17 @@ export default function PetPage() {
                             {isLocked ? (
                               <div className="text-[9px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full mt-1.5 line-clamp-1 border border-rose-200 flex items-center gap-1 shadow-xs dark:text-rose-300 dark:bg-rose-950 dark:border-rose-800">
                                 <Lock className="w-2.5 h-2.5 text-rose-600 shrink-0 dark:text-rose-300" />
-                                <span>DÃ nh RiÃªng Cho Admin</span>
+                                <span>Dành Riêng Cho Admin</span>
                               </div>
                             ) : (
                               <div className={`text-[9px] font-black px-2 py-0.5 rounded-full mt-1.5 line-clamp-1 border border-slate-200/60 dark:border-white/10 ${sec.badgeBg}`}>
-                                âœ¨ {pet.buff.title}
+                                ✨ {pet.buff.title}
                               </div>
                             )}
 
                             {isCurrent && (
                               <div className="text-[9px] font-black text-white bg-emerald-600 px-2.5 py-0.5 rounded-full mt-1.5 shadow-xs">
-                                ÄANG NUÃ”I
+                                ĐANG NUÔI
                               </div>
                             )}
                           </button>
@@ -2291,7 +2291,7 @@ export default function PetPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
           <div className="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border-4 border-amber-400 text-center space-y-4 dark:bg-slate-900">
             <div className="w-16 h-16 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center mx-auto text-3xl shadow-inner dark:bg-amber-950 dark:border-amber-800">
-              {specialPetModal.action === 'verify_email' ? 'âœ‰ï¸' : 'ðŸ”’'}
+              {specialPetModal.action === 'verify_email' ? '✉️' : '🔒'}
             </div>
             <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight dark:text-slate-100">
               {specialPetModal.title}
@@ -2309,7 +2309,7 @@ export default function PetPage() {
                   }}
                   className="btn-3d btn-3d-emerald px-4 py-2 text-xs font-black cursor-pointer"
                 >
-                  ÄÄƒng Nháº­p Ngay ðŸ”‘
+                  Đăng Nhập Ngay 🔑
                 </button>
               )}
 
@@ -2321,7 +2321,7 @@ export default function PetPage() {
                   }}
                   className="btn-3d btn-3d-amber px-4 py-2 text-xs font-black text-slate-950 cursor-pointer dark:text-slate-200"
                 >
-                  XÃ¡c Thá»±c Email Ngay âœ‰ï¸
+                  Xác Thực Email Ngay ✉️
                 </button>
               )}
 
@@ -2329,7 +2329,7 @@ export default function PetPage() {
                 onClick={() => setSpecialPetModal((prev) => ({ ...prev, isOpen: false }))}
                 className="btn-3d btn-3d-white px-4 py-2 text-xs font-black text-slate-700 cursor-pointer dark:text-slate-300"
               >
-                ÄÃ³ng
+                Đóng
               </button>
             </div>
           </div>

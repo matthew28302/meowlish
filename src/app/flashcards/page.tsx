@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import type { Metadata } from 'next';
 
@@ -186,10 +186,10 @@ export default function FlashcardsPage() {
               <Layers className="w-3.5 h-3.5 text-amber-200" /> Flashcard 3D Spaced Repetition
             </div>
             <h1 className="text-2xl sm:text-3xl font-black">
-              Láº­t Tháº» Ghi Nhá»› Tá»« Vá»±ng & Sá»• Tay
+              Lật Thẻ Ghi Nhớ Từ Vựng & Sổ Tay
             </h1>
             <p className="text-amber-100 text-xs sm:text-sm max-w-xl mt-1">
-              Ã”n táº­p tá»« vá»±ng báº±ng phÆ°Æ¡ng phÃ¡p ngáº¯t quÃ£ng khoa há»c, káº¿t há»£p phiÃªn Ã¢m, vÃ­ dá»¥ vÃ  Ã¢m thanh sá»‘ng Ä‘á»™ng.
+              Ôn tập từ vựng bằng phương pháp ngắt quãng khoa học, kết hợp phiên âm, ví dụ và âm thanh sống động.
             </p>
           </div>
 
@@ -207,7 +207,7 @@ export default function FlashcardsPage() {
                 activeTab === 'all' ? 'bg-white text-orange-700 shadow-sm dark:bg-slate-900 dark:text-orange-300' : 'text-white'
               }`}
             >
-              Táº¥t cáº£ tá»« ({deck.length})
+              Tất cả từ ({deck.length})
             </button>
             <button
               onClick={() => {
@@ -223,7 +223,7 @@ export default function FlashcardsPage() {
                   : 'text-white'
               }`}
             >
-              <Bookmark className="w-3 h-3" /> Sá»• Bookmark cá»§a báº¡n
+              <Bookmark className="w-3 h-3" /> Sổ Bookmark của bạn
             </button>
           </div>
         </div>
@@ -235,9 +235,9 @@ export default function FlashcardsPage() {
           {/* Progress bar */}
           <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
             <span>
-              Tháº» {currentIdx + 1} / {deck.length}
+              Thẻ {currentIdx + 1} / {deck.length}
             </span>
-            <span className="text-emerald-600 dark:text-emerald-300">ÄÃ£ thuá»™c: {masteredCount} tá»«</span>
+            <span className="text-emerald-600 dark:text-emerald-300">Đã thuộc: {masteredCount} từ</span>
           </div>
           <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
             <div
@@ -260,10 +260,10 @@ export default function FlashcardsPage() {
               <div className="absolute inset-0 backface-hidden bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-700/60 rounded-3xl p-8 flex flex-col justify-between items-center text-center shadow-lg group-hover:border-amber-500 transition-colors">
                 <div className="w-full flex items-center justify-between text-xs text-slate-400">
                   <span className="font-mono uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800">
-                    {card.source === 'bookmark' ? 'â­ Sá»• tay cÃ¡ nhÃ¢n' : 'ðŸ“š Bá»™ tá»« chuáº©n'}
+                    {card.source === 'bookmark' ? '⭐ Sổ tay cá nhân' : '📚 Bộ từ chuẩn'}
                   </span>
                   <span className="flex items-center gap-1 text-amber-500 font-semibold">
-                    <RotateCw className="w-3.5 h-3.5" /> Báº¥m Ä‘á»ƒ láº­t xem nghÄ©a
+                    <RotateCw className="w-3.5 h-3.5" /> Bấm để lật xem nghĩa
                   </span>
                 </div>
 
@@ -278,27 +278,27 @@ export default function FlashcardsPage() {
                     onClick={handlePronounce}
                     className="p-3 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded-2xl hover:scale-110 transition shadow-sm cursor-pointer inline-flex items-center gap-2 text-xs font-bold"
                   >
-                    <Volume2 className="w-5 h-5" /> Nghe PhÃ¡t Ã‚m Chuáº©n
+                    <Volume2 className="w-5 h-5" /> Nghe Phát Âm Chuẩn
                   </button>
                 </div>
 
                 <div className="text-xs text-slate-400">
-                  Láº­t máº·t sau Ä‘á»ƒ xem giáº£i nghÄ©a, vÃ­ dá»¥ vÃ  ngá»¯ cáº£nh!
+                  Lật mặt sau để xem giải nghĩa, ví dụ và ngữ cảnh!
                 </div>
               </div>
 
               {/* Back Side */}
               <div className="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 border-2 border-emerald-400 rounded-3xl p-8 flex flex-col justify-between items-center text-center shadow-lg text-white">
                 <div className="w-full flex items-center justify-between text-xs text-amber-300 font-black">
-                  <span>Máº¶T SAU: GIáº¢I NGHÄ¨A & NGá»® Cáº¢NH</span>
+                  <span>MẶT SAU: GIẢI NGHĨA & NGỮ CẢNH</span>
                   <span className="flex items-center gap-1 text-emerald-100">
-                    <RotateCw className="w-3.5 h-3.5" /> Báº¥m Ä‘á»ƒ láº­t láº¡i
+                    <RotateCw className="w-3.5 h-3.5" /> Bấm để lật lại
                   </span>
                 </div>
 
                 <div className="space-y-4 max-w-lg">
                   <h3 className="text-xl sm:text-2xl font-black text-amber-300 drop-shadow-sm">
-                    ðŸ‡»ðŸ‡³ {card.translation}
+                    🇻🇳 {card.translation}
                   </h3>
 
                   {card.exampleSentence && (
@@ -309,13 +309,13 @@ export default function FlashcardsPage() {
 
                   {card.note && (
                     <div className="text-xs text-amber-200 font-semibold italic bg-amber-400/20 px-3 py-1 rounded-xl">
-                      ðŸ’¡ Máº¹o nhá»›: {card.note}
+                      💡 Mẹo nhớ: {card.note}
                     </div>
                   )}
                 </div>
 
                 <div className="text-[11px] text-emerald-100 font-medium">
-                  HÃ£y tá»± Ä‘Ã¡nh giÃ¡ má»©c Ä‘á»™ ghi nhá»› cá»§a báº¡n bÃªn dÆ°á»›i:
+                  Hãy tự đánh giá mức độ ghi nhớ của bạn bên dưới:
                 </div>
               </div>
             </div>
@@ -327,33 +327,33 @@ export default function FlashcardsPage() {
               onClick={() => handleNextCard(false)}
               className="btn-3d btn-3d-white py-4 text-xs sm:text-sm font-black text-rose-600 border-rose-200 border-b-rose-400 shadow-md cursor-pointer dark:text-rose-300 dark:border-rose-800"
             >
-              <X className="w-5 h-5 text-rose-500" /> ChÆ°a Thuá»™c (Ã”n Láº¡i)
+              <X className="w-5 h-5 text-rose-500" /> Chưa Thuộc (Ôn Lại)
             </button>
 
             <button
               onClick={() => handleNextCard(true)}
               className="btn-3d btn-3d-emerald py-4 text-xs sm:text-sm font-black shadow-md cursor-pointer"
             >
-              <Check className="w-5 h-5" /> ÄÃ£ Thuá»™c LÃ²ng (+1)
+              <Check className="w-5 h-5" /> Đã Thuộc Lòng (+1)
             </button>
           </div>
         </div>
       ) : (
         /* Completion Screen */
         <div className="card-arcade card-arcade-emerald p-8 sm:p-12 text-center space-y-5">
-          <div className="text-5xl animate-bounce">ðŸŽ‰</div>
+          <div className="text-5xl animate-bounce">🎉</div>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100">
-            Tuyá»‡t Vá»i! Báº¡n ÄÃ£ HoÃ n ThÃ nh Bá»™ Tháº»
+            Tuyệt Vời! Bạn Đã Hoàn Thành Bộ Thẻ
           </h2>
           <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed font-medium dark:text-slate-400">
-            Báº¡n Ä‘Ã£ ghi nhá»› Ä‘Æ°á»£c <b className="text-emerald-700 dark:text-emerald-300">{masteredCount}</b> / {deck.length} tá»« trong phiÃªn Ã´n táº­p nÃ y. ToÃ n bá»™ káº¿t quáº£ Ä‘Ã£ Ä‘Æ°á»£c cáº­p nháº­t vÃ o tiáº¿n Ä‘á»™ cÃ¡ nhÃ¢n.
+            Bạn đã ghi nhớ được <b className="text-emerald-700 dark:text-emerald-300">{masteredCount}</b> / {deck.length} từ trong phiên ôn tập này. Toàn bộ kết quả đã được cập nhật vào tiến độ cá nhân.
           </p>
           <div className="flex items-center justify-center gap-3 pt-2">
             <button
               onClick={handleRestart}
               className="btn-3d btn-3d-emerald px-6 py-3 text-xs font-black shadow-md cursor-pointer"
             >
-              <RotateCcw className="w-4 h-4" /> Ã”n Táº­p Láº¡i Bá»™ NÃ y
+              <RotateCcw className="w-4 h-4" /> Ôn Tập Lại Bộ Này
             </button>
           </div>
         </div>
@@ -362,7 +362,7 @@ export default function FlashcardsPage() {
       <div className="flex justify-center">
         <MascotCompanion
           mood="happy"
-          message="Má»—i ngÃ y chá»‰ cáº§n láº­t 10 flashcard, sau má»™t thÃ¡ng báº¡n sáº½ lÃ m chá»§ 300 tá»« vá»±ng giao tiáº¿p tá»± nhiÃªn!"
+          message="Mỗi ngày chỉ cần lật 10 flashcard, sau một tháng bạn sẽ làm chủ 300 từ vựng giao tiếp tự nhiên!"
         />
       </div>
     </div>

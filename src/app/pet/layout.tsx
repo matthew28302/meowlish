@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Thú Cưng PixelFarm 2.5D - Meowlish',

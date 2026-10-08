@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Bách Khoa Toàn Thư Tiếng Anh 26.500+ Từ - Meowlish',
