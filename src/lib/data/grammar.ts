@@ -734,7 +734,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
         { label: 'Comparative', word: 'more flexible than', color: 'emerald', explanation: 'Cấu trúc so sánh hơn (tính từ dài)' },
         { label: 'Subject 2', word: 'REST', color: 'rose', explanation: 'Đối tượng 2' }
       ],
-      fullSentence: 'GraphQL is more flexible than REST for this use case.',
+      // Vế "for this use case" đã bị gỡ: không có khối nào mang nó, nên học sinh
+      // ghép 4 khối ra câu khác hẳn câu dưới đây và tưởng dữ liệu lỗi.
+      fullSentence: 'GraphQL is more flexible than REST.',
       translation: 'GraphQL linh hoạt hơn REST cho trường hợp sử dụng này.',
     },
     tenseVariants: [
@@ -839,7 +841,6 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     legoExample: {
       blocks: [
         { label: 'Reporter', word: 'The client said', color: 'indigo', explanation: 'Người tường thuật + động từ tường thuật' },
-        { label: 'Connector', word: '(that)', color: 'sky', explanation: 'Từ nối (có thể lược bỏ)' },
         { label: 'Subject', word: 'they wanted', color: 'emerald', explanation: 'Chủ ngữ mới + Động từ lùi thì (want -> wanted)' },
         { label: 'Object', word: 'a new dashboard', color: 'rose', explanation: 'Tân ngữ' }
       ],
@@ -1268,10 +1269,13 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🕰️',
     legoExample: {
       blocks: [
-        { label: 'Past', word: 'Yesterday I fixed', color: 'rose', explanation: 'Quá khứ đơn (Đã làm xong)' },
-        { label: 'Present Perf.', word: 'and have already pushed', color: 'amber', explanation: 'Hiện tại hoàn thành (Kết quả hiện tại)' },
-        { label: 'Present Cont.', word: 'Currently I am working', color: 'emerald', explanation: 'Hiện tại tiếp diễn (Đang làm)' },
-        { label: 'Future', word: 'and will deploy tomorrow', color: 'sky', explanation: 'Tương lai đơn (Dự định)' }
+        // Các khối phải ghép ĐÚNG bằng fullSentence. Bản cũ thiếu tân ngữ
+        // ("the bug", "the code", "on UI") nên ghép ra câu đứt: "Yesterday I fixed
+        // and have already pushed Currently I am working and will deploy tomorrow".
+        { label: 'Past', word: 'Yesterday I fixed the bug', color: 'rose', explanation: 'Quá khứ đơn (Đã làm xong)' },
+        { label: 'Present Perf.', word: 'and have already pushed the code;', color: 'amber', explanation: 'Hiện tại hoàn thành (Kết quả hiện tại)' },
+        { label: 'Present Cont.', word: 'currently I am working on UI', color: 'emerald', explanation: 'Hiện tại tiếp diễn (Đang làm)' },
+        { label: 'Future', word: 'and will deploy tomorrow.', color: 'sky', explanation: 'Tương lai đơn (Dự định)' }
       ],
       fullSentence: 'Yesterday I fixed the bug and have already pushed the code; currently I am working on UI and will deploy tomorrow.',
       translation: 'Hôm qua tôi đã sửa lỗi và đã đẩy mã lên; hiện tại tôi đang làm giao diện và sẽ triển khai vào ngày mai.',
@@ -1486,7 +1490,7 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
         { label: 'Interrupted Action', word: 'We were migrating', color: 'indigo', explanation: 'Hành động đang diễn ra (Past Continuous)' },
         { label: 'Object', word: 'the user database', color: 'emerald', explanation: 'Tân ngữ' },
         { label: 'Connecting Word', word: 'when', color: 'amber', explanation: 'Liên từ chỉ sự xen vào' },
-        { label: 'Interrupting Event', word: 'the network dropped.', color: 'rose', explanation: 'Sự việc đột ngột cắt ngang (Past Simple)' },
+        { label: 'Interrupting Event', word: 'the network connection dropped.', color: 'rose', explanation: 'Sự việc đột ngột cắt ngang (Past Simple)' },
       ],
       fullSentence: 'We were migrating the user database when the network connection dropped.',
       translation: 'Chúng tôi đang chuyển đổi cơ sở dữ liệu người dùng thì kết nối mạng đột ngột bị rớt.',
