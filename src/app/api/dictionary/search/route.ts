@@ -8,8 +8,35 @@ import { cleanCollocations } from '@/lib/collocations';
  * KHÔNG bao giờ được đồng bộ lên S3, nên tra từ không còn kích upload 67MB
  * như trước. Nếu cold start Vercel chưa restore kịp từ điển (MISS/timeout),
  * dictDb mở với bảng rỗng → trả danh sách trống graceful, không crash.
+ *
+ * M8 (audit 2026-10-08): truy vấn từ dùng FTS5 MATCH prefix `q*` thay LIKE
+ * full-scan (đo được 87ms → ~0.1ms), và bỏ cột json gộp ~20MB khỏi SELECT
+ * (mapping bên dưới không đọc cột đó). Fallback LIKE khi FTS trống/không khả
+ * dụng (try/catch) — kết quả đúng như cũ cho các truy vấn FTS không bắt được
+ * (substring), chỉ chậm hơn cho chính các truy vấn đó.
  */
 export const maxDuration = 60;
+
+/**
+ * Tạo phrase FTS5 cho prefix search: chỉ giữ chữ/số/khoảng trắng rồi bọc trong
+ * ngoặc kép + '*'. Nhờ vậy mọi toán tử FTS5 do user gõ (AND/OR/NOT/NEAR, :,
+ * ^, ngoặc, dấu nháy) đều bị vô hiệu hoá — không inject được cú pháp MATCH.
+ * Trả về null nếu sau khi làm sạch không còn ký tự nào (toàn dấu/ký tự đặc
+ * biệt) — lúc đó nhánh LIKE vẫn tra theo literal được.
+ */
+function buildFtsMatchPhrase(rawQuery: string): string | null {
+  const cleaned = rawQuery
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!cleaned) return null;
+  return `"${cleaned}"*`;
+}
+
+/** Escape wildcard %/_/\ cho nhánh LIKE — user không được tự inject wildcard. */
+function escapeLikeTerm(rawQuery: string): string {
+  return rawQuery.replace(/[\\%_]/g, '\\$1');
+}
 
 export async function GET(request: Request) {
   try {
@@ -31,48 +58,72 @@ export async function GET(request: Request) {
     const limit = Math.min(60, Math.max(12, parseInt(searchParams.get('limit') || '24', 10) || 24));
     const offset = (page - 1) * limit;
 
-    let whereClauses: string[] = [];
-    let params: (string | number)[] = [];
+    const ftsPhrase = q ? buildFtsMatchPhrase(q) : null;
+    const likeQ = q ? escapeLikeTerm(q) : '';
 
-    // Filter by query using parameterized ? placeholders
-    if (q) {
-      whereClauses.push('(word LIKE ? OR word LIKE ? OR meaning_vi LIKE ?)');
-      params.push(`${q}%`, `%${q}%`, `%${q}%`);
+    // Quyết định dùng FTS: index phải có dữ liệu, MATCH không lỗi và trả về ít
+    // nhất 1 dòng. Mọi trường hợp khác — FTS trống (cold-start restore thiếu
+    // rebuild), cú pháp lỗi, truy vấn substring FTS không bắt được — rơi về
+    // nhánh LIKE nên kết quả không bao giờ "thiếu" so với hành vi cũ.
+    let useFts = false;
+    if (q && ftsPhrase) {
+      try {
+        useFts = !!dictDb
+          .prepare('SELECT rowid FROM dictionary_fts WHERE dictionary_fts MATCH ? LIMIT 1')
+          .get(ftsPhrase);
+      } catch {
+        useFts = false;
+      }
     }
 
-    // Filter by category using parameterized ? placeholders
-    if (category && category !== 'all') {
-      whereClauses.push('category = ?');
-      params.push(category);
-    }
+    const runSearch = (withFts: boolean): { total: number; rows: any[] } => {
+      const whereClauses: string[] = [];
+      const params: (string | number)[] = [];
 
-    // Filter by level using parameterized ? placeholders
-    if (level && level !== 'all') {
-      whereClauses.push('level = ?');
-      params.push(level);
-    }
+      // Filter by query using parameterized ? placeholders
+      if (q) {
+        if (withFts && ftsPhrase) {
+          // FTS5 external-content: JOIN về dictionary_entries qua rowid (bảng
+          // index dùng chung rowid với bảng gốc — xem schema trong src/lib/db.ts).
+          whereClauses.push('rowid IN (SELECT rowid FROM dictionary_fts WHERE dictionary_fts MATCH ?)');
+          params.push(ftsPhrase);
+        } else {
+          whereClauses.push("(word LIKE ? ESCAPE '\\' OR word LIKE ? ESCAPE '\\' OR meaning_vi LIKE ? ESCAPE '\\')");
+          params.push(`${likeQ}%`, `%${likeQ}%`, `%${likeQ}%`);
+        }
+      }
 
-    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+      // Filter by category using parameterized ? placeholders
+      if (category && category !== 'all') {
+        whereClauses.push('category = ?');
+        params.push(category);
+      }
 
-    // Count total matches
-    const countSql = `SELECT COUNT(*) as total FROM dictionary_entries ${whereSql}`;
+      // Filter by level using parameterized ? placeholders
+      if (level && level !== 'all') {
+        whereClauses.push('level = ?');
+        params.push(level);
+      }
 
-    let countRow: { total: number } | undefined;
-    let rows: any[];
-    try {
-      countRow = dictDb.prepare(countSql).get(...params) as { total: number } | undefined;
+      const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
-      // Get paginated items
+      // Count total matches
+      const countRow = dictDb
+        .prepare(`SELECT COUNT(*) as total FROM dictionary_entries ${whereSql}`)
+        .get(...params) as { total: number } | undefined;
+
+      // Get paginated items. Cột json gộp ~20MB KHÔNG còn được SELECT — mapping
+      // dưới đây chỉ đọc các cột tường minh, không đọc cột đó.
       const querySql = `
       SELECT word, ipa, part_of_speech as partOfSpeech, category, category_label as categoryLabel,
              level, meaning_vi as meaningVi, detailed_explanation as detailedExplanation,
-             examples_json, collocations_json, audio_url as audioUrl, data_json
+             examples_json, collocations_json, audio_url as audioUrl
       FROM dictionary_entries
       ${whereSql}
       ORDER BY
         CASE
           WHEN word = ? THEN 1
-          WHEN word LIKE ? THEN 2
+          WHEN word LIKE ? ESCAPE '\\' THEN 2
           ELSE 3
         END,
         length(word) ASC,
@@ -83,16 +134,36 @@ export async function GET(request: Request) {
       const queryParams = [
         ...params,
         q || '',
-        `${q || ''}%`,
+        `${likeQ || ''}%`,
         limit,
         offset
       ];
 
-      rows = dictDb.prepare(querySql).all(...queryParams) as any[];
-    } catch (dictErr) {
+      const rows = dictDb.prepare(querySql).all(...queryParams) as any[];
+      return { total: countRow?.total || 0, rows };
+    };
+
+    let searchResult: { total: number; rows: any[] } | null = null;
+    try {
+      searchResult = runSearch(useFts);
+    } catch (ftsErr) {
+      if (useFts) {
+        // FTS lỗi giữa chừng (index hỏng/MATCH invalid): thử lại MỘT lần bằng
+        // LIKE trước khi bỏ cuộc — kết quả vẫn đúng.
+        console.warn('Dictionary FTS MATCH lỗi — thử lại bằng LIKE:', ftsErr);
+        try {
+          searchResult = runSearch(false);
+        } catch (retryErr) {
+          console.error('Dictionary DB chưa sẵn sàng — trả kết quả rỗng graceful:', retryErr);
+        }
+      } else {
+        console.error('Dictionary DB chưa sẵn sàng — trả kết quả rỗng graceful:', ftsErr);
+      }
+    }
+
+    if (!searchResult) {
       // Cold-start restore từ điển MISS/timeout hoặc file hỏng: trả danh sách
       // RỖNG graceful thay vì 500 — UI vẫn hoạt động, user data không liên quan.
-      console.error('Dictionary DB chưa sẵn sàng — trả kết quả rỗng graceful:', dictErr);
       return NextResponse.json({
         success: true,
         total: 0,
@@ -104,9 +175,10 @@ export async function GET(request: Request) {
       });
     }
 
-    const total = countRow?.total || 0;
+    const total = searchResult.total;
+    const rows = searchResult.rows;
 
-    const items = rows.map((r, idx) => {
+    const items = rows.map((r) => {
       let examples = [];
       let collocations = [];
       try {

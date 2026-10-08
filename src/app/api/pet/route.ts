@@ -818,10 +818,19 @@ export async function POST(request: Request) {
           const readyTime = parseInt(p.harvest_ready_at, 10);
           if (now >= readyTime || p.stage === 'ripe') {
             const crop = CROPS_CATALOG[p.crop_type] || CROPS_CATALOG.carrot;
+            // M6b (audit 2026-10-08): guard `crop_type = ?` giống harvest_crop —
+            // chỉ request nào XOÁ được luống mới được tính thu nhập. Trước đây
+            // UPDATE vô điều kiện ⇒ 2 instance song song cùng thấy luống chín rồi
+            // cùng xoá (cả hai cùng +coins) → trả thưởng nhiều lần cho một luống.
+            const cleared = db
+              .prepare(
+                "UPDATE pet_farm_plots SET crop_type = null, stage = 'empty', planted_at = null, watered_at = null, harvest_ready_at = null WHERE id = ? AND crop_type = ?"
+              )
+              .run(p.id, p.crop_type).changes;
+            if (cleared === 0) continue;
             totalCoins += crop.harvestCoins;
             totalExp += crop.harvestExp;
             count++;
-            db.prepare("UPDATE pet_farm_plots SET crop_type = null, stage = 'empty', planted_at = null, watered_at = null, harvest_ready_at = null WHERE id = ?").run(p.id);
           }
         }
       }
@@ -899,6 +908,19 @@ export async function POST(request: Request) {
       `).run(`live-${userId}-${animalType}`, userId, animalType, String(now), readyAt, String(now), readyAt, cycleSeconds);
 
       const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
+      // L6 (audit 2026-10-08): khoản trừ feed cũng phải ghi nhật ký coin_transactions
+      // như các khoản chi khác trong route (nhánh feed action). Giữ nguyên phép trừ
+      // atomic ở trên (WHERE coins >= ?) — chỉ thêm ghi vết theo cùng format cột:
+      // amount âm cho chi tiêu, balance_after là số dư ngay sau khi trừ.
+      db.prepare(
+        'INSERT INTO coin_transactions (id, user_id, amount, balance_after, reason) VALUES (?, ?, ?, ?, ?)'
+      ).run(
+        `tx-${userId}-${Date.now()}-${animalType}`,
+        userId,
+        -animal.feedPrice,
+        freshUser?.coins || 0,
+        `Cho ${animal.name} ăn — thức ăn cho chu kỳ sản xuất`
+      );
       void syncDbToS3Now();
 
       return NextResponse.json({
@@ -936,13 +958,25 @@ export async function POST(request: Request) {
         }, { status: 409 });
       }
 
-      db.prepare('UPDATE users SET coins = coins + ?, exp = exp + ? WHERE id = ?').run(animal.rewardCoins, animal.rewardExp, userId);
-      db.prepare('UPDATE user_pets SET exp = exp + ? WHERE user_id = ?').run(animal.rewardExp, userId);
-      db.prepare(`
+      // M6: mirror harvest_crop — XOÁ chu kỳ (có điều kiện) TRƯỚC, rồi mới trả
+      // thưởng. Trước đây trả thưởng rồi xoá vô điều kiện ⇒ 2 instance song song
+      // cùng thấy 'ready' đều được trả thưởng cho cùng một mẻ sản phẩm.
+      const clearedCycle = db.prepare(`
         UPDATE pet_farm_livestock 
         SET fed_at = null, ready_at = null, last_fed_at = null, producing_until = null, cycle_seconds = null, produced_count = produced_count + 1 
         WHERE user_id = ? AND animal_type = ?
-      `).run(userId, animalType);
+          AND (producing_until IS NOT NULL OR ready_at IS NOT NULL)
+      `).run(userId, animalType).changes;
+
+      if (clearedCycle === 0) {
+        return NextResponse.json(
+          { error: `${animal.produceName} vừa được thu hoạch bởi một thao tác khác.`, blocked: true, remainingSeconds: 0 },
+          { status: 409 }
+        );
+      }
+
+      db.prepare('UPDATE users SET coins = coins + ?, exp = exp + ? WHERE id = ?').run(animal.rewardCoins, animal.rewardExp, userId);
+      db.prepare('UPDATE user_pets SET exp = exp + ? WHERE user_id = ?').run(animal.rewardExp, userId);
 
       const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
       const freshPet = ensurePet(userId);
@@ -970,14 +1004,19 @@ export async function POST(request: Request) {
       for (const row of rows) {
         if (livestockStatusOf(row, now) !== 'ready') continue;
         const animal = LIVESTOCK_CATALOG[row.animal_type === 'cow' ? 'cow' : 'chicken'];
-        totalCoins += animal.rewardCoins;
-        totalExp += animal.rewardExp;
-        count++;
-        db.prepare(`
+        // M6: guard "còn đang sẵn sàng" giống harvest_all_crops — chỉ request nào
+        // xoá được chu kỳ mới được tính thưởng (chống 2 instance cùng +coins cho
+        // một mẻ; xong chu kỳ thì các trường ready_at/producing_until đã null).
+        const cleared = db.prepare(`
           UPDATE pet_farm_livestock 
           SET fed_at = null, ready_at = null, last_fed_at = null, producing_until = null, cycle_seconds = null, produced_count = produced_count + 1 
           WHERE id = ?
-        `).run(row.id);
+            AND (producing_until IS NOT NULL OR ready_at IS NOT NULL)
+        `).run(row.id).changes;
+        if (cleared === 0) continue;
+        totalCoins += animal.rewardCoins;
+        totalExp += animal.rewardExp;
+        count++;
       }
 
       if (count > 0) {
@@ -1307,7 +1346,14 @@ export async function POST(request: Request) {
     if (action === 'create_battle_room') {
       const roomName = sanitizeText(body.roomName || `${user.display_name} Thách Đấu`).slice(0, 50);
       const gameType = body.gameType === 'racing' ? 'racing' : 'pvp';
-      const betCoins = Math.min(2000, Math.max(0, parseInt(body.betCoins || '100', 10)));
+      // M5 (audit 2026-10-08): `?? 100` thay vì `|| '100'` — 0 là falsy nên trước
+      // đây bị thay bằng 100, khiến KHÔNG tạo được phòng friendly 0 xu (client
+      // phải gửi -999 để được clamp về 0). Validate tường minh: 0 hợp lệ (phòng
+      // friendly miễn phí); NaN → 0, số lẻ làm tròn xuống, âm → 0 (khớp clamp
+      // hiện có). Áp dụng chung cho phòng pvp lẫn racing — cùng một code path.
+      const rawBetCoins = body.betCoins ?? 100;
+      const parsedBetCoins = typeof rawBetCoins === 'number' ? rawBetCoins : parseInt(String(rawBetCoins), 10);
+      const betCoins = Math.min(2000, Math.max(0, Number.isFinite(parsedBetCoins) ? Math.floor(parsedBetCoins) : 0));
 
       if (betCoins > 0) {
         const coinUpdate = db.prepare('UPDATE users SET coins = coins - ? WHERE id = ? AND coins >= ?').run(betCoins, userId, betCoins);
@@ -1316,8 +1362,38 @@ export async function POST(request: Request) {
         }
       }
 
-      // Delete any old waiting room hosted by this user
-      db.prepare("DELETE FROM pet_battle_rooms WHERE host_id = ? AND status = 'waiting'").run(userId);
+      // M5b (audit 2026-10-08): hoàn lại tiền cược cho phòng 'waiting' cũ TRƯỚC
+      // khi xoá — trước đây xoá phòng cũ KHÔNG hoàn bet ⇒ host tạo phòng mới là
+      // mất cược của phòng cũ (chưa từng đấu). Toàn bộ hoàn tiền + ghi nhật ký +
+      // xoá nằm trong MỘT transaction nên request dừng giữa chừng cũng không mất
+      // tiền. Bảng coin_transactions được ghi ở các nhánh chi/hoàn khác trong
+      // route (nhánh feed) nên hoàn tiền cũng ghi nhật ký theo cùng format cột.
+      const replaceOldWaitingRoom = db.transaction(() => {
+        const oldWaitingRooms = db
+          .prepare(
+            "SELECT id, room_name, host_id, bet_coins FROM pet_battle_rooms WHERE host_id = ? AND status = 'waiting'"
+          )
+          .all(userId) as Array<{ id: string; room_name: string; host_id: string; bet_coins: number }>;
+
+        for (const oldRoom of oldWaitingRooms) {
+          if (oldRoom.bet_coins > 0) {
+            db.prepare('UPDATE users SET coins = coins + ? WHERE id = ?').run(oldRoom.bet_coins, oldRoom.host_id);
+            const refundBalance = (db.prepare('SELECT coins FROM users WHERE id = ?').get(oldRoom.host_id) as any)?.coins || 0;
+            db.prepare(
+              'INSERT INTO coin_transactions (id, user_id, amount, balance_after, reason) VALUES (?, ?, ?, ?, ?)'
+            ).run(
+              `tx-${oldRoom.host_id}-${Date.now()}-${oldRoom.id}`,
+              oldRoom.host_id,
+              oldRoom.bet_coins,
+              refundBalance,
+              `Hoàn tiền cược phòng "${oldRoom.room_name}" (phòng bị thay bởi phòng mới)`
+            );
+          }
+        }
+
+        db.prepare("DELETE FROM pet_battle_rooms WHERE host_id = ? AND status = 'waiting'").run(userId);
+      });
+      replaceOldWaitingRoom();
 
       const roomId = `room-${userId}-${Date.now()}`;
       db.prepare(`
@@ -1362,11 +1438,24 @@ export async function POST(request: Request) {
         }
       }
 
-      db.prepare(`
+      // M6a (audit 2026-10-08): TOCTOU giữa SELECT-UPDATE — 2 instance song song
+      // cùng SELECT thấy phòng 'waiting' rồi CÙNG UPDATE chiếm chỗ (và cùng bị
+      // trừ tiền cược ở trên). Điều kiện `status = 'waiting'` đảm bảo chỉ request
+      // đầu tiên chiếm được phòng; request thua đã bị trừ tiền nên HOÀN lại
+      // trước khi trả 409 (không mất tiền cược).
+      const joined = db.prepare(`
         UPDATE pet_battle_rooms 
         SET guest_id = ?, guest_name = ?, guest_pet_type = ?, guest_pet_level = ?, status = 'in_progress'
-        WHERE id = ?
-      `).run(userId, user.display_name, pet.pet_type, pet.level || 1, roomId);
+        WHERE id = ? AND status = 'waiting'
+      `).run(userId, user.display_name, pet.pet_type, pet.level || 1, roomId).changes;
+
+      if (joined === 0) {
+        if (room.bet_coins > 0) {
+          db.prepare('UPDATE users SET coins = coins + ? WHERE id = ?').run(room.bet_coins, userId);
+        }
+        void syncDbToS3Now();
+        return NextResponse.json({ error: 'Phòng này vừa được người khác tham gia!' }, { status: 409 });
+      }
 
       const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
       const updatedRoom = db.prepare('SELECT * FROM pet_battle_rooms WHERE id = ?').get(roomId);
@@ -1387,6 +1476,18 @@ export async function POST(request: Request) {
       if (room) {
         if (room.bet_coins > 0) {
           db.prepare('UPDATE users SET coins = coins + ? WHERE id = ?').run(room.bet_coins, userId);
+          // M5b/L6: hoàn tiền cược cũng ghi nhật ký coin_transactions như các
+          // khoản chi/hoàn khác trong route (cùng format cột).
+          const refundBalance = (db.prepare('SELECT coins FROM users WHERE id = ?').get(userId) as any)?.coins || 0;
+          db.prepare(
+            'INSERT INTO coin_transactions (id, user_id, amount, balance_after, reason) VALUES (?, ?, ?, ?, ?)'
+          ).run(
+            `tx-${userId}-${Date.now()}-${room.id}`,
+            userId,
+            room.bet_coins,
+            refundBalance,
+            `Huỷ phòng "${room.room_name}" — hoàn tiền cược`
+          );
         }
         db.prepare('DELETE FROM pet_battle_rooms WHERE id = ?').run(roomId);
       }

@@ -56,6 +56,10 @@ export default function ExamPage() {
   const [secondsRemaining, setSecondsRemaining] = useState<number>(0);
   const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
+  // H10 (audit 2026-10-08): modal xác nhận THOÁT phải RIÊNG với modal nộp bài —
+  // nút "Thoát phòng thi" trước đây cũng mở modal NỘP BÀI nên không còn đường
+  // thoát mà không nộp bài.
+  const [showExitModal, setShowExitModal] = useState<boolean>(false);
   const [testScore, setTestScore] = useState<number>(0);
   const [testPercentage, setTestPercentage] = useState<number>(0);
   const [isPassed, setIsPassed] = useState<boolean>(false);
@@ -239,9 +243,38 @@ export default function ExamPage() {
     calculateAndFinish();
   };
 
+  // H10: xác nhận THOÁT phòng thi — KHÔNG nộp bài, KHÔNG tính điểm. Quay về
+  // danh sách đề; tiến độ bài làm vẫn nằm trong sessionStorage (cơ chế resume
+  // hiện có) nên banner "bài thi dở dang" hiện lại đúng như luồng resume.
+  const handleConfirmExit = () => {
+    sound.playClick();
+    setShowExitModal(false);
+    // Effect lưu phiên chỉ chạy khi mode === 'testing' — đọc lại sessionStorage
+    // ngay trước khi rời mode để banner resume nhận tiến độ mới nhất.
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = sessionStorage.getItem('session_exam_practice_v2');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.selectedSetId) {
+            setSavedSessionData(parsed);
+            setHasSavedSession(true);
+          }
+        }
+      } catch {}
+    }
+    setMode('catalog');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Calculate score & rewards
   const calculateAndFinish = () => {
     if (!selectedSet) return;
+
+    // Đóng mọi modal xác nhận khi bài đã được chấm — trước đây hẹn giờ hết giờ
+    // khi modal đang mở sẽ để modal kẹt đè lên màn kết quả.
+    setShowConfirmModal(false);
+    setShowExitModal(false);
 
     let correctCount = 0;
     selectedSet.questions.forEach((q) => {
@@ -584,7 +617,7 @@ export default function ExamPage() {
           <div className="bg-white rounded-2xl p-4 border-2 border-slate-200 shadow-md flex items-center justify-between gap-4 sticky top-18 z-30 dark:bg-slate-900 dark:border-white/10">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setShowConfirmModal(true)}
+                onClick={() => setShowExitModal(true)}
                 className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 cursor-pointer dark:text-slate-400 hover:dark:bg-slate-800"
                 title="Thoát phòng thi"
               >
@@ -1104,6 +1137,52 @@ export default function ExamPage() {
                 className="btn-3d btn-3d-amber px-5 py-2 text-xs font-black text-slate-950 shadow-md cursor-pointer dark:text-slate-200"
               >
                 Chắc chắn nộp bài
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* EXIT CONFIRMATION MODAL (H10) — modal thoát RIÊNG, không phải nộp bài    */}
+      {/* ========================================================================= */}
+      {showExitModal && selectedSet && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border-2 border-slate-100 dark:bg-slate-900 dark:border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 dark:bg-sky-950 dark:text-sky-300">
+                <ArrowLeft className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900 leading-tight dark:text-slate-100">
+                  Thoát phòng thi?
+                </h3>
+                <p className="text-xs text-slate-500 font-medium dark:text-slate-400">
+                  {selectedSet.vietnameseTitle}
+                </p>
+              </div>
+            </div>
+
+            <p className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 font-medium dark:bg-slate-900 dark:border-white/10 dark:text-slate-400">
+              Tiến độ bài làm đang được lưu, bạn có thể tiếp tục sau. Bài chưa được nộp và chưa được tính điểm.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={() => {
+                  sound.playClick();
+                  setShowExitModal(false);
+                }}
+                className="btn-3d btn-3d-emerald px-4 py-2 text-xs font-black cursor-pointer"
+              >
+                Ở lại làm tiếp
+              </button>
+
+              <button
+                onClick={handleConfirmExit}
+                className="btn-3d btn-3d-slate px-5 py-2 text-xs font-black shadow-md cursor-pointer"
+              >
+                Thoát (lưu tiến độ)
               </button>
             </div>
           </div>
