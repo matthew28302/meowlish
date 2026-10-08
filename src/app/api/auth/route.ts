@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db, hashPassword, verifyPassword, sanitizeText } from '@/lib/db';
+import { validateRegistrationPassword } from '@/lib/passwordPolicy';
 import {
   generateUserOTP,
   createUserOtpSession,
@@ -123,7 +124,16 @@ export async function POST(request: Request) {
   const userAgent = request.headers.get('user-agent') || '';
   try {
     const body = await request.json();
-    const { action, username, email, password, displayName, sessionId, otp, userId, enable, avatar, currentPassword, newPassword } = body;
+    const { action, username, email, password, displayName, sessionId, otp, userId: rawUserId, enable, avatar, currentPassword, newPassword } = body;
+
+    // L2 (audit 2026-10-08): userId từ body là dữ liệu KHÔNG tin cậy — client có
+    // thể gửi object/mảng/số. better-sqlite3 chỉ bind giá trị nguyên thuỷ; bind
+    // kiểu khác làm statement ném lỗi và catch-all trả err.message thô cho
+    // client (đo được: {action:'verify_email', userId:{a:1}} → 500
+    // "Too few parameter values were provided"). CAST tường minh về string ở
+    // MỌI chỗ dùng userId trước khi vào SQL (verify_email, resend_email_verification,
+    // toggle_2fa, update_profile, logout). Chuỗi hợp lệ giữ nguyên giá trị.
+    const userId = String(rawUserId ?? '');
 
     // Chống Spam / Brute Force cho các tác vụ Auth
     if (action === 'register') {
@@ -437,6 +447,34 @@ export async function POST(request: Request) {
       }
 
       const user = auth.user;
+
+      // M4 (audit 2026-10-08): bật/tắt 2FA là thao tác nhạy cảm — session hợp lệ
+      // KHÔNG đủ (session bị hijack là tắt được 2FA rồi reset mật khẩu qua
+      // forgot-password ⇒ chiếm tài khoản hoàn toàn). Bắt buộc gửi kèm
+      // currentPassword và verify trước khi bật/tắt — thiếu → 400, sai → 401.
+      const cleanCurrent = String(currentPassword ?? '').trim();
+      if (!cleanCurrent) {
+        return NextResponse.json(
+          { error: 'Vui lòng nhập mật khẩu hiện tại để thay đổi cài đặt bảo mật 2 lớp.' },
+          { status: 400 }
+        );
+      }
+      const pwRow = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(userId) as
+        | { password_hash: string | null }
+        | undefined;
+      if (!pwRow || !verifyPassword(cleanCurrent, pwRow.password_hash).ok) {
+        logAccess({
+          user_id: userId,
+          username: user.username,
+          action: 'toggle_2fa',
+          ip: clientIp,
+          user_agent: userAgent,
+          status: 'failed',
+          details: 'Bật/tắt 2FA thất bại: thiếu hoặc sai mật khẩu hiện tại (re-auth)',
+        });
+        return NextResponse.json({ error: 'Mật khẩu hiện tại không đúng.' }, { status: 401 });
+      }
+
       const wantEnable = Boolean(enable);
 
       if (wantEnable && !user.email) {
@@ -616,8 +654,10 @@ export async function POST(request: Request) {
     }
 
     // Standard Auth: Username and Password check
-    const cleanUsername = (username || '').trim().toLowerCase().slice(0, 30);
-    const cleanPassword = (password || '').trim().slice(0, 100);
+    // L2: cast tường minh như userId — body không tin cậy, .trim() trên object
+    // ném TypeError thay vì trả 400/401 sạch.
+    const cleanUsername = String(username ?? '').trim().toLowerCase().slice(0, 30);
+    const cleanPassword = String(password ?? '').trim().slice(0, 100);
 
     if (!cleanUsername || !cleanPassword) {
       logger.warn('Failed login/register attempt due to missing fields');
@@ -646,6 +686,16 @@ export async function POST(request: Request) {
 
     // 5. ACTION: REGISTER (ĐĂNG KÝ MỚI)
     if (action === 'register') {
+      // M3 (audit 2026-10-08): Đăng ký BẮT BUỘC mật khẩu mạnh, khớp chuẩn
+      // reset-password (≥8 ký tự + 1 hoa + 1 thường + 1 số) và chặn mật khẩu
+      // phổ biến. Trước đây chỉ check non-empty + ≤100 ký tự ⇒ '123456' đăng
+      // ký được thoải mái. Policy chỉ áp cho REGISTER (tài khoản demo seed
+      // '123456' trong db.ts là seed dữ liệu; LOGIN chỉ so khớp hash).
+      const policyError = validateRegistrationPassword(cleanPassword);
+      if (policyError) {
+        return NextResponse.json({ error: policyError }, { status: 400 });
+      }
+
       // Admin account cannot be registered publicly
       if (cleanUsername === 'admin') {
         return NextResponse.json({ error: 'Tên tài khoản này được bảo lưu cho Quản trị viên.' }, { status: 400 });
@@ -659,7 +709,7 @@ export async function POST(request: Request) {
         return NextResponse.json(conflictError);
       }
 
-      const cleanEmail = (email || '').trim().toLowerCase().slice(0, 100);
+      const cleanEmail = String(email ?? '').trim().toLowerCase().slice(0, 100);
       if (cleanEmail) {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
           return NextResponse.json(
@@ -1044,7 +1094,10 @@ export async function POST(request: Request) {
       ip: clientIp,
       severity: 'error',
     });
-    const message = err instanceof Error ? err.message : 'Lỗi hệ thống';
-    return NextResponse.json({ error: message }, { status: 500 });
+    // L2 (audit 2026-10-08): KHÔNG trả err.message thô cho client — lỗi driver
+    // (better-sqlite3 "Too few parameter values were provided"), SyntaxError của
+    // request.json()... là chi tiết nội bộ. err.message chỉ log nội bộ ở trên
+    // (logger.error + logError); client nhận thông báo chung.
+    return NextResponse.json({ error: 'Có lỗi xảy ra. Vui lòng thử lại.' }, { status: 500 });
   }
 }

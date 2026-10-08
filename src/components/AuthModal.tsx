@@ -35,6 +35,7 @@ import {
   saveAccountToDevice,
   removeSavedAccount,
 } from '@/lib/auth';
+import { validateRegistrationPassword } from '@/lib/passwordPolicy';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -66,6 +67,9 @@ export default function AuthModal({
       }
       setSavedAccounts(getSavedAccounts());
       setIsAddingAccount(false);
+      // M4: đóng form xác nhận 2FA cũ khi mở lại modal
+      setTwoFaConfirmOpen(false);
+      setTwoFaPassword('');
     }
   }, [isOpen, currentUser]);
 
@@ -89,6 +93,11 @@ export default function AuthModal({
   const [userMaskedEmail, setUserMaskedEmail] = useState<string>('');
   const [otpInput, setOtpInput] = useState<string>('');
   const [isToggling2fa, setIsToggling2fa] = useState(false);
+  // M4 (audit 2026-10-08): bật/tắt 2FA phải xác thực lại bằng mật khẩu hiện tại
+  // — bấm nút chỉ mở form nhỏ xác nhận, request chỉ gửi sau khi nhập đúng MK.
+  const [twoFaConfirmOpen, setTwoFaConfirmOpen] = useState(false);
+  const [twoFaPassword, setTwoFaPassword] = useState('');
+  const [isConfirming2fa, setIsConfirming2fa] = useState(false);
 
   if (!isOpen) return null;
 
@@ -161,6 +170,18 @@ export default function AuthModal({
     if (!username.trim() || !password.trim()) {
       setError('Vui lòng điền đầy đủ tên đăng nhập và mật khẩu.');
       return;
+    }
+
+    // M3 (audit 2026-10-08): validate phía client khớp chính sách mật khẩu đăng
+    // ký của server (≥8 ký tự + 1 hoa + 1 thường + 1 số, chặn mật khẩu phổ biến)
+    // để UX nhất quán — server vẫn là lớp cuối cùng bắt buộc.
+    if (mode === 'register') {
+      const policyError = validateRegistrationPassword(password.trim());
+      if (policyError) {
+        sound.playWrong();
+        setError(policyError);
+        return;
+      }
     }
 
     setLoading(true);
@@ -279,7 +300,10 @@ export default function AuthModal({
   };
 
   // TOGGLE 2FA FOR CURRENT LOGGED IN USER
-  const handleToggle2fa = async () => {
+  // M4 (audit 2026-10-08): server BẮT BUỘC currentPassword cho toggle_2fa
+  // (re-auth chống session hijack), nên bấm nút chỉ MỞ form nhập mật khẩu xác
+  // nhận — giữ UX đơn giản: 1 input mật khẩu hiện tại + nút xác nhận.
+  const handleToggle2fa = () => {
     if (!currentUser) return;
     if (!currentUser.email) {
       setError('Tài khoản cần có email trước khi bật xác thực 2 lớp (2FA).');
@@ -287,8 +311,22 @@ export default function AuthModal({
       return;
     }
 
-    setIsToggling2fa(true);
     sound.playClick();
+    setTwoFaPassword('');
+    setTwoFaConfirmOpen(true);
+  };
+
+  const confirmToggle2fa = async () => {
+    if (!currentUser) return;
+    if (!twoFaPassword) {
+      setError('Vui lòng nhập mật khẩu hiện tại để xác nhận.');
+      sound.playWrong();
+      return;
+    }
+
+    setIsConfirming2fa(true);
+    setIsToggling2fa(true);
+    setError(null);
 
     try {
       const res = await fetch('/api/auth', {
@@ -298,6 +336,7 @@ export default function AuthModal({
           action: 'toggle_2fa',
           userId: currentUser.id,
           enable: !currentUser.two_factor_enabled,
+          currentPassword: twoFaPassword,
         }),
       });
 
@@ -308,6 +347,8 @@ export default function AuthModal({
         setStoredUser(data.user);
         onAuthChange(data.user);
         setSuccessMsg(data.message);
+        setTwoFaConfirmOpen(false);
+        setTwoFaPassword('');
       } else {
         sound.playWrong();
         setError(data.error || 'Không thể thay đổi cài đặt bảo mật.');
@@ -317,6 +358,7 @@ export default function AuthModal({
       setError('Lỗi kết nối máy chủ.');
     } finally {
       setIsToggling2fa(false);
+      setIsConfirming2fa(false);
     }
   };
 
@@ -531,6 +573,49 @@ export default function AuthModal({
                         ? 'Đang bật bảo vệ. Mỗi lần đăng nhập hệ thống sẽ gửi mã OTP về email của bạn.'
                         : 'Bật để nhận mã OTP 6 số qua email mỗi khi đăng nhập trên thiết bị mới.'}
                     </p>
+
+                    {/* M4 (audit 2026-10-08): xác nhận bằng mật khẩu hiện tại
+                        trước khi bật/tắt 2FA — yêu cầu re-auth của server. */}
+                    {twoFaConfirmOpen && (
+                      <div className="p-3 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40">
+                        <div className="text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-2">
+                          Nhập mật khẩu hiện tại để {currentUser.two_factor_enabled ? 'tắt' : 'bật'} bảo mật 2 lớp
+                        </div>
+                        <input
+                          type="password"
+                          value={twoFaPassword}
+                          onChange={(e) => setTwoFaPassword(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && twoFaPassword && !isConfirming2fa) {
+                              confirmToggle2fa();
+                            }
+                          }}
+                          placeholder="Mật khẩu hiện tại"
+                          autoFocus
+                          className="w-full px-3 py-2 mb-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={confirmToggle2fa}
+                            disabled={!twoFaPassword || isConfirming2fa}
+                            className="flex-1 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 min-h-[44px]"
+                          >
+                            {isConfirming2fa ? 'Đang xác nhận…' : 'Xác nhận'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTwoFaConfirmOpen(false);
+                              setTwoFaPassword('');
+                            }}
+                            className="px-3 py-2 text-xs font-bold rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 min-h-[44px]"
+                          >
+                            Huỷ
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Email Verification Status */}
                     <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs">
