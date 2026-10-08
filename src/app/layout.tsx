@@ -1,4 +1,20 @@
 import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import './globals.css';
+import AppShell from '@/components/AppShell';
+import HighlightTooltip from '@/components/HighlightTooltip';
+import ClickEffect from '@/components/ClickEffect';
+import AccessTracker from '@/components/AccessTracker';
+
+const geistSans = Geist({
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
+});
+
+const geistMono = Geist_Mono({
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
+});
 
 export const metadata: Metadata = {
   title: 'Meowlish - Học Tiếng Anh Giao Tiếp & IT Thực Chiến',
@@ -10,5 +26,35 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <html
+      lang="vi"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-dvh antialiased overflow-hidden`}
+    >
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('meowlish_theme');if(!t){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}if(t==='dark'){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}document.documentElement.style.colorScheme=t}catch(e){}})();`,
+          }}
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Charis+SIL:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="h-dvh overflow-hidden bg-[#f8fafc] dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-emerald-100 selection:text-emerald-900">
+        <AppShell>{children}</AppShell>
+        {/* Global floating highlight & quick translate tooltip */}
+        <HighlightTooltip />
+        {/* Interactive Click Effect & Sparkles */}
+        <ClickEffect />
+        {/* Global Access & Page Visit Tracker for Admin System Logs */}
+        <AccessTracker />
+      </body>
+    </html>
+  );
 }
