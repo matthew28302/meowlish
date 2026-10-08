@@ -64,6 +64,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [disabledNotice, setDisabledNotice] = useState<string | null>(null);
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
+  // H5 (audit 2026-10-08): guest gate ĐÓNG ĐƯỢC THẬT — sau khi đóng, user xem
+  // nội dung đằng sau và có thể bấm "Đăng nhập" từ header để mở lại. Reset về
+  // true khi user trở về null (đăng xuất) để gate hiện lại cho khách, khớp hành
+  // vi cũ: guest trên route bảo vệ luôn được chào bằng gate.
+  const [guestGateOpen, setGuestGateOpen] = useState(true);
 
   // Đồng bộ theme (dark class) ngay khi AppShell mount — khớp với FOUC script trong layout
   useEffect(() => {
@@ -74,6 +79,21 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setShowAvatarMenu(false);
   }, [pathname]);
+
+  // M12 (audit 2026-10-08): đóng menu avatar / mobile drawer bằng phím Escape.
+  // Backdrop bắt click ra ngoài chỉ dành cho chuột — overlay toàn màn hình vô
+  // hình KHÔNG nên thành role="button" tabIndex=0 (tạo tab stop khổng lồ giữa
+  // tab order); keyboard users đóng qua Escape, mouse users đóng qua click.
+  useEffect(() => {
+    if (!showAvatarMenu && !mobileDrawerOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (showAvatarMenu) setShowAvatarMenu(false);
+      if (mobileDrawerOpen) setMobileDrawerOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showAvatarMenu, mobileDrawerOpen]);
 
   // Xử lý đăng xuất lập tức khi tài khoản bị vô hiệu hóa
   const handleAccountDisabled = (reason?: string) => {
@@ -120,9 +140,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         setIsAuthChecked(true);
         return;
       }
-      setCurrentUser(user);
+      // H5 (audit 2026-10-08): user demo fallback (id 'user_demo_default' —
+      // getStoredUser() tự tạo khi CHƯA đăng nhập thật, ví dụ trang /pet tự lưu
+      // demo user vào localStorage khi mount) KHÔNG phải đăng nhập thật. Trước
+      // fix H5, children không render cho guest nên fallback này không bao giờ
+      // lọt vào AppShell; nay children render nên phải coi như guest để gate
+      // hiện đúng thay vì biến mất.
+      const isDemoFallback = user?.id === 'user_demo_default';
+      setCurrentUser(isDemoFallback ? null : user);
+      // H5: user trở về null (đăng xuất / demo fallback) → gate hiện lại cho khách (như hành vi cũ)
+      if (!user || isDemoFallback) setGuestGateOpen(true);
 
-      if (user?.id) {
+      if (user?.id && !isDemoFallback) {
         fetch(`/api/progress?userId=${user.id}`)
           .then((res) => {
             if (res.status === 403) {
@@ -231,61 +260,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 3. UNAUTHENTICATED USERS: On protected routes, display the Welcome & Login interface directly
-  // This completely eliminates flashing the dashboard before jumping to login!
-  if (!currentUser && pathname !== '/encyclopedia') {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden select-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl text-center relative z-10 space-y-5">
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center text-4xl shadow-xl">
-            🐱
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-white tracking-tight">Meowlish English</h1>
-            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-              Nền tảng luyện giao tiếp tiếng Anh phản xạ, luyện thi TOEIC/IELTS & tiếng Anh chuyên ngành IT cùng linh vật thú cưng.
-            </p>
-          </div>
-
-          <div className="space-y-2.5 pt-2">
-            <button
-              onClick={() => {
-                sound.playClick();
-                setShowAuth(true);
-              }}
-              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-black text-sm shadow-lg shadow-emerald-500/25 transition cursor-pointer active:scale-98 flex items-center justify-center gap-2"
-            >
-              <span>Đăng Nhập / Đăng Ký Học Ngay</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <Link
-              href="/encyclopedia"
-              onClick={() => sound.playClick()}
-              className="w-full py-3 px-4 rounded-2xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs border border-slate-700/80 transition cursor-pointer flex items-center justify-center gap-2"
-            >
-              <Library className="w-4 h-4 text-emerald-400" />
-              <span>Tra cứu Bách Khoa Từ Điển (Miễn Phí)</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* AuthModal is open directly */}
-        <AuthModal
-          isOpen={true}
-          onClose={() => {}}
-          currentUser={currentUser}
-          onAuthChange={(user) => {
-            setCurrentUser(user);
-            setShowAuth(false);
-          }}
-        />
-      </div>
-    );
-  }
+  // 3. UNAUTHENTICATED USERS — H5 (audit 2026-10-08): guest VẪN nhận children
+  // (nội dung trang render vào DOM — Googlebot render JS sẽ thấy, không còn là
+  // "SPA shell rỗng" chỉ có login gate). Gate hiện NỘI TRÊN nội dung như một
+  // overlay đè lên thay vì THAY THẾ children — không phải cloaking: nội dung
+  // vẫn hiện cho user thật (đóng modal bằng nút X là thấy nội dung đằng sau,
+  // và có thể bấm "Đăng nhập" từ header để mở lại). Điều kiện gate GIỮ NGUYÊN.
+  const isGuestOnProtectedRoute = !currentUser && pathname !== '/encyclopedia';
+  const showGuestGate = isGuestOnProtectedRoute && guestGateOpen;
 
   const navGroups: NavGroup[] = [
     {
@@ -351,6 +333,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return 'Meowlish';
   };
 
+  // L7c (audit 2026-10-08): /support tự có <main> riêng bên trong children
+  // (src/app/support/page.tsx) — nếu AppShell cũng bọc <main> thì /support sẽ
+  // có 2 <main> lồng nhau (HTML spec: main không được lồng trong main).
+  // → Ở /support AppShell bọc bằng <div> CÙNG class (layout/cuộn không đổi —
+  //   rule `main, .custom-scrollbar` trong globals.css áp qua class nên vẫn
+  //   nhận đủ behavior), các trang còn lại giữ <main> làm landmark chính.
+  const stageScrollerClassName =
+    'flex-1 min-h-0 flex flex-col w-full overflow-y-auto overscroll-y-contain custom-scrollbar lg:pb-0 scroll-pb-32 [&>div.overflow-x-hidden:not(.flex-1)]:shrink-0';
+
   return (
     <div className="h-dvh w-full bg-[#f8fafc] dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex overflow-hidden relative">
       {/* Thông báo bảo mật khi tài khoản bị vô hiệu hóa */}
@@ -360,8 +351,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <span className="text-lg shrink-0">⛔</span>
             <span>{disabledNotice}</span>
           </div>
-          <button 
-            onClick={() => setDisabledNotice(null)} 
+          <button
+            type="button"
+            onClick={() => setDisabledNotice(null)}
             className="p-1 hover:bg-rose-700 rounded-lg text-white font-bold cursor-pointer transition shrink-0"
           >
             ✕
@@ -444,14 +436,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </div>
 
-        {/* Footer User Profile Card */}
+        {/* Footer User Profile Card — M12 (audit 2026-10-08): div onClick →
+            button để keyboard-accessible (Enter/Space mặc định của button). */}
         <div className="p-3.5 border-t border-slate-100 dark:border-white/10 bg-slate-50/70 dark:bg-white/5">
-          <div
+          <button
+            type="button"
             onClick={() => {
               sound.playClick();
               setShowAuth(true);
             }}
-            className="flex items-center justify-between p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-xs hover:border-emerald-400 cursor-pointer transition"
+            className="w-full text-left flex items-center justify-between p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-xs hover:border-emerald-400 cursor-pointer transition"
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-lg shrink-0">
@@ -469,7 +463,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
-          </div>
+          </button>
         </div>
       </aside>
 
@@ -518,9 +512,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
               {/* Right: Gamified Stats (Flame Streak, EXP, Level, Profile) */}
               <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                {/* Streak Flame Pill */}
+                {/* Streak Flame Pill — M12: div onClick → button (keyboard-accessible) */}
                 {currentUser && (
-                  <div
+                  <button
+                    type="button"
                     onClick={() => sound.playFlame()}
                     title={`Chuỗi học liên tục ${currentUser.streak || 1} ngày!`}
                     className="tap-target flex items-center gap-1 sm:gap-1.5 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full cursor-pointer hover:scale-105 transition active:scale-95 select-none"
@@ -532,7 +527,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     <span className="hidden sm:inline text-[12px] font-extrabold text-orange-600 dark:text-orange-400 uppercase">
                       ngày
                     </span>
-                  </div>
+                  </button>
                 )}
 
                 {/* EXP Pill */}
@@ -604,10 +599,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
                   {showAvatarMenu && currentUser && (
                     <>
-                      {/* Bắt click ra ngoài để đóng menu */}
+                      {/* M12: Bắt click ra ngoài để đóng menu — overlay toàn màn
+                          hình vô hình, không phải control thật nên aria-hidden
+                          (keyboard đóng qua Escape — effect ở đầu file) */}
                       <div
                         className="fixed inset-0 z-40"
                         onClick={() => setShowAvatarMenu(false)}
+                        aria-hidden="true"
                       />
                       <div className="absolute right-0 top-full mt-2 w-60 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
                         <div className="px-3 py-2 mb-1 border-b border-slate-100 dark:border-slate-800">
@@ -661,6 +659,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </span>
             </div>
             <button
+              type="button"
               onClick={() => {
                 sound.playClick();
                 setIsEmailVerifyOpen(true);
@@ -672,18 +671,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        <main
-          // [&>div.overflow-x-hidden:not(.flex-1)]:shrink-0 — page roots with
-          // overflow-x-hidden compute overflow-y:auto (spec) => min-size 0 =>
-          // flex-shrink collapses them to the viewport, so MAIN ends up with
-          // nothing to scroll and wheel events over the right/left blank margins
-          // did nothing. Keep those roots at content height so MAIN scrolls.
-          // .flex-1 excluded: pet page root is intentionally a full-height
-          // internal scroller.
-          className="flex-1 min-h-0 flex flex-col w-full overflow-y-auto overscroll-y-contain custom-scrollbar lg:pb-0 scroll-pb-32 [&>div.overflow-x-hidden:not(.flex-1)]:shrink-0"
-        >
-          {children}
-        </main>
+        {/* L7c: /support → div (tránh 2 <main> lồng nhau), còn lại → <main>.
+            [&>div.overflow-x-hidden:not(.flex-1)]:shrink-0 — page roots with
+            overflow-x-hidden compute overflow-y:auto (spec) => min-size 0 =>
+            flex-shrink collapses them to the viewport, so MAIN ends up with
+            nothing to scroll and wheel events over the right/left blank margins
+            did nothing. Keep those roots at content height so MAIN scrolls.
+            .flex-1 excluded: pet page root is intentionally a full-height
+            internal scroller. */}
+        {pathname === '/support' ? (
+          <div className={stageScrollerClassName}>{children}</div>
+        ) : (
+          <main className={stageScrollerClassName}>{children}</main>
+        )}
 
       {/* 3. MOBILE BOTTOM NAVIGATION — inside the flex-col container so it takes
           space and content never scrolls underneath it. Trước đây là `fixed
@@ -742,7 +742,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* 4. MOBILE SLIDE-OVER DRAWER (When pressing Menu on Mobile) */}
       {mobileDrawerOpen && (
         <div className="lg:hidden fixed inset-0 z-[100] flex">
-          {/* Backdrop */}
+          {/* M12: Backdrop — bắt click ra ngoài để đóng drawer; overlay toàn màn
+              hình vô hình nên aria-hidden (keyboard đóng qua Escape — effect ở
+              đầu file, hoặc nút X trong drawer) */}
           <div
             onClick={(e) => {
               e.preventDefault();
@@ -751,6 +753,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               setMobileDrawerOpen(false);
             }}
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+            aria-hidden="true"
           />
 
           {/* Drawer Content */}
@@ -870,15 +873,67 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      {/* 5. AUTH MODAL */}
+      {/* 5. GUEST GATE OVERLAY — H5 (audit 2026-10-08): đè NỘI TRÊN children thay
+          vì thay thế children — nội dung trang vẫn nằm trong DOM (SEO). Chỉ là
+          overlay fixed + blur phía sau modal, KHÔNG display:none/visibility:hidden.
+          z-40 nằm DƯỚI AuthModal (z-[10000]) để modal luôn đè lên như hành vi cũ;
+          `data-guest-gate` để kiểm chứng DOM bằng Playwright. */}
+      {showGuestGate && (
+        <div data-guest-gate className="fixed inset-0 z-40 flex items-center justify-center p-4 overflow-hidden">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl text-center relative z-10 space-y-5">
+            <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center text-4xl shadow-xl">
+              🐱
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-white tracking-tight">Meowlish English</h1>
+              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                Nền tảng luyện giao tiếp tiếng Anh phản xạ, luyện thi TOEIC/IELTS & tiếng Anh chuyên ngành IT cùng linh vật thú cưng.
+              </p>
+            </div>
+
+            <div className="space-y-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setShowAuth(true);
+                }}
+                className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-black text-sm shadow-lg shadow-emerald-500/25 transition cursor-pointer active:scale-98 flex items-center justify-center gap-2"
+              >
+                <span>Đăng Nhập / Đăng Ký Học Ngay</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <Link
+                href="/encyclopedia"
+                onClick={() => sound.playClick()}
+                className="w-full py-3 px-4 rounded-2xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs border border-slate-700/80 transition cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Library className="w-4 h-4 text-emerald-400" />
+                <span>Tra cứu Bách Khoa Từ Điển (Miễn Phí)</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. AUTH MODAL — H5: với guest gate, modal mở ép như cũ NHƯNG onClose
+          THẬT: đóng modal (nút X / Escape) = gỡ cả gate → user thấy nội dung
+          đằng sau và bấm được; mở lại từ header ("Đăng nhập") vẫn hoạt động. */}
       <AuthModal
-        isOpen={showAuth}
-        onClose={() => setShowAuth(false)}
+        isOpen={showAuth || showGuestGate}
+        onClose={() => {
+          setShowAuth(false);
+          setGuestGateOpen(false);
+        }}
         currentUser={currentUser}
         onAuthChange={(user) => setCurrentUser(user)}
       />
 
-      {/* 6. EMAIL VERIFICATION MODAL */}
+      {/* 7. EMAIL VERIFICATION MODAL */}
       <EmailVerifyModal
         isOpen={isEmailVerifyOpen}
         onClose={() => {
@@ -893,7 +948,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         }}
       />
 
-      {/* 7. PROFILE EDIT MODAL (Sửa thông tin cá nhân) */}
+      {/* 8. PROFILE EDIT MODAL (Sửa thông tin cá nhân) */}
       <ProfileEditModal
         isOpen={showProfileEdit}
         onClose={() => setShowProfileEdit(false)}
