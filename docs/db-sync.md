@@ -120,13 +120,15 @@ Hệ quả trực tiếp:
 `LastModified` với mốc đã lưu) — nhưng nó chỉ phát hiện *sau khi* đã xảy ra,
 không ngăn được.
 
-Điều này **củng cố** quyết định chuyển sang Postgres: giữ kiến trúc Filebase nghĩa
-là chấp nhận mất dữ liệu khi 2 instance cùng ghi. Xem `docs/db-migration-postgres.md`.
+Cơ chế phát hiện xung đột hiện tại phụ thuộc `baseVersion` trong `sync_state.json`.
+Nó vẫn hữu ích, nhưng không ngăn được race của 2 instance cùng ghi. Đánh đổi được
+chấp nhận vì giới hạn của Filebase (xem 5b), và đã có các chống-lành mạnh ở tầng
+ứng dụng (persistCriticalWrite, conditional UPDATE, transaction).
 
 ## 5c. Sao lưu tự động (cron `/api/cron/backup-db`)
 
-Trước đây **không có bản sao lưu định kỳ nào** — cron duy nhất là `/api/health`
-và nó chỉ ping Postgres. Mất key `english_learning.db` trên Filebase là mất trọn
+Trước đây **không có bản sao lưu định kỳ nào** — cron duy nhất là `/api/health`.
+Mất key `english_learning.db` trên Filebase là mất trọn
 vẹn toàn bộ tài khoản.
 
 - Cron: `vercel.json` → `/api/cron/backup-db`, 04:30 hằng ngày.

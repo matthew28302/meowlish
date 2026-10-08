@@ -45,12 +45,9 @@ node scripts\merge-conflict-users.mjs --apply  # gộp (tự backup trước)
 - **Bản `.conflict.db` bị ghi đè mỗi lần có xung đột** ⇒ cứu dữ liệu càng sớm càng tốt; nếu cần giữ lâu hơn thì sao chép key đó ra tên có timestamp.
 - `english_learning.premerge-*.db` là backup trước mỗi lần gộp.
 
-## 4. Khi chuyển sang Postgres (Supabase/Neon) — đã chốt hướng
+## 4. Nếu từng định chuyển sang Postgres
 
-Chỉ chuyển **11 bảng dữ liệu người dùng** (~163 dòng), **giữ nguyên SQLite cho nội dung tĩnh** (đọc-only, không ghi ⇒ không còn tranh chấp). Không chuyển `dictionary_*`/`dictionary_fts*` sang Postgres: mỗi lần load trang sẽ là truy vấn mạng và tốn egress.
-- Adapter: 1 module duy nhất thay `src/lib/db.ts`; 284 lệnh `db.prepare` nằm trong 20 file — chỉ 20 file chạm DB (xem `git grep -l db.prepare -- src`).
-- Sau khi tách: **xoá hẳn lớp S3 sync** và mọi `syncDbToS3Now()`; nếu thấy file sync còn được gọi ở đâu đó thì migration chưa xong.
-- Bắt buộc: chạy `tests/e2e` trước khi deploy, và chuyển dữ liệu bằng script có đếm dòng khớp (`scripts/`).
+Quyết định hiện tại: **KHÔNG chuyển**. App chạy SQLite + Filebase S3; Postgres/Supabase đã xoá bỏ hoàn toàn. Mọi file `src/lib/pg.ts`, `scripts/pg/*`, `docs/db-migration-postgres.md` đều đã bị loại bỏ.
 
 ## 5. Danh sách việc đang mở (cập nhật khi làm xong)
 

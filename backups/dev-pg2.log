@@ -1,0 +1,2224 @@
+
+> meowlish@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.5 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.2.0.2:3000
+- Environments: .env.local
+✓ Ready in 432ms
+⚠ Warning: Next.js ignored package-lock.json in C:\Users\NVX because it is outside the current Git repository (C:\Users\NVX\Documents\english-for-me).
+ To use this directory, set `turbopack.root` in your Next.js config.
+
+✓ Running next.config.ts took 39ms
+
+[2026-10-08 14:48:11] [32minfo[39m: 	[S3 AutoSync] Auto-sync TẮT ở môi trường này (mặc định chỉ bật trên Vercel). Đặt DB_SYNC_AUTO=1 để bật, hoặc dùng scripts/sync-to-filebase.mjs / POST /api/sync để đồng bộ thủ công.
+ GET /api/health 200 in 2.1s (next.js: 200ms, application-code: 1863ms)
+[SQLite DB] AUTH_SALT: dùng fallback mặc định | fingerprint: 50a253f5f73d
+[SQLite DB] Mật khẩu: 5/6 tài khoản còn hash SHA-256 cũ — vẫn đăng nhập được và sẽ tự nâng cấp sang scrypt khi họ đăng nhập.
+ GET /api/pet 200 in 5.2s (next.js: 111ms, application-code: 5.1s)
+ GET /api/health 200 in 168ms (next.js: 2ms, application-code: 166ms)
+ GET /api/auth?action=session 400 in 51ms (next.js: 47ms, application-code: 4ms)
+ GET /api/bookmarks 200 in 566ms (next.js: 71ms, application-code: 495ms)
+ GET /api/progress 200 in 1571ms (next.js: 43ms, application-code: 1527ms)
+ GET /api/exam?action=history 200 in 539ms (next.js: 39ms, application-code: 499ms)
+ GET /api/pet 200 in 5.0s (next.js: 1.6ms, application-code: 5.0s)
+ GET /api/pet/shop 200 in 864ms (next.js: 50ms, application-code: 814ms)
+ GET /api/dictionary/search?q=hello 200 in 114ms (next.js: 40ms, application-code: 73ms)
+ GET /api/user/target 405 in 48ms (next.js: 45ms, application-code: 3ms)
+ GET /api/support?code=ZZZ-NOPE 200 in 209ms (next.js: 44ms, application-code: 166ms)
+ GET /api/admin/auth 405 in 44ms (next.js: 42ms, application-code: 3ms)
+[2026-10-08 14:48:34] [33mwarn[39m: 	Failed login attempt for username: khong_ton_tai_zz — Không tìm thấy tài khoản ở instance này (DB có thể chưa đồng bộ)
+ POST /api/auth?action=login 401 in 702ms (next.js: 1.5ms, application-code: 701ms)
+[2026-10-08 14:48:34] [33mwarn[39m: 	Blocked admin login on public user form: admin
+ POST /api/auth?action=register 403 in 366ms (next.js: 1.6ms, application-code: 365ms)
+ POST /api/progress 401 in 169ms (next.js: 1.9ms, application-code: 167ms)
+ POST /api/support 400 in 6ms (next.js: 1.5ms, application-code: 4ms)
+ GET /api/pet 200 in 5.1s (next.js: 1.7ms, application-code: 5.1s)
+ GET /api/pet 200 in 5.1s (next.js: 1.6ms, application-code: 5.1s)
+ GET /api/pet 200 in 5.1s (next.js: 4ms, application-code: 5.1s)
+ GET /api/progress 200 in 1473ms (next.js: 2.0ms, application-code: 1471ms)
+ GET /api/progress 200 in 1491ms (next.js: 1.4ms, application-code: 1489ms)
+ GET /api/progress 200 in 1506ms (next.js: 1.5ms, application-code: 1505ms)
+ GET /api/pet/shop 200 in 992ms (next.js: 1.9ms, application-code: 990ms)
+ GET /api/pet/shop 200 in 959ms (next.js: 3ms, application-code: 956ms)
+ GET /api/pet/shop 200 in 1059ms (next.js: 1.6ms, application-code: 1058ms)
+ GET /api/bookmarks 200 in 572ms (next.js: 1.5ms, application-code: 571ms)
+ GET /api/bookmarks 200 in 574ms (next.js: 1.6ms, application-code: 572ms)
+ GET /api/bookmarks 200 in 538ms (next.js: 1.5ms, application-code: 536ms)
+⨯ ./src/app/api/support/route.ts:4:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m2 |[0m [36mimport[0m { sanitizeText } [36mfrom[0m [32m'@/lib/db'[0m;
+  [90m3 |[0m
+[31m[1m>[0m [90m4 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m5 |[0m [36mimport[0m { getAuthenticatedUser } [36mfrom[0m [32m'@/lib/userAuth'[0m;
+  [90m6 |[0m [36mimport[0m { getClientIp, checkRateLimit, rateLimitExceededResponse } [36mfrom[0m [32m'@/lib/rateLimit'[0m;
+  [90m7 |[0m [36mimport[0m { sendSupportNotificationEmail } [36mfrom[0m [32m'@/lib/supportEmail'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/support/route.ts:4:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m2 |[0m [36mimport[0m { sanitizeText } [36mfrom[0m [32m'@/lib/db'[0m;
+  [90m3 |[0m
+[31m[1m>[0m [90m4 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m5 |[0m [36mimport[0m { getAuthenticatedUser } [36mfrom[0m [32m'@/lib/userAuth'[0m;
+  [90m6 |[0m [36mimport[0m { getClientIp, checkRateLimit, rateLimitExceededResponse } [36mfrom[0m [32m'@/lib/rateLimit'[0m;
+  [90m7 |[0m [36mimport[0m { sendSupportNotificationEmail } [36mfrom[0m [32m'@/lib/supportEmail'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/adminAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/adminAuth.ts
+    ./src/lib/supportEmail.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/adminAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/adminAuth.ts
+    ./src/lib/supportEmail.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/exam/route.ts:3:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m1 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+  [90m2 |[0m [36mimport[0m { sanitizeText } [36mfrom[0m [32m'@/lib/db'[0m;
+[31m[1m>[0m [90m3 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m
+  [90m5 |[0m [36mimport[0m { getAuthenticatedUser } [36mfrom[0m [32m'@/lib/userAuth'[0m;
+  [90m6 |[0m [36mimport[0m { getClientIp, checkRateLimit, rateLimitExceededResponse } [36mfrom[0m [32m'@/lib/rateLimit'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/exam/route.ts:3:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m1 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+  [90m2 |[0m [36mimport[0m { sanitizeText } [36mfrom[0m [32m'@/lib/db'[0m;
+[31m[1m>[0m [90m3 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m
+  [90m5 |[0m [36mimport[0m { getAuthenticatedUser } [36mfrom[0m [32m'@/lib/userAuth'[0m;
+  [90m6 |[0m [36mimport[0m { getClientIp, checkRateLimit, rateLimitExceededResponse } [36mfrom[0m [32m'@/lib/rateLimit'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/exam/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/exam/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/exam/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/exam/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/admin/auth/route.ts:3:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m1 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+  [90m2 |[0m [36mimport[0m { verifyPassword } [36mfrom[0m [32m'@/lib/db'[0m;
+[31m[1m>[0m [90m3 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m
+  [90m5 |[0m [36mimport[0m {
+  [90m6 |[0m   generateOTP,
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/admin/auth/route.ts:3:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m1 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+  [90m2 |[0m [36mimport[0m { verifyPassword } [36mfrom[0m [32m'@/lib/db'[0m;
+[31m[1m>[0m [90m3 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m
+  [90m5 |[0m [36mimport[0m {
+  [90m6 |[0m   generateOTP,
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/adminAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/adminAuth.ts
+    ./src/app/api/admin/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/adminAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/adminAuth.ts
+    ./src/app/api/admin/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/admin/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/admin/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/user/target/route.ts:2:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m1 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+[31m[1m>[0m [90m2 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m3 |[0m
+  [90m4 |[0m [36mimport[0m { getAuthenticatedUser } [36mfrom[0m [32m'@/lib/userAuth'[0m;
+  [90m5 |[0m [36mimport[0m { getClientIp, checkRateLimit, rateLimitExceededResponse } [36mfrom[0m [32m'@/lib/rateLimit'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/user/target/route.ts:2:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m1 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+[31m[1m>[0m [90m2 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m3 |[0m
+  [90m4 |[0m [36mimport[0m { getAuthenticatedUser } [36mfrom[0m [32m'@/lib/userAuth'[0m;
+  [90m5 |[0m [36mimport[0m { getClientIp, checkRateLimit, rateLimitExceededResponse } [36mfrom[0m [32m'@/lib/rateLimit'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/user/target/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/user/target/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/user/target/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/user/target/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/auth/route.ts:4:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m2 |[0m [36mimport[0m { db, hashPassword, verifyPassword, sanitizeText } [36mfrom[0m [32m'@/lib/db'[0m;
+  [90m3 |[0m
+[31m[1m>[0m [90m4 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m5 |[0m [36mimport[0m {
+  [90m6 |[0m   generateUserOTP,
+  [90m7 |[0m   createUserOtpSession,
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/auth/route.ts:4:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m2 |[0m [36mimport[0m { db, hashPassword, verifyPassword, sanitizeText } [36mfrom[0m [32m'@/lib/db'[0m;
+  [90m3 |[0m
+[31m[1m>[0m [90m4 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m5 |[0m [36mimport[0m {
+  [90m6 |[0m   generateUserOTP,
+  [90m7 |[0m   createUserOtpSession,
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/health/route.ts:3:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m1 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+  [90m2 |[0m [36mimport[0m { pgDb, isPgEnabled } [36mfrom[0m [32m'@/lib/pg'[0m;
+[31m[1m>[0m [90m3 |[0m [36mimport[0m { backendName } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m
+  [90m5 |[0m /**
+  [90m6 |[0m  * [33mGET[0m /api/health — kiểm tra sức khoẻ dịch vụ.
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/health/route.ts:3:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m1 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+  [90m2 |[0m [36mimport[0m { pgDb, isPgEnabled } [36mfrom[0m [32m'@/lib/pg'[0m;
+[31m[1m>[0m [90m3 |[0m [36mimport[0m { backendName } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m
+  [90m5 |[0m /**
+  [90m6 |[0m  * [33mGET[0m /api/health — kiểm tra sức khoẻ dịch vụ.
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/rewards.ts:13:1
+Error: Module not found: Can't resolve './userDb'
+  [90m11 |[0m [90m * Tất cả hàm ở đây là `async` vì đọc/ghi trên `userDb` là bất đồng bộ (Postgres).[0m
+  [90m12 |[0m [90m */[0m
+[31m[1m>[0m [90m13 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'./userDb'[0m;
+  [90m   |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m14 |[0m
+  [90m15 |[0m [90m/** Thưởng PVP / đua thú cưng — do SERVER quyết định, không nhận từ client. */[0m
+  [90m16 |[0m [36mexport[0m [36mconst[0m [33mREWARD_CATALOG[0m = {
+
+
+
+Import trace:
+  App Route:
+    ./src/lib/rewards.ts
+    ./src/app/api/progress/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/rewards.ts:13:1
+Error: Module not found: Can't resolve './userDb'
+  [90m11 |[0m [90m * Tất cả hàm ở đây là `async` vì đọc/ghi trên `userDb` là bất đồng bộ (Postgres).[0m
+  [90m12 |[0m [90m */[0m
+[31m[1m>[0m [90m13 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'./userDb'[0m;
+  [90m   |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m14 |[0m
+  [90m15 |[0m [90m/** Thưởng PVP / đua thú cưng — do SERVER quyết định, không nhận từ client. */[0m
+  [90m16 |[0m [36mexport[0m [36mconst[0m [33mREWARD_CATALOG[0m = {
+
+
+
+Import trace:
+  App Route:
+    ./src/lib/rewards.ts
+    ./src/app/api/progress/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/progress/route.ts:3:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m1 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+  [90m2 |[0m [36mimport[0m { sanitizeText } [36mfrom[0m [32m'@/lib/db'[0m;
+[31m[1m>[0m [90m3 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m
+  [90m5 |[0m [36mimport[0m { consumeProgressBudget } [36mfrom[0m [32m'@/lib/rewards'[0m;
+  [90m6 |[0m [36mimport[0m { getAuthenticatedUser } [36mfrom[0m [32m'@/lib/userAuth'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/progress/route.ts:3:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m1 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+  [90m2 |[0m [36mimport[0m { sanitizeText } [36mfrom[0m [32m'@/lib/db'[0m;
+[31m[1m>[0m [90m3 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m
+  [90m5 |[0m [36mimport[0m { consumeProgressBudget } [36mfrom[0m [32m'@/lib/rewards'[0m;
+  [90m6 |[0m [36mimport[0m { getAuthenticatedUser } [36mfrom[0m [32m'@/lib/userAuth'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/progress/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/progress/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/progress/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/progress/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/bookmarks/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/bookmarks/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/bookmarks/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/bookmarks/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/rewards.ts:13:1
+Error: Module not found: Can't resolve './userDb'
+  [90m11 |[0m [90m * Tất cả hàm ở đây là `async` vì đọc/ghi trên `userDb` là bất đồng bộ (Postgres).[0m
+  [90m12 |[0m [90m */[0m
+[31m[1m>[0m [90m13 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'./userDb'[0m;
+  [90m   |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m14 |[0m
+  [90m15 |[0m [90m/** Thưởng PVP / đua thú cưng — do SERVER quyết định, không nhận từ client. */[0m
+  [90m16 |[0m [36mexport[0m [36mconst[0m [33mREWARD_CATALOG[0m = {
+
+
+
+Import trace:
+  App Route:
+    ./src/lib/rewards.ts
+    ./src/app/api/pet/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/rewards.ts:13:1
+Error: Module not found: Can't resolve './userDb'
+  [90m11 |[0m [90m * Tất cả hàm ở đây là `async` vì đọc/ghi trên `userDb` là bất đồng bộ (Postgres).[0m
+  [90m12 |[0m [90m */[0m
+[31m[1m>[0m [90m13 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'./userDb'[0m;
+  [90m   |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m14 |[0m
+  [90m15 |[0m [90m/** Thưởng PVP / đua thú cưng — do SERVER quyết định, không nhận từ client. */[0m
+  [90m16 |[0m [36mexport[0m [36mconst[0m [33mREWARD_CATALOG[0m = {
+
+
+
+Import trace:
+  App Route:
+    ./src/lib/rewards.ts
+    ./src/app/api/pet/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/pet/route.ts:5:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m3 |[0m
+  [90m4 |[0m [36mimport[0m { claimTimedReward, rewardCooldownRemaining, [33mREWARD_CATALOG[0m } [36mfrom[0m [32m'@/lib/rewards'[0m;
+[31m[1m>[0m [90m5 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m6 |[0m [36mimport[0m { [33mPETS_CATALOG[0m, [33mSHOP_ITEMS[0m } [36mfrom[0m [32m'@/lib/petData'[0m;
+  [90m7 |[0m [36mimport[0m { checkCinnamorollAccess } [36mfrom[0m [32m'@/lib/cinnamorollAccess'[0m;
+  [90m8 |[0m [36mimport[0m { [33mCROPS_CATALOG[0m, [33mLIVESTOCK_CATALOG[0m } [36mfrom[0m [32m'@/lib/petFarmData'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/pet/route.ts:5:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m3 |[0m
+  [90m4 |[0m [36mimport[0m { claimTimedReward, rewardCooldownRemaining, [33mREWARD_CATALOG[0m } [36mfrom[0m [32m'@/lib/rewards'[0m;
+[31m[1m>[0m [90m5 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m6 |[0m [36mimport[0m { [33mPETS_CATALOG[0m, [33mSHOP_ITEMS[0m } [36mfrom[0m [32m'@/lib/petData'[0m;
+  [90m7 |[0m [36mimport[0m { checkCinnamorollAccess } [36mfrom[0m [32m'@/lib/cinnamorollAccess'[0m;
+  [90m8 |[0m [36mimport[0m { [33mCROPS_CATALOG[0m, [33mLIVESTOCK_CATALOG[0m } [36mfrom[0m [32m'@/lib/petFarmData'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/pet/shop/route.ts:2:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m1 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+[31m[1m>[0m [90m2 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m3 |[0m
+  [90m4 |[0m [36mimport[0m { [33mSHOP_ITEMS[0m } [36mfrom[0m [32m'@/lib/petData'[0m;
+  [90m5 |[0m [36mimport[0m { getAuthenticatedUser } [36mfrom[0m [32m'@/lib/userAuth'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/api/pet/shop/route.ts:2:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+  [90m1 |[0m [36mimport[0m { [33mNextResponse[0m } [36mfrom[0m [32m'next/server'[0m;
+[31m[1m>[0m [90m2 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m3 |[0m
+  [90m4 |[0m [36mimport[0m { [33mSHOP_ITEMS[0m } [36mfrom[0m [32m'@/lib/petData'[0m;
+  [90m5 |[0m [36mimport[0m { getAuthenticatedUser } [36mfrom[0m [32m'@/lib/userAuth'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/shop/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/shop/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/shop/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/shop/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/adminAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/adminAuth.ts
+    ./src/app/api/admin/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/adminAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/adminAuth.ts
+    ./src/app/api/admin/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/admin/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/admin/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/exam/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/exam/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/exam/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/exam/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/shop/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/shop/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/shop/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/shop/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/progress/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/progress/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/progress/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/progress/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/adminAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/adminAuth.ts
+    ./src/lib/supportEmail.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/adminAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/adminAuth.ts
+    ./src/lib/supportEmail.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/user/target/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/lib/userAuth.ts
+    ./src/app/api/user/target/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/user/target/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/user/target/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/admin/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/systemLogs.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m { db } [36mfrom[0m [32m'./db'[0m;
+  [90m3 |[0m [36mimport[0m logger [36mfrom[0m [32m'./logger'[0m;
+  [90m4 |[0m
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/systemLogs.ts
+    ./src/app/api/admin/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/support/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/user/target/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/user/target/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/auth/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/exam/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/exam/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/bookmarks/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/bookmarks/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/progress/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/progress/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/shop/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/shop/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/lib/userAuth.ts:1:1
+Error: Module not found: Can't resolve '@/lib/userDb'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m { userDb } [36mfrom[0m [32m'@/lib/userDb'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m crypto [36mfrom[0m [32m'crypto'[0m;
+  [90m3 |[0m [36mimport[0m dns [36mfrom[0m [32m'dns'[0m;
+  [90m4 |[0m [36mimport[0m nodemailer [36mfrom[0m [32m'nodemailer'[0m;
+
+Import map: aliased to relative './src/lib/userDb' inside of [project]/
+
+
+Import trace:
+  App Route:
+    ./src/lib/userAuth.ts
+    ./src/app/api/pet/route.ts
+
+https://nextjs.org/docs/messages/module-not-found
+
+

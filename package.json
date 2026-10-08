@@ -10,12 +10,7 @@
     "test": "vitest run && npm run scan:secrets",
     "test:e2e": "playwright test",
     "scan:secrets": "node scripts/scan-script-secrets.selftest.mjs",
-    "db:merge-conflicts": "node scripts/merge-conflict-users.mjs",
-    "db:pg:download": "node scripts/pg/00-download-prod-db.mjs",
-    "db:pg:schema": "node scripts/pg/01-create-schema.mjs --apply",
-    "db:pg:import": "node scripts/pg/02-import-user-data.mjs --apply",
-    "db:pg:verify": "node scripts/pg/03-verify.mjs",
-    "db:pg:smoke": "tsx scripts/pg/04-smoke-adapter.ts"
+    "db:merge-conflicts": "node scripts/merge-conflict-users.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1138.0",
@@ -25,7 +20,6 @@
     "lucide-react": "^1.47.0",
     "next": "16.3.5",
     "nodemailer": "^10.0.10",
-    "postgres": "^3.4.9",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "three": "^0.186.1",

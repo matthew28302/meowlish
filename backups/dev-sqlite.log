@@ -1,0 +1,39 @@
+
+> meowlish@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.5 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.2.0.2:3000
+- Environments: .env.local
+✓ Ready in 485ms
+⚠ Warning: Next.js ignored package-lock.json in C:\Users\NVX because it is outside the current Git repository (C:\Users\NVX\Documents\english-for-me).
+ To use this directory, set `turbopack.root` in your Next.js config.
+
+✓ Running next.config.ts took 56ms
+
+ GET /practice/speaking 200 in 1254ms (next.js: 943ms, application-code: 310ms)
+[2026-10-08 14:45:18] [32minfo[39m: 	[S3 AutoSync] Auto-sync TẮT ở môi trường này (mặc định chỉ bật trên Vercel). Đặt DB_SYNC_AUTO=1 để bật, hoặc dùng scripts/sync-to-filebase.mjs / POST /api/sync để đồng bộ thủ công.
+[SQLite DB] AUTH_SALT: dùng fallback mặc định | fingerprint: 50a253f5f73d
+[SQLite DB] Mật khẩu: 5/6 tài khoản còn hash SHA-256 cũ — vẫn đăng nhập được và sẽ tự nâng cấp sang scrypt khi họ đăng nhập.
+ GET /api/progress?userId=user_1790179270449_aecg 401 in 338ms (next.js: 168ms, application-code: 170ms)
+ POST /api/log/access 200 in 412ms (next.js: 400ms, application-code: 11ms)
+ GET /api/progress?userId=user_1790179270449_aecg 401 in 13ms (next.js: 6ms, application-code: 7ms)
+ GET /api/health 200 in 1834ms (next.js: 39ms, application-code: 1794ms)
+ GET /api/health 200 in 182ms (next.js: 4ms, application-code: 179ms)
+ GET /api/auth?action=session 400 in 58ms (next.js: 52ms, application-code: 6ms)
+ GET /api/bookmarks 200 in 55ms (next.js: 49ms, application-code: 6ms)
+ GET /api/progress 200 in 12ms (next.js: 5ms, application-code: 7ms)
+ GET /api/exam?action=history 200 in 58ms (next.js: 51ms, application-code: 6ms)
+ GET /api/pet 200 in 81ms (next.js: 57ms, application-code: 24ms)
+ GET /api/pet/shop 200 in 52ms (next.js: 46ms, application-code: 6ms)
+ GET /api/dictionary/search?q=hello 200 in 142ms (next.js: 41ms, application-code: 101ms)
+ GET /api/user/target 405 in 47ms (next.js: 43ms, application-code: 5ms)
+ GET /api/support?code=ZZZ-NOPE 200 in 48ms (next.js: 43ms, application-code: 5ms)
+ GET /api/admin/auth 405 in 46ms (next.js: 42ms, application-code: 4ms)
+[2026-10-08 14:45:29] [33mwarn[39m: 	Failed login attempt for username: khong_ton_tai_zz — Không tìm thấy tài khoản ở instance này (DB có thể chưa đồng bộ)
+ POST /api/auth?action=login 401 in 55ms (next.js: 1.6ms, application-code: 53ms)
+[2026-10-08 14:45:29] [33mwarn[39m: 	Blocked admin login on public user form: admin
+ POST /api/auth?action=register 403 in 49ms (next.js: 1.9ms, application-code: 47ms)
+ POST /api/progress 401 in 7ms (next.js: 1.5ms, application-code: 5ms)
+ POST /api/support 400 in 7ms (next.js: 1.4ms, application-code: 6ms)

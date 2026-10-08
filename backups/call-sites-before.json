@@ -1,0 +1,237 @@
+{
+  "at": "2026-10-08T07:18:14.538Z",
+  "total": 290,
+  "rows": [
+    {
+      "file": "src/app/api/pet/route.ts",
+      "calls": 124,
+      "tables": [
+        "battle",
+        "coin_transactions",
+        "inventory",
+        "pet_battle_rooms",
+        "pet_chat_messages",
+        "pet_farm_livestock",
+        "pet_farm_plots",
+        "pet_garden_decor",
+        "pet_inventory",
+        "user_couples",
+        "user_friends",
+        "user_pets",
+        "users",
+        "v"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/app/api/auth/route.ts",
+      "calls": 24,
+      "tables": [
+        "pet_inventory",
+        "user_otp_sessions",
+        "user_pets",
+        "users"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/app/api/admin/users/route.ts",
+      "calls": 20,
+      "tables": [
+        "authorization",
+        "bookmarks",
+        "coin_transactions",
+        "pet_garden_decor",
+        "pet_inventory",
+        "progress",
+        "test_results",
+        "user_otp_sessions",
+        "user_pets",
+        "users"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/lib/db.ts",
+      "calls": 20,
+      "tables": [
+        "ai_translation_cache",
+        "bookmarks",
+        "filebase",
+        "m",
+        "my",
+        "pet_inventory",
+        "progress_daily_budget",
+        "reward_claims",
+        "sync_meta",
+        "user_pets",
+        "users"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/lib/systemLogs.ts",
+      "calls": 13,
+      "tables": [
+        "system_access_logs",
+        "system_email_logs",
+        "system_error_logs"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/app/api/progress/route.ts",
+      "calls": 10,
+      "tables": [
+        "bookmarks",
+        "progress",
+        "test_results",
+        "user",
+        "user_pets",
+        "users"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/lib/userAuth.ts",
+      "calls": 10,
+      "tables": [
+        "user_otp_sessions",
+        "users"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/app/api/admin/support/route.ts",
+      "calls": 9,
+      "tables": [
+        "support_messages"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/app/api/pet/shop/route.ts",
+      "calls": 9,
+      "tables": [
+        "coin_transactions",
+        "pet_inventory",
+        "users"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/lib/adminAuth.ts",
+      "calls": 8,
+      "tables": [
+        "admin_otp_sessions",
+        "user",
+        "users"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/lib/groqTranslator.ts",
+      "calls": 8,
+      "tables": [
+        "ai_translation_cache",
+        "environment"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/app/api/bookmarks/route.ts",
+      "calls": 7,
+      "tables": [
+        "bookmarks"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/app/api/auth/reset-password/route.ts",
+      "calls": 6,
+      "tables": [
+        "ip",
+        "password_reset_tokens",
+        "users"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/app/api/support/route.ts",
+      "calls": 5,
+      "tables": [
+        "support_messages"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/app/api/auth/forgot-password/route.ts",
+      "calls": 3,
+      "tables": [
+        "ip",
+        "password_reset_tokens",
+        "users"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/app/api/exam/route.ts",
+      "calls": 3,
+      "tables": [
+        "test_results"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/lib/cambridgeCrawler.ts",
+      "calls": 3,
+      "tables": [
+        "dictionary_cache"
+      ],
+      "sqliteOnly": [
+        "dictionary_cache"
+      ]
+    },
+    {
+      "file": "src/app/api/dictionary/search/route.ts",
+      "calls": 2,
+      "tables": [
+        "dictionary_entries"
+      ],
+      "sqliteOnly": [
+        "dictionary_entries"
+      ]
+    },
+    {
+      "file": "src/app/api/log/access/route.ts",
+      "calls": 2,
+      "tables": [
+        "users"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/app/api/user/target/route.ts",
+      "calls": 2,
+      "tables": [
+        "target_exam",
+        "users"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/app/api/admin/auth/route.ts",
+      "calls": 1,
+      "tables": [
+        "users"
+      ],
+      "sqliteOnly": []
+    },
+    {
+      "file": "src/lib/pg.ts",
+      "calls": 1,
+      "tables": [],
+      "sqliteOnly": []
+    }
+  ]
+}

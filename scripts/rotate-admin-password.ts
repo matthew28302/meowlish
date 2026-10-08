@@ -145,43 +145,12 @@ async function main() {
     }
     console.log('Xac minh tren ban DA LUU tren Filebase: OK');
 
-    await syncToPostgres(saved.password_hash);
     console.log('\nHOAN TAT. Hay dang nhap lai cong /duahau voi mat khau moi.');
     return;
   }
 
   console.error('\nThat bai sau nhieu lan thu do DB lien tuc bi thay doi. Hay thu lai sau.');
   process.exit(1);
-}
-
-async function syncToPostgres(passwordHash: string) {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    console.log('Khong co DATABASE_URL — bo qua buoc dong bo Postgres.');
-    return;
-  }
-  const postgres = (await import('postgres')).default;
-  const sql = postgres(databaseUrl, {
-    max: 1, prepare: false, ssl: 'require', connect_timeout: 20,
-    types: {
-      BigInt: {
-        to: 20, from: [20],
-        serialize: (x: bigint) => String(x),
-        parse: (x: string) => Number(x),
-      },
-    },
-  });
-  const updated = await sql.unsafe(
-    "UPDATE users SET password_hash = ?, status = 'active' WHERE username = 'admin' RETURNING username",
-    [passwordHash]
-  );
-  const rows = Array.from(updated) as unknown[];
-  console.log(
-    rows.length > 0
-      ? 'Da dong bo hash sang Postgres: OK'
-      : 'Postgres khong co dong admin — can kiem tra lai (khong phai loi cua Filebase).'
-  );
-  await sql.end({ timeout: 5 });
 }
 
 main().catch((e: unknown) => {
