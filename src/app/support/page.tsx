@@ -1,7 +1,5 @@
 'use client';
 
-import type { Metadata } from 'next';
-
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
@@ -87,6 +85,24 @@ interface FaqArticle {
   actionText?: string;
   icon: string;
   tags: string[];
+}
+
+/** Serialize mảng FAQ phía dưới thành FAQPage JSON-LD (schema.org) — map từ
+ * chính dữ liệu hiển thị để structured data luôn đồng bộ với UI (không copy tay).
+ * Nội dung là data tĩnh của ta (không phải user input) nên JSON.stringify an toàn. */
+export function buildSupportFaqJsonLd(articles: FaqArticle[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: articles.map((article) => ({
+      '@type': 'Question',
+      name: article.title,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: article.content.join('\n\n'),
+      },
+    })),
+  };
 }
 
 export default function SupportPage() {
@@ -651,8 +667,17 @@ export default function SupportPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  // M11 — FAQPage JSON-LD: serialize từ chính mảng faqArticles phía trên (data
+  // tĩnh, không phải user input) để structured data luôn đồng bộ với UI.
+  const faqJsonLdHtml = JSON.stringify(buildSupportFaqJsonLd(faqArticles)).replace(/</g, '\\u003c');
+
   return (
     <div className="min-h-screen bg-slate-50/70 pb-20 dark:bg-slate-900/70">
+      {/* FAQPage JSON-LD — client component vẫn SSR ra HTML, Google đọc được trực tiếp */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: faqJsonLdHtml }}
+      />
       {/* ============================================================== */}
       {/* HERO BANNER SECTION                                            */}
       {/* ============================================================== */}
