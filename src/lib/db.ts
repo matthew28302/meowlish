@@ -1006,6 +1006,13 @@ export function sanitizeText(input?: string | null): string {
   if (!input) return '';
   return input
     .replace(/[<>]/g, '') // remove HTML tag brackets
+    // Defense-in-depth chống email header injection (audit L1 2026-10-08):
+    // strip CRLF thay bằng space — nodemailer hiện neutralize được \r\n trong
+    // header, nhưng nếu sau này đổi thư viện gửi mail (hoặc giá trị sanitize
+    // chảy vào sink header khác) thì lỗm. Newlines→space không làm vỡ call
+    // sites: title/subject/name/ID được slice limit phía sau, message ticket
+    // xuống dòng thành dấu cách vẫn đọc bình thường.
+    .replace(/[\r\n]+/g, ' ')
     .trim();
 }
 

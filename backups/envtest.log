@@ -1,1 +1,0 @@
-cmd child DATA_BACKEND = "DATABASE_URL khong" | DATA_BACKEND = "postgres"

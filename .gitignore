@@ -48,6 +48,11 @@ next-env.d.ts
 *.db-shm
 *.db-journal
 
+# backups cục bộ (audit M9 2026-10-08): chứa log build dev có fingerprint salt
+# (AUTH_SALT) + snapshot SQLite chứa data user thật (bảng users, password hash)
+# + .env.local副本 Filebase. KHÔNG track trong repo, giữ nguyên trên đĩa.
+/backups/
+
 # scratch & temp debug files
 scratch/
 *.py

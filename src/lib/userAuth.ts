@@ -17,6 +17,34 @@ async function resolveIpv4(host: string): Promise<string> {
   return host;
 }
 
+/**
+ * TLS verify đang TẮT (`tls.rejectUnauthorized: false`) — quyết định CÓ CHỦ ĐÍCH
+ * sau khi TEST THẬT, KHÔNG im lặng (audit H4 2026-10-08):
+ *
+ *   node scripts/test-smtp-tls.mjs  →  FAIL với lý do rõ ràng:
+ *   mail server thật của domain (MX → mail93142.maychuemail.com, 112.213.93.142)
+ *   trình chứng chỉ ĐÃ HẾT HẠN ⇒ `rejectUnauthorized: true` bị Node từ chối
+ *   (ESOCKET "certificate has expired") ⇒ bật verify làm MỌI email OTP/support
+ *   chết hoàn toàn, không gửi được từng cái nào.
+ *
+ * Giữ `false` CHO TỚI KHI chủ repo gia hạn chứng chỉ SMTP server ở nhà cung cấp
+ * (maychuemail), chạy lại script test ra PASS, rồi flip thành `true` ở các chỗ
+ * gửi email. Trong lúc verify tắt, kết nối SMTP có thể bị MITM nghe lọc
+ * (credential auth + nội dung email) — rủi ro đã cân nhắc và được LOG WARN mỗi
+ * lần gửi email qua warnTlsVerifyOff() bên dưới.
+ */
+let tlsVerifyOffWarned = false;
+function warnTlsVerifyOff(scope: string): void {
+  if (tlsVerifyOffWarned) return;
+  tlsVerifyOffWarned = true;
+  logger.warn(
+    `[SMTP][${scope}] tls.rejectUnauthorized=false — cert mail server het han ` +
+      '(test 2026-10-08: ESOCKET "certificate has expired", mail93142.maychuemail.com). ' +
+      'Ket noi SMTP co the bi MITM; gia han cert SMTP server roi bat verify lai ' +
+      '(chay lai scripts/test-smtp-tls.mjs cho PASS truoc khi doi code).'
+  );
+}
+
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 // 1. Generate 6-digit random numeric OTP
@@ -75,6 +103,10 @@ export async function sendUserOtpEmail({
 
     const resolvedHost = await resolveIpv4(smtpHost);
 
+    // Đã test thật TLS verify (xem warnTlsVerifyOff ở đầu file): cert mail server
+    // hết hạn ⇒ giữ false, KHÔNG bật (bật làm mọi OTP email chết). Warn khi chạy.
+    warnTlsVerifyOff('User OTP');
+
     const transporter = nodemailer.createTransport({
       host: resolvedHost,
       port: smtpPort,
@@ -84,6 +116,11 @@ export async function sendUserOtpEmail({
         pass: smtpPass,
       },
       tls: {
+        // KHÔNG bật `rejectUnauthorized: true` ở đây: cert của mail server thật
+        // (MX → mail93142.maychuemail.com) ĐÃ HẾT HẠN — Node từ chối với ESOCKET
+        // "certificate has expired" (test thật 2026-10-08 bằng
+        // scripts/test-smtp-tls.mjs). Chỉ flip thành true sau khi gia hạn cert
+        // và script test ra PASS. Xem comment warnTlsVerifyOff.
         rejectUnauthorized: false,
         servername: smtpHost,
       },
