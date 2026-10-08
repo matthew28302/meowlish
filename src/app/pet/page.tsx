@@ -925,7 +925,7 @@ export default function PetPage() {
               sound.playClick();
               setGameTab('farm');
             }}
-            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
               gameTab === 'farm'
                 ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
@@ -940,7 +940,7 @@ export default function PetPage() {
               sound.playClick();
               setGameTab('pvp');
             }}
-            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
               gameTab === 'pvp'
                 ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
@@ -955,7 +955,7 @@ export default function PetPage() {
               sound.playClick();
               setGameTab('racing');
             }}
-            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
               gameTab === 'racing'
                 ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
@@ -970,7 +970,7 @@ export default function PetPage() {
               sound.playClick();
               setGameTab('sanctuary');
             }}
-            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
               gameTab === 'sanctuary'
                 ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
@@ -985,7 +985,7 @@ export default function PetPage() {
               sound.playClick();
               setGameTab('social');
             }}
-            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
               gameTab === 'social'
                 ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
@@ -1010,14 +1010,14 @@ export default function PetPage() {
         <div className="flex-1 w-full min-h-0 sm:min-h-[460px] md:min-h-0 relative flex flex-col gap-2">
           <div className="flex-1 w-full relative min-h-[200px] sm:min-h-[460px] md:min-h-0">
             {!petData && isLoading ? (
-              <div className="w-full h-full min-h-[420px] rounded-3xl bg-gradient-to-b from-sky-400 via-emerald-300 to-emerald-500 border-4 border-emerald-600/30 shadow-2xl flex flex-col items-center justify-center gap-4 text-white">
+              <div className="w-full h-full min-h-[420px] rounded-3xl bg-gradient-to-b from-sky-400 via-emerald-300 to-emerald-500 border-4 border-emerald-600/30 shadow-2xl flex flex-col items-center justify-center gap-4 text-slate-900">
                 <div className="relative">
                   <div className="w-16 h-16 rounded-full border-4 border-white/40 border-t-white animate-spin" />
                   <Sparkles className="w-8 h-8 text-amber-300 absolute inset-0 m-auto animate-pulse" />
                 </div>
                 <div className="text-center space-y-1">
                   <p className="text-lg font-black tracking-wide drop-shadow-md">Đang mở cửa khu vườn thú cưng...</p>
-                  <p className="text-xs text-white/80 font-medium">Chuẩn bị không gian và đón thú cưng của bạn về nhà 🏡✨</p>
+                  <p className="text-xs text-slate-800 font-medium">Chuẩn bị không gian và đón thú cưng của bạn về nhà 🏡✨</p>
                 </div>
               </div>
             ) : (
@@ -1096,7 +1096,7 @@ export default function PetPage() {
               }}
               className={`px-2.5 sm:px-3 py-2 min-h-[44px] text-[12px] sm:text-xs font-black rounded-2xl border-b-[3px] transition cursor-pointer flex items-center gap-1.5 shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 ${
                 farmState.isSleeping
-                  ? 'bg-sky-500 text-white border-sky-400 ring-2 ring-sky-300'
+                  ? 'bg-sky-700 text-white border-sky-800 ring-2 ring-sky-300'
                   : 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700 dark:bg-white dark:text-slate-900 dark:border-white/10'
               }`}
               title="Cho thú cưng chợp mắt hoặc đánh thức"
@@ -1324,7 +1324,7 @@ export default function PetPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/70 backdrop-blur-xs">
           <div className="bg-white rounded-2xl sm:rounded-3xl w-[96vw] max-w-4xl h-[92vh] sm:h-[84vh] max-h-[660px] min-h-[420px] flex flex-col shadow-2xl border-2 sm:border-4 border-emerald-500 overflow-hidden dark:bg-slate-900">
             {/* Modal Header */}
-            <div className="px-3 sm:px-5 py-2.5 sm:py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white flex items-center justify-between shrink-0">
+            <div className="px-3 sm:px-5 py-2.5 sm:py-3.5 bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <span className="text-xl sm:text-2xl shrink-0">🛍️</span>
                 <div className="min-w-0">
@@ -1363,7 +1363,7 @@ export default function PetPage() {
                   }}
                   className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
                     shopMode === 'shop'
-                      ? 'bg-emerald-600 text-white shadow-xs'
+                      ? 'bg-emerald-700 text-white shadow-xs'
                       : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border-white/10 hover:dark:bg-slate-900'
                   }`}
                 >
@@ -1377,7 +1377,7 @@ export default function PetPage() {
                   }}
                   className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
                     shopMode === 'wardrobe'
-                      ? 'bg-emerald-600 text-white shadow-xs'
+                      ? 'bg-emerald-700 text-white shadow-xs'
                       : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border-white/10 hover:dark:bg-slate-900'
                   }`}
                 >
@@ -1429,7 +1429,7 @@ export default function PetPage() {
                   />
                 </div>
                 <div className="text-left min-w-0">
-                  <div className="text-[9px] font-black text-emerald-800 uppercase tracking-wider dark:text-emerald-200">Đang xem thử</div>
+                  <div className="text-[11px] font-black text-emerald-800 uppercase tracking-wider dark:text-emerald-200">Đang xem thử</div>
                   <div className="text-[12px] font-black text-slate-800 max-w-[130px] leading-tight dark:text-slate-200">
                     {previewHatObj?.name || previewOutfitObj?.name || previewAccessoryObj?.name || 'Đồ mặc định'}
                   </div>
@@ -1446,7 +1446,7 @@ export default function PetPage() {
                 </button>
                 <button
                   onClick={handleApplyPreview}
-                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[12px] font-black shadow-xs cursor-pointer flex items-center gap-1 active:scale-95"
+                  className="px-2.5 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-[12px] font-black shadow-xs cursor-pointer flex items-center gap-1 active:scale-95"
                   title="Mặc lên bé"
                 >
                   <Check className="w-3 h-3" /> Mặc Bé
@@ -1497,7 +1497,7 @@ export default function PetPage() {
                     {previewHat && (
                       <button
                         onClick={() => handleUnequip('hat')}
-                        className="text-[9px] text-rose-500 hover:text-rose-700 font-black cursor-pointer hover:dark:text-rose-300"
+                        className="text-[12px] text-rose-700 hover:text-rose-800 font-black cursor-pointer dark:text-rose-300 hover:dark:text-rose-200"
                       >
                         ✕ Tháo
                       </button>
@@ -1512,7 +1512,7 @@ export default function PetPage() {
                     {previewOutfit && (
                       <button
                         onClick={() => handleUnequip('outfit')}
-                        className="text-[9px] text-rose-500 hover:text-rose-700 font-black cursor-pointer hover:dark:text-rose-300"
+                        className="text-[12px] text-rose-700 hover:text-rose-800 font-black cursor-pointer dark:text-rose-300 hover:dark:text-rose-200"
                       >
                         ✕ Tháo
                       </button>
@@ -1527,7 +1527,7 @@ export default function PetPage() {
                     {previewAccessory && (
                       <button
                         onClick={() => handleUnequip('accessory')}
-                        className="text-[9px] text-rose-500 hover:text-rose-700 font-black cursor-pointer hover:dark:text-rose-300"
+                        className="text-[12px] text-rose-700 hover:text-rose-800 font-black cursor-pointer dark:text-rose-300 hover:dark:text-rose-200"
                       >
                         ✕ Tháo
                       </button>
@@ -1614,17 +1614,17 @@ export default function PetPage() {
                             <span className="text-2xl sm:text-3xl">{item.emoji}</span>
                             <div className="flex flex-col items-end gap-0.5">
                               {isPreviewing && (
-                                <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 shadow-xs">
+                                <span className="text-[11px] font-black px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 shadow-xs">
                                   👀 THỬ
                                 </span>
                               )}
                               {isActuallyEquipped && (
-                                <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-emerald-600 text-white shadow-xs">
+                                <span className="text-[11px] font-black px-1.5 py-0.2 rounded-full bg-emerald-700 text-white shadow-xs">
                                   ✨ MẶC
                                 </span>
                               )}
                               {isOwned && !isActuallyEquipped && (
-                                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200">
+                                <span className="text-[11px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200">
                                   ✓ Đã có
                                 </span>
                               )}
@@ -1640,29 +1640,29 @@ export default function PetPage() {
                               {item.description}
                             </p>
                             {item.benefit && (
-                              <span className="text-[9px] font-black text-emerald-700 bg-emerald-100 px-1 py-0.2 rounded inline-block dark:text-emerald-300 dark:bg-emerald-950">
+                              <span className="text-[11px] font-black text-emerald-700 bg-emerald-100 px-1 py-0.2 rounded inline-block dark:text-emerald-300 dark:bg-emerald-950">
                                 {item.benefit}
                               </span>
                             )}
                             {item.type === 'food' && (
                               <div className="flex items-center gap-1 flex-wrap pt-0.5">
                                 {item.hungerBoost && (
-                                  <span className="text-[8.5px] font-bold text-amber-700 bg-amber-50 px-1 py-0.2 rounded border border-amber-200 dark:text-amber-300 dark:bg-amber-950 dark:border-amber-800">
+                                  <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-1 py-0.2 rounded border border-amber-200 dark:text-amber-300 dark:bg-amber-950 dark:border-amber-800">
                                     +{item.hungerBoost}% No
                                   </span>
                                 )}
                                 {item.happinessBoost && (
-                                  <span className="text-[8.5px] font-bold text-rose-700 bg-rose-50 px-1 py-0.2 rounded border border-rose-200 dark:text-rose-300 dark:bg-rose-950 dark:border-rose-800">
+                                  <span className="text-[11px] font-bold text-rose-700 bg-rose-50 px-1 py-0.2 rounded border border-rose-200 dark:text-rose-300 dark:bg-rose-950 dark:border-rose-800">
                                     +{item.happinessBoost}% Vui
                                   </span>
                                 )}
                                 {item.energyBoost && (
-                                  <span className="text-[8.5px] font-bold text-sky-700 bg-sky-50 px-1 py-0.2 rounded border border-sky-200 dark:text-sky-300 dark:bg-sky-950 dark:border-sky-800">
+                                  <span className="text-[11px] font-bold text-sky-700 bg-sky-50 px-1 py-0.2 rounded border border-sky-200 dark:text-sky-300 dark:bg-sky-950 dark:border-sky-800">
                                     +{item.energyBoost}% Pin
                                   </span>
                                 )}
                                 {item.expBoost && (
-                                  <span className="text-[8.5px] font-bold text-purple-700 bg-purple-50 px-1 py-0.2 rounded border border-purple-200 dark:text-purple-300 dark:bg-purple-950 dark:border-purple-800">
+                                  <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-1 py-0.2 rounded border border-purple-200 dark:text-purple-300 dark:bg-purple-950 dark:border-purple-800">
                                     +{item.expBoost} EXP
                                   </span>
                                 )}
@@ -1682,7 +1682,7 @@ export default function PetPage() {
                                   isOwned
                                     ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-500'
                                     : userCoins >= item.price
-                                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-700'
+                                      ? 'bg-emerald-700 hover:bg-emerald-800 text-white border-emerald-800'
                                       : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 hover:dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800'
                                 }`}
                               >
@@ -1692,7 +1692,7 @@ export default function PetPage() {
                                   <span>
                                     🪙 {item.price} xu (Ăn Ngay)
                                     {userCoins < item.price && (
-                                      <span className="text-[9px] font-bold text-amber-700 ml-1 opacity-80 dark:text-amber-300">
+                                      <span className="text-[11px] font-bold text-amber-700 ml-1 opacity-80 dark:text-amber-300">
                                         (Thiếu {item.price - userCoins})
                                       </span>
                                     )}
@@ -1718,7 +1718,7 @@ export default function PetPage() {
                                 >
                                   <span>🪙</span> {item.price} xu
                                   {userCoins < item.price && (
-                                    <span className="text-[9px] font-bold text-amber-700 ml-0.5 opacity-85 dark:text-amber-300">
+                                    <span className="text-[11px] font-bold text-amber-700 ml-0.5 opacity-85 dark:text-amber-300">
                                       (Thiếu {item.price - userCoins})
                                     </span>
                                   )}
@@ -1734,7 +1734,7 @@ export default function PetPage() {
                                   className={`w-full py-1 text-[12px] font-black rounded-xl border transition cursor-pointer shadow-xs active:scale-95 ${
                                     petData?.selected_habitat === item.id
                                       ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800'
-                                      : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-700'
+                                      : 'bg-emerald-700 hover:bg-emerald-800 text-white border-emerald-800'
                                   }`}
                                 >
                                   {petData?.selected_habitat === item.id ? '✓ Đang Dùng' : 'Áp Dụng'}
@@ -1753,7 +1753,7 @@ export default function PetPage() {
                                 >
                                   <span>🪙</span> {item.price} xu
                                   {userCoins < item.price && (
-                                    <span className="text-[9px] font-bold text-amber-700 ml-0.5 opacity-85 dark:text-amber-300">
+                                    <span className="text-[11px] font-bold text-amber-700 ml-0.5 opacity-85 dark:text-amber-300">
                                       (Thiếu {item.price - userCoins})
                                     </span>
                                   )}
@@ -1768,7 +1768,7 @@ export default function PetPage() {
                                 className={`w-full py-1 text-[12px] font-black rounded-xl border transition cursor-pointer shadow-xs active:scale-95 ${
                                   isActuallyEquipped
                                     ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-950 hover:dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800'
-                                    : 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-700'
+                                    : 'bg-emerald-700 hover:bg-emerald-800 text-white border-emerald-800'
                                 }`}
                               >
                                 {isActuallyEquipped ? 'Tháo Ra' : 'Mặc Ngay'}
@@ -1787,7 +1787,7 @@ export default function PetPage() {
                               >
                                 <span>🪙</span> {item.price} xu
                                 {userCoins < item.price && (
-                                  <span className="text-[9px] font-bold text-amber-700 ml-0.5 opacity-85 dark:text-amber-300">
+                                  <span className="text-[11px] font-bold text-amber-700 ml-0.5 opacity-85 dark:text-amber-300">
                                     (Thiếu {item.price - userCoins})
                                   </span>
                                 )}
@@ -1840,11 +1840,11 @@ export default function PetPage() {
                       <div className="flex items-center justify-between gap-1">
                         <div className="text-xs font-black text-slate-900 truncate dark:text-slate-100">{food.name}</div>
                         {hasInStock ? (
-                          <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 shrink-0 dark:bg-emerald-950 dark:text-emerald-200">
+                          <span className="text-[11px] font-black px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 shrink-0 dark:bg-emerald-950 dark:text-emerald-200">
                             Kho: x{invItem.quantity}
                           </span>
                         ) : (
-                          <span className="text-[12px] font-black text-amber-600 shrink-0 dark:text-amber-300">
+                          <span className="text-[12px] font-black text-amber-700 shrink-0 dark:text-amber-300">
                             🪙 {food.price}
                           </span>
                         )}
@@ -1852,22 +1852,22 @@ export default function PetPage() {
                       <div className="text-[12px] text-slate-500 line-clamp-1 mt-0.5 dark:text-slate-400">{food.description}</div>
                       <div className="flex items-center gap-1 mt-1.5 flex-wrap">
                         {food.hungerBoost && (
-                          <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1 py-0.2 rounded border border-amber-200 dark:text-amber-300 dark:bg-amber-950 dark:border-amber-800">
+                          <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-1 py-0.2 rounded border border-amber-200 dark:text-amber-300 dark:bg-amber-950 dark:border-amber-800">
                             +{food.hungerBoost}% No
                           </span>
                         )}
                         {food.happinessBoost && (
-                          <span className="text-[9px] font-bold text-rose-700 bg-rose-50 px-1 py-0.2 rounded border border-rose-200 dark:text-rose-300 dark:bg-rose-950 dark:border-rose-800">
+                          <span className="text-[11px] font-bold text-rose-700 bg-rose-50 px-1 py-0.2 rounded border border-rose-200 dark:text-rose-300 dark:bg-rose-950 dark:border-rose-800">
                             +{food.happinessBoost}% Vui
                           </span>
                         )}
                         {food.energyBoost && (
-                          <span className="text-[9px] font-bold text-sky-700 bg-sky-50 px-1 py-0.2 rounded border border-sky-200 dark:text-sky-300 dark:bg-sky-950 dark:border-sky-800">
+                          <span className="text-[11px] font-bold text-sky-700 bg-sky-50 px-1 py-0.2 rounded border border-sky-200 dark:text-sky-300 dark:bg-sky-950 dark:border-sky-800">
                             +{food.energyBoost}% Pin
                           </span>
                         )}
                         {food.expBoost && (
-                          <span className="text-[9px] font-bold text-purple-700 bg-purple-50 px-1 py-0.2 rounded border border-purple-200 dark:text-purple-300 dark:bg-purple-950 dark:border-purple-800">
+                          <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-1 py-0.2 rounded border border-purple-200 dark:text-purple-300 dark:bg-purple-950 dark:border-purple-800">
                             +{food.expBoost} EXP
                           </span>
                         )}
@@ -1886,7 +1886,7 @@ export default function PetPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border-4 border-emerald-500 overflow-hidden dark:bg-slate-900">
             {/* Modal Header */}
-            <div className="px-5 py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 text-white flex items-center justify-between shrink-0">
+            <div className="px-5 py-3.5 bg-gradient-to-r from-emerald-700 via-teal-700 to-indigo-700 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
                 <span className="text-2xl">🏡</span>
                 <div>
@@ -1997,7 +1997,7 @@ export default function PetPage() {
                             </span>
                           )}
                           {!isOwned && (
-                            <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
+                            <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                               CHƯA MỞ
                             </span>
                           )}
@@ -2062,12 +2062,12 @@ export default function PetPage() {
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="text-3xl">{hab.emoji}</span>
                           {isSelected && (
-                            <span className="text-[12px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">
+                            <span className="text-[12px] font-black px-2 py-0.5 rounded-full bg-emerald-700 text-white">
                               ĐANG CHỌN
                             </span>
                           )}
                           {!isOwned && (
-                            <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
+                            <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                               CHƯA MỞ
                             </span>
                           )}
@@ -2089,7 +2089,7 @@ export default function PetPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border-4 border-emerald-500 overflow-hidden dark:bg-slate-900">
             {/* Modal Header */}
-            <div className="px-4 sm:px-6 py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-700 text-white flex items-center justify-between shrink-0">
+            <div className="px-4 sm:px-6 py-3.5 bg-gradient-to-r from-emerald-700 via-teal-700 to-indigo-700 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
                 <span className="text-2xl">🐾</span>
                 <div>
@@ -2125,7 +2125,7 @@ export default function PetPage() {
                   }}
                   className={`px-3 py-1.5 rounded-xl font-black text-xs transition cursor-pointer shrink-0 flex items-center gap-1 ${
                     switchPetCategory === tab.id
-                      ? 'bg-emerald-600 text-white shadow-xs'
+                      ? 'bg-emerald-700 text-white shadow-xs'
                       : 'bg-white text-slate-700 hover:bg-slate-200/80 border border-slate-200 dark:bg-slate-900 dark:text-slate-300 hover:dark:bg-slate-700/80 dark:border-white/10'
                   }`}
                 >
@@ -2238,7 +2238,7 @@ export default function PetPage() {
                             {/* Prominent Lock Status Badge */}
                             {isLocked && (
                               <div
-                                className="absolute top-2 right-2 bg-slate-900/90 text-amber-300 text-[9px] font-black px-2 py-0.5 rounded-full shadow-md border border-amber-400/40 flex items-center gap-1 z-10 dark:bg-white/90"
+                                className="absolute top-2 right-2 bg-slate-900/90 text-amber-300 text-[11px] font-black px-2 py-0.5 rounded-full shadow-md border border-amber-400/40 flex items-center gap-1 z-10 dark:bg-white/90"
                                 title="Thú Cưng Độc Quyền Quản Trị Viên (Admin)"
                               >
                                 <Lock className="w-2.5 h-2.5 text-amber-400" />
@@ -2260,18 +2260,18 @@ export default function PetPage() {
                             <div className="text-[12px] text-slate-500 font-medium max-w-full leading-snug dark:text-slate-400">{pet.species}</div>
 
                             {isLocked ? (
-                              <div className="text-[9px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full mt-1.5 line-clamp-1 border border-rose-200 flex items-center gap-1 shadow-xs dark:text-rose-300 dark:bg-rose-950 dark:border-rose-800">
+                              <div className="text-[11px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full mt-1.5 line-clamp-1 border border-rose-200 flex items-center gap-1 shadow-xs dark:text-rose-300 dark:bg-rose-950 dark:border-rose-800">
                                 <Lock className="w-2.5 h-2.5 text-rose-600 shrink-0 dark:text-rose-300" />
                                 <span>Dành Riêng Cho Admin</span>
                               </div>
                             ) : (
-                              <div className={`text-[9px] font-black px-2 py-0.5 rounded-full mt-1.5 line-clamp-1 border border-slate-200/60 dark:border-white/10 ${sec.badgeBg}`}>
+                              <div className={`text-[11px] font-black px-2 py-0.5 rounded-full mt-1.5 line-clamp-1 border border-slate-200/60 dark:border-white/10 ${sec.badgeBg}`}>
                                 ✨ {pet.buff.title}
                               </div>
                             )}
 
                             {isCurrent && (
-                              <div className="text-[9px] font-black text-white bg-emerald-600 px-2.5 py-0.5 rounded-full mt-1.5 shadow-xs">
+                              <div className="text-[11px] font-black text-white bg-emerald-700 px-2.5 py-0.5 rounded-full mt-1.5 shadow-xs">
                                 ĐANG NUÔI
                               </div>
                             )}

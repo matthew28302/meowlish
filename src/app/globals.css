@@ -58,6 +58,13 @@ body {
   }
   input::placeholder,
   textarea::placeholder {
+    /* A11y H9: slate-400 #94a3b8 trên nền sáng = 2.6:1 FAIL -> slate-600
+       #475569 = 6.1:1 PASS. Dark mode giữ slate-400 (trên nền tối 6.7:1 PASS)
+       bằng rule .dark phía dưới — vẫn trong @layer base nên utility thắng. */
+    color: #475569;
+  }
+  .dark input::placeholder,
+  .dark textarea::placeholder {
     color: #94a3b8;
   }
 }
@@ -74,14 +81,17 @@ body {
   border-radius: 1rem;
 }
 
+/* A11y H9 (audit 2026-10-08): trắng trên emerald-500 #10b981 chỉ đạt 2.54:1
+   FAIL. Nền tối hơn: emerald-700 #047857 = 4.8:1 AA PASS; hover emerald-800
+   #065f46 = 7.7:1 PASS (hover cũ #059669 emerald-600 chỉ 3.65:1 vẫn fail). */
 .btn-3d-emerald {
-  background-color: #10b981;
+  background-color: #047857;
   color: #ffffff;
-  border-bottom: 4px solid #059669;
+  border-bottom: 4px solid #065f46;
   box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
 }
 .btn-3d-emerald:hover {
-  background-color: #059669;
+  background-color: #065f46;
 }
 .btn-3d-emerald:active {
   border-bottom-width: 0px;
@@ -89,9 +99,13 @@ body {
   box-shadow: none;
 }
 
+/* A11y H9: trắng trên amber #f59e0b = 2.15:1 FAIL -> chữ slate-950 trên vàng
+   = 9.4:1 PASS. LƯU Ý specificity: class này unlayered nên LUÔN thắng mọi
+   utility Tailwind (text-white, dark:text-slate-200…) trong JSX — encyclopedia
+   từng cố text-slate-950 nhưng bị đè; giờ màu nằm ngay trong class nên hết đè. */
 .btn-3d-amber {
   background-color: #f59e0b;
-  color: #ffffff;
+  color: #020617;
   border-bottom: 4px solid #d97706;
   box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.2);
 }
@@ -202,6 +216,8 @@ body {
 .card-arcade-indigo { --arcade-accent: #818cf8; --arcade-accent-deep: #4338ca; }
 
 /* Chunky gold game button (matches "Thu Hoạch Hết" / "Rải Thóc" in-game HUD) */
+/* A11y H9: #78350f trên đáy gradient #f59e0b chỉ đạt 4.22:1 FAIL -> amber-950
+   #451a03 = 6.98:1 PASS (trên #fbbf24 9:1, trên #fde68a 12:1). */
 .btn-arcade {
   display: inline-flex;
   align-items: center;
@@ -209,7 +225,7 @@ body {
   gap: 0.5rem;
   font-weight: 900;
   border-radius: 0.9rem;
-  color: #78350f;
+  color: #451a03;
   background-image: linear-gradient(180deg, #fde68a 0%, #fbbf24 48%, #f59e0b 100%);
   border: 2px solid #b45309;
   border-bottom-width: 5px;
@@ -1276,6 +1292,26 @@ textarea,
   .garden-obj-hit::after {
     animation: none;
     opacity: 0.15;
+  }
+}
+
+/* ========================================================================= */
+/* A11y M13 (audit 2026-10-08): prefers-reduced-motion bị bỏ qua             */
+/* Hàng chục animation VÔ HẠN (animate-float-soft, animate-flame, animate-   */
+/* ping/bounce, pixel-*, pet-*, light-sweep, ball-arc, fx-*, swing…) không   */
+/* tôn trọng cài đặt hệ điều hành. Block chuẩn này tắt tất cả: 1 lần chạy    */
+/* 0.01ms = đứng im. `!important` để thắng mọi shorthand `animation:` ở trên */
+/* (unlayered). Block .garden-obj-hit phía trên (animation: none, đặc hiệu   */
+/* 0-1-1 > 0-0-1) vẫn thắng block này — giữ nguyên, không đụng.              */
+/* ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
