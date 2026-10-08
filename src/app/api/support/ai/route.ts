@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import { getClientIp, checkRateLimitPersistent, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { logAccess, logError } from '@/lib/systemLogs';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
@@ -69,11 +69,15 @@ function getOfflineFallbackAnswer(query: string): string {
 
 export async function POST(request: Request) {
   const clientIp = getClientIp(request);
-  const rateCheck = checkRateLimit({
-    key: `support_ai:${clientIp}`,
-    maxAttempts: 25,
-    windowMs: 10 * 60 * 1000, // 25 queries per 10 mins
-  });
+  // H1 (audit 2026-10-08): endpoint tốn phí AI (Groq/Gemini) — limiter bền vững
+  // giữa các instance (Upstash Redis khi có env, fallback in-memory khi chưa
+  // cấu hình). KHÔNG yêu cầu đăng nhập: guest được dùng, chỉ chống spam.
+  // 20 lần/phút/IP là đủ thoải mái cho hội thoại thật và vẫn chặn script.
+  const rateCheck = await checkRateLimitPersistent(
+    `support_ai:${clientIp}`,
+    20,
+    60 * 1000
+  );
 
   if (!rateCheck.allowed) {
     return rateLimitExceededResponse('Bạn đã đặt câu hỏi quá nhanh. Meowlish cần uống chút sữa, vui lòng chờ ít phút nhé! 🐱🥛', rateCheck.resetInSeconds);

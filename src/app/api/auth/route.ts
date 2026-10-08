@@ -9,7 +9,13 @@ import {
   createUserSessionToken,
   getAuthenticatedUser,
 } from '@/lib/userAuth';
-import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import {
+  getClientIp,
+  checkRateLimit,
+  checkRateLimitPersistent,
+  clearRateLimitPersistent,
+  rateLimitExceededResponse,
+} from '@/lib/rateLimit';
 import { logAccess, logError } from '@/lib/systemLogs';
 import { syncDbToS3Now, refreshIfRemoteNewer, persistCriticalWrite } from '@/lib/s3Sync';
 import logger from '@/lib/logger';
@@ -831,6 +837,37 @@ export async function POST(request: Request) {
       );
     }
 
+    // H2 (audit 2026-10-08): khoá đăng nhập THEO USERNAME, bền vững giữa các
+    // instance serverless.
+    //
+    // Rate limit theo IP phía trên chỉ chặn một máy tấn công từ một IP; từng
+    // instance Vercel lại giữ một Map in-memory riêng nên dàn request qua nhiều
+    // IP/instance vẫn đo được 15+ lần sai liên tiếp trên production mà không
+    // dính 429. Bộ đếm `auth_user_fail:<username>` dùng khoá CHUNG
+    // (Upstash Redis khi có env, fallback in-memory khi chưa cấu hình — xem
+    // src/lib/rateLimit.ts) nên đúng 5 lần sai trong 15 phút là khoá tài khoản
+    // đó ở MỌI instance, xoay IP không thoát được. Đếm TRƯỚC khi tra mật khẩu:
+    // lần thứ 6 bị chặn ngay kể cả khi nhập đúng. Thông báo giữ trung tính —
+    // không tiết lộ username có tồn tại hay không (username không tồn tại cũng
+    // bị khoá y như vậy nên không sao dò được).
+    const userFailKey = `auth_user_fail:${cleanUsername}`;
+    const userLock = await checkRateLimitPersistent(userFailKey, 5, 15 * 60 * 1000);
+    if (!userLock.allowed) {
+      logger.warn(`Username lockout triggered for: ${cleanUsername}`);
+      logAccess({
+        username: cleanUsername,
+        action: 'login_username_locked',
+        ip: clientIp,
+        user_agent: userAgent,
+        status: 'rate_limited',
+        details: 'Khoá đăng nhập theo username: quá 5 lần sai trong 15 phút',
+      });
+      return rateLimitExceededResponse(
+        'Bạn đã nhập sai mật khẩu quá nhiều lần. Tài khoản tạm thời bị khoá, vui lòng thử lại sau ít phút!',
+        userLock.resetInSeconds
+      );
+    }
+
     const userQuery = `
       SELECT id, username, email, password_hash, display_name, avatar, streak, exp, level, coins, target_exam, role, status, two_factor_enabled, email_verified, created_at 
       FROM users WHERE username = ?
@@ -873,6 +910,12 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+
+    // Mật khẩu ĐÚNG: xoá ngay bộ đếm thất bại của username này (H2) để
+    // (a) người dùng thật không bị kẹt khoá cũ sau khi đã nhớ lại mật khẩu,
+    // (b) bộ đếm phản ánh đúng "sai liên tiếp trong cửa sổ 15 phút".
+    // Chạy nền không chặn response; lỗi Upstash đã được handle + warn bên trong.
+    clearRateLimitPersistent(userFailKey).catch(() => {});
 
     // Tự chữa dữ liệu: tài khoản này còn hash kiểu cũ (SHA-256 + salt) nên khi
     // đăng nhập thành công ta có plaintext để nâng cấp ngay lập tức sang scrypt.

@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
-import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import { getClientIp, checkRateLimitPersistent, rateLimitExceededResponse } from '@/lib/rateLimit';
 
 export async function GET(request: Request) {
   try {
     const clientIp = getClientIp(request);
-    const rateCheck = checkRateLimit({
-      key: `tts:${clientIp}`,
-      maxAttempts: 60,
-      windowMs: 60 * 1000,
-    });
+    // H1 (audit 2026-10-08): TTS relay sang Google — tốn băng thông ra ngoài,
+    // cần limiter bền vững giữa các instance (Upstash Redis khi có env,
+    // fallback in-memory). Guest được dùng, chỉ chống spam; 30 lần/phút/IP.
+    const rateCheck = await checkRateLimitPersistent(
+      `tts:${clientIp}`,
+      30,
+      60 * 1000
+    );
     if (!rateCheck.allowed) {
       return rateLimitExceededResponse('Tần suất phát âm TTS quá nhanh. Vui lòng thử lại sau giây lát!', rateCheck.resetInSeconds);
     }
