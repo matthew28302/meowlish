@@ -67,7 +67,12 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     summary: 'Phân biệt thói quen hằng ngày (Hiện tại đơn) và việc đang diễn ra/tạm thời (Hiện tại tiếp diễn) trong công việc.',
     icon: '⏳',
     legoExample: {
-      formulaPattern: '[Subject] + [Adverb of Frequency] + [Present Simple V] + [Connector] + [Present Continuous V-ing]',
+      // Công thức phải khớp 1-1 với `blocks` (4 khối). Bản cũ tách
+      // [Adverb of Frequency] và [Present Simple V] thành 2 slot trong khi cả hai
+      // nằm chung 1 khối "usually code in Python," và để [Connector] lẻ một slot
+      // dù khối Time Signal đã gộp cả "but currently" ⇒ công thức dài hơn khối,
+      // gây rối khi soạn bài.
+      formulaPattern: '[Subject] + [Adverb of Frequency + Present Simple V] + [Connector / Time Signal] + [Present Continuous V-ing]',
       blocks: [
         { label: 'Subject', word: 'I', color: 'indigo', explanation: 'Chủ thể', roleHint: 'Chủ ngữ câu' },
         { label: 'Routine (V1)', word: 'usually code in Python,', color: 'emerald', explanation: 'Thói quen: Hiện tại đơn', roleHint: 'Động từ chỉ thói quen' },
@@ -2322,7 +2327,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     summary: 'Không còn nhầm lẫn hạn chót dự án: BY (hạn chót, hoàn thành trước hoặc chậm nhất tại thời điểm đó) vs UNTIL (hành động kéo dài liên tục tới thời điểm đó); FOR (khoảng thời gian) vs SINCE (mốc thời gian bắt đầu); DURING (+ Noun) vs WHILE (+ Clause).',
     icon: '⏱️',
     legoExample: {
-      formulaPattern: '[Task Action] + [Prep: BY + Deadline] + [Connector] + [Continuous Action] + [Prep: UNTIL + End Point]',
+      // Khớp 1-1 với 4 khối: "because" nằm chung khối Continuous, không tách
+      // thành slot [Connector] riêng.
+      formulaPattern: '[Task Action] + [Prep: BY + Deadline] + [Connector + Continuous Action] + [Prep: UNTIL + End Point]',
       blocks: [
         { label: 'Requirement', word: 'You must submit the pull request', color: 'indigo', explanation: 'Yêu cầu công việc', roleHint: 'Mệnh đề chính' },
         { label: 'Deadline (BY)', word: 'by 5:00 PM today,', color: 'rose', explanation: 'Hạn chót cuối cùng', roleHint: 'BY: chậm nhất là' },
@@ -2485,7 +2492,8 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     summary: 'Làm chủ các động từ và tính từ luôn đi kèm một giới từ nhất định trong tiếng Anh: rely on, depend on, consist of, adhere to, integrate with, subscribe to, compatible with, responsible for, capable of, proficient in.',
     icon: '🤝',
     legoExample: {
-      formulaPattern: '[Subject] + [Verb + Prep] + [Object] + [Connector] + [Adj + Prep] + [Complement]',
+      // Khớp 1-1 với 5 khối: "and is" nằm chung khối "Adj + Prep".
+      formulaPattern: '[Subject] + [Verb + Prep] + [Object] + [Connector + Adj + Prep] + [Complement]',
       blocks: [
         { label: 'Subject', word: 'Our microservice architecture', color: 'indigo', explanation: 'Hệ thống công nghệ', roleHint: 'Chủ ngữ' },
         { label: 'Verb + Prep', word: 'relies heavily on', color: 'emerald', explanation: 'Phụ thuộc nhiều vào (rely on)', roleHint: 'Cụm Động từ + Giới từ cố định' },

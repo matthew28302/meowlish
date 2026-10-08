@@ -48,10 +48,15 @@ for (const p of PAGES) {
 
   row(p, 'HTTP status', '200', res.status, res.status === 200);
 
-  // Charset phải là utf-8 (thiếu là nguồn gốc mojibake phía browser).
+  // Charset phải là utf-8. XML khai báo trong prolog, không phải header
+  // (`application/xml` không bắt buộc charset) — kiểm tra đúng chỗ, tránh
+  // báo FAIL giả cho sitemap.xml.
   const ctype = res.headers.get('content-type') || '';
-  const hasUtf8 = /charset=utf-8/i.test(ctype) || /text\/plain/.test(ctype);
-  row(p, 'charset utf-8', 'true', hasUtf8, hasUtf8);
+  const isXml = /xml/.test(ctype) || p.endsWith('.xml');
+  const hasUtf8 = isXml
+    ? /encoding=["']?utf-8/i.test(text.slice(0, 120))
+    : /charset=utf-8/i.test(ctype);
+  row(p, isXml ? 'charset trong prolog' : 'charset utf-8 header', 'true', hasUtf8, hasUtf8);
 
   // Mojibake: ký tự Latin-1 đứng cạnh byte thô.
   const score = mojibakeScore(text);
