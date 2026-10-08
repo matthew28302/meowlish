@@ -7,7 +7,7 @@ import {
   sendAdminOtpEmail,
   createEncryptedAdminToken,
   verifyAdminToken,
-  ADMIN_MASKED_EMAIL,
+  getAdminMaskedEmail,
 } from '@/lib/adminAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { logAccess, logError } from '@/lib/systemLogs';
@@ -143,21 +143,25 @@ export async function POST(request: Request) {
         );
       }
 
-      logger.info(`Admin 2FA OTP generated and sent to ${ADMIN_MASKED_EMAIL}`);
+      // Masked email DERIVE từ chính email sẽ nhận OTP (getAdminEmail) —
+      // một nguồn duy nhất, không bao giờ lệch với destination thật.
+      const maskedEmail = getAdminMaskedEmail();
+
+      logger.info(`Admin 2FA OTP generated and sent to ${maskedEmail}`);
       logAccess({
         username: 'admin',
         action: 'admin_otp_requested',
         ip: clientIp,
         user_agent: userAgent,
         status: 'success',
-        details: `Gửi mã OTP 2FA bảo mật tới email ${ADMIN_MASKED_EMAIL}`,
+        details: `Gửi mã OTP 2FA bảo mật tới email ${maskedEmail}`,
       });
 
       return NextResponse.json({
         success: true,
         sessionId: newSessionId,
-        maskedEmail: ADMIN_MASKED_EMAIL,
-        message: `Mã xác thực bảo mật 6 số đã được gửi đến email ${ADMIN_MASKED_EMAIL}. Vui lòng kiểm tra hộp thư!`,
+        maskedEmail,
+        message: `Mã xác thực bảo mật 6 số đã được gửi đến email ${maskedEmail}. Vui lòng kiểm tra hộp thư!`,
       });
     }
 

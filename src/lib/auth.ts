@@ -61,10 +61,11 @@ export function getCurrentUser(): AuthUser | null {
           return null;
         }
 
-        if (parsed.coins === undefined || parsed.coins === null) {
-          parsed.coins = 1000;
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-        }
+        // KHÔNG tự gán 1000 khi thiếu coins (bản trước): giá trị đó che mất số
+        // dư thật — pet toolbar hiện "1.000" trong khi DB có giá trị khác, đúng
+        // triệu chứng "coin chưa đồng bộ" (2026-10-09). Thiếu coins thì để
+        // undefined — UI hiện 0 trung thực; đăng ký/đăng nhập luôn trả coins
+        // từ DB nên field hiếm khi thiếu (chỉ object localStorage đời cũ).
         return parsed;
       }
     } catch {
@@ -138,9 +139,8 @@ export function setStoredUser(user: AuthUser) {
     return;
   }
   localStorage.removeItem(LOGGED_OUT_KEY);
-  if (user.coins === undefined || user.coins === null) {
-    user.coins = 1000;
-  }
+  // KHÔNG ép coins = 1000 khi thiếu (bản trước): che mất số dư thật.
+  // Đăng ký/đăng nhập luôn trả coins từ DB — field hiếm khi thiếu.
   localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
   // Tự động lưu tài khoản vào danh sách thiết bị để chuyển đổi nhanh
   saveAccountToDevice(user);

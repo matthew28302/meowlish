@@ -79,10 +79,40 @@ export function getAdminEmail(): string {
 
 /**
  * Bản email đã che, chỉ dùng để hiển thị trong giao diện quản trị.
- * Lấy từ biến môi trường; KHÔNG để literal trong source vì dù đã che thì
- * địa chỉ dạng `a***b@gmail.com` vẫn là dữ liệu định danh trong repo public.
+ *
+ * Derive từ CHÍNH email sẽ nhận OTP (getAdminEmail) thay vì đọc biến môi
+ * trường riêng: trước đây display (ADMIN_MASKED_EMAIL) và destination thật
+ * (ADMIN_EMAIL env → DB) là HAI nguồn khác nhau, set env OTP mà quên set
+ * biến hiển thị thì trang /duahau hiện placeholder 'a*********@***.com'
+ * trong khi OTP đi tới email khác — đúng triệu chứng "email sai, gửi cho
+ * email nào không rõ" (2026-10-09). Một nguồn duy nhất thì không bao giờ lệch.
+ *
+ * KHÔNG để literal email trong source vì dù đã che thì địa chỉ dạng
+ * `a***b@gmail.com` vẫn là dữ liệu định danh trong repo public.
  */
-export const ADMIN_MASKED_EMAIL = process.env.ADMIN_MASKED_EMAIL || 'a*********@***.com';
+export function getAdminMaskedEmail(): string {
+  try {
+    const masked = maskEmail(getAdminEmail());
+    if (masked) return masked;
+  } catch {
+    // Chưa cấu hình email (thiếu env + DB không có) — trả placeholder.
+  }
+  return 'a*********@***.com';
+}
+
+/** Che một phần địa chỉ email để hiển thị (không lộ bản rõ). */
+function maskEmail(email: string): string {
+  if (!email || !email.includes('@')) return email || '';
+  const [localPart, domain] = email.split('@');
+  if (localPart.length <= 4) {
+    return `${localPart[0]}***@${domain}`;
+  }
+  const suffixLen = localPart.length >= 6 ? 2 : 1;
+  const prefixLen = Math.max(2, Math.round(localPart.length * 0.3));
+  const prefix = localPart.slice(0, prefixLen);
+  const suffix = localPart.slice(-suffixLen);
+  return `${prefix}*****${suffix}@${domain}`;
+}
 
 /**
  * Khoá mã hoá token admin (AES-256-GCM).
