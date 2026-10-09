@@ -30,7 +30,7 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
-import { getStoredUser, setStoredUser, AuthUser } from '@/lib/auth';
+import { getCurrentUser, getStoredUser, setStoredUser, AuthUser } from '@/lib/auth';
 import { PETS_CATALOG, SHOP_ITEMS, ShopItem, getPetTitle } from '@/lib/petData';
 import confetti from '@/lib/confetti';
 import PixelFarmGame, { PixelFarmHandle } from '@/components/pet/PixelFarmGame';
@@ -250,9 +250,13 @@ export default function PetPage() {
   const loadPetData = async () => {
     const user = getStoredUser();
     setCurrentUser(user);
-    if (user?.coins !== undefined) {
-      setUserCoins(user.coins);
-    }
+    // Số xu CHỈ lấy từ user đăng nhập thật. getStoredUser() trả fallback demo
+    // (id 'user_demo_default', coins 1000) khi chưa đăng nhập → khách thấy
+    // "1.000" xu dù không mua/cho ăn được: mọi POST /api/pet trả 401 (đo
+    // 2026-10-09: guest thấy "1,000" ở /pet). Khách hiện 0 — trung thực.
+    const realUser = getCurrentUser();
+    const storedCoins = realUser?.coins;
+    setUserCoins(storedCoins ?? 0);
 
     try {
       const res = await fetch(`/api/pet?userId=${user.id}`);
@@ -281,29 +285,25 @@ export default function PetPage() {
         if (data.activeRooms) setActiveRooms(data.activeRooms);
         if (data.recentChat) setRecentChat(data.recentChat);
         if (data.cinnamorollAccess) setCinnaServerAccess(data.cinnamorollAccess);
-        if (data.user?.coins !== undefined) {
+        // ƯU TIÊN localStorage (giá trị từ action response gần nhất —
+        // read-your-writes) thay vì ghi đè bằng giá trị GET đọc được: GET có
+        // thể hit instance khác ĐANG STALE (sync lag ~28s trên prod khi chưa
+        // tách dictionary), ghi đè làm coin fresh bị regress về giá trị cũ rồi
+        // action sau lại nhảy lên — đúng triệu chứng "số coin cập nhật không
+        // đều" (2026-10-09). Chỉ nhận giá trị GET khi localStorage CHƯA có
+        // coins (lần đầu đăng nhập trên thiết bị mới).
+        if (data.user?.coins !== undefined && storedCoins === undefined) {
           setUserCoins(data.user.coins);
-          const stored = getStoredUser();
-          if (stored && stored.coins !== data.user.coins) {
-            setStoredUser({ ...stored, coins: data.user.coins });
-          }
-        } else {
-          setUserCoins(user.coins || 1000);
+          if (realUser) setStoredUser({ ...realUser, coins: data.user.coins });
         }
         if (data.pet?.meta?.greetings?.length > 0) {
           const randGreeting = data.pet.meta.greetings[Math.floor(Math.random() * data.pet.meta.greetings.length)];
           setPetSpeech(randGreeting);
         }
-      } else {
-        if (user?.coins !== undefined) {
-          setUserCoins(user.coins);
-        }
       }
+      // GET lỗi/401 (khách) hoặc fetch hỏng: giữ số xu đã set ở đầu hàm.
     } catch (err) {
       console.error('Error loading pet data:', err);
-      if (user?.coins !== undefined) {
-        setUserCoins(user.coins);
-      }
     } finally {
       setIsLoading(false);
     }
@@ -316,17 +316,27 @@ export default function PetPage() {
   // Lắng nghe thay đổi auth/coins từ các trang khác (ví dụ: làm bài tập kiếm thêm xu)
   useEffect(() => {
     const handleAuthChange = () => {
-      const user = getStoredUser();
-      if (user) {
-        setCurrentUser(user);
-        if (user.coins !== undefined) {
-          setUserCoins(user.coins);
-        }
-      }
+      setCurrentUser(getStoredUser());
+      // Số xu lấy từ user đăng nhập thật. getStoredUser() trả fallback demo
+      // (1000 xu) cho khách → mỗi lần trang khác bắn 'auth-state-changed' lại
+      // đẩy "1.000" trở về (bản cũ). Khách/đã đăng xuất → 0.
+      const realUser = getCurrentUser();
+      setUserCoins(realUser?.coins ?? 0);
     };
     window.addEventListener('auth-state-changed', handleAuthChange);
     return () => window.removeEventListener('auth-state-changed', handleAuthChange);
   }, []);
+
+  // Escape đóng menu "Thêm" (WAI-ARIA menu pattern). Trước đây chỉ đóng được
+  // bằng cách bấm lớp phủ — bàn phím không thoát ra được khỏi menu.
+  useEffect(() => {
+    if (!showMoreMenu) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowMoreMenu(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showMoreMenu]);
 
   // Action: Petting / Vuốt ve
   const handlePet = async (e?: React.MouseEvent) => {
@@ -1132,7 +1142,11 @@ export default function PetPage() {
                   />
                   <div
                     role="menu"
-                    className="absolute right-0 top-full mt-2 z-50 w-56 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-slate-900"
+                    // Mở LÊN TRÊN (bottom-full): toolbar nằm ở đáy màn hình, menu
+                    // mở xuống dưới (top-full) rơi ra ngoài viewport và trang
+                    // pet không cuộn được ở vùng đó — người dùng không xem được
+                    // các mục (báo cáo 2026-10-09).
+                    className="absolute right-0 bottom-full mb-2 z-50 w-56 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-slate-900"
                   >
                     <MoreItem
                       icon={<Utensils className="w-4 h-4 text-emerald-600" />}

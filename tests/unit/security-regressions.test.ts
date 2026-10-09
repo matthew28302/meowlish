@@ -144,3 +144,45 @@ describe('6. POST /api/progress chống farm thưởng', () => {
     expect(src).toMatch(/consumeProgressBudget\s*\(/);
   });
 });
+
+describe('7. Tai khoan demo chi duoc DOC khi khach chua dang nhap', () => {
+  const authSrc = read('src/lib/userAuth.ts');
+
+  it('cho phep GET/HEAD vao tai khoan demo (khach xem thu)', () => {
+    // Đo 2026-10-09: GET /api/pet?userId=user_demo_default không cookie -> 200,
+    // trả dữ liệu thật của tài khoản demo. Đây là CHỦ Ý (demo dùng chung).
+    expect(authSrc).toMatch(/isReadOnly\s*=\s*request\.method\s*===\s*'GET'\s*\|\|\s*request\.method\s*===\s*'HEAD'/);
+  });
+
+  it('chan MOI method ghi (POST/PUT/PATCH/DELETE) khi khong co phien', () => {
+    // Không có bảo vệ này thì bất kỳ ai cũng POST vào tài khoản demo thật
+    // (tiêu coins, sửa thú cưng, ghi tiến độ).
+    expect(authSrc).toMatch(/if\s*\(!isReadOnly\)\s*\{[\s\S]{0,400}status:\s*'unauthorized'/);
+  });
+
+  it('khong cap quyen cho userId khac demo khi khong co phien', () => {
+    expect(authSrc).toMatch(/requestedUserId\s*!==\s*'user_demo_default'/);
+  });
+});
+
+describe('8. Trang /pet lay so xu tu phien that, khong tu fallback demo', () => {
+  const petSrc = read('src/app/pet/page.tsx');
+
+  it('khong seed coins tu getStoredUser() (fallback demo coins 1000)', () => {
+    // getStoredUser() trả fallback demo (id user_demo_default, coins 1000) khi
+    // chưa đăng nhập -> khách thấy "1.000" xu ma không tiêu được (mọi POST
+    // /api/pet trả 401). Phải lấy từ getCurrentUser().
+    expect(petSrc).toMatch(/getCurrentUser\(\)/);
+    expect(petSrc).not.toMatch(/setUserCoins\(user\.coins\)/);
+  });
+
+  it('khong co fallback so xu ma thuat (|| 1000)', () => {
+    expect(petSrc).not.toMatch(/\|\|\s*1000/);
+  });
+
+  it('GET /api/pet khong duoc ghi de coins trong localStorage', () => {
+    // read-your-writes: ghi de bang gia tri GET (co the STALE do sync lag)
+    // lam coin nhay lui roi action sau nhay lai.
+    expect(petSrc).toMatch(/storedCoins\s*===\s*undefined/);
+  });
+});
