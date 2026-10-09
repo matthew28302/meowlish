@@ -1146,7 +1146,7 @@ export default function PetPage() {
                     // mở xuống dưới (top-full) rơi ra ngoài viewport và trang
                     // pet không cuộn được ở vùng đó — người dùng không xem được
                     // các mục (báo cáo 2026-10-09).
-                    className="absolute right-0 bottom-full mb-2 z-50 w-56 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-slate-900"
+                    className="absolute right-0 bottom-full mb-2 z-50 w-56 max-h-[60vh] overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-slate-900"
                   >
                     <MoreItem
                       icon={<Utensils className="w-4 h-4 text-emerald-600" />}
