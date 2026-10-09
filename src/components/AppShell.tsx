@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -70,6 +70,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // vi cũ: guest trên route bảo vệ luôn được chào bằng gate.
   const [guestGateOpen, setGuestGateOpen] = useState(true);
 
+  // (đo 2026-10-09) userId giữ trong ref vì hai effect đăng ký listener
+  // ('auth-state-changed' và 'account-disabled') dùng deps `[]` — chúng đóng
+  // over handleAccountDisabled của render ĐẦU TIÊN, nơi currentUser === null.
+  // ⇒ removeSavedAccount(currentUser.id) không bao giờ chạy ⇒ tài khoản bị
+  // vô hiệu hóa vẫn nằm trong danh sách "tài khoản đã lưu" và chọn lại được.
+  // Ref đọc được giá trị mới nhất mà không cần đăng ký lại listener.
+  const userIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    userIdRef.current = currentUser?.id ?? null;
+  }, [currentUser?.id]);
+
   // Đồng bộ theme (dark class) ngay khi AppShell mount — khớp với FOUC script trong layout
   useEffect(() => {
     initTheme();
@@ -99,8 +110,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const handleAccountDisabled = (reason?: string) => {
     const msg = reason || 'Tài khoản của bạn đã bị Quản trị viên vô hiệu hóa. Bạn đã được đăng xuất an toàn khỏi hệ thống.';
     setDisabledNotice(msg);
-    if (currentUser?.id) {
-      removeSavedAccount(currentUser.id);
+    // Đọc id qua ref, không đọc currentUser trực tiếp: hàm này được effect
+    // deps `[]` gọi lại nhiều lần, nếu đóng theo `currentUser` sẽ kẹt ở null
+    // (render đầu) và tài khoản bị khóa không bị gỡ khỏi danh sách thiết bị.
+    const disabledId = userIdRef.current;
+    if (disabledId) {
+      removeSavedAccount(disabledId);
     }
     clearStoredUser();
     setCurrentUser(null);
@@ -127,7 +142,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   // Sync user state on mount and on custom event
   useEffect(() => {
+    // Mỗi lần sync mới huỷ request của lượt trước (AbortController) và tăng
+    // seq ⇒ response tới trễ bị bỏ qua, không đè ngược số coin mới bằng giá
+    // trị cũ hơn (đo 2026-10-09).
+    let activeController: AbortController | null = null;
+    let seq = 0;
+
     const syncUser = () => {
+      if (activeController) activeController.abort();
+      const controller = new AbortController();
+      activeController = controller;
+      const mySeq = ++seq;
+      const isStale = () => mySeq !== seq || controller.signal.aborted;
       const user = getCurrentUser();
       if (user?.username === 'admin' || user?.role === 'admin') {
         clearStoredUser();
@@ -146,16 +172,28 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       // fix H5, children không render cho guest nên fallback này không bao giờ
       // lọt vào AppShell; nay children render nên phải coi như guest để gate
       // hiện đúng thay vì biến mất.
-      const isDemoFallback = user?.id === 'user_demo_default';
+      //
+      // SỬA 2026-10-09: KHÔNG được check một mình `id === 'user_demo_default'`
+      // — tài khoản demo THẬT trong DB được seed với đúng id đó (db.ts) nên
+      // user bấm "Thử nhanh với tài khoản Demo", đăng nhập thành công, vẫn bị
+      // coi là khách: gate chặn /vocabulary, header hiện "Đăng Nhập" dù đã
+      // vào đúng (test e2e vocabulary bắt được triệu chứng này). Phân biệt
+      // bằng cờ `isDemoFallback` (fallback mới) + heuristic `status`/
+      // `created_at` (fallback cũ đã kịp nằm trong localStorage của user,
+      // chưa có cờ — response đăng nhập thật từ server LUÔN có 2 field này).
+      const isDemoFallback =
+        user?.isDemoFallback === true ||
+        (user?.id === 'user_demo_default' && !user?.status && !user?.created_at);
       setCurrentUser(isDemoFallback ? null : user);
       // H5: user trở về null (đăng xuất / demo fallback) → gate hiện lại cho khách (như hành vi cũ)
       if (!user || isDemoFallback) setGuestGateOpen(true);
 
       if (user?.id && !isDemoFallback) {
-        fetch(`/api/progress?userId=${user.id}`)
+        fetch(`/api/progress?userId=${user.id}`, { signal: controller.signal })
           .then((res) => {
             if (res.status === 403) {
               return res.json().then((data) => {
+                if (isStale()) return;
                 if (data.status === 'disabled' || data.error?.includes('vô hiệu hóa')) {
                   handleAccountDisabled(data.error);
                 }
@@ -164,16 +202,35 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             return res.json();
           })
           .then((data) => {
+            if (isStale()) return;
             if (data?.user) {
               if (data.user.status === 'disabled') {
                 handleAccountDisabled('Tài khoản của bạn đã bị Quản trị viên vô hiệu hóa.');
                 return;
               }
-              setCurrentUser((prev) => (prev ? { ...prev, ...data.user } : data.user));
+              // READ-YOUR-WRITES cho `coins` (đo 2026-10-09): GET /api/progress
+              // đọc DB nên trên Vercel multi-instance (SQLite file cũ, sync lag
+              // ~28s) nó trả số TRƯỚC transaction. Mỗi lần mua/cho pet,
+              // POST /api/pet trả số mới → setStoredUser() ghi localStorage →
+              // dispatch 'auth-state-changed' → syncUser() chạy lại → nếu ghi
+              // đè bằng GET thì pill coin ở header LÙI về số cũ rồi action sau
+              // lại nhảy lên (đúng triệu chứng "coin không đồng bộ"). Cùng lý
+              // do và cùng cách sửa như src/app/pet/page.tsx (~288-298): giữ
+              // giá trị client đang có, chỉ nhận coins từ server khi client
+              // chưa có (lần đầu đăng nhập trên thiết bị mới).
+              setCurrentUser((prev) =>
+                prev
+                  ? { ...prev, ...data.user, coins: prev.coins ?? data.user.coins }
+                  : data.user
+              );
             }
           })
           .catch(() => {})
-          .finally(() => setIsAuthChecked(true));
+          .finally(() => {
+            // Response cũ bị bỏ qua ở trên nhưng vẫn phải mở splash lần đầu —
+            // lượt sync mới hơn tự setIsAuthChecked(true) ở nhánh của nó.
+            setIsAuthChecked(true);
+          });
       } else {
         setIsAuthChecked(true);
       }
@@ -181,7 +238,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
     syncUser();
     window.addEventListener('auth-state-changed', syncUser);
-    return () => window.removeEventListener('auth-state-changed', syncUser);
+    return () => {
+      if (activeController) activeController.abort();
+      window.removeEventListener('auth-state-changed', syncUser);
+    };
   }, []);
 
   // Giám sát phiên người dùng theo thời gian thực (Heartbeat): Đăng xuất ngay khi bị Admin vô hiệu hóa

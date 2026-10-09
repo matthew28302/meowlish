@@ -2,11 +2,19 @@
 // KHÔNG tạo tài khoản thật — chỉ đo response time và header.
 const BASE = process.env.PROBE_BASE || 'https://meowlish.io.vn';
 
+// Mật khẩu tài khoản probe đến từ biến môi trường — không ghi literal vào repo.
+// Chạy: PROBE_PASSWORD='...' node scripts/diag-prod-register-timing.mjs
+const password = process.env.PROBE_PASSWORD;
+if (!password) {
+  console.error('Thieu PROBE_PASSWORD — canh bien khong chay. Khong ghi mat khau fallback vao repo.');
+  process.exit(1);
+}
+
 const url = `${BASE}/api/auth`;
 const payload = {
   action: 'register',
   username: `probe_email_test_${Date.now().toString(36)}`,
-  password: 'Aa123456!x',
+  password,
   displayName: 'Probe Email',
   email: `probe.${Date.now().toString(36)}@example.invalid`,
 };

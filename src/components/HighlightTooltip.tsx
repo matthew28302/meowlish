@@ -33,10 +33,15 @@ interface AIPedagogicalState {
 export default function HighlightTooltip() {
   const pathname = usePathname();
 
-  // BỎ TÍNH NĂNG BÔI ĐEN DỊCH TRÊN TRANG ADMIN DƯA HẤU (/duahau)
-  if (pathname?.startsWith('/duahau')) {
-    return null;
-  }
+  // BỎ TÍNH NĂNG BÔI ĐEN DỊCH TRÊN TRANG ADMIN DƯA HẤU (/duahau).
+  // CHỈ tính cờ ở đây — KHÔNG return sớm: component này mount trong ROOT
+  // layout (src/app/layout.tsx) nên chạy trên mọi trang. Trước fix, `return null`
+  // ngay dòng 37 đứng TRƯỚC ~20 hook ⇒ điều hướng client sang /duahau làm số
+  // hook giảm từ ~20 xuống 1 ⇒ React ném "Rendered fewer hooks than expected" ⇒
+  // mà src/app/ không có error.tsx nào ⇒ MÀN TRẮNG (đo 2026-10-09). Guard thật
+  // phải nằm SAU cùng mọi hook, xem dưới cùng component.
+  const isAdminRoute = pathname?.startsWith('/duahau');
+
   const [selectedText, setSelectedText] = useState('');
   const [contextSentence, setContextSentence] = useState('');
   const [position, setPosition] = useState<{ x: number; y: number; isMobile?: boolean } | null>(null);
@@ -316,6 +321,11 @@ export default function HighlightTooltip() {
 
   // Listen to selectionchange (with 200ms debounce whenever selection stops), touchend and mouseup
   useEffect(() => {
+    // /duahau không dùng bôi đen dịch ⇒ không đăng ký listener toàn document
+    // (tiết kiệm một chút việc vô ích trên trang admin). `return;` không trả
+    // cleanup — hợp lệ với quy tắc của React.
+    if (isAdminRoute) return;
+
     const onSelectionChange = () => {
       // ON MOBILE: selectionchange fires repeatedly during every finger scroll/touch!
       // Ignore during touch to prevent forced synchronous layout thrashing & scroll stutter.
@@ -361,7 +371,7 @@ export default function HighlightTooltip() {
       document.removeEventListener('mouseup', onMouseUp);
       document.removeEventListener('touchend', onTouchEnd);
     };
-  }, [handleSelection]);
+  }, [handleSelection, isAdminRoute]);
 
   const handlePronounce = (e: React.MouseEvent, rate: number = 1.0) => {
     e.stopPropagation();
@@ -414,6 +424,10 @@ export default function HighlightTooltip() {
       setIsSaving(false);
     }
   };
+
+  // BỎ TÍNH NĂNG BÔI ĐEN DỊCH TRÊN TRANG ADMIN DƯA HẤU (/duahau).
+  // Guard đặt SAU toàn bộ hook/effect phía trên (xem lý do ở đầu component).
+  if (isAdminRoute) return null;
 
   if ((!position || !selectedText) && !mobileTranslateBtn) return null;
 

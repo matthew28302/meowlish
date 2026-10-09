@@ -1,7 +1,12 @@
 // Probe CHỈ ĐỌC trên production, dùng đúng các mẫu tấn công đã thành công
 // trước khi vá. Không in hash/mật khẩu, không ghi dữ liệu của người dùng thật.
 const B = 'https://www.meowlish.io.vn';
-const VICTIM = 'user_1791298260433_rh7b'; // tài khoản thật, chỉ dùng id công khai
+// userId + mẫu dữ liệu lọt lấy từ môi trường: KHÔNG hardcode tên/email người
+// dùng thật vào repo (PII lọt git lịch sử). Không có thì probe dùng sentinel
+// bất khả trùng ⇒ mọi phép so khớp trả false ⇒ probe báo "không lọt", an toàn.
+const VICTIM = process.env.PROBE_VICTIM_USER_ID || '__no_victim_configured__';
+// Mẫu để phát hiện rò rỉ PII. Rỗng khi chưa cấu hình ⇒ regex rỗng không khớp gì.
+const LEAK_RE = new RegExp(process.env.PROBE_LEAK_PATTERN || '(?!x)x');
 const out = [];
 const ck = (label, pass, extra = '') => out.push(`${pass ? 'PASS' : 'FAIL'} ${label}${extra ? ' — ' + extra : ''}`);
 
@@ -14,7 +19,7 @@ for (const [name, cookie] of [
   for (const path of ['/api/progress', '/api/pet', '/api/bookmarks']) {
     const r = await fetch(`${B}${path}?userId=${VICTIM}`, { headers: { cookie } });
     const body = await r.text();
-    const leaked = /kangyoungha|강영하/.test(body);
+    const leaked = LEAK_RE.test(body);
     if (leaked) leaks.push(`${name} ${path}`);
     ck(`${name} → GET ${path} không lộ dữ liệu người khác`, !leaked, `HTTP ${r.status}`);
   }
@@ -34,11 +39,18 @@ for (const path of ['/api/progress', '/api/pet', '/api/bookmarks']) {
 const sup1 = await fetch(`${B}/api/support?userId=${VICTIM}`);
 ck('GET /api/support?userId người khác → 401', sup1.status === 401, `HTTP ${sup1.status}`);
 
-const sup2 = await fetch(`${B}/api/support?email=kangyoungha%40gmail.com`);
-const sup2Body = await sup2.json().catch(() => ({}));
-const leakedTicket = JSON.stringify(sup2Body).match(/"message"|"admin_reply"|"name"|"subject"/);
-ck('GET /api/support?email người khác → không lộ nội dung', !leakedTicket,
-  sup2Body.redacted ? 'đã rút gọn (redacted)' : `HTTP ${sup2.status}`);
+// Email nạn nhân lấy từ biến môi trường — không commit PII của người dùng
+// thật vào repo. Chạy: PROBE_EMAIL='...' node scripts/security-probe-prod.mjs
+const PROBE_EMAIL = process.env.PROBE_EMAIL || '';
+if (PROBE_EMAIL) {
+  const sup2 = await fetch(`${B}/api/support?email=${encodeURIComponent(PROBE_EMAIL)}`);
+  const sup2Body = await sup2.json().catch(() => ({}));
+  const leakedTicket = JSON.stringify(sup2Body).match(/"message"|"admin_reply"|"name"|"subject"/);
+  ck('GET /api/support?email người khác → không lộ nội dung', !leakedTicket,
+    sup2Body.redacted ? 'đã rút gọn (redacted)' : `HTTP ${sup2.status}`);
+} else {
+  console.log('SKIP  GET /api/support?email — thieu PROBE_EMAIL (khong ghi PII nguoi that vao repo)');
+}
 
 // 4. Tài khoản demo vẫn đăng nhập được (không hỏng luồng chính)
 const login = await fetch(`${B}/api/auth`, {

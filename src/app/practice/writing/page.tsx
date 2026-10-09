@@ -29,6 +29,30 @@ import {
 import MascotCompanion from '@/components/MascotCompanion';
 import { getStoredUser } from '@/lib/auth';
 
+/**
+ * Fisher–Yates shuffle — thay cho `sort(() => Math.random() - 0.5)`.
+ *
+ * Bug (audit 2026-10-09): comparator `Math.random() - 0.5` KHÔNG nhất quán và
+ * không bắc cầu (transitive) — cùng một mảng có thể ra nhiều thứ tự khác nhau
+ * tùy thuật toán sort của engine, và phân phối lệch (word đầu có xu hướng đứng
+ * trước). Học viên đoán được vị trí từ nên luyện nghe "xáo trộn" là vô nghĩa.
+ * Fisher–Yates cho phân phối đều (mỗi hoán vị xác suất 1/n!).
+ *
+ * Lưu ý: hàm trả về mảNG MỚI, không mutate input (caller có thể truyền mảng
+ * state cần giữ nguyên).
+ */
+function shuffleArray<T>(input: readonly T[]): T[] {
+  const arr = input.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    // Chọn j trong [0, i] để hoán vị với chính nó không đổi phân phối.
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+  }
+  return arr;
+}
+
 const SESSION_KEY = 'session_writing_practice_v2';
 // Lịch sử các bộ đề AI đã tạo (thay thế session đơn dùng một lần): lưu đề +
 // đáp án từng câu để làm tiếp, làm lại hoặc xóa.
@@ -96,7 +120,13 @@ export default function WritingPracticePage() {
   const [isOverAssembly, setIsOverAssembly] = useState(false);
   const [isOverPool, setIsOverPool] = useState(false);
   const activeDragRef = React.useRef(activeDrag);
-  activeDragRef.current = activeDrag;
+  // Bug (audit 2026-10-09): gán ref TRONG RENDER là không an toàn với React
+  // đồng thời — một render bị hủy/gián đoạn vẫn để lại giá trị sai trong ref,
+  // và các effect đọc ref sẽ thấy trạng thái của render chưa từng commit.
+  // Đồng bộ trong useEffect (sau commit) như AuthModal's onCloseRef.
+  useEffect(() => {
+    activeDragRef.current = activeDrag;
+  }, [activeDrag]);
 
   // Session persistence banner state
   const [hasSavedSession, setHasSavedSession] = useState(false);
@@ -150,6 +180,9 @@ export default function WritingPracticePage() {
   const prompt = filteredPrompts[currentIdx] || filteredPrompts[0] || WRITING_PROMPTS[0];
 
   const isRestoringRef = React.useRef(false);
+  // promptId mà session đã hồi phục — dùng để biết lần chạy effect tới là do
+  // khôi phục (giữ nguyên bộ từ đã lưu) hay do đổi câu (phải xáo trộn lại).
+  const restoredPromptIdRef = React.useRef<string | null>(null);
 
   // Initialize & Check Session on Mount
   useEffect(() => {
@@ -169,21 +202,36 @@ export default function WritingPracticePage() {
     }
   }, []);
 
-  // Shuffle available tokens on prompt change
+  // Shuffle available tokens on prompt change.
+  // Bug deps (audit 2026-10-09): effect thiếu `prompt` trong deps. Sau khi
+  // handleRestoreSession đổi currentIdx, effect chạy lại với prompt MỚI nhưng
+  // guard isRestoringRef nuốt lần xáo trộn đó → bảng từ có thể là bộ từ đã
+  // xáo trộn của prompt trước. Thêm prompt.id vào deps: pool luôn bám đúng câu
+  // đang hiển thị. Giữ currentIdx/categoryFilter/promptsList vì chúng là các
+  // đường khác khiến prompt đổi (đổi bộ đề/đổi danh mục).
   useEffect(() => {
+    // Bug (audit 2026-10-09): cờ boolean `isRestoringRef` nuốt LẦN CHẠY KẾ TIẾP
+    // chứ không phải lần chạy do khôi phục. Nếu khôi phục không làm đổi currentIdx
+    // (đã đúng câu đó) thì effect không chạy, cờ vẫn true, và lần người học
+    // chuyển câu kế tiếp bị bỏ qua xáo trộn → bảng từ thuộc về câu trước.
+    // Sửa: chỉ bỏ qua khi prompt.id ĐÚNG BẰNG prompt vừa khôi phục, và luôn
+    // xoá cờ sau lần kiểm tra.
     if (isRestoringRef.current) {
       isRestoringRef.current = false;
-      return;
+      if (restoredPromptIdRef.current === prompt?.id) {
+        restoredPromptIdRef.current = null;
+        return;
+      }
     }
     if (prompt && prompt.scrambledWords) {
-      const words = [...prompt.scrambledWords];
-      setAvailableTokens(words.sort(() => Math.random() - 0.5));
+      setAvailableTokens(shuffleArray(prompt.scrambledWords));
       setSelectedTokens([]);
       setTypedInput('');
       setIsSubmitted(false);
       setIsCorrect(false);
     }
-  }, [currentIdx, categoryFilter, promptsList]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prompt?.id, currentIdx, categoryFilter, promptsList]);
 
   // AI Explanation state
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
@@ -213,6 +261,9 @@ export default function WritingPracticePage() {
     sound.playClick();
     if (savedSessionData) {
       isRestoringRef.current = true;
+      // Ghi lại promptId của session: effect xáo trộn chỉ được bỏ qua nếu câu
+      // đang hiện ĐÚNG là câu vừa khôi phục (xem giải thích ở effect bên trên).
+      restoredPromptIdRef.current = savedSessionData.promptId ?? null;
       if (savedSessionData.promptsList && savedSessionData.promptsList.length > 0) {
         setPromptsList(savedSessionData.promptsList);
       }
@@ -537,9 +588,7 @@ export default function WritingPracticePage() {
   const handleReset = () => {
     sound.playClick();
     setSelectedTokens([]);
-    setAvailableTokens(
-      [...prompt.scrambledWords].sort(() => Math.random() - 0.5)
-    );
+    setAvailableTokens(shuffleArray(prompt.scrambledWords));
     setTypedInput('');
     setIsSubmitted(false);
     setIsCorrect(false);
@@ -641,7 +690,7 @@ export default function WritingPracticePage() {
       setIsSubmitted(snap.submitted);
       setIsCorrect(snap.correct);
     } else {
-      const words = [...(entry.prompts[idx]?.scrambledWords || [])].sort(() => Math.random() - 0.5);
+      const words = shuffleArray(entry.prompts[idx]?.scrambledWords || []);
       setSelectedTokens([]);
       setAvailableTokens(words);
       setTypedInput('');

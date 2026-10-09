@@ -2,9 +2,16 @@
 // Đây chính là request báo "Lỗi kết nối máy chủ" trong ảnh.
 const BASE = process.env.PROBE_BASE || 'https://meowlish.io.vn';
 
+// Mật khẩu tài khoản probe đến từ biến môi trường — không ghi literal vào repo.
+// Chạy: PROBE_PASSWORD='...' node scripts/diag-prod-verify-email.mjs
+const password = process.env.PROBE_PASSWORD;
+if (!password) {
+  console.error('Thieu PROBE_PASSWORD — canh bien khong chay. Khong ghi mat khau fallback vao repo.');
+  process.exit(1);
+}
+
 const stamp = Date.now().toString(36);
 const username = `probe2_${stamp}`;
-const password = 'Aa123456!x';
 const email = `probe2.${stamp}@example.invalid`;
 
 // 1) Đăng ký (đo thời gian)

@@ -246,9 +246,30 @@ export default function FlashcardsPage() {
             />
           </div>
 
-          {/* 3D Flippable Card */}
+          {/* 3D Flippable Card
+              a11y (audit 2026-10-09): đây là TƯƠNG TÁC CỐT LÕI của trang nhưng
+              là <div onClick> nên bàn phím không dùng được. Không đổi sang
+              <button> vì bên trong đã có nút "Nghe Phát Âm" — button lồng button
+              là HTML không hợp lệ và phá semantics. Vì vậy thêm role/tabIndex/
+              onKeyDown theo mẫu keyboard-accessible div. Chỉ xử lý khi sự kiện
+              phát ra từ chính thẻ (target === currentTarget) để Enter/Space trên
+              nút nghe phát âm bên trong không lật nhầm thẻ. */}
           <div
             onClick={handleFlip}
+            onKeyDown={(e) => {
+              if (e.target !== e.currentTarget) return;
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleFlip();
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={
+              isFlipped
+                ? `Lật thẻ ${card.word} về mặt trước`
+                : `Lật thẻ ${card.word} để xem nghĩa`
+            }
             className="w-full h-80 sm:h-96 relative cursor-pointer select-none perspective-1000 group transform-gpu"
           >
             <div

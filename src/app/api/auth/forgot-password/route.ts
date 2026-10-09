@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 import { db } from '@/lib/db';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { logAccess, logEmail, logError } from '@/lib/systemLogs';
+import { maskEmail } from '@/lib/userAuth';
 import { persistCriticalWrite } from '@/lib/s3Sync';
 import logger from '@/lib/logger';
 import { passwordResetLinkTemplate, mailFrom, EMAIL_BRAND } from '@/lib/emailTemplates';
@@ -212,7 +213,10 @@ export async function POST(request: Request) {
 
     try {
       await transporter.sendMail(mailOptions);
-      logger.info(`Successfully sent password reset link email to: ${recipientEmail}`);
+      // Che email ở log: `logger` ghi ra log aggregator, ai có quyền đọc log
+      // cũng đọc được hộp thư của người dùng. Mọi call site khác trong nhóm
+      // file này đều đã mask.
+      logger.info(`Successfully sent password reset link email to: ${maskEmail(recipientEmail)}`);
 
       logEmail({
         recipient: recipientEmail,
@@ -228,7 +232,8 @@ export async function POST(request: Request) {
         ip: clientIp,
         user_agent: userAgent,
         status: 'success',
-        details: `Đã gửi link đặt lại mật khẩu qua email ${recipientEmail}`,
+        // Che email: `details` được ghi vào system_access_logs mà /duahau đọc.
+        details: `Đã gửi link đặt lại mật khẩu qua email ${maskEmail(recipientEmail)}`,
       });
 
       return NextResponse.json({

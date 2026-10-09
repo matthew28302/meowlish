@@ -67,6 +67,20 @@ export default function ExamPage() {
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const autoSubmitRef = useRef<() => void>(() => {});
+  // Bug side-effect-trong-updater (audit 2026-10-09): trước đây gọi
+  // autoSubmitRef.current() (→ calculateAndFinish: setState + confetti + POST
+  // thưởng) BÊN TRONG updater của setSecondsRemaining. Updater phải thuần
+  // khiêm — React gọi 2 lần dưới StrictMode và có thể gọi lại khi render lại
+  // (dispatch lại action cũ), nên phí thưởng có thể bị POST 2 lần.
+  // Nay interval đọc số giây từ ref rồi tự quyết định, updater chỉ trừ 1.
+  const secondsRef = useRef<number>(0);
+  // setSecondsRemaining dùng chung một nơi để ref không bao giờ lệch state.
+  const applySeconds = (next: number) => {
+    secondsRef.current = next;
+    setSecondsRemaining(next);
+  };
+  // Timeout tắt trạng thái "đang phát audio" — phải hủy khi unmount.
+  const audioTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load user and completed exams history & check session
   useEffect(() => {
@@ -119,14 +133,19 @@ export default function ExamPage() {
   useEffect(() => {
     if (mode === 'testing') {
       timerRef.current = setInterval(() => {
-        setSecondsRemaining((prev) => {
-          if (prev <= 1) {
-            if (timerRef.current) clearInterval(timerRef.current);
-            autoSubmitRef.current();
-            return 0;
+        // Đọc số giây từ ref (đồng bộ tuyệt đối với state) và quyết định ở
+        // thân interval — không để side effect nào nằm trong updater.
+        const remaining = secondsRef.current;
+        if (remaining <= 1) {
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
           }
-          return prev - 1;
-        });
+          applySeconds(0);
+          autoSubmitRef.current();
+          return;
+        }
+        applySeconds(remaining - 1);
       }, 1000);
     }
 
@@ -146,12 +165,21 @@ export default function ExamPage() {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
+      if (audioTimerRef.current) {
+        clearTimeout(audioTimerRef.current);
+        audioTimerRef.current = null;
+      }
     };
   }, []);
 
-  // Save exam session in progress
+  // Save exam session in progress.
+  // Bug perf (audit 2026-10-09): deps có `secondsRemaining` nên JSON.stringify +
+  // sessionStorage.setItem (ghi đồng bộ, chặn main thread) chạy 1 lần/GIÂY suốt
+  // cả bài thi. Tách 2 nhánh: phần nặng (đáp án/cờ/câu) ghi ngay khi đổi, phần
+  // đồng hồ throttle ~5s — mất tối đa 5s khi tab đóng, đổi lại không giật.
   useEffect(() => {
-    if (mode === 'testing' && selectedSet) {
+    if (mode !== 'testing' || !selectedSet) return;
+    try {
       sessionStorage.setItem(
         'session_exam_practice_v2',
         JSON.stringify({
@@ -159,11 +187,30 @@ export default function ExamPage() {
           currentQIndex,
           userAnswers,
           flaggedQuestions,
-          secondsRemaining,
+          secondsRemaining: secondsRef.current,
         })
       );
-    }
-  }, [mode, selectedSet, currentQIndex, userAnswers, flaggedQuestions, secondsRemaining]);
+    } catch {}
+  }, [mode, selectedSet, currentQIndex, userAnswers, flaggedQuestions]);
+
+  // Nhánh đồng hồ: chỉ ghi lại khi hết mốc 5s (đo 2026-10-09: đề dài 60 câu
+  // ~45 phút = 2700 lần setItem nếu ghi mỗi giây).
+  useEffect(() => {
+    if (mode !== 'testing' || !selectedSet) return;
+    if (secondsRemaining > 0 && secondsRemaining % 5 !== 0) return;
+    try {
+      sessionStorage.setItem(
+        'session_exam_practice_v2',
+        JSON.stringify({
+          selectedSetId: selectedSet.id,
+          currentQIndex,
+          userAnswers,
+          flaggedQuestions,
+          secondsRemaining: secondsRef.current,
+        })
+      );
+    } catch {}
+  }, [mode, selectedSet, secondsRemaining]);
 
   const handleResumeSession = () => {
     if (!savedSessionData || !savedSessionData.selectedSetId) return;
@@ -173,7 +220,8 @@ export default function ExamPage() {
       setCurrentQIndex(savedSessionData.currentQIndex || 0);
       setUserAnswers(savedSessionData.userAnswers || {});
       setFlaggedQuestions(savedSessionData.flaggedQuestions || {});
-      setSecondsRemaining(savedSessionData.secondsRemaining ?? targetSet.durationMinutes * 60);
+      // applySeconds giữ ref đồng bộ với state (interval đọc ref).
+      applySeconds(savedSessionData.secondsRemaining ?? targetSet.durationMinutes * 60);
       setMode('testing');
       sound.playClick();
     }
@@ -193,7 +241,7 @@ export default function ExamPage() {
     setCurrentQIndex(0);
     setUserAnswers({});
     setFlaggedQuestions({});
-    setSecondsRemaining(examSet.durationMinutes * 60);
+    applySeconds(examSet.durationMinutes * 60);
     setRewardsAwarded(null);
     setMode('testing');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -225,7 +273,11 @@ export default function ExamPage() {
     // Rough estimate duration
     const wordCount = text.split(' ').length;
     const durationMs = Math.max(2000, (wordCount / 2.2) * 1000);
-    setTimeout(() => {
+    // Timeout phải nằm trong ref để hủy được khi unmount / bấm nghe lại,
+    // nếu không sẽ setState sau unmount (setState trên component đã chết).
+    if (audioTimerRef.current) clearTimeout(audioTimerRef.current);
+    audioTimerRef.current = setTimeout(() => {
+      audioTimerRef.current = null;
       setIsAudioPlaying(false);
     }, durationMs);
   };
@@ -257,6 +309,10 @@ export default function ExamPage() {
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed && parsed.selectedSetId) {
+            // Nhánh lưu đồng hồ đã throttle 5s nên giá trị trong storage có
+            // thể lệch tối đa 5s — dùng ref (nguồn sự thật) để banner resume
+            // không hồi sinh bài thi với nhiều giây hơn thực tế.
+            parsed.secondsRemaining = secondsRef.current;
             setSavedSessionData(parsed);
             setHasSavedSession(true);
           }
@@ -761,7 +817,13 @@ export default function ExamPage() {
                     onClick={() => {
                       setIsAudioPlaying(true);
                       speakText(activeQuestion.audioScript!, 0.75);
-                      setTimeout(() => setIsAudioPlaying(false), 3000);
+                      // Cùng ref với handlePlayAudio — tránh timeout cũ tắt
+                      // sớm trạng thái của lần phát mới, và tránh setState sau unmount.
+                      if (audioTimerRef.current) clearTimeout(audioTimerRef.current);
+                      audioTimerRef.current = setTimeout(() => {
+                        audioTimerRef.current = null;
+                        setIsAudioPlaying(false);
+                      }, 3000);
                     }}
                     className="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 transition cursor-pointer dark:bg-slate-900 dark:text-slate-300 hover:dark:bg-slate-800 dark:border-white/10"
                   >

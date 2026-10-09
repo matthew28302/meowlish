@@ -160,15 +160,26 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
-    const { name, email, category, priority, subject, message, rating } = body;
+    // JSON hỏng (body rỗng / cắt ngang) là lỗi CLIENT, không phải lỗi hệ thống:
+    // không bắt thì `request.json()` ném SyntaxError → 500 kèm chi tiết driver.
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
+    const { email, category, priority, rating } = body ?? {};
 
-    const cleanName = sanitizeText(name || '').trim().slice(0, 80);
-    const cleanEmail = String(email || '').trim().toLowerCase().slice(0, 120);
+    // name/subject/message từ body là dữ liệu client KHÔNG kiểm soát kiểu:
+    // `sanitizeText` gọi `.replace()` nên number/object sẽ ném TypeError → 500.
+    // Ép sang string ở biên TRƯỚC khi sanitize/trim/slice (giữ nguyên mẫu
+    // `String(x ?? '')` đã dùng cho email bên dưới).
+    const cleanName = sanitizeText(String(body?.name ?? '')).trim().slice(0, 80);
+    const cleanEmail = String(email ?? '').trim().toLowerCase().slice(0, 120);
     const cleanCategory = ['feedback', 'bug', 'guide', 'account', 'other'].includes(category) ? category : 'feedback';
     const cleanPriority = ['low', 'medium', 'high', 'urgent'].includes(priority) ? priority : 'medium';
-    const cleanSubject = sanitizeText(subject || '').trim().slice(0, 150);
-    const cleanMessage = sanitizeText(message || '').trim().slice(0, 3000);
+    const cleanSubject = sanitizeText(String(body?.subject ?? '')).trim().slice(0, 150);
+    const cleanMessage = sanitizeText(String(body?.message ?? '')).trim().slice(0, 3000);
     const numRating = Math.max(1, Math.min(5, Number(rating) || 5));
 
     if (!cleanName) {

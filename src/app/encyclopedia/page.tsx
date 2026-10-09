@@ -85,6 +85,17 @@ export default function EncyclopediaPage() {
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
+  // Bug race (audit 2026-10-09): debounce 200ms KHÔNG chặn được race — gõ
+  // "ca" (request A) rồi "cat" (request B): B về trước, A về sau và ghi đè
+  // kết quả của "cat" bằng kết quả của "ca"; thêm nữa finally của A tắt
+  // spinner trong lúc B còn đang bay. Debounce chỉ gom các lần gõ trong 200ms,
+  // nó không hủy request đã phát ra.
+  // Cách sửa: (1) seqRef tăng đơn điệu — chỉ request mới nhất được commit,
+  // (2) AbortController hủy request cũ để không tải rác về nữa.
+  // Cùng ý với guard server_time trong PixelFarmCanvas (~dòng 200-204).
+  const searchSeqRef = useRef<number>(0);
+  const searchAbortRef = useRef<AbortController | null>(null);
+
   // M7 (audit 2026-10-08): danh sách danh mục khớp với GROUP BY thực tế của
   // CSDL (vstep/daily/toeic/it-dev/workplace/it-scrum/it-arch). Trước đây có
   // 2 nút chết "Phrasal Verbs" + "Idioms Giao Tiếp" (category không tồn tại
@@ -119,6 +130,14 @@ export default function EncyclopediaPage() {
 
   // Fetch words from SQLite 26,500 database
   const fetchEntries = async (q: string, cat: string, lvl: string, page: number) => {
+    // Đánh dấu "lần chạy này" — mọi setState bên dưới đều so với seqRef.current
+    // để request cũ (đã bị abort hoặc về muộn) không ghi đè được state.
+    const myId = ++searchSeqRef.current;
+
+    if (searchAbortRef.current) searchAbortRef.current.abort();
+    const controller = new AbortController();
+    searchAbortRef.current = controller;
+
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -128,15 +147,24 @@ export default function EncyclopediaPage() {
         page: String(page),
         limit: '24',
       });
-      const res = await fetch(`/api/dictionary/search?${params.toString()}`);
+      const res = await fetch(`/api/dictionary/search?${params.toString()}`, {
+        signal: controller.signal,
+      });
+      if (myId !== searchSeqRef.current) return; // đã có request mới hơn → bỏ
       if (res.ok) {
         const data = await res.json();
+        if (myId !== searchSeqRef.current) return; // json parse xong mà vẫn mới nhất
         setSearchResults(data);
       }
     } catch (err) {
-      console.error('Fetch dictionary entries error:', err);
+      // Abort là đường đi bình thường (request bị request mới hủy) — không log.
+      if ((err as Error)?.name !== 'AbortError') {
+        console.error('Fetch dictionary entries error:', err);
+      }
     } finally {
-      setIsLoading(false);
+      // Chỉ request mới nhất được tắt spinner, nếu không request A sẽ tắt
+      // loading của B đang còn đang bay (spinner nhấp nháy sai).
+      if (myId === searchSeqRef.current) setIsLoading(false);
     }
   };
 
@@ -151,6 +179,18 @@ export default function EncyclopediaPage() {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     };
   }, [searchQuery, activeCategory, activeLevel, currentPage]);
+
+  // Unmount: huỷ request tìm kiếm còn treo + tăng seq để mọi callback đang
+  // chờ bị vô hiệu (tránh setState sau unmount).
+  useEffect(() => {
+    return () => {
+      searchSeqRef.current++;
+      if (searchAbortRef.current) {
+        searchAbortRef.current.abort();
+        searchAbortRef.current = null;
+      }
+    };
+  }, []);
 
   // Execute Smart Groq AI Translation API
   const handleAITranslate = async (customQuery?: string) => {

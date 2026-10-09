@@ -57,15 +57,32 @@ export function generateUserOTP(): string {
 }
 
 // 2. Hash OTP using SHA-256 + salt
+//
+// Salt đọc từ biến môi trường, literal chỉ là fallback DEV. Repo này PUBLIC:
+// literal `meowlish_user_otp_salt_2026` ai đọc cũng biết, nên kẻ tấn công
+// chỉ cần đoán 6 chữ số (10^6 khả năng) rồi tự hash ra `otp_hash` để so khớp
+// ngoài DB. Có `USER_OTP_SALT` (hoặc `AUTH_SALT` dùng chung) thì salt riêng,
+// xoay được theo từng môi trường mà không phải sửa code.
+//
+// Lưu ý: hash OTP đang lưu trong CSDL được hash bằng salt này — đổi salt là
+// các phiên OTP cũ (tối đa 10 phút) mất hiệu lực, chấp nhận được.
+//
+// Đọc env MỖI LẦN GỌI (không cache ở module scope) để bật/tắt biến môi
+// trường không cần deploy lại — cùng quy ước với `checkRateLimitPersistent`.
 export function hashUserOTP(otp: string): string {
-  const salt = process.env.AUTH_SALT || 'meowlish_user_otp_salt_2026';
-  return crypto.createHash('sha256').update(otp.trim() + salt).digest('hex');
+  const SALT = process.env.USER_OTP_SALT || process.env.AUTH_SALT || 'meowlish_user_otp_salt_2026';
+  return crypto.createHash('sha256').update(String(otp ?? '').trim() + SALT).digest('hex');
 }
 
 // 3. Mask email for public display: <email quan tri> -> <email quan tri>
-export function maskEmail(email?: string | null): string {
-  if (!email || !email.includes('@')) return email || '';
-  const [localPart, domain] = email.split('@');
+// Nhận `unknown` và LUÔN trả string: đối số tới từ body JSON / cột DB có thể
+// là object hoặc số, mà `.includes` trên non-string sẽ ném TypeError — trong
+// route gửi OTP đó là 500 thay vì 400/401.
+export function maskEmail(email?: unknown): string {
+  if (email === null || email === undefined) return '';
+  const value = String(email);
+  if (!value.includes('@')) return value;
+  const [localPart, domain] = value.split('@');
   if (localPart.length <= 4) {
     return `${localPart[0]}***@${domain}`;
   }
@@ -137,7 +154,9 @@ export async function sendUserOtpEmail({
     };
 
     await transporter.sendMail(mailOptions);
-    logger.info(`[User 2FA] OTP email sent to ${email} for purpose: ${purpose}`);
+    // Che email: log này đọc được qua log aggregator. `logEmail` bên dưới cố
+    // tình giữ email đầy đủ vì đó là bảng tra cứu vận chuyển mà /duahau cần.
+    logger.info(`[User 2FA] OTP email sent to ${maskEmail(email)} for purpose: ${purpose}`);
     logEmail({
       recipient: email,
       subject: emailContent.subject,
@@ -198,14 +217,18 @@ export function verifyUserOtpInput({
   expectedPurpose?: string;
 }): { valid: boolean; userId?: string; email?: string; error?: string } {
   try {
-    const session = db.prepare('SELECT * FROM user_otp_sessions WHERE id = ?').get(sessionId) as any;
+    // sessionId tới từ body JSON: better-sqlite3 chỉ bind được giá trị nguyên
+    // thuỷ, bind object là statement ném lỗi. Ép string tại biên rồi dùng `sid`
+    // cho MỌI lệnh truy vấn phía dưới.
+    const sid = String(sessionId);
+    const session = db.prepare('SELECT * FROM user_otp_sessions WHERE id = ?').get(sid) as any;
 
     if (!session) {
       return { valid: false, error: 'Phiên xác thực không tồn tại hoặc đã hết hạn. Vui lòng yêu cầu lại mã mới.' };
     }
 
     if (session.expires_at < Date.now()) {
-      db.prepare('DELETE FROM user_otp_sessions WHERE id = ?').run(sessionId);
+      db.prepare('DELETE FROM user_otp_sessions WHERE id = ?').run(sid);
       return { valid: false, error: 'Mã xác thực đã hết hạn (quá 10 phút). Vui lòng nhận lại mã.' };
     }
 
@@ -214,19 +237,21 @@ export function verifyUserOtpInput({
     }
 
     if (session.attempts >= 5) {
-      db.prepare('DELETE FROM user_otp_sessions WHERE id = ?').run(sessionId);
+      db.prepare('DELETE FROM user_otp_sessions WHERE id = ?').run(sid);
       return { valid: false, error: 'Đã nhập sai quá 5 lần. Phiên xác thực bị hủy vì lý do an toàn.' };
     }
 
-    const expectedHash = hashUserOTP(inputOtp.trim());
+    // `inputOtp` tới từ body JSON (có thể là object/số) — hashUserOTP tự ép
+    // string rồi .trim(), không .trim() ở đây để tránh TypeError trước khi gọi.
+    const expectedHash = hashUserOTP(inputOtp);
     if (expectedHash !== session.otp_hash) {
-      db.prepare('UPDATE user_otp_sessions SET attempts = attempts + 1 WHERE id = ?').run(sessionId);
+      db.prepare('UPDATE user_otp_sessions SET attempts = attempts + 1 WHERE id = ?').run(sid);
       const remaining = 5 - (session.attempts + 1);
       return { valid: false, error: `Mã OTP không chính xác. Bạn còn ${remaining} lần thử.` };
     }
 
     // OTP Verified -> Delete session to prevent replay
-    db.prepare('DELETE FROM user_otp_sessions WHERE id = ?').run(sessionId);
+    db.prepare('DELETE FROM user_otp_sessions WHERE id = ?').run(sid);
 
     return {
       valid: true,

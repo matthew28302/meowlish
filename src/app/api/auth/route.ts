@@ -123,7 +123,18 @@ export async function POST(request: Request) {
   const clientIp = getClientIp(request);
   const userAgent = request.headers.get('user-agent') || '';
   try {
-    const body = await request.json();
+    // Body hỏng (không phải JSON) hoặc JSON hợp lệ nhưng không phải object
+    // (`null`, `"abc"`, `123`) đều phải trả 400 rõ ràng — destructuring ở dưới
+    // sẽ ném TypeError và rơi vào catch-all 500 (đo 2026-10-09).
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
     const { action, username, email, password, displayName, sessionId, otp, userId: rawUserId, enable, avatar, currentPassword, newPassword } = body;
 
     // L2 (audit 2026-10-08): userId từ body là dữ liệu KHÔNG tin cậy — client có
@@ -377,7 +388,12 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Email này đã được sử dụng bởi một tài khoản khác.' }, { status: 400 });
           }
           // Ghi log thay đổi email — thao tác nhạy cảm, cần để điều tra sau này.
-          db.prepare('UPDATE users SET email = ? WHERE id = ?').run(cleanEmail, userId);
+          // PHẢI reset email_verified = 0: đăng ký không email đặt cờ = 1
+          // (emailVerifiedStatus = cleanEmail ? 0 : 1 ở nhánh register), nên
+          // nếu chỉ ghi email mà giữ cờ = 1 thì cổng xác thực ở
+          // progress/route.ts (chỉ chặn khi === 0) bị bypass VĨNH VIỄN với một
+          // địa chỉ chưa từng chứng minh quyền sở hữu (đo 2026-10-09).
+          db.prepare('UPDATE users SET email = ?, email_verified = 0 WHERE id = ?').run(cleanEmail, userId);
           logAccess({
             user_id: userId,
             username: user.username,
@@ -411,11 +427,20 @@ export async function POST(request: Request) {
       });
 
       if (!emailRes.success) {
+        // KHÔNG trả `emailRes.error` cho client: sendUserOtpEmail ném lỗi
+        // nodemailer thô, kèm host/port SMTP và đôi khi cả chi tiết đăng nhập
+        // (lộ hạ tầng + giúp kẻ dò cấu hình). Chi tiết chỉ nằm trong log nội bộ.
+        logger.error('Gửi OTP xác thực email thất bại:', emailRes.error);
         return NextResponse.json({
-          error: `Không thể gửi email xác thực: ${emailRes.error || 'Lỗi gửi mail'}. Vui lòng thử lại sau giây lát!`,
+          error: 'Không thể gửi email xác thực lúc này. Vui lòng thử lại sau giây lát!',
         }, { status: 500 });
       }
 
+      // `user` đọc TRƯỚC khi email mới được ghi ở trên ⇒ maskEmail(user.email)
+      // trả chuỗi rỗng đúng lúc user vừa đặt email lần đầu (UI hiện
+      // "...đã được gửi đến email !"). Mask từ `targetEmail` — biến đã giữ
+      // địa chỉ sau-update (đo 2026-10-09).
+      const maskedTargetEmail = maskEmail(targetEmail);
       logAccess({
         user_id: user.id,
         username: user.username,
@@ -423,14 +448,14 @@ export async function POST(request: Request) {
         ip: clientIp,
         user_agent: userAgent,
         status: 'success',
-        details: `Gửi lại mã OTP xác thực email tới ${maskEmail(user.email)}`,
+        details: `Gửi lại mã OTP xác thực email tới ${maskedTargetEmail}`,
       });
 
       return NextResponse.json({
         success: true,
         sessionId: newSessionId,
-        maskedEmail: maskEmail(user.email),
-        message: `Mã xác thực mới đã được gửi đến email ${maskEmail(user.email)}! Vui lòng kiểm tra cả Hộp thư đến (Inbox) và Thư rác (Spam).`,
+        maskedEmail: maskedTargetEmail,
+        message: `Mã xác thực mới đã được gửi đến email ${maskedTargetEmail}! Vui lòng kiểm tra cả Hộp thư đến (Inbox) và Thư rác (Spam).`,
       });
     }
 
@@ -725,7 +750,10 @@ export async function POST(request: Request) {
       }
 
       const id = `user_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-      const name = sanitizeText(displayName || cleanUsername).slice(0, 50);
+      // displayName là dữ liệu KHÔNG tin cậy từ body: có thể là object/mảng/số.
+      // sanitizeText đã widen sang unknown nhưng String({}) cho "[object Object]"
+      // — một display name rác. Chỉ nhận string thật, ngoài ra fallback username.
+      const name = sanitizeText(typeof displayName === 'string' && displayName ? displayName : cleanUsername).slice(0, 50);
       const today = new Date().toISOString().split('T')[0];
       const emailVerifiedStatus = cleanEmail ? 0 : 1; // Chưa xác thực nếu có email
 
@@ -827,7 +855,7 @@ export async function POST(request: Request) {
         ip: clientIp,
         user_agent: userAgent,
         status: 'success',
-        details: `Đăng ký tài khoản mới: @${cleanUsername}${cleanEmail ? ` (${cleanEmail})` : ''}`,
+        details: `Đăng ký tài khoản mới: @${cleanUsername}${cleanEmail ? ` (${maskEmail(cleanEmail)})` : ''}`,
       });
 
       // Bảo toàn dữ liệu người dùng mới lên Filebase S3 ngay lập tức
@@ -1037,7 +1065,9 @@ export async function POST(request: Request) {
         logger.error('[User Login 2FA] Failed to send email:', { error: emailRes.error });
       }
 
-      logger.info(`2FA required for user login: ${user.username}, email: ${user.email}`);
+      // maskEmail: log file là nơi dễ bị đọc nhất (winston rotate ra đĩa) —
+      // không ghi email đầy đủ của người dùng vào log (đo 2026-10-09).
+      logger.info(`2FA required for user login: ${user.username}, email: ${maskEmail(user.email)}`);
       logAccess({
         user_id: user.id,
         username: user.username,

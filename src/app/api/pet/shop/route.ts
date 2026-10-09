@@ -4,6 +4,39 @@ import { SHOP_ITEMS } from '@/lib/petData';
 import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { syncDbToS3Now } from '@/lib/s3Sync';
+import { logError } from '@/lib/systemLogs';
+import logger from '@/lib/logger';
+
+/**
+ * Suffix ngẫu nhiên cho id sinh từ `Date.now()`.
+ *
+ * `Date.now()` chỉ có độ phân giải mili-giây: hai lần mua trong cùng ms (double
+ * click, 2 tab) sinh trùng PRIMARY KEY ⇒ `SQLITE_CONSTRAINT_PRIMARYKEY` ⇒ 500.
+ * Pattern `${prefix}-${now}-${rand}` đã dùng ở `bookmarks`/`progress`/`auth`.
+ */
+function uniqueSuffix(): string {
+  return Math.random().toString(36).substring(2, 8);
+}
+
+/**
+ * Log nội bộ rồi trả thông báo chung cho client.
+ *
+ * KHÔNG trả `err.message` thô: better-sqlite3 lộ tên bảng/cột và text driver
+ * (vd "Too few parameter values were provided") — chi tiết nội bộ chỉ nên nằm
+ * trong log. Đo 2026-10-09: client nhận nguyên văn lỗi SQLite thay vì thông
+ * báo dễ hiểu.
+ */
+function internalErrorResponse(endpoint: string, err: unknown, request: Request) {
+  logger.error(`Error in ${endpoint}`, { error: err });
+  logError({
+    endpoint,
+    error_message: err instanceof Error ? err.message : String(err),
+    stack_trace: err instanceof Error ? err.stack : null,
+    ip: getClientIp(request),
+    severity: 'error',
+  });
+  return NextResponse.json({ error: 'Có lỗi xảy ra. Vui lòng thử lại.' }, { status: 500 });
+}
 
 /**
  * 60s thay vì mặc định 10s của Vercel.
@@ -52,8 +85,7 @@ export async function GET(request: Request) {
       items: catalog,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Shop API error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalErrorResponse('GET /api/pet/shop', err, request);
   }
 }
 
@@ -122,7 +154,7 @@ export async function POST(request: Request) {
     if (existing) {
       db.prepare('UPDATE pet_inventory SET quantity = quantity + 1 WHERE id = ?').run(existing.id);
     } else {
-      const invId = `inv-${userId}-${itemId}-${Date.now()}`;
+      const invId = `inv-${userId}-${itemId}-${Date.now()}-${uniqueSuffix()}`;
       db.prepare(`
         INSERT INTO pet_inventory (id, user_id, item_id, item_type, quantity, is_equipped)
         VALUES (?, ?, ?, ?, 1, 0)
@@ -130,7 +162,7 @@ export async function POST(request: Request) {
     }
 
     // Record coin transaction
-    const txId = `tx-${userId}-${Date.now()}`;
+    const txId = `tx-${userId}-${Date.now()}-${uniqueSuffix()}`;
     db.prepare(`
       INSERT INTO coin_transactions (id, user_id, amount, balance_after, reason)
       VALUES (?, ?, ?, ?, ?)
@@ -145,7 +177,6 @@ export async function POST(request: Request) {
       remainingCoins: newCoins,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Purchase error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalErrorResponse('POST /api/pet/shop', err, request);
   }
 }

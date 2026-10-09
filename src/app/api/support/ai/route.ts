@@ -83,11 +83,31 @@ export async function POST(request: Request) {
     return rateLimitExceededResponse('Bạn đã đặt câu hỏi quá nhanh. Meowlish cần uống chút sữa, vui lòng chờ ít phút nhé! 🐱🥛', rateCheck.resetInSeconds);
   }
 
-  try {
-    const body = await request.json();
-    const { message, history } = body;
+  // Ghi nhận provider AI cuối cùng KHÔNG phản hồi, để phía dưới gắn cờ
+  // `degraded` cho client thay vì trả về 200 trông y như thành công.
+  let upstreamFailures = 0;
+  let lastUpstreamError = '';
 
-    const userMessage = String(message || '').trim();
+  try {
+    // JSON hỏng (body rỗng / cắt ngang) là lỗi CLIENT, không phải lỗi hệ thống.
+    // Trả 400 RỚI khi rơi vào nhánh fallback: client (`src/app/support/page.tsx`)
+    // đã có nhánh `!res.ok` hiển thị thông báo thân thiện riêng nên không gãy UI.
+    let body: any;
+    try {
+      body = await request.json();
+    } catch (parseErr) {
+      logError({
+        endpoint: 'POST /api/support/ai',
+        error_message: parseErr instanceof Error ? parseErr.message : String(parseErr),
+        stack_trace: parseErr instanceof Error ? parseErr.stack : null,
+        ip: clientIp,
+        severity: 'warn',
+      });
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
+    const { message, history } = body ?? {};
+
+    const userMessage = String(message ?? '').trim();
     if (!userMessage) {
       return NextResponse.json({ error: 'Vui lòng nhập câu hỏi của bạn.' }, { status: 400 });
     }
@@ -137,8 +157,24 @@ export async function POST(request: Request) {
           });
 
           if (res.ok) {
-            const data = await res.json();
-            const answer = data.choices?.[0]?.message?.content;
+            let answer: string | undefined;
+            try {
+              const data = await res.json();
+              answer = data?.choices?.[0]?.message?.content;
+            } catch (parseErr) {
+              // Provider trả 200 nhưng body không phải JSON ⇒ coi như provider
+              // hỏng, im lặng rơi xuống KB sẽ giấu sự cố khỏi log.
+              upstreamFailures++;
+              lastUpstreamError = `Groq ${model}: parse error`;
+              logError({
+                endpoint: 'POST /api/support/ai',
+                error_message: parseErr instanceof Error ? parseErr.message : String(parseErr),
+                stack_trace: parseErr instanceof Error ? parseErr.stack : null,
+                ip: clientIp,
+                severity: 'error',
+              });
+            }
+
             if (answer && answer.trim()) {
               logAccess({
                 action: 'support_ai_chat',
@@ -153,9 +189,28 @@ export async function POST(request: Request) {
                 model,
               });
             }
+          } else {
+            // NHÁNH NÀY TRƯỚC ĐÂY RƠI THẲNG xuống tier tiếp theo không log gì:
+            // Groq hạ quota/500 hoàn toàn là "AI chết" nhưng không ai thấy.
+            upstreamFailures++;
+            lastUpstreamError = `Groq ${model}: HTTP ${res.status}`;
+            logError({
+              endpoint: 'POST /api/support/ai',
+              error_message: `Groq model ${model} trả HTTP ${res.status}`,
+              ip: clientIp,
+              severity: 'error',
+            });
           }
         } catch (err: any) {
+          upstreamFailures++;
+          lastUpstreamError = `Groq ${model}: ${err?.message || 'network error'}`;
           console.warn(`[Support AI] Groq model ${model} failed:`, err?.message);
+          logError({
+            endpoint: 'POST /api/support/ai',
+            error_message: `Groq model ${model}: ${err?.message || String(err)}`,
+            ip: clientIp,
+            severity: 'error',
+          });
         }
       }
     }
@@ -185,8 +240,24 @@ export async function POST(request: Request) {
           );
 
           if (res.ok) {
-            const data = await res.json();
-            const answer = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            let answer: string | undefined;
+            try {
+              const data = await res.json();
+              answer = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            } catch (parseErr) {
+              // Provider 200 nhưng body không phải JSON ⇒ coi như provider hỏng,
+              // im lặng rơi xuống KB sẽ giấu sự cố khỏi log.
+              upstreamFailures++;
+              lastUpstreamError = `Gemini ${model}: parse error`;
+              logError({
+                endpoint: 'POST /api/support/ai',
+                error_message: parseErr instanceof Error ? parseErr.message : String(parseErr),
+                stack_trace: parseErr instanceof Error ? parseErr.stack : null,
+                ip: clientIp,
+                severity: 'error',
+              });
+            }
+
             if (answer && answer.trim()) {
               logAccess({
                 action: 'support_ai_chat',
@@ -201,25 +272,61 @@ export async function POST(request: Request) {
                 model,
               });
             }
+          } else {
+            // Như Groq: provider hỏng phải để lại dấu vết, không rơi im lặng.
+            upstreamFailures++;
+            lastUpstreamError = `Gemini ${model}: HTTP ${res.status}`;
+            logError({
+              endpoint: 'POST /api/support/ai',
+              error_message: `Gemini model ${model} trả HTTP ${res.status}`,
+              ip: clientIp,
+              severity: 'error',
+            });
           }
         } catch (err: any) {
+          upstreamFailures++;
+          lastUpstreamError = `Gemini ${model}: ${err?.message || 'network error'}`;
           console.warn(`[Support AI] Gemini model ${model} failed:`, err?.message);
+          logError({
+            endpoint: 'POST /api/support/ai',
+            error_message: `Gemini model ${model}: ${err?.message || String(err)}`,
+            ip: clientIp,
+            severity: 'error',
+          });
         }
       }
     }
 
     // 3. TIER 3: OFFLINE KNOWLEDGE BASE FALLBACK
+    //
+    // Vẫn trả 200 + câu trả lời thân thiện (client dùng `data.answer` hiển thị
+    // ngay, đổi status sẽ làm UI mất câu trả lời dễ hiểu). Nhưng `degraded:
+    // true` + `upstreamFailures` cho phép client/monitor BIẾT đây không phải
+    // câu trả lời từ LLM — trước đây mọi lỗi đều trông y như `success: true`.
     const fallbackAnswer = getOfflineFallbackAnswer(userMessage);
     logAccess({
       action: 'support_ai_chat',
       ip: clientIp,
-      details: `AI Answer via Offline KB: "${userMessage.slice(0, 60)}"`,
-      status: 'success',
+      // status 'failed' khi có provider lỗi: đây mới là sự thật về chất lượng
+      // dịch vụ, dù câu trả lời trả về vẫn hữu ích cho người dùng.
+      status: upstreamFailures > 0 ? 'failed' : 'success',
+      details:
+        `AI Answer via Offline KB: "${userMessage.slice(0, 60)}"` +
+        (upstreamFailures > 0 ? ` [DEGRADED: ${upstreamFailures} lỗi provider]` : ''),
     });
+    if (upstreamFailures > 0) {
+      logError({
+        endpoint: 'POST /api/support/ai',
+        error_message: `Rơi về KB offline sau ${upstreamFailures} lỗi provider. Lỗi cuối: ${lastUpstreamError}`,
+        ip: clientIp,
+        severity: 'error',
+      });
+    }
     return NextResponse.json({
       success: true,
       answer: fallbackAnswer,
       provider: 'offline_kb',
+      degraded: upstreamFailures > 0,
     });
   } catch (err: any) {
     logError({
@@ -228,8 +335,12 @@ export async function POST(request: Request) {
       stack_trace: err?.stack,
       ip: clientIp,
     });
+    // Giữ status 200 + câu trả lời thân thiện để client hiển thị được (client
+    // đã có nhánh riêng khi !res.ok). `success: false` + `degraded: true` để
+    // consumer phân biệt được "trả lời từ LLM" với "trả lời dự phòng".
     return NextResponse.json({
-      success: true,
+      success: false,
+      degraded: true,
       answer: 'Meow! 🐱 Có vẻ đường truyền mạng đang hơi chập chờn một chút. Bạn có thể ghé mục Cẩm Nang hoặc gửi Ticket ở tab bên cạnh để Ban Quản Trị hỗ trợ trực tiếp nhé!',
       provider: 'error_fallback',
     });

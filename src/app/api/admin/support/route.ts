@@ -6,8 +6,22 @@ import logger from '@/lib/logger';
 import nodemailer from 'nodemailer';
 import dns from 'dns';
 import { logEmail, logAccess, logError } from '@/lib/systemLogs';
+import { maskEmail } from '@/lib/userAuth';
 import { syncDbToS3Now } from '@/lib/s3Sync';
 import { supportReplyTemplate, mailFrom, EMAIL_BRAND } from '@/lib/emailTemplates';
+
+/**
+ * Escape ký tự đại diện của LIKE (`\`, `%`, `_`).
+ *
+ * Vì sao: chuỗi tìm kiếm được bọc thành `%${q}%`. Không escape thì admin gõ
+ * `%` là toàn bảng bị quét (`LIKE '%%'` khớp mọi dòng) — 1 thao tác search là
+ * full-table-scan. Placeholder `?` vẫn dùng như cũ: đây KHÔNG phải SQL
+ * injection, chỉ là siết bề rộ cho truy vấn. Cùng cách làm với
+ * `escapeLikeTerm` trong `api/dictionary/search/route.ts`.
+ */
+function escapeLikeTerm(rawQuery: string): string {
+  return rawQuery.replace(/[\\%_]/g, '\\$1');
+}
 
 async function resolveIpv4(host: string): Promise<string> {
   try {
@@ -74,17 +88,22 @@ export async function GET(request: Request) {
     }
 
     if (search.trim()) {
-      const q = `%${search.trim().replace(/^#/, '')}%`;
-      conditions.push('(id LIKE ? OR name LIKE ? OR email LIKE ? OR subject LIKE ? OR message LIKE ?)');
+      const q = `%${escapeLikeTerm(search.trim().replace(/^#/, ''))}%`;
+      conditions.push("(id LIKE ? ESCAPE '\\' OR name LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\' OR subject LIKE ? ESCAPE '\\' OR message LIKE ? ESCAPE '\\')");
       values.push(q, q, q, q, q);
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
+    // LIMIT 100: trước đây `SELECT *` không giới hạn ⇒ một admin mở trang danh
+    // sách là kéo TOÀN BỘ bảng support_messages (kèm nội dung khiếu nại dài) vào
+    // RAM rồi ghi thẳng vào response. `id` là TEXT nên `created_at DESC` có thể
+    // trùng nhau → thêm `id DESC` cho thứ tự ổn định giữa các lần tải.
     const messages = db.prepare(`
       SELECT * FROM support_messages
       ${whereClause}
-      ORDER BY created_at DESC
+      ORDER BY created_at DESC, id DESC
+      LIMIT 100
     `).all(...values);
 
     const counts = {
@@ -99,9 +118,17 @@ export async function GET(request: Request) {
       messages,
       counts,
     });
-  } catch (err: any) {
-    logger.error('Error in GET /api/admin/support:', { error: err });
-    return NextResponse.json({ error: err.message || 'Lỗi tải danh sách hỗ trợ' }, { status: 500 });
+  } catch (err: unknown) {
+    // KHÔNG trả err.message thô: better-sqlite3 lộ tên bảng/cột driver.
+    logger.error('Error in GET /api/admin/support', { error: err });
+    logError({
+      endpoint: 'GET /api/admin/support',
+      error_message: err instanceof Error ? err.message : String(err),
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: getClientIp(request),
+      severity: 'error',
+    });
+    return NextResponse.json({ error: 'Lỗi tải danh sách hỗ trợ' }, { status: 500 });
   }
 }
 
@@ -111,8 +138,18 @@ export async function POST(request: Request) {
   const userAgent = request.headers.get('user-agent') || '';
   try {
     const authHeader = request.headers.get('authorization');
-    const body = await request.json();
-    const { action, ticketId, status, replyContent, adminSecret } = body;
+    // JSON hỏng (body rỗng / cắt ngang) là lỗi CLIENT, không phải lỗi hệ thống:
+    // không bắt thì `request.json()` ném SyntaxError → 500 kèm chi tiết driver.
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
+    const { action, ticketId, status, adminSecret } = body ?? {};
+    // `replyContent` là dữ liệu client KHÔNG kiểm soát kiểu: `.trim()` trên
+    // number/object ném TypeError → 500. Ép string ở biên rồi mới trim.
+    const replyContent = String(body?.replyContent ?? '');
 
     if (!verifyAdmin(request, authHeader, adminSecret)) {
       logAccess({
@@ -184,7 +221,10 @@ export async function POST(request: Request) {
         ip: clientIp,
         user_agent: userAgent,
         status: 'success',
-        details: `Phản hồi thư góp ý #${ticketId} của ${ticket.name} (${ticket.email})`,
+        // PII: KHÔNG ghi email đầy đủ vào access log (mọi call site khác đã mask,
+      // vd auth/route.ts dùng `maskEmail`). Tên người gửi + mã ticket đủ để
+      // tra cứu, email đã nằm sẵn trong bảng support_messages.
+      details: `Phản hồi thư góp ý #${ticketId} của ${ticket.name} (${maskEmail(ticket.email)})`,
       });
 
       // Gửi email phản hồi đến người dùng (chỉ presentation — không đổi logic lưu DB)
@@ -280,6 +320,7 @@ export async function POST(request: Request) {
       ip: clientIp,
       severity: 'error',
     });
-    return NextResponse.json({ error: err.message || 'Lỗi thao tác hỗ trợ' }, { status: 500 });
+    // KHÔNG trả err.message thô: better-sqlite3 lộ tên bảng/cột driver.
+    return NextResponse.json({ error: 'Lỗi thao tác hỗ trợ' }, { status: 500 });
   }
 }

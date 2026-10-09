@@ -3,6 +3,7 @@ import { db, sanitizeText, consumeProgressBudget } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { syncDbToS3Now } from '@/lib/s3Sync';
+import { logError } from '@/lib/systemLogs';
 
 /**
  * 60s thay vì mặc định 10s của Vercel.
@@ -47,8 +48,17 @@ export async function GET(request: Request) {
       bookmarkCount: (totalBookmarks as { count: number })?.count || 0,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Database error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    // KHÔNG trả err.message cho client: better-sqlite3/Postgres đều để lộ tên
+    // bảng, tên cột và câu chữ driver (vd "Too few parameter values were
+    // provided") ⇒ người dùng đọc được cấu trúc CSDL. Chi tiết thật đi vào
+    // nhật ký lỗi hệ thống, client chỉ nhận thông điệp chung chung.
+    logError({
+      endpoint: 'GET /api/progress',
+      error_message: err instanceof Error ? err.message : 'Lỗi không xác định khi tải tiến độ',
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: getClientIp(request),
+    });
+    return NextResponse.json({ error: 'Không thể tải tiến độ lúc này. Vui lòng thử lại sau.' }, { status: 500 });
   }
 }
 
@@ -64,7 +74,20 @@ export async function POST(request: Request) {
       return rateLimitExceededResponse('Tần suất cập nhật tiến độ quá nhanh. Vui lòng thử lại sau giây lát!', rateCheck.resetInSeconds);
     }
 
-    const body = await request.json();
+    // `request.json()` ném SyntaxError khi body rỗng / bị cắt / không phải JSON
+    // ⇒ trước đây thành 500 kèm câu chữ thô của Node. Giờ trả 400 có thông điệp
+    // rõ ràng (body hỏng là lỗi phía client, không phải sự cố máy chủ).
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
+    // Body hợp lệ về JSON nhưng không phải object (`null`, số, chuỗi) — ép về
+    // `{}` để rơi tiếp vào nhánh 400 "thiếu moduleType/itemId" thay vì ném
+    // TypeError khi destructuring.
+    if (!body || typeof body !== 'object') body = {};
+
     const {
       userId: rawUserId,
       moduleType,
@@ -115,6 +138,10 @@ export async function POST(request: Request) {
 
     const id = `prog-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
     const today = new Date().toISOString().split('T')[0];
+    // Hôm qua, cùng múi giờ UTC với `today` và cùng một thời điểm gần nhất —
+    // `last_active_date` lưu đúng định dạng này nên so chuỗi là đủ. Dùng để
+    // phân biệt "vừa học liên tục" với "bỏ ngày rồi quay lại" khi cộng streak.
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     // Upsert progress. Chỉ lần ĐẦU (tạo dòng mới) mới được cộng EXP/Coins.
     //
@@ -177,20 +204,13 @@ export async function POST(request: Request) {
     }
 
     // Update user EXP, streak, and coins
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId) as {
-      exp: number;
-      level: number;
-      streak: number;
-      coins: number;
-      last_active_date: string;
-    } | undefined;
+    //
+    // Câu SELECT này giờ chỉ còn làm "cổng chặn": không ghi phần thưởng nếu dòng
+    // tài khoản đã bị xoá giữa chừng. Số liệu (exp/coins/streak/last_active_date)
+    // KHÔNG được đọc ra RAM nữa — mọi phép cộng nằm trong SQL (xem comment dưới).
+    const userExists = db.prepare('SELECT 1 AS ok FROM users WHERE id = ?').get(userId);
 
-    if (user) {
-      let newStreak = user.streak || 1;
-      if (user.last_active_date !== today) {
-        newStreak = (user.streak || 0) + 1;
-      }
-
+    if (userExists) {
       // PHẢI cộng trong SQL, không tính trong RAM rồi ghi đè giá trị đã đọc.
       //
       // Bản trước: `SELECT coins` rồi `UPDATE SET coins = <số đã đọc>` ⇒ đọc-rồi-ghi.
@@ -198,21 +218,39 @@ export async function POST(request: Request) {
       // ⇒ kết quả 1050 thay vì 1250, mất 200 coins mà không có lỗi nào, không log.
       // Lỗi này tồn tại dù CSDL là SQLite hay Postgres.
       //
+      // `streak` CŨNG dính đúng lỗi đó trước đây (`streak = ?` với số vừa đọc):
+      // hai lần hoàn thành bài vượt nửa đêm chạy song song cùng đọc `streak` cũ
+      // rồi cùng ghi đè ⇒ chuỗi ngày bị nhân đôi hoặc bị đặt lại. Giờ tính
+      // ngay trong SQL (đọc-nhìn-ghi trong MỘT câu lệnh ⇒ không kẹp giữa).
+      //
+      // Thêm nhánh ELSE = 1: bản cũ chỉ có "+1", KHÔNG BAO GIỜ ngắt chuỗi — người
+      // bỏ học 3 tháng rồi quay lại vẫn cộng tiếp vào chuỗi cũ (đã cộng dồn hàng
+      // trăm ngày). `last_active_date` là chuỗi ngày UTC `YYYY-MM-DD` nên so
+      // "hôm qua" đủ để biết có bỏ ngày hay không: hôm nay → giữ, hôm qua →
+      // +1, thiếu từ hôm qua trở đi (hoặc NULL) → bắt đầu lại từ 1.
+      //
       // `level` vẫn phải tính từ tổng mới nên dùng biểu thức phụ thuộc giá trị vừa
       // cập nhật — SQLite/Postgres đều tính được trong cùng câu UPDATE.
       db.prepare(`
         UPDATE users
         SET exp = exp + ?,
             level = CAST((exp + ?) / 200 AS INTEGER) + 1,
-            streak = ?,
+            streak = CASE
+                        WHEN last_active_date = ? THEN MAX(COALESCE(streak, 0), 1)
+                        WHEN last_active_date = ? THEN COALESCE(streak, 0) + 1
+                        ELSE 1
+                      END,
             coins = coins + ?,
             last_active_date = ?
         WHERE id = ?
-      `).run(safeExp, safeExp, newStreak, safeCoins, today, userId);
+      `).run(safeExp, safeExp, today, yesterday, safeCoins, today, userId);
 
-      // Cộng EXP cho thú cưng — cũng phải cộng trong SQL.
-      db.prepare('UPDATE user_pets SET level = CAST((exp + 8) / 50 AS INTEGER) + 1, exp = exp + 8 WHERE user_id = ?')
-        .run(userId);
+      // Cộng EXP cho thú cưng — cũng phải cộng trong SQL, VÀ phải cộng đúng số
+      // được thưởng. Bản cũ ghi thẳng hằng số 8: `exp + 8` ⇒ người học được
+      // 100 EXP nhưng thú cưng chỉ nhận 8 (và `level` của pet cũng bám theo số 8).
+      // `safeExp` đã clamp ở trên nên không vượt được hạn mức.
+      db.prepare('UPDATE user_pets SET level = CAST((exp + ?) / 50 AS INTEGER) + 1, exp = exp + ? WHERE user_id = ?')
+        .run(safeExp, safeExp, userId);
     }
 
     const updatedUser = db.prepare('SELECT id, username, display_name, avatar, streak, exp, level, coins, target_exam, created_at FROM users WHERE id = ?').get(userId);
@@ -233,7 +271,20 @@ export async function POST(request: Request) {
       coinsGained: safeCoins,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Database error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    // KHÔNG trả err.message cho client: better-sqlite3/Postgres để lộ tên bảng,
+    // tên cột, số tham số thiếu và câu chữ driver (vd "Too few parameter values
+    // were provided") — người dùng đọc lỗi đó hiểu ngay cấu trúc CSDL và có thể
+    // dò ra file trên /tmp. Ghi chi tiết vào nhật ký lỗi hệ thống, client chỉ
+    // nhận thông điệp chung chung.
+    logError({
+      endpoint: 'POST /api/progress',
+      error_message: err instanceof Error ? err.message : 'Lỗi không xác định khi cập nhật tiến độ',
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: getClientIp(request),
+    });
+    return NextResponse.json(
+      { error: 'Không thể lưu tiến độ lúc này. Vui lòng thử lại sau.' },
+      { status: 500 }
+    );
   }
 }

@@ -223,6 +223,9 @@ export async function GET(request: Request) {
     });
   } catch (error: any) {
     console.error('Dictionary search error:', error);
-    return NextResponse.json({ error: error.message || 'Dictionary search failed' }, { status: 500 });
+    // KHÔNG trả err.message thô: better-sqlite3 lộ tên bảng/cột và text driver
+    // là chi tiết nội bộ. Thông báo chung + chi tiết chỉ trong log.
+    console.error('Dictionary search error:', error);
+    return NextResponse.json({ error: 'Dictionary search failed' }, { status: 500 });
   }
 }

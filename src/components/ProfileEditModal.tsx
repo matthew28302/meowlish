@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { X, AlertCircle, CheckCircle2, Pencil, KeyRound, Save } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
 import { AuthUser, saveAccountToDevice } from '@/lib/auth';
+import { useEscapeToClose } from '@/lib/useEscapeToClose';
 
 interface ProfileEditModalProps {
   isOpen: boolean;
@@ -47,6 +48,86 @@ export default function ProfileEditModal({ isOpen, onClose, user, onUpdated }: P
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
+
+  // Timeout đóng modal sau khi lưu thành công — phải hủy được khi unmount,
+  // nếu không sẽ gọi onClose() của parent sau khi modal đã biến mất.
+  const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // a11y (audit 2026-10-09): modal sửa hồ sơ thiếu role=dialog, thiếu focus
+  // trap (Tab thoát ra nền trang) và không đóng bằng Esc. Dùng lại mẫu của
+  // AuthModal.tsx (~dòng 115-178).
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  // Esc đóng modal, trừ lúc đang submit để không mất kết quả vừa lưu.
+  // useCallback để useEscapeToClose không đăng ký lại listener mỗi render.
+  const handleEscapeClose = useCallback(() => onCloseRef.current(), []);
+  useEscapeToClose(isOpen, handleEscapeClose, !loading);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const FOCUSABLE =
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    triggerRef.current = (document.activeElement as HTMLElement) || null;
+
+    const raf = requestAnimationFrame(() => {
+      const container = modalRef.current;
+      if (!container) return;
+      const first = container.querySelector<HTMLElement>(FOCUSABLE) || container;
+      first.focus();
+    });
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const container = modalRef.current;
+      if (!container) return;
+      const focusables = Array.from(
+        container.querySelectorAll<HTMLElement>(FOCUSABLE)
+      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+      if (focusables.length === 0) {
+        e.preventDefault();
+        container.focus();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const current = document.activeElement;
+      const inside = current instanceof Node && container.contains(current);
+      if (e.shiftKey) {
+        if (!inside || current === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (!inside || current === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('keydown', handleKeyDown, true);
+      const prev = triggerRef.current;
+      if (prev && document.contains(prev)) prev.focus();
+      triggerRef.current = null;
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
+    };
+  }, []);
 
   if (!isOpen || !user) return null;
 
@@ -113,7 +194,9 @@ export default function ProfileEditModal({ isOpen, onClose, user, onUpdated }: P
 
       setSuccess(data.message || 'Đã lưu thay đổi!');
       sound.playSuccess();
-      setTimeout(() => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = setTimeout(() => {
+        closeTimerRef.current = null;
         onClose();
       }, 900);
     } catch {
@@ -126,12 +209,20 @@ export default function ProfileEditModal({ isOpen, onClose, user, onUpdated }: P
 
   return (
     <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-md max-h-[90dvh] overflow-y-auto custom-scrollbar bg-white dark:bg-slate-900 border-2 border-emerald-500/40 rounded-3xl p-6 sm:p-7 shadow-2xl relative">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="profile-edit-modal-title"
+        ref={modalRef}
+        tabIndex={-1}
+        className="w-full max-w-md max-h-[90dvh] overflow-y-auto custom-scrollbar bg-white dark:bg-slate-900 border-2 border-emerald-500/40 rounded-3xl p-6 sm:p-7 shadow-2xl relative"
+      >
         {/* Nút đóng */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer z-10"
           title="Đóng"
+          aria-label="Đóng cửa sổ sửa thông tin cá nhân"
         >
           <X className="w-5 h-5" />
         </button>
@@ -155,7 +246,12 @@ export default function ProfileEditModal({ isOpen, onClose, user, onUpdated }: P
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-2xl shadow-inner mx-auto mb-2">
             <Pencil className="w-6 h-6" />
           </div>
-          <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Sửa Thông Tin Cá Nhân</h2>
+          <h2
+            id="profile-edit-modal-title"
+            className="text-lg font-black text-slate-900 dark:text-white tracking-tight"
+          >
+            Sửa Thông Tin Cá Nhân
+          </h2>
           <p className="text-[11px] font-bold text-slate-400 mt-0.5">@{user.username}</p>
         </div>
 

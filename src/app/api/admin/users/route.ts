@@ -102,9 +102,16 @@ export async function GET(request: Request) {
       users,
     });
   } catch (err: unknown) {
-    logger.error('Error in GET /api/admin/users:', { error: err });
-    const message = err instanceof Error ? err.message : 'Database error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    // KHÔNG trả err.message thô: better-sqlite3 lộ tên bảng/cột driver.
+    logger.error('Error in GET /api/admin/users', { error: err });
+    logError({
+      endpoint: 'GET /api/admin/users',
+      error_message: err instanceof Error ? err.message : String(err),
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: getClientIp(request),
+      severity: 'error',
+    });
+    return NextResponse.json({ error: 'Lỗi tải danh sách người dùng' }, { status: 500 });
   }
 }
 
@@ -114,8 +121,18 @@ export async function POST(request: Request) {
   const userAgent = request.headers.get('user-agent') || '';
   try {
     const authHeader = request.headers.get('authorization');
-    const body = await request.json();
-    const { adminSecret, token, action, targetUserId, coins, level, exp, newPassword } = body;
+    // JSON hỏng (body rỗng / cắt ngang) là lỗi CLIENT, không phải lỗi hệ thống:
+    // không bắt thì `request.json()` ném SyntaxError → 500 kèm chi tiết driver.
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
+    const { adminSecret, token, action, targetUserId, coins, level, exp } = body ?? {};
+    // `newPassword` là dữ liệu client KHÔNG kiểm soát kiểu: `.trim().length`
+    // trên number/object ném TypeError → 500. Ép string ở biên rồi mới trim.
+    const newPassword = String(body?.newPassword ?? '');
 
     if (!verifyAdmin(request, authHeader, token || adminSecret)) {
       logAccess({
@@ -283,7 +300,7 @@ export async function POST(request: Request) {
 
     // 5. ACTION: ĐỔI MẬT KHẨU CHO USER (SET PASSWORD)
     if (action === 'set_password') {
-      if (!newPassword || newPassword.trim().length < 8) {
+      if (newPassword.trim().length < 8) {
         return NextResponse.json({ error: 'Mật khẩu mới phải có ít nhất 8 ký tự.' }, { status: 400 });
       }
       const newHash = hashPassword(newPassword.trim());
@@ -399,7 +416,6 @@ export async function POST(request: Request) {
       ip: clientIp,
       severity: 'error',
     });
-    const message = err instanceof Error ? err.message : 'Database error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: 'Lỗi thao tác quản trị' }, { status: 500 });
   }
 }

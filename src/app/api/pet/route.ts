@@ -6,10 +6,72 @@ import { CROPS_CATALOG, LIVESTOCK_CATALOG } from '@/lib/petFarmData';
 import { WEDDING_RINGS, MOCK_COMMUNITY_USERS } from '@/lib/petSocialData';
 import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
-import { syncDbToS3Now, refreshIfRemoteNewer } from '@/lib/s3Sync';
+import { syncDbToS3Now } from '@/lib/s3Sync';
+import { logError } from '@/lib/systemLogs';
+import logger from '@/lib/logger';
 
 /** Khoảng nghỉ giữa hai lần tưới cùng một luống (chống tưới lặp để làm cây chín tức thì). */
 const WATER_COOLDOWN_MS = 60 * 1000;
+
+/**
+ * Khoảng nghỉ giữa hai lần vuốt ve.
+ *
+ * Vì sao cần: `pet` KHÔNG tốn tiền, không tốn item — chỉ có bucket 60 req/phút
+ * theo IP nên vòng lặp +4 EXP/lần là farm EXP/level vô hạn (1 level = 50 EXP,
+ * tức lên cấp mỗi ~12 giây). 60s vẫn thoải mái cho người chơi thật (một lần
+ * vuốt/lần ghé thăm) nhưng giảm ~60× tốc độ farm.
+ */
+const PET_COOLDOWN_MS = 60 * 1000;
+
+/**
+ * Suffix ngẫu nhiên cho id sinh từ `Date.now()`.
+ *
+ * `Date.now()` chỉ có độ phân giải mili-giây: 2 request cùng ms sẽ sinh cùng
+ * PRIMARY KEY ⇒ `SQLITE_CONSTRAINT_PRIMARYKEY` ⇒ 500. Pattern `${prefix}-${now}-${rand}`
+ * đã dùng ở `bookmarks`/`progress`/`auth` nên giữ nguyên cho nhất quán.
+ */
+function uniqueSuffix(): string {
+  return Math.random().toString(36).substring(2, 8);
+}
+
+/**
+ * Log nội bộ rồi trả thông báo chung cho client.
+ *
+ * KHÔNG trả `err.message` thô: better-sqlite3 lộ tên bảng/cột và text driver
+ * (vd "Too few parameter values were provided"), `SyntaxError` của
+ * `request.json()`... là chi tiết nội bộ. Đo 2026-10-09: client nhận nguyên
+ * văn driver thay vì thông báo dễ hiểu — chi tiết chỉ nằm trong log nội bộ.
+ */
+function internalErrorResponse(endpoint: string, err: unknown, request: Request) {
+  logger.error(`Error in ${endpoint}`, { error: err });
+  logError({
+    endpoint,
+    error_message: err instanceof Error ? err.message : String(err),
+    stack_trace: err instanceof Error ? err.stack : null,
+    ip: getClientIp(request),
+    severity: 'error',
+  });
+  return NextResponse.json({ error: 'Có lỗi xảy ra. Vui lòng thử lại.' }, { status: 500 });
+}
+
+/**
+ * Đọc mốc thời gian trong `user_pets` về epoch ms.
+ *
+ * Cột `last_interacted_at` có DEFAULT `CURRENT_TIMESTAMP` của SQLite, tức
+ * chuỗi `'YYYY-MM-DD HH:MM:SS'` theo GIỜ UTC — `Date.parse` hiểu chuỗi đó là
+ * giờ địa phương nên phải ép `Z`. Từ bản này các nhánh ghi epoch ms nên cần
+ * nhận cả hai định dạng.
+ */
+function parsePetTimestamp(raw: unknown): number | null {
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  if (/^\d+$/.test(trimmed)) return Number(trimmed);
+  const iso = trimmed.includes('T') ? trimmed : `${trimmed.replace(' ', 'T')}Z`;
+  const parsed = Date.parse(iso);
+  return Number.isFinite(parsed) ? parsed : null;
+}
 
 function ensurePet(userId: string) {
   let pet = db.prepare('SELECT * FROM user_pets WHERE user_id = ?').get(userId) as any;
@@ -63,7 +125,20 @@ function resolveCycleSeconds(animalType: 'chicken' | 'cow'): number {
 
 type LivestockStatus = 'idle' | 'producing' | 'ready';
 
+/**
+ * Migration cột cho `pet_farm_livestock` chỉ chạy MỘT LẦN mỗi process.
+ *
+ * Trước đây `ensureFarmAndLivestock()` gọi hàm này ở mọi request (kể cả GET),
+ * tức mỗi lần mở trang đều `PRAGMA table_info` + tối đa 3 `ALTER TABLE`.
+ * `ALTER TABLE` mở write-lock và ghi vào schema ⇒ tranh chấp với request ghi
+ * chạy song song, và làm chậm request đọc. Cờ module-level đủ vì DDL chỉ cần
+ * thiết một lần; nếu lần đầu bảng chưa sẵn sàng thì cờ KHÔNG được bật để
+ * lần sau thử lại.
+ */
+let livestockColumnsEnsured = false;
+
 function ensureLivestockProductionColumns() {
+  if (livestockColumnsEnsured) return;
   try {
     const cols = db.prepare('PRAGMA table_info(pet_farm_livestock)').all() as { name: string }[];
     const names = new Set(cols.map((c) => c.name));
@@ -77,6 +152,7 @@ function ensureLivestockProductionColumns() {
     if (!names.has('last_fed_at')) addColumn('ALTER TABLE pet_farm_livestock ADD COLUMN last_fed_at TEXT');
     if (!names.has('producing_until')) addColumn('ALTER TABLE pet_farm_livestock ADD COLUMN producing_until TEXT');
     if (!names.has('cycle_seconds')) addColumn('ALTER TABLE pet_farm_livestock ADD COLUMN cycle_seconds INTEGER');
+    livestockColumnsEnsured = true;
   } catch {
     // bảng chưa sẵn sàng — ensureFarmAndLivestock sẽ xử lý sau
   }
@@ -180,10 +256,15 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const requestedUserId = searchParams.get('userId');
 
-    // Làm tươi DB từ Filebase nếu instance này đang giữ bản cũ (throttle 15s) —
-    // triệu chứng "user A tạo phòng nhưng user B không thấy" là do 2 request
-    // chạy trên 2 instance /tmp khác nhau, bản của instance B chưa có phòng.
-    await refreshIfRemoteNewer('pet-get');
+    // KHÔNG gọi `refreshIfRemoteNewer()` trong GET (đo 2026-10-09).
+    //
+    // `refreshIfRemoteNewer` → `downloadDbFromS3()` → `closeDbIfOpen()` rồi
+    // rename file `english_learning.db` đè lên file đang mở. Mọi request chạy
+    // song song đang giữ prepared statement trên connection cũ sẽ nhận
+    // "The database connection is not open" → 500, và mọi ghi cục bộ CHƯA sync
+    // lên S3 bị vứt mất. GET là endpoint được gọi nhiều nhất, nên đây là nơi
+    // nguy hiểm nhất. Việc làm tươi DB thuộc về cron/prefetch, KHÔNG thuộc
+    // request đọc của người dùng — xem `lib/s3Sync.ts`.
 
     const auth = getAuthenticatedUser(request, requestedUserId);
     if (auth.status === 'disabled') {
@@ -205,8 +286,20 @@ export async function GET(request: Request) {
     const userId = auth.userId;
 
     let user = db.prepare('SELECT id, username, display_name, avatar, streak, exp, level, coins, status FROM users WHERE id = ?').get(userId) as any;
-    const pet = ensurePet(userId);
-    ensureFarmAndLivestock(userId);
+
+    // GET phải THUẦN ĐỌC (đo 2026-10-09): `ensurePet()` INSERT 2 dòng và
+    // `ensureFarmAndLivestock()` INSERT ~10 dòng, tức mỗi lần mở trang đều
+    // ghi DB — request đọc lại có side effect, và bất kỳ request ghi chạy
+    // song song nào cũng tranh write-lock. Đăng ký đã seed pet + inventory
+    // (`applyRegistration` trong `api/auth/route.ts`), nên tài khoản có thật
+    // luôn có dữ liệu. Tài khoản cũ thiếu dữ liệu sẽ nhận mảng rỗng — client
+    // đã xử lý (`pet/page.tsx`: `data.inventory || []`).
+    //
+    // `ensureLivestockProductionColumns()` vẫn được gọi: nó chỉ chạy MỘT LẦN
+    // mỗi process (cờ module-level) và là điều kiện tiên quyết để
+    // `decorateLivestock` đọc được `producing_until`.
+    const pet = db.prepare('SELECT * FROM user_pets WHERE user_id = ?').get(userId) as any;
+    ensureLivestockProductionColumns();
 
     const inventory = db.prepare('SELECT * FROM pet_inventory WHERE user_id = ?').all(userId);
     const gardenDecor = db.prepare('SELECT * FROM pet_garden_decor WHERE user_id = ? ORDER BY slot_index ASC').all(userId);
@@ -323,10 +416,19 @@ export async function GET(request: Request) {
     const requestedRoomId = searchParams.get('roomId');
     let roomDetail = null;
     if (requestedRoomId) {
-      roomDetail = db.prepare('SELECT * FROM pet_battle_rooms WHERE id = ?').get(requestedRoomId) || null;
+      // Chỉ trả chi tiết phòng mà người gọi LÀ THÀNH VIÊN.
+      //
+      // Trước đây `WHERE id = ?` không giới hạn: bất kỳ tài khoản nào (kể cả
+      // guest) đoán/đọc được roomId từ `activeRooms` đều đọc trạng thái đầy đủ
+      // của phòng người khác — bao gồm cược, tên host/guest và pet level.
+      // `activeRooms` bên trên vẫn công khai (chỉ gồm phòng `waiting`) để
+      // người chơi tìm đối thủ; phần detail thì không.
+      roomDetail = db
+        .prepare('SELECT * FROM pet_battle_rooms WHERE id = ? AND (host_id = ? OR guest_id = ?)')
+        .get(requestedRoomId, userId, userId) || null;
     }
 
-    const petMeta = PETS_CATALOG[pet.pet_type] || PETS_CATALOG.owl;
+    const petMeta = PETS_CATALOG[pet?.pet_type] || PETS_CATALOG.owl;
 
     return NextResponse.json({
       success: true,
@@ -346,10 +448,10 @@ export async function GET(request: Request) {
       // Cờ cho UI biết đang hiển thị dữ liệu tài khoản demo dùng chung, để không
       // trộn lẫn với dữ liệu cá nhân của người dùng.
       isGuest: auth.isGuest,
-      pet: {
-        ...pet,
-        meta: petMeta,
-      },
+      // `null` khi tài khoản chưa có hàng `user_pets` — client đã guard
+      // `if (data.pet)` nên không vỡ. Trả `{}` (spread của undefined) sẽ làm
+      // client tin là có pet rồi đọc `undefined` ở mọi field.
+      pet: pet ? { ...pet, meta: petMeta } : null,
       roomDetail,
       inventory,
       gardenDecor,
@@ -366,8 +468,7 @@ export async function GET(request: Request) {
       recentChat,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Pet API error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalErrorResponse('GET /api/pet', err, request);
   }
 }
 
@@ -383,7 +484,20 @@ export async function POST(request: Request) {
       return rateLimitExceededResponse('Tần suất thao tác thú cưng quá nhanh. Vui lòng thử lại sau giây lát!', rateCheck.resetInSeconds);
     }
 
-    const body = await request.json();
+    // `request.json()` ném `SyntaxError` khi body rỗng/không phải JSON — trước
+    // đây lỗi đó rơi vào catch ở cuối và client nhận 500 kèm nguyên văn
+    // "Unexpected end of JSON input" (chi tiết nội bộ). 400 + thông điệp rõ
+    // ràng mới đúng: đây là lỗi phía client.
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
+
     const {
       userId: rawUserId,
       action,
@@ -420,15 +534,37 @@ export async function POST(request: Request) {
 
     // 1. ACTION: PETTING / VUỐT VE
     if (action === 'pet') {
-      const newHappiness = Math.min(100, (pet.happiness || 80) + 5);
-      const newExp = (pet.exp || 0) + 4;
-      const newLevel = Math.floor(newExp / 50) + 1;
+      const now = Date.now();
 
+      // Cooldown server-side (đo 2026-10-09): trước đây `pet` là action DUY
+      // NHẤT không có điều kiện nào ngoài bucket 60 req/phút theo IP ⇒ mỗi
+      // lần +4 EXP, lên cấp mỗi ~13 lần gọi, farm level vô hạn. Kiểm tra
+      // server-side vì client có thể bỏ qua UI hoàn toàn.
+      const lastPetAt = parsePetTimestamp(pet?.last_interacted_at);
+      if (lastPetAt !== null && now - lastPetAt < PET_COOLDOWN_MS) {
+        const waitSeconds = Math.max(1, Math.ceil((PET_COOLDOWN_MS - (now - lastPetAt)) / 1000));
+        return NextResponse.json(
+          {
+            error: `Bé ${pet.pet_name || 'thú cưng'} vừa được vuốt ve — hãy nghỉ thêm ${waitSeconds} giây rồi vuốt tiếp nhé!`,
+            retryAfterSeconds: waitSeconds,
+          },
+          { status: 429 }
+        );
+      }
+
+      // Phép cộng thực hiện trong SQL, KHÔNG đọc rồi ghi: bản trước tính
+      // `newHappiness`/`newExp` từ `pet.happiness`/`pet.exp` đã đọc ở trên
+      // rồi `UPDATE ... SET happiness = ?` — request `feed` chạy song song
+      // bị ghi đè mất thay đổi. `MIN(100, ...)` + `COALESCE` giữ đúng ngữ
+      // nghĩa cũ (null ⇒ mặc định 80) nhưng an toàn khi chạy song song.
       db.prepare(`
         UPDATE user_pets
-        SET happiness = ?, exp = ?, level = ?, last_interacted_at = CURRENT_TIMESTAMP
+        SET happiness = MIN(100, COALESCE(happiness, 80) + 5),
+            exp = COALESCE(exp, 0) + 4,
+            level = CAST((COALESCE(exp, 0) + 4) / 50 AS INTEGER) + 1,
+            last_interacted_at = ?
         WHERE user_id = ?
-      `).run(newHappiness, newExp, newLevel, userId);
+      `).run(String(now), userId);
 
       const updatedPet = ensurePet(userId);
       void syncDbToS3Now();
@@ -446,49 +582,75 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Món ăn không hợp lệ' }, { status: 400 });
       }
 
-      // Check if user has food in inventory or buy directly with coins
-      const inv = db.prepare('SELECT * FROM pet_inventory WHERE user_id = ? AND item_id = ?').get(userId, itemId) as any;
-      if (!inv || inv.quantity <= 0) {
-        // Atomic deduction with guard: coins >= food.price to eliminate race conditions
-        const updateResult = db.prepare('UPDATE users SET coins = coins - ? WHERE id = ? AND coins >= ?').run(food.price, userId, food.price);
-        if (updateResult.changes === 0) {
-          return NextResponse.json({ error: 'Không đủ Coins để mua món ăn này!' }, { status: 400 });
-        }
-
-        const freshUser = db.prepare('SELECT coins FROM users WHERE id = ?').get(userId) as any;
-        const remainingCoins = freshUser?.coins || 0;
-
-        // Record coin transaction
-        const txId = `tx-${userId}-${Date.now()}`;
-        db.prepare(`
-          INSERT INTO coin_transactions (id, user_id, amount, balance_after, reason)
-          VALUES (?, ?, ?, ?, ?)
-        `).run(txId, userId, -food.price, remainingCoins, `Cho thú cưng ăn: ${food.name}`);
-      } else {
-        // Consume from inventory
-        if (inv.quantity > 1) {
-          db.prepare('UPDATE pet_inventory SET quantity = quantity - 1 WHERE id = ?').run(inv.id);
-        } else {
-          db.prepare('DELETE FROM pet_inventory WHERE id = ?').run(inv.id);
-        }
-      }
-
       const hungerGain = food.hungerBoost || 20;
       const happyGain = food.happinessBoost || 10;
       const energyGain = food.energyBoost || 15;
       const expGain = food.expBoost || 10;
 
-      const newHunger = Math.min(100, (pet.hunger || 50) + hungerGain);
-      const newHappy = Math.min(100, (pet.happiness || 50) + happyGain);
-      const newEnergy = Math.min(100, (pet.energy || 50) + energyGain);
-      const newExp = (pet.exp || 0) + expGain;
-      const newLevel = Math.floor(newExp / 50) + 1;
+      // Mua (nếu hết trong kho) + trừ kho + cộng chỉ số pet nằm trong MỘT
+      // transaction. Trước đây:
+      //  a) `SELECT quantity` rồi mới `UPDATE/DELETE` ⇒ 2 lần cho ăn song
+      //     song với quantity = 1 đều đọc thấy 1, đều DELETE, đều cộng boost
+      //     ⇒ 1 món ăn sinh ra 2 lần ăn (đo 2026-10-09).
+      //  b) Phép cộng `hunger/happiness/energy/exp` tính từ `pet.*` đã đọc
+      //     từ trên rồi `SET ... = ?` ⇒ ghi đè thay đổi của request chạy song
+      //     song. Nay tính thẳng trong SQL.
+      //  c) Nếu request chết giữa chừng sau khi trừ tiền thì mất tiền mà
+      //     không nhận boost.
+      const feedTx = db.transaction((): { ok: false; status: number; error: string } | { ok: true } => {
+        const inv = db.prepare('SELECT id, quantity FROM pet_inventory WHERE user_id = ? AND item_id = ?')
+          .get(userId, itemId) as any;
 
-      db.prepare(`
-        UPDATE user_pets
-        SET hunger = ?, happiness = ?, energy = ?, exp = ?, level = ?, last_fed_at = CURRENT_TIMESTAMP
-        WHERE user_id = ?
-      `).run(newHunger, newHappy, newEnergy, newExp, newLevel, userId);
+        if (!inv || inv.quantity <= 0) {
+          // Atomic deduction with guard: coins >= food.price to eliminate race conditions
+          const updateResult = db.prepare('UPDATE users SET coins = coins - ? WHERE id = ? AND coins >= ?')
+            .run(food.price, userId, food.price);
+          if (updateResult.changes === 0) {
+            return { ok: false, status: 400, error: 'Không đủ Coins để mua món ăn này!' };
+          }
+
+          const freshUser = db.prepare('SELECT coins FROM users WHERE id = ?').get(userId) as any;
+          const remainingCoins = freshUser?.coins || 0;
+
+          // Suffix ngẫu nhiên: `Date.now()` trùng nhau khi 2 request cùng ms
+          // ⇒ SQLITE_CONSTRAINT_PRIMARYKEY ⇒ 500.
+          const txId = `tx-${userId}-${Date.now()}-${uniqueSuffix()}`;
+          db.prepare(`
+            INSERT INTO coin_transactions (id, user_id, amount, balance_after, reason)
+            VALUES (?, ?, ?, ?, ?)
+          `).run(txId, userId, -food.price, remainingCoins, `Cho thú cưng ăn: ${food.name}`);
+        } else {
+          // Trừ kho bằng MỘT câu có điều kiện. Chỉ request thực sự lấy được
+          // món ăn (changes === 1) mới được cộng boost.
+          const consumed = db
+            .prepare('UPDATE pet_inventory SET quantity = quantity - 1 WHERE id = ? AND quantity > 0')
+            .run(inv.id).changes;
+          if (consumed === 0) {
+            return { ok: false, status: 409, error: 'Kho đồ ăn vừa hết — bạn hãy thử lại nhé!' };
+          }
+          // Dọn dòng đã về 0 (client đã xoá hàng này khỏi túi).
+          db.prepare('DELETE FROM pet_inventory WHERE user_id = ? AND item_id = ? AND quantity <= 0')
+            .run(userId, itemId);
+        }
+
+        db.prepare(`
+          UPDATE user_pets
+          SET hunger = MIN(100, COALESCE(hunger, 50) + ?),
+              happiness = MIN(100, COALESCE(happiness, 50) + ?),
+              energy = MIN(100, COALESCE(energy, 50) + ?),
+              exp = COALESCE(exp, 0) + ?,
+              level = CAST((COALESCE(exp, 0) + ?) / 50 AS INTEGER) + 1,
+              last_fed_at = CURRENT_TIMESTAMP
+          WHERE user_id = ?
+        `).run(hungerGain, happyGain, energyGain, expGain, expGain, userId);
+
+        return { ok: true };
+      });
+
+      const outcome = feedTx();
+      if (!outcome.ok) {
+        return NextResponse.json({ error: outcome.error }, { status: outcome.status });
+      }
 
       const updatedUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId);
       const updatedPet = ensurePet(userId);
@@ -615,12 +777,17 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Vị trí trang trí không hợp lệ (1-4)' }, { status: 400 });
       }
 
-      const cleanDecorId = sanitizeText(decorId || '');
+      const cleanDecorId = sanitizeText(decorId);
 
       if (cleanDecorId === 'none') {
         db.prepare('DELETE FROM pet_garden_decor WHERE user_id = ? AND slot_index = ?').run(userId, parsedSlot);
       } else {
-        const owned = db.prepare('SELECT * FROM pet_inventory WHERE user_id = ? AND item_id = ?').get(userId, cleanDecorId);
+        // Bắt buộc `item_type = 'decor'`: trước đây chỉ kiểm "đã sở hữu vật
+        // phẩm này", nên món ăn / mũ / trang phục cũng đặt được vào ô trang
+        // trí khu vườn (mất vị trí, client vẽ sai sprite).
+        const owned = db
+          .prepare("SELECT * FROM pet_inventory WHERE user_id = ? AND item_id = ? AND item_type = 'decor'")
+          .get(userId, cleanDecorId);
         if (!owned) {
           return NextResponse.json({ error: 'Bạn chưa sở hữu đồ trang trí này!' }, { status: 400 });
         }
@@ -650,20 +817,56 @@ export async function POST(request: Request) {
       }
 
       const crop = CROPS_CATALOG[body.cropType] || CROPS_CATALOG.carrot;
-      const coinUpdate = db.prepare('UPDATE users SET coins = coins - ? WHERE id = ? AND coins >= ?').run(crop.seedPrice, userId, crop.seedPrice);
-      if (coinUpdate.changes === 0) {
-        return NextResponse.json({ error: `Không đủ Coins để mua hạt giống ${crop.name} (${crop.seedPrice} xu)!` }, { status: 400 });
+      // Chỉ client gieo đè khi CHỦ ĐỘNG gửi `replace: true` (đã ấn xác nhận).
+      const allowReplace = body.replace === true;
+
+      // Không được gieo đè luống đang có cây.
+      //
+      // Trước đây `ON CONFLICT ... DO UPDATE` ghi đè vô điều kiện: trồng lên
+      // luống chín sắp thu hoạch = vứt sản phẩm, và hạt giống vẫn bị trừ
+      // tiền. Kiểm tra + trừ tiền + gieo nằm trong MỘT transaction để không
+      // có khoảng trống cho request song chen vào.
+      //
+      // Vì sao không chỉ kiểm `crop_type IS NOT NULL`: `ensureFarmAndLivestock`
+      // seed luống trống với `crop_type = 'carrot'` + `stage = 'empty'` (xem
+      // hàm đó), còn `harvest_crop` xoá bằng `crop_type = NULL`. Nên "trống"
+      // phải tính từ `stage`/`planted_at`, không phải `crop_type` — nếu không
+      // thì KHÔNG gieo được hạt lên bất kỳ luống nào do seeder tạo ra.
+      const plantTx = db.transaction((): { ok: false; status: number; error: string } | { ok: true } => {
+        if (!allowReplace) {
+          const plot = db
+            .prepare('SELECT crop_type, stage, planted_at FROM pet_farm_plots WHERE user_id = ? AND plot_index = ?')
+            .get(userId, parsedPlot) as any;
+          const occupied = Boolean(plot) && (plot.planted_at !== null || (plot.stage ?? 'empty') !== 'empty');
+          if (occupied) {
+            return { ok: false, status: 409, error: `Luống #${parsedPlot + 1} đang có cây — hãy thu hoạch trước khi gieo hạt mới nhé!` };
+          }
+        }
+
+        const coinUpdate = db
+          .prepare('UPDATE users SET coins = coins - ? WHERE id = ? AND coins >= ?')
+          .run(crop.seedPrice, userId, crop.seedPrice);
+        if (coinUpdate.changes === 0) {
+          return { ok: false, status: 400, error: `Không đủ Coins để mua hạt giống ${crop.name} (${crop.seedPrice} xu)!` };
+        }
+
+        const now = Date.now();
+        const harvestReadyAt = String(now + crop.growthTimeSeconds * 1000);
+
+        db.prepare(`
+          INSERT INTO pet_farm_plots (id, user_id, plot_index, crop_type, stage, planted_at, harvest_ready_at)
+          VALUES (?, ?, ?, ?, 'growing', ?, ?)
+          ON CONFLICT(user_id, plot_index)
+          DO UPDATE SET crop_type = excluded.crop_type, stage = 'growing', planted_at = excluded.planted_at, harvest_ready_at = excluded.harvest_ready_at
+        `).run(`plot-${userId}-${parsedPlot}`, userId, parsedPlot, crop.id, String(now), harvestReadyAt);
+
+        return { ok: true };
+      });
+
+      const outcome = plantTx();
+      if (!outcome.ok) {
+        return NextResponse.json({ error: outcome.error }, { status: outcome.status });
       }
-
-      const now = Date.now();
-      const harvestReadyAt = String(now + crop.growthTimeSeconds * 1000);
-
-      db.prepare(`
-        INSERT INTO pet_farm_plots (id, user_id, plot_index, crop_type, stage, planted_at, harvest_ready_at)
-        VALUES (?, ?, ?, ?, 'growing', ?, ?)
-        ON CONFLICT(user_id, plot_index)
-        DO UPDATE SET crop_type = excluded.crop_type, stage = 'growing', planted_at = excluded.planted_at, harvest_ready_at = excluded.harvest_ready_at
-      `).run(`plot-${userId}-${parsedPlot}`, userId, parsedPlot, crop.id, String(now), harvestReadyAt);
 
       const farmPlots = db.prepare('SELECT * FROM pet_farm_plots WHERE user_id = ? ORDER BY plot_index ASC').all(userId);
       const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
@@ -915,7 +1118,7 @@ export async function POST(request: Request) {
       db.prepare(
         'INSERT INTO coin_transactions (id, user_id, amount, balance_after, reason) VALUES (?, ?, ?, ?, ?)'
       ).run(
-        `tx-${userId}-${Date.now()}-${animalType}`,
+        `tx-${userId}-${Date.now()}-${animalType}-${uniqueSuffix()}`,
         userId,
         -animal.feedPrice,
         freshUser?.coins || 0,
@@ -1100,12 +1303,16 @@ export async function POST(request: Request) {
 
     // 15. ACTION: SEND CHAT / TRÒ CHUYỆN CỘNG ĐỒNG
     if (action === 'send_chat') {
-      const cleanMsg = sanitizeText(body.message || '').slice(0, 150).trim();
+      // `sanitizeText` nhận `unknown` và luôn trả `string`, nên truyền thẳng
+      // giá trị thô: nếu client gửi `message: 123`/`message: {}` thì `|| ''`
+      // trước đây lọt sót (0/false/NaN) và ép kiểu lặp bên dưới sẽ vỡ.
+      const cleanMsg = sanitizeText(body.message).slice(0, 150).trim();
       if (!cleanMsg) {
         return NextResponse.json({ error: 'Nội dung chat không được để trống!' }, { status: 400 });
       }
 
-      const msgId = `chat-${userId}-${Date.now()}`;
+      // Suffix ngẫu nhiên: 2 tin nhắn cùng mili-giây sẽ trùng PRIMARY KEY.
+      const msgId = `chat-${userId}-${Date.now()}-${uniqueSuffix()}`;
       db.prepare(`
         INSERT INTO pet_chat_messages (id, user_id, username, display_name, pet_type, message)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -1124,7 +1331,7 @@ export async function POST(request: Request) {
 
     // 16. ACTION: SEND FRIEND REQUEST / GỬI LỜI MỜI KẾT BẠN
     if (action === 'send_friend_request') {
-      const targetUserId = sanitizeText(body.targetUserId || body.friendId || '');
+      const targetUserId = sanitizeText(body.targetUserId ?? body.friendId);
       if (!targetUserId || targetUserId === userId) {
         return NextResponse.json({ error: 'Không thể gửi lời mời kết bạn cho chính mình!' }, { status: 400 });
       }
@@ -1145,7 +1352,7 @@ export async function POST(request: Request) {
       db.prepare(`
         INSERT INTO user_friends (id, user_id, friend_id, status)
         VALUES (?, ?, ?, 'pending')
-      `).run(`freq-${userId}-${targetUserId}-${Date.now()}`, userId, targetUserId);
+      `).run(`freq-${userId}-${targetUserId}-${Date.now()}-${uniqueSuffix()}`, userId, targetUserId);
 
       void syncDbToS3Now();
 
@@ -1157,8 +1364,8 @@ export async function POST(request: Request) {
 
     // 17. ACTION: ACCEPT FRIEND REQUEST / ĐỒNG Ý KẾT BẠN
     if (action === 'accept_friend_request') {
-      const requestId = sanitizeText(body.requestId || '');
-      const requesterId = sanitizeText(body.requesterId || '');
+      const requestId = sanitizeText(body.requestId);
+      const requesterId = sanitizeText(body.requesterId);
 
       let updated = 0;
       if (requestId) {
@@ -1191,13 +1398,22 @@ export async function POST(request: Request) {
 
     // 18. ACTION: DECLINE FRIEND REQUEST / TỪ CHỐI LỜI MỜI
     if (action === 'decline_friend_request') {
-      const requestId = sanitizeText(body.requestId || '');
-      const requesterId = sanitizeText(body.requesterId || '');
+      const requestId = sanitizeText(body.requestId);
+      const requesterId = sanitizeText(body.requesterId);
 
+      // Phải kiểm `.changes`: trước đây DELETE chạy xong không ai xem kết quả,
+      // nên client luôn nhận "thành công" kể cả khi lời mời không tồn tại (đã bị
+      // từ chối trước đó, requestId sai, hoặc bị xoá khi kết bạn). Người dùng
+      // tưởng đã từ chối xong trong khi lời mời vẫn còn trong hộp thư.
+      let deleted = 0;
       if (requestId) {
-        db.prepare('DELETE FROM user_friends WHERE id = ? AND friend_id = ?').run(requestId, userId);
+        deleted = db.prepare('DELETE FROM user_friends WHERE id = ? AND friend_id = ?').run(requestId, userId).changes;
       } else if (requesterId) {
-        db.prepare('DELETE FROM user_friends WHERE user_id = ? AND friend_id = ?').run(requesterId, userId);
+        deleted = db.prepare('DELETE FROM user_friends WHERE user_id = ? AND friend_id = ?').run(requesterId, userId).changes;
+      }
+
+      if (deleted === 0) {
+        return NextResponse.json({ error: 'Không tìm thấy lời mời kết bạn để từ chối — có thể nó đã được xử lý.' }, { status: 404 });
       }
 
       void syncDbToS3Now();
@@ -1210,12 +1426,18 @@ export async function POST(request: Request) {
 
     // 19. ACTION: REMOVE FRIEND / HỦY KẾT BẠN
     if (action === 'remove_friend') {
-      const friendId = sanitizeText(body.friendId || '');
-      if (friendId) {
-        db.prepare(`
+      const friendId = sanitizeText(body.friendId);
+      if (!friendId) {
+        return NextResponse.json({ error: 'Thiếu thông tin người bạn cần hủy kết bạn.' }, { status: 400 });
+      }
+
+      const removed = db.prepare(`
           DELETE FROM user_friends 
           WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)
-        `).run(userId, friendId, friendId, userId);
+        `).run(userId, friendId, friendId, userId).changes;
+
+      if (removed === 0) {
+        return NextResponse.json({ error: 'Không tìm thấy người bạn này trong danh sách bằng hữu của bạn.' }, { status: 404 });
       }
 
       void syncDbToS3Now();
@@ -1228,7 +1450,7 @@ export async function POST(request: Request) {
 
     // 20. ACTION: PROPOSE COUPLE / GỬI LỜI CẦU HÔN (CẦN ĐƯỢC ĐỒNG Ý)
     if (action === 'propose_couple') {
-      const partnerId = sanitizeText(body.partnerId || '');
+      const partnerId = sanitizeText(body.partnerId);
       if (!partnerId || partnerId === userId) {
         return NextResponse.json({ error: 'Vui lòng chọn một người bạn để gửi lời cầu hôn!' }, { status: 400 });
       }
@@ -1256,7 +1478,8 @@ export async function POST(request: Request) {
         WHERE (user_id_1 = ? AND user_id_2 = ?) OR (user_id_1 = ? AND user_id_2 = ?)
       `).run(userId, partnerId, partnerId, userId);
 
-      const coupleId = `proposal-${userId}-${partnerId}-${Date.now()}`;
+      // Suffix ngẫu nhiên: gửi 2 lời cầu hôn cùng mili-giây sẽ trùng PRIMARY KEY.
+      const coupleId = `proposal-${userId}-${partnerId}-${Date.now()}-${uniqueSuffix()}`;
       db.prepare(`
         INSERT INTO user_couples (id, user_id_1, user_id_2, ring_type, love_points, status, proposer_id)
         VALUES (?, ?, ?, ?, 100, 'pending', ?)
@@ -1274,7 +1497,7 @@ export async function POST(request: Request) {
 
     // 21. ACTION: RESPOND TO PROPOSAL / PHẢN HỒI LỜI CẦU HÔN (ĐỒNG Ý HOẶC TỪ CHỐI)
     if (action === 'respond_proposal') {
-      const proposalId = sanitizeText(body.proposalId || '');
+      const proposalId = sanitizeText(body.proposalId);
       const isAccepted = body.response === 'accept';
 
       const proposal = db.prepare('SELECT * FROM user_couples WHERE id = ?').get(proposalId) as any;
@@ -1289,18 +1512,33 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Bạn không phải người nhận lời cầu hôn này.' }, { status: 403 });
       }
 
+      // ĐỒNG Ý phải đến từ phía ĐƯỢC CẦU HÔN.
+      //
+      // Vì sao: `proposer_id` là `user_id_1`, nên kiểm tra "là một trong hai
+      // bên" ở trên KHÔNG chặn được người cầu hôn tự bấm "Đồng ý" cho lời
+      // cầu hôn của chính mình — chú thích "CẦN ĐƯỢC ĐỒNG Ý" trong nhánh
+      // propose_couple là sai trong trường hợp này. Chặn riêng bên đề xuất.
+      if (proposal.proposer_id && proposal.proposer_id === userId) {
+        return NextResponse.json({ error: 'Bạn là người gửi lời cầu hôn — hãy chờ người kia đồng ý nhé!' }, { status: 403 });
+      }
+
       // Chỉ phản hồi lời cầu hôn đang chờ.
       if (proposal.status !== 'pending') {
         return NextResponse.json({ error: 'Lời cầu hôn này đã được xử lý.' }, { status: 409 });
       }
 
       if (isAccepted) {
-        // Accept proposal -> Official couple!
-        db.prepare(`
+        // Chuyển trạng thái CÓ ĐIỀU KIỆN thay vì `WHERE id = ?` để hai request
+        // "đồng ý" chạy song song không cùng ghi trạng thái kết hôn.
+        const accepted = db.prepare(`
           UPDATE user_couples 
           SET status = 'accepted', love_points = 100, married_at = CURRENT_TIMESTAMP
-          WHERE id = ?
-        `).run(proposalId);
+          WHERE id = ? AND status = 'pending'
+        `).run(proposalId).changes;
+
+        if (accepted === 0) {
+          return NextResponse.json({ error: 'Lời cầu hôn này đã được xử lý.' }, { status: 409 });
+        }
 
         const coupleRow = db.prepare('SELECT * FROM user_couples WHERE id = ?').get(proposalId) as any;
         void syncDbToS3Now();
@@ -1311,13 +1549,33 @@ export async function POST(request: Request) {
           couple: coupleRow,
         });
       } else {
-        // Decline proposal -> Refund ring coins to proposer
-        const ring = WEDDING_RINGS.find((r) => r.id === proposal.ring_type) || WEDDING_RINGS[0];
-        // `proposer_id` có thể NULL với dữ liệu cũ → không hoàn nhầm cho ai khác.
-        if (proposal.proposer_id) {
-          db.prepare('UPDATE users SET coins = coins + ? WHERE id = ?').run(ring.price, proposal.proposer_id);
+        // Từ chối: XOÁ CÓ ĐIỀU KIỆN TRƯỚC, rồi mới hoàn coins.
+        //
+        // TOCTOU (đo 2026-10-09): bản cũ là `SELECT` → check `status` →
+        // `UPDATE coins` → `DELETE` ở 3 câu lệnh rời nhau. Hai request từ chối
+        // chạy song song đều đọc `status = 'pending'`, đều cộng tiền, và
+        // request thứ hai xoá 0 dòng mà vẫn trả 200 ⇒ hoàn tiền 2× (ngân sách
+        // của app bị rút). Xoá có điều kiện là "chốt quyền": chỉ request thắng
+        // được hoàn. Bọc transaction để tiền và xoá cùng thành công/ thất bại.
+        const declineTx = db.transaction(() => {
+          const removed = db
+            .prepare("DELETE FROM user_couples WHERE id = ? AND status = 'pending'")
+            .run(proposalId).changes;
+          if (removed !== 1) return false;
+
+          // Hoàn vòng cước cho người cầu hôn. `proposer_id` có thể NULL với
+          // dữ liệu cũ → không hoàn nhầm cho ai khác.
+          if (proposal.proposer_id) {
+            const ring = WEDDING_RINGS.find((r) => r.id === proposal.ring_type) || WEDDING_RINGS[0];
+            db.prepare('UPDATE users SET coins = coins + ? WHERE id = ?').run(ring.price, proposal.proposer_id);
+          }
+          return true;
+        });
+
+        if (!declineTx()) {
+          return NextResponse.json({ error: 'Lời cầu hôn này đã được xử lý.' }, { status: 409 });
         }
-        db.prepare('DELETE FROM user_couples WHERE id = ?').run(proposalId);
+
         void syncDbToS3Now();
 
         return NextResponse.json({
@@ -1329,10 +1587,14 @@ export async function POST(request: Request) {
 
     // 22. ACTION: BREAK UP / HỦY KẾT ĐÔI
     if (action === 'break_up') {
-      db.prepare(`
+      const removed = db.prepare(`
         DELETE FROM user_couples 
         WHERE user_id_1 = ? OR user_id_2 = ?
-      `).run(userId, userId);
+      `).run(userId, userId).changes;
+
+      if (removed === 0) {
+        return NextResponse.json({ error: 'Bạn hiện không có đôi nào để hủy.' }, { status: 404 });
+      }
 
       void syncDbToS3Now();
 
@@ -1395,7 +1657,9 @@ export async function POST(request: Request) {
       });
       replaceOldWaitingRoom();
 
-      const roomId = `room-${userId}-${Date.now()}`;
+      // Suffix ngẫu nhiên: 2 phòng tạo cùng mili-giây (double-click, 2 tab) sẽ
+      // trùng PRIMARY KEY ⇒ 500.
+      const roomId = `room-${userId}-${Date.now()}-${uniqueSuffix()}`;
       db.prepare(`
         INSERT INTO pet_battle_rooms (
           id, room_name, game_type, bet_coins, 
@@ -1421,7 +1685,7 @@ export async function POST(request: Request) {
 
     // 24. ACTION: JOIN BATTLE ROOM / VÀO PHÒNG QUYẾT ĐẤU
     if (action === 'join_battle_room') {
-      const roomId = sanitizeText(body.roomId || '');
+      const roomId = sanitizeText(body.roomId);
       const room = db.prepare("SELECT * FROM pet_battle_rooms WHERE id = ? AND status = 'waiting'").get(roomId) as any;
       if (!room) {
         return NextResponse.json({ error: 'Phòng không tồn tại hoặc đã bắt đầu!' }, { status: 404 });
@@ -1471,9 +1735,24 @@ export async function POST(request: Request) {
 
     // 25. ACTION: CANCEL BATTLE ROOM / HỦY PHÒNG CHỜ
     if (action === 'cancel_battle_room') {
-      const roomId = sanitizeText(body.roomId || '');
+      const roomId = sanitizeText(body.roomId);
       const room = db.prepare("SELECT * FROM pet_battle_rooms WHERE id = ? AND host_id = ? AND status = 'waiting'").get(roomId, userId) as any;
-      if (room) {
+      if (!room) {
+        return NextResponse.json({ error: 'Không tìm thấy phòng chờ nào của bạn để hủy.' }, { status: 404 });
+      }
+
+      // TOCTOU hoàn tiền (đo 2026-10-09): bản cũ `SELECT ... status='waiting'`
+      // → cộng coins → `DELETE WHERE id = ?` ở 3 câu rời rạc. Hai request hủy
+      // chạy song song (double-click, 2 tab) đều thấy phòng còn, đều hoàn cược
+      // ⇒ tiền cược được trả 2×, lần DELETE thứ hai là no-op im lặng. Xoá CÓ
+      // ĐIỀU KIỆN TRƯỚC rồi mới hoàn, trong MỘT transaction: chỉ request thắng
+      // được hoàn, và phòng không bị xoá nếu vừa có người vào.
+      const cancelTx = db.transaction(() => {
+        const removed = db
+          .prepare("DELETE FROM pet_battle_rooms WHERE id = ? AND host_id = ? AND status = 'waiting'")
+          .run(roomId, userId).changes;
+        if (removed !== 1) return false;
+
         if (room.bet_coins > 0) {
           db.prepare('UPDATE users SET coins = coins + ? WHERE id = ?').run(room.bet_coins, userId);
           // M5b/L6: hoàn tiền cược cũng ghi nhật ký coin_transactions như các
@@ -1482,14 +1761,18 @@ export async function POST(request: Request) {
           db.prepare(
             'INSERT INTO coin_transactions (id, user_id, amount, balance_after, reason) VALUES (?, ?, ?, ?, ?)'
           ).run(
-            `tx-${userId}-${Date.now()}-${room.id}`,
+            `tx-${userId}-${Date.now()}-${room.id}-${uniqueSuffix()}`,
             userId,
             room.bet_coins,
             refundBalance,
             `Huỷ phòng "${room.room_name}" — hoàn tiền cược`
           );
         }
-        db.prepare('DELETE FROM pet_battle_rooms WHERE id = ?').run(roomId);
+        return true;
+      });
+
+      if (!cancelTx()) {
+        return NextResponse.json({ error: 'Phòng này vừa được hủy hoặc đã bắt đầu đấu.' }, { status: 409 });
       }
 
       const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
@@ -1504,8 +1787,8 @@ export async function POST(request: Request) {
 
     // 26. ACTION: FINISH BATTLE ROOM / KẾT THÚC TRẬN ĐẤU & TRAO THƯỞNG
     if (action === 'finish_battle_room') {
-      const roomId = sanitizeText(body.roomId || '');
-      const requestedWinner = sanitizeText(body.winnerId || '');
+      const roomId = sanitizeText(body.roomId);
+      const requestedWinner = sanitizeText(body.winnerId);
       const room = db.prepare('SELECT * FROM pet_battle_rooms WHERE id = ?').get(roomId) as any;
 
       if (!room) {
@@ -1554,7 +1837,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: 'Hành động không được hỗ trợ' }, { status: 400 });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Pet action error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalErrorResponse('POST /api/pet', err, request);
   }
 }

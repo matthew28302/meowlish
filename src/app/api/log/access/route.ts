@@ -56,7 +56,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     }
 
-    const clientUserId = typeof body.clientUserId === 'string' ? body.clientUserId.trim() : null;
     const clientUsername = typeof body.clientUsername === 'string' ? body.clientUsername.trim() : null;
     const isAdminRoute = pathname.startsWith('/duahau');
 
@@ -83,18 +82,13 @@ export async function POST(request: Request) {
         }
       }
 
-      // Nếu cookie chưa đồng bộ kịp, dùng clientUserId — nhưng CHỉ khi trùng với
-      // tài khoản thật trong DB. Trước đây tin clientUserId vô điều kiện nên bất kỳ
-      // ai cũng ghi được log truy cập giả mang tên tài khoản người khác.
-      if (!userId && clientUserId) {
-        try {
-          const claimed = db.prepare('SELECT id FROM users WHERE id = ?').get(clientUserId) as { id: string } | undefined;
-          if (claimed) userId = claimed.id;
-        } catch {
-          // DB lỗi → coi như khách
-        }
-      }
-
+      // KHÔNG còn fallback nào lấy danh tính từ body. Trước đây nhánh này đọc
+      // `clientUserId` từ body rồi chỉ kiểm tra "dòng có tồn tại trong users" —
+      // đúng bằng điều kiện mà KẺ TẤN CÔNG cũng đáp ứng được: chỉ cần biết một
+      // user_id bất kỳ là ghi được vô hạn dòng `visit_*` mang tên nạn nhân vào
+      // system_access_logs, tức bịa dữ liệu trong chính bảng audit mà /duahau
+      // đọc. `userId` giờ chỉ lấy từ cookie phiên đã ký HMAC; khách không
+      // đăng nhập rơi xuống nhánh `skipped: 'guest'` phía dưới.
       if (userId) {
         try {
           const user = db.prepare('SELECT username FROM users WHERE id = ?').get(userId) as any;

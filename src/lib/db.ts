@@ -987,6 +987,38 @@ export const dictDb: Database.Database = new Proxy({} as Database.Database, {
 });
 
 /**
+ * Sức khoẻ từ điển tĩnh — để /api/health NHÌN THẤY lỗi "từ điển rỗng".
+ *
+ * VÌ SAO cần: `ensureDictionaryRestoredSync` cố tình nuốt lỗi restore (app phải
+ * chạy tiếp) và `createDictDb` chỉ `console.warn` khi bảng rỗng. Đo 2026-10-09
+ * trên production: `/api/dictionary/search?q=hello` trả `total: 0` cho MỌI từ
+ * khoá (hello/book/agile/the/cat/work/test) vì `dictionary_entries` rỗng, trong
+ * khi UI vẫn hiện empty-state "26.500+ từ". Health check cũ chỉ `SELECT 1` trên
+ * Postgres nên báo `db: "ok"` ⇒ sự cố chết người dùng mà không có đèn đỏ nào.
+ *
+ * Gọi qua `getDictDatabase()` — CHUNG đường khởi tạo lười với `dictDb` — để
+ * không mở file dictionary.db lần thứ hai (mỗi handle là một connection riêng).
+ *
+ * TUYỆT ĐỐI không ném lỗi: đây là đường dẫn của health check, phải trả lời
+ * được cả khi từ điển hỏng/mở không nổi, nếu không thì endpoint chính lại chết
+ * theo đúng lỗi nó sinh ra để báo.
+ */
+export function getDictionaryHealth(): { entries: number; ok: boolean } {
+  try {
+    const row = getDictDatabase()
+      .prepare('SELECT COUNT(*) AS c FROM dictionary_entries')
+      .get() as { c?: number } | undefined;
+    const parsed = Number(row?.c ?? 0);
+    const entries = Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 0;
+    return { entries, ok: entries > 0 };
+  } catch (err) {
+    // Chỉ ghi log kiểu/không ghi nội dung lỗi driver ra ngoài response.
+    console.warn('[Dict DB] Health check lỗi:', err instanceof Error ? err.message : String(err));
+    return { entries: 0, ok: false };
+  }
+}
+
+/**
  * Verify SQLite database physical integrity
  */
 export function verifyDbIntegrity(): { ok: boolean; details: string } {
@@ -1001,10 +1033,27 @@ export function verifyDbIntegrity(): { ok: boolean; details: string } {
 
 /**
  * Sanitize plain user text to prevent XSS payloads
+ *
+ * Kiểu tham số là `unknown` CỐ TÌNH: rất nhiều call site truyền thẳng field của
+ * `await request.json()` (chưa validate kiểu) — `{"word": 123}` ⇒ bản cũ nhận
+ * `string | null | undefined` rồi gọi `.replace` trên giá trị truthy ⇒ 500 với
+ * body lộ nguyên văn "input.replace is not a function" (đo 2026-10-09). Nay mọi
+ * kiểu đều đi qua `String(...)` rồi mới lọc ⇒ không call site nào còn crash.
+ *
+ * Giữ nguyên hành vi cũ: KHÔNG cắt độ dài ở đây (các route tự `.slice(0, n)`
+ * sau khi gọi, xem ví dụ /api/progress), nên không route nào bị đổi hành vi.
  */
-export function sanitizeText(input?: string | null): string {
-  if (!input) return '';
-  return input
+export function sanitizeText(input?: unknown): string {
+  // `String()` vẫn ném nếu giá trị là object không ép chuỗi được (vd JSON
+  // `{"toString": null}` ⇒ TypeError). Bọc try để hàm LUÔN trả về chuỗi.
+  let text = '';
+  try {
+    text = String(input ?? '');
+  } catch {
+    return '';
+  }
+  if (!text) return '';
+  return text
     .replace(/[<>]/g, '') // remove HTML tag brackets
     // Defense-in-depth chống email header injection (audit L1 2026-10-08):
     // strip CRLF thay bằng space — nodemailer hiện neutralize được \r\n trong

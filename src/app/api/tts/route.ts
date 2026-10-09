@@ -1,9 +1,24 @@
 import { NextResponse } from 'next/server';
 import { getClientIp, checkRateLimitPersistent, rateLimitExceededResponse } from '@/lib/rateLimit';
+import logger from '@/lib/logger';
+import { logError } from '@/lib/systemLogs';
+
+/**
+ * Chỉ phản chiếu lại status của Google khi nó mang ý nghĩa cho CLIENT.
+ *
+ * Vì sao: `res.status` thô có thể là bất kỳ số nào (403 bot-block, 404, 451,
+ * 500...). Trả nguyên văn số đó vừa vô nghĩa với trình duyệt (file .mp3), vừa
+ * là đường để upstream điều khiển status của API ta. Chỉ giữ:
+ *   - 400: text/lang sai định dạng → client sửa được
+ *   - 429: Google đang throttle → client nên chậm lại
+ *   - 502: lỗi phía Google → client biết là upstream chết
+ * Mọi thứ khác → 502 (gateway hỏng), không lộ chi tiết driver.
+ */
+const PROPAGATED_UPSTREAM_STATUS = new Set([400, 429]);
 
 export async function GET(request: Request) {
+  const clientIp = getClientIp(request);
   try {
-    const clientIp = getClientIp(request);
     // H1 (audit 2026-10-08): TTS relay sang Google — tốn băng thông ra ngoài,
     // cần limiter bền vững giữa các instance (Upstash Redis khi có env,
     // fallback in-memory). Guest được dùng, chỉ chống spam; 30 lần/phút/IP.
@@ -42,7 +57,19 @@ export async function GET(request: Request) {
     });
 
     if (!res.ok) {
-      return NextResponse.json({ error: 'Failed to fetch TTS audio' }, { status: res.status });
+      // Chi tiết giữ nội bộ; client chỉ thấy status đã clamp + thông báo chung.
+      logger.error(`TTS upstream trả HTTP ${res.status}`, { text: cleanText.slice(0, 60) });
+      logError({
+        endpoint: 'GET /api/tts',
+        error_message: `Google Translate TTS trả HTTP ${res.status}`,
+        ip: clientIp,
+        severity: 'error',
+      });
+      const status = PROPAGATED_UPSTREAM_STATUS.has(res.status) ? res.status : 502;
+      return NextResponse.json(
+        { error: 'Không phát được âm thanh lúc này. Vui lòng thử lại sau giây lát.' },
+        { status }
+      );
     }
 
     const audioBuffer = await res.arrayBuffer();
@@ -53,8 +80,16 @@ export async function GET(request: Request) {
         'Cache-Control': 'public, max-age=604800, immutable', // Cache for 7 days
       },
     });
-  } catch (err: any) {
-    console.error('TTS route error:', err);
-    return NextResponse.json({ error: err.message || 'TTS Error' }, { status: 500 });
+  } catch (err: unknown) {
+    // KHÔNG trả err.message thô: có thể chứa URL upstream, thông tin proxy/TLS.
+    logger.error('TTS route error', { error: err });
+    logError({
+      endpoint: 'GET /api/tts',
+      error_message: err instanceof Error ? err.message : String(err),
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: clientIp,
+      severity: 'error',
+    });
+    return NextResponse.json({ error: 'Lỗi phát âm thanh. Vui lòng thử lại sau giây lát.' }, { status: 500 });
   }
 }

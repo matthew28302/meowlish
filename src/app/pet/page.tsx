@@ -40,6 +40,7 @@ import PetPvPArenaCanvas from '@/components/pet/PetPvPArenaCanvas';
 import PetRacingCanvas from '@/components/pet/PetRacingCanvas';
 import PetSocialHub from '@/components/pet/PetSocialHub';
 import { SocialFriend } from '@/lib/petSocialData';
+import { useEscapeToClose } from '@/lib/useEscapeToClose';
 
 /**
  * Một mục trong menu "Thêm" của thanh công cụ.
@@ -78,6 +79,80 @@ function MoreItem({
   );
 }
 
+/**
+ * Focus trap cho các modal của trang /pet.
+ *
+ * a11y (audit 2026-10-09): 5 modal (Cửa Hàng/Phòng Thử Đồ, Cho Ăn, Cảnh Quan,
+ * Đổi Thú Cưng, VIP) chỉ có nút X + click nền — không role="dialog", Tab thoát
+ * được ra trang nền, không đóng bằng Esc. Hook này sao chép mẫu đã chạy ổn trong
+ * AuthModal.tsx (~dòng 115-178): đưa focus vào control đầu tiên khi mở, cycle
+ * focus khi Tab/Shift-Tab, trả focus về trigger khi đóng.
+ *
+ * KHÔNG đưa vào src/lib (file đó thuộc agent khác) — giữ cục bộ trong page này.
+ *
+ * @param isOpen modal đang mở hay không
+ */
+function useModalFocusTrap(isOpen: boolean) {
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const FOCUSABLE =
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    triggerRef.current = (document.activeElement as HTMLElement) || null;
+
+    // Đợi 1 frame để các node con đã mount rồi mới focus.
+    const raf = requestAnimationFrame(() => {
+      const container = modalRef.current;
+      if (!container) return;
+      const first = container.querySelector<HTMLElement>(FOCUSABLE) || container;
+      first.focus();
+    });
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const container = modalRef.current;
+      if (!container) return;
+      const focusables = Array.from(
+        container.querySelectorAll<HTMLElement>(FOCUSABLE)
+      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+      if (focusables.length === 0) {
+        e.preventDefault();
+        container.focus();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const current = document.activeElement;
+      const inside = current instanceof Node && container.contains(current);
+      if (e.shiftKey) {
+        if (!inside || current === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (!inside || current === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    // capture=true: bắt phím sớm kể cả khi focus chưa nằm trong modal.
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('keydown', handleKeyDown, true);
+      const prev = triggerRef.current;
+      if (prev && document.contains(prev)) prev.focus();
+      triggerRef.current = null;
+    };
+  }, [isOpen]);
+
+  return modalRef;
+}
+
 export default function PetPage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   // Trạng thái khởi tạo phải GIỐNG HỆT server render (null/true/default).
@@ -99,6 +174,25 @@ export default function PetPage() {
   const [inventory, setInventory] = useState<any[]>([]);
   const [gardenDecor, setGardenDecor] = useState<any[]>([]);
   const [userCoins, setUserCoins] = useState<number>(0);
+  // Bản sao đồng bộ của `userCoins` để callback delta (onUpdateCoinsDelta) tính
+  // được số mới mà KHÔNG phải gọi setStoredUser/dispatchEvent BÊN TRONG updater
+  // của setState — updater phải thuần khiết, React StrictMode gọi 2 lần nên
+  // side-effect trong đó sẽ ghi localStorage + bắn event hai lần (đo 2026-10-09).
+  const userCoinsRef = useRef<number>(0);
+  useEffect(() => { userCoinsRef.current = userCoins; }, [userCoins]);
+
+  // Cộng/trừ theo DELTA thay vì gán giá trị tuyệt đối. Trước đây truyền
+  // `onUpdateCoins(userCoins + prize)` với `userCoins` là prop chụp lúc effect
+  // được tạo ⇒ coin kiếm được trong lúc chờ bị nuốt (PetRacingCanvas chạy trong
+  // setTimeout lệch 1s so với rAF). Delta không bao giờ lùi.
+  const applyCoinDelta = (delta: number) => {
+    const next = Math.max(0, userCoinsRef.current + delta);
+    userCoinsRef.current = next;
+    setUserCoins(next);
+    const s = getStoredUser();
+    if (s) setStoredUser({ ...s, coins: next });
+    window.dispatchEvent(new Event('auth-state-changed'));
+  };
 
   // Game Hub Tab Mode: farm | pvp | racing | sanctuary | social
   const [gameTab, setGameTab] = useState<'farm' | 'pvp' | 'racing' | 'sanctuary' | 'social'>('farm');
@@ -166,9 +260,15 @@ export default function PetPage() {
       const stored = getStoredUser();
       if (stored) {
         setCurrentUser(stored);
-        if (stored.coins !== undefined) {
-          setUserCoins(stored.coins);
-        }
+        // Bug coin-flash (audit 2026-10-09): lấy coins từ getStoredUser() là
+        // fallback DEMO (1000 xu) khi chưa đăng nhập → mỗi lần mở /pet khách
+        // thấy "1.000" nhấp nháy rồi tụ về 0 ngay khi loadPetData chạy. Dùng
+        // getCurrentUser() (null khi khách) để khởi tạo coins, giống hệt
+        // loadPetData và listener 'auth-state-changed' ngay bên dưới.
+        // currentUser vẫn giữ fallback để các POST /api/pet có userId hợp lệ
+        // cho khách (server tự cấp pet khách mới).
+        const realUser = getCurrentUser();
+        setUserCoins(realUser?.coins ?? 0);
       }
       const cached = localStorage.getItem('meowlish_pet_cache');
       if (cached) {
@@ -337,6 +437,25 @@ export default function PetPage() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [showMoreMenu]);
+
+  // a11y (audit 2026-10-09): focus trap + Esc cho 5 modal của trang. Gọi hook ở
+  // cấp component (không điều kiện) để giữ thứ tự hook ổn định; ref được trả về
+  // gắn vào panel modal tương ứng.
+  const shopModalRef = useModalFocusTrap(showShopModal);
+  const feedModalRef = useModalFocusTrap(showFeedModal);
+  const habitatModalRef = useModalFocusTrap(showHabitatModal);
+  const switchModalRef = useModalFocusTrap(showSwitchModal);
+  const specialModalRef = useModalFocusTrap(specialPetModal.isOpen);
+
+  // Esc đóng modal — chỉ modal đang mở mới nhận phím (dùng `enabled`).
+  useEscapeToClose(showShopModal, () => setShowShopModal(false));
+  useEscapeToClose(showFeedModal, () => setShowFeedModal(false));
+  useEscapeToClose(showHabitatModal, () => setShowHabitatModal(false));
+  useEscapeToClose(showSwitchModal, () => setShowSwitchModal(false));
+  useEscapeToClose(
+    specialPetModal.isOpen,
+    () => setSpecialPetModal((prev) => ({ ...prev, isOpen: false }))
+  );
 
   // Action: Petting / Vuốt ve
   const handlePet = async (e?: React.MouseEvent) => {
@@ -1133,10 +1252,15 @@ export default function PetPage() {
 
               {showMoreMenu && (
                 <>
-                  {/* Lớp phủ đóng menu khi chạm ra ngoài. */}
+                  {/* Lớp phủ đóng menu khi chạm ra ngoài.
+                      a11y (audit 2026-10-09): backdrop full-screen là một tab
+                      stop hợp lệ, buộc người dùng bàn phím Tab qua nó mới tới
+                      được các mục "Thêm". tabIndex=-1 + aria-hidden loại nó khỏi
+                      chuỗi tab; role="menu"/"menuitem" và Esc trên menu giữ nguyên. */}
                   <button
                     type="button"
-                    aria-label="Đóng menu"
+                    tabIndex={-1}
+                    aria-hidden="true"
                     className="fixed inset-0 z-40 cursor-default"
                     onClick={() => setShowMoreMenu(false)}
                   />
@@ -1203,12 +1327,7 @@ export default function PetPage() {
         <div className="w-full flex-1 min-h-0">
           <PixelFarmCanvas
             userCoins={userCoins}
-            onUpdateCoins={(c) => {
-              setUserCoins(c);
-              const s = getStoredUser();
-              if (s) setStoredUser({ ...s, coins: c });
-              window.dispatchEvent(new Event('auth-state-changed'));
-            }}
+            onUpdateCoinsDelta={(d) => applyCoinDelta(d)}
             onUpdatePetExp={(exp) => {
               setPetData((prev: any) =>
                 prev
@@ -1235,12 +1354,7 @@ export default function PetPage() {
             playerPetName={petData?.pet_name || currentPetMeta.name}
             playerLevel={petData?.level || 1}
             userCoins={userCoins}
-            onUpdateCoins={(c) => {
-              setUserCoins(c);
-              const s = getStoredUser();
-              if (s) setStoredUser({ ...s, coins: c });
-              window.dispatchEvent(new Event('auth-state-changed'));
-            }}
+            onUpdateCoinsDelta={(d) => applyCoinDelta(d)}
             onUpdatePetExp={(exp) => {
               setPetData((prev: any) =>
                 prev
@@ -1269,12 +1383,7 @@ export default function PetPage() {
             playerPetName={petData?.pet_name || currentPetMeta.name}
             playerLevel={petData?.level || 1}
             userCoins={userCoins}
-            onUpdateCoins={(c) => {
-              setUserCoins(c);
-              const s = getStoredUser();
-              if (s) setStoredUser({ ...s, coins: c });
-              window.dispatchEvent(new Event('auth-state-changed'));
-            }}
+            onUpdateCoinsDelta={(d) => applyCoinDelta(d)}
             onUpdatePetExp={(exp) => {
               setPetData((prev: any) =>
                 prev
@@ -1306,12 +1415,7 @@ export default function PetPage() {
             playerSpecies={petData?.pet_type || 'owl'}
             playerPetName={petData?.pet_name || currentPetMeta.name}
             userCoins={userCoins}
-            onUpdateCoins={(c) => {
-              setUserCoins(c);
-              const s = getStoredUser();
-              if (s) setStoredUser({ ...s, coins: c });
-              window.dispatchEvent(new Event('auth-state-changed'));
-            }}
+            onUpdateCoinsDelta={(d) => applyCoinDelta(d)}
             onSendSpeech={(text) => setPetSpeech(text)}
             initialFriends={acceptedFriends}
             initialIncomingRequests={incomingFriendRequests}
@@ -1336,13 +1440,23 @@ export default function PetPage() {
       {/* ================= MODAL 1: SHOP & FITTING ROOM (Phòng Thử Đồ & Mua Sắm) ================= */}
       {showShopModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/70 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl sm:rounded-3xl w-[96vw] max-w-4xl h-[92vh] sm:h-[84vh] max-h-[660px] min-h-[420px] flex flex-col shadow-2xl border-2 sm:border-4 border-emerald-500 overflow-hidden dark:bg-slate-900">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pet-shop-modal-title"
+            ref={shopModalRef}
+            tabIndex={-1}
+            className="bg-white rounded-2xl sm:rounded-3xl w-[96vw] max-w-4xl h-[92vh] sm:h-[84vh] max-h-[660px] min-h-[420px] flex flex-col shadow-2xl border-2 sm:border-4 border-emerald-500 overflow-hidden dark:bg-slate-900"
+          >
             {/* Modal Header */}
             <div className="px-3 sm:px-5 py-2.5 sm:py-3.5 bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <span className="text-xl sm:text-2xl shrink-0">🛍️</span>
                 <div className="min-w-0">
-                  <h3 className="text-sm sm:text-base md:text-lg font-black leading-tight truncate">
+                  <h3
+                    id="pet-shop-modal-title"
+                    className="text-sm sm:text-base md:text-lg font-black leading-tight truncate"
+                  >
                     Cửa Hàng & Phòng Thử Đồ
                   </h3>
                   <p className="text-[12px] text-emerald-100 font-medium truncate hidden xs:block">
@@ -1361,6 +1475,7 @@ export default function PetPage() {
                   onClick={() => setShowShopModal(false)}
                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer ml-1"
                   title="Đóng cửa sổ"
+                  aria-label="Đóng cửa hàng và phòng thử đồ"
                 >
                   <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
@@ -1610,9 +1725,26 @@ export default function PetPage() {
                         petData?.equipped_accessory === item.id;
 
                       return (
+                        // a11y (audit 2026-10-09): ô thử đồ trước đây là
+                        // <div onClick> — không tab tới được. Bên trong ô có
+                        // nút hành động (Mua / Cho Ăn / Thử) nên không thể bọc
+                        // bằng <button>; thêm role/tabIndex/onKeyDown và chỉ xử
+                        // lý phím khi sự kiện phát ra từ chính ô (tránh Enter
+                        // trên nút con bị lật đồ thành 2 lần).
                         <div
                           key={item.id}
                           onClick={() => handleTogglePreview(item)}
+                          onKeyDown={(e) => {
+                            if (e.target !== e.currentTarget) return;
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleTogglePreview(item);
+                            }
+                          }}
+                          role="button"
+                          tabIndex={0}
+                          aria-pressed={isPreviewing}
+                          aria-label={`Xem thử ${item.name}`}
                           className={`p-2.5 sm:p-3 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between space-y-2 relative ${
                             isPreviewing
                               ? 'border-amber-400 bg-amber-50/70 shadow-md ring-2 ring-amber-300'
@@ -1822,18 +1954,31 @@ export default function PetPage() {
       {/* ================= MODAL 2: FEED TREATS (Thực Đơn Cho Ăn) ================= */}
       {showFeedModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl border-4 border-amber-400 space-y-3 sm:space-y-4 max-h-[88vh] flex flex-col dark:bg-slate-900">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pet-feed-modal-title"
+            ref={feedModalRef}
+            tabIndex={-1}
+            className="bg-white rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl border-4 border-amber-400 space-y-3 sm:space-y-4 max-h-[88vh] flex flex-col dark:bg-slate-900"
+          >
             <div className="flex items-center justify-between border-b pb-3 shrink-0">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🍜</span>
                 <div>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight dark:text-slate-100">Thực Đơn Thần Kỳ Cho Thú Cưng</h3>
+                  <h3
+                    id="pet-feed-modal-title"
+                    className="text-base sm:text-lg font-black text-slate-900 leading-tight dark:text-slate-100"
+                  >
+                    Thực Đơn Thần Kỳ Cho Thú Cưng
+                  </h3>
                   <p className="text-[12px] text-slate-500 font-medium dark:text-slate-400">Bổ sung năng lượng, chỉ số Hạnh phúc và kinh nghiệm EXP!</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowFeedModal(false)}
                 className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer dark:bg-slate-800 hover:dark:bg-slate-700 dark:text-slate-400"
+                aria-label="Đóng thực đơn cho ăn"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1898,19 +2043,32 @@ export default function PetPage() {
       {/* ================= MODAL 3: HABITAT SWITCHER (Đổi Cảnh Quan Sân Vườn) ================= */}
       {showHabitatModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border-4 border-emerald-500 overflow-hidden dark:bg-slate-900">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pet-habitat-modal-title"
+            ref={habitatModalRef}
+            tabIndex={-1}
+            className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border-4 border-emerald-500 overflow-hidden dark:bg-slate-900"
+          >
             {/* Modal Header */}
             <div className="px-5 py-3.5 bg-gradient-to-r from-emerald-700 via-teal-700 to-indigo-700 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
                 <span className="text-2xl">🏡</span>
                 <div>
-                  <h3 className="text-base sm:text-lg font-black leading-tight">Chọn Cảnh Quan Thế Giới Thú Cưng</h3>
+                  <h3
+                    id="pet-habitat-modal-title"
+                    className="text-base sm:text-lg font-black leading-tight"
+                  >
+                    Chọn Cảnh Quan Thế Giới Thú Cưng
+                  </h3>
                   <p className="text-[12px] text-emerald-100 font-medium">Bao gồm 5 Cảnh quan Anime huyền thoại & 4 Cảnh quan kinh điển!</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowHabitatModal(false)}
                 className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer"
+                aria-label="Đóng bảng chọn cảnh quan"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2101,19 +2259,32 @@ export default function PetPage() {
       {/* ================= MODAL 4: SWITCH MASCOT SPECIES (Đổi Thú Cưng) ================= */}
       {showSwitchModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border-4 border-emerald-500 overflow-hidden dark:bg-slate-900">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pet-switch-modal-title"
+            ref={switchModalRef}
+            tabIndex={-1}
+            className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border-4 border-emerald-500 overflow-hidden dark:bg-slate-900"
+          >
             {/* Modal Header */}
             <div className="px-4 sm:px-6 py-3.5 bg-gradient-to-r from-emerald-700 via-teal-700 to-indigo-700 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
                 <span className="text-2xl">🐾</span>
                 <div>
-                  <h3 className="text-base sm:text-lg font-black leading-tight">Chọn Bạn Đồng Hành Nuôi Dưỡng</h3>
+                  <h3
+                    id="pet-switch-modal-title"
+                    className="text-base sm:text-lg font-black leading-tight"
+                  >
+                    Chọn Bạn Đồng Hành Nuôi Dưỡng
+                  </h3>
                   <p className="text-[12px] text-emerald-100 font-medium">Bao gồm 27 siêu thú cưng Anime, Manga & Linh vật tri thức đỉnh cao!</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowSwitchModal(false)}
                 className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer"
+                aria-label="Đóng bảng chọn thú cưng"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2303,11 +2474,21 @@ export default function PetPage() {
       {/* ================= MODAL: SPECIAL PET VIP ACCESS DIALOG ================= */}
       {specialPetModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border-4 border-amber-400 text-center space-y-4 dark:bg-slate-900">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pet-special-modal-title"
+            ref={specialModalRef}
+            tabIndex={-1}
+            className="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border-4 border-amber-400 text-center space-y-4 dark:bg-slate-900"
+          >
             <div className="w-16 h-16 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center mx-auto text-3xl shadow-inner dark:bg-amber-950 dark:border-amber-800">
               {specialPetModal.action === 'verify_email' ? '✉️' : '🔒'}
             </div>
-            <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight dark:text-slate-100">
+            <h3
+              id="pet-special-modal-title"
+              className="text-base sm:text-lg font-black text-slate-900 tracking-tight dark:text-slate-100"
+            >
               {specialPetModal.title}
             </h3>
             <div className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed whitespace-pre-line bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-left dark:text-slate-400 dark:bg-slate-900 dark:border-white/10">

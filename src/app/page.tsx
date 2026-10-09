@@ -69,12 +69,44 @@ export default function HomePage() {
         setActiveTargetCode(user.target_exam);
       }
 
+      // READ-YOUR-WRITES cho coins (đo 2026-10-09, cùng lý do với fix ở
+      // src/app/pet/page.tsx ~288-298): localStorage được setStoredUser() ghi
+      // bằng số MỚI NHẤT từ response của POST (đánh dấu mốc, mua/cho pet),
+      // còn GET /api/progress và GET /api/pet đọc DB — trên Vercel
+      // multi-instance (SQLite file, sync lag ~28s) chúng có thể trả số TRƯỚC
+      // giao dịch. loadAll() chạy lại mỗi lần 'auth-state-changed' (mỗi lần
+      // mua/cho pet đều dispatch) nên ghi đè bằng GET làm ô "Coins" ở widget
+      // thú cưng LÙI về số cũ rồi action sau lại nhảy lên — đúng triệu chứng
+      // "coin cập nhật không đều". ⇒ coi localStorage là nguồn chuẩn, chỉ nhận
+      // coins từ server khi localStorage CHƯA có (đăng nhập lần đầu trên máy
+      // mới, object localStorage đời cũ thiếu field coins).
+      const storedCoins = typeof user.coins === 'number' ? user.coins : undefined;
+      // Set ngay từ localStorage để không nháy số 150 mặc định rồi mới nhảy sang
+      // số thật khi GET về (nếu không, người dùng thấy coin nhảy một cách vô lý).
+      if (storedCoins !== undefined) setUserCoins(storedCoins);
+
+      // Lưu ý (đo 2026-10-09): khi khách (chưa đăng nhập) user.id là fallback
+      // 'user_demo_default' (getStoredUser tự tạo) ⇒ 2 GET này không đăng
+      // nhập được và tự ghi log 'khách'. Giữ nguyên hành vi: đó là nguồn dữ liệu
+      // demo cho widget thú cưng; chỉ ghi chú để không tưởng là đã xác thực.
       fetch(`/api/progress?userId=${user.id}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.user) {
-            setCurrentUser(data.user);
-            setUserCoins(data.user.coins ?? 150);
+            // Giữ coins từ localStorage khi có (xem comment READ-YOUR-WRITES
+            // ở trên) — kể cả khi ghi vào currentUser, vì handleSelectTarget
+            // spread currentUser này rồi ghi lại xuống localStorage: nếu để
+            // coins stale lọt vào đó thì sẽ ghi đè luôn số mới ở lần bấm kế.
+            const mergedUser =
+              storedCoins !== undefined
+                ? { ...data.user, coins: storedCoins }
+                : data.user;
+            setCurrentUser(mergedUser);
+            if (storedCoins !== undefined) {
+              setUserCoins(storedCoins);
+            } else if (typeof data.user.coins === 'number') {
+              setUserCoins(data.user.coins);
+            }
             if (data.user.target_exam && LEARNING_PATHS[data.user.target_exam]) {
               setActiveTargetCode(data.user.target_exam);
             }
@@ -104,7 +136,9 @@ export default function HomePage() {
         .then((data) => {
           if (data.pet) {
             setUserPet(data.pet);
-            if (data.userCoins !== undefined) {
+            // Cùng READ-YOUR-WRITES: GET /api/pet cũng đọc DB nên có thể trả
+            // coins cũ hơn số trong localStorage (xem comment ở trên).
+            if (storedCoins === undefined && data.userCoins !== undefined) {
               setUserCoins(data.userCoins);
             }
           }
@@ -127,10 +161,22 @@ export default function HomePage() {
     if (currentUser?.id) {
       const updatedUser = { ...currentUser, target_exam: targetCode };
       setCurrentUser(updatedUser);
-      // Save to localStorage WITHOUT dispatching auth-state-changed to avoid
-      // loadAll() race condition that overwrites tab state with stale DB value
+      // Ghi xuống localStorage mà KHÔNG dispatch 'auth-state-changed'.
+      //
+      // Vì sao không gọi setStoredUser() (auth.ts): nó dispatch sự kiện đó, kéo
+      // loadAll() chạy lại ngay, và GET /api/progress có thể trả target_exam CŨ
+      // (POST /api/user/target bên dưới còn đang bay, hoặc instance DB stale)
+      // ⇒ tab bị reset về mục tiêu trước đó. Giữ đúng ý đồ của bản gốc.
+      //
+      // Vì sao bản gốc vẫn hỏng: nó ghi key 'meowlish_user', trong khi
+      // src/lib/auth.ts đọc/ghi 'english_for_me_user' (STORAGE_KEY). Không nơi
+      // nào trong repo đọc 'meowlish_user' ⇒ chọn TOEIC/IELTS/VSTEP mất trắng
+      // khi reload (đo 2026-10-09). Ở đây ghi thẳng đúng key của auth.ts.
+      // Nếu sau này STORAGE_KEY đổi, sửa cả hai chỗ.
       try {
-        localStorage.setItem('meowlish_user', JSON.stringify(updatedUser));
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('english_for_me_user', JSON.stringify(updatedUser));
+        }
       } catch {}
 
       fetch('/api/user/target', {

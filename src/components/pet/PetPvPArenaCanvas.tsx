@@ -26,7 +26,8 @@ export interface PetPvPArenaCanvasProps {
   playerPetName: string;
   playerLevel?: number;
   userCoins: number;
-  onUpdateCoins: (newCoins: number) => void;
+  /** Nhận DELTA (dương = cộng, âm = trừ) chứ không nhận số dư tuyệt đối. */
+  onUpdateCoinsDelta: (delta: number) => void;
   onUpdatePetExp?: (addedExp: number) => void;
   userId?: string;
   userDisplayName?: string;
@@ -50,7 +51,7 @@ export default function PetPvPArenaCanvas({
   playerPetName = 'Lexi Trí Tuệ',
   playerLevel = 1,
   userCoins,
-  onUpdateCoins,
+  onUpdateCoinsDelta,
   onUpdatePetExp,
   userId,
   userDisplayName = 'Bạn',
@@ -109,6 +110,26 @@ export default function PetPvPArenaCanvas({
   const floatingTextsRef = useRef<CombatFloatingText[]>([]);
   const projectileFxRef = useRef<{ active: boolean; x: number; y: number; targetX: number; targetY: number; color: string } | null>(null);
 
+  // Ref đồng bộ số dư mới nhất: handler bất đồng bộ (await fetch, setTimeout)
+  // không được đọc `userCoins` của lần render đã đóng lại.
+  const userCoinsRef = useRef<number>(userCoins);
+  useEffect(() => {
+    userCoinsRef.current = userCoins;
+  });
+
+  /** Cộng/trừ delta và cập nhật ref ngay — giữ ref khớp parent giữa 2 render. */
+  const applyCoinDelta = (delta: number) => {
+    userCoinsRef.current += delta;
+    onUpdateCoinsDelta(delta);
+  };
+
+  /** Server trả số dư TUYỆT ĐỐI → đổi thành delta so với số dư đang giữ. */
+  const syncCoinsFromServer = (serverCoins: number) => {
+    const delta = serverCoins - userCoinsRef.current;
+    userCoinsRef.current = serverCoins;
+    onUpdateCoinsDelta(delta);
+  };
+
   const addCombatText = (text: string, x: number, y: number, color = '#facc15', size = 18) => {
     floatingTextsRef.current.push({
       id: `ct-${Date.now()}-${Math.random()}`,
@@ -121,20 +142,15 @@ export default function PetPvPArenaCanvas({
     });
   };
 
+  // Rung màn hình chạy trong chính vòng rAF (đo 2026-10-09: trước đây tạo
+  // setInterval 10×25ms trong handler, không biết unmount nên vẫn sửa
+  // screenShakeOffset sau khi component chết). 10 frame @60fps ≈ 166ms — gần
+  // bằng 250ms cũ nhưng tự dừng theo vòng vẽ.
+  const screenShakeRef = useRef<{ intensity: number; framesLeft: number }>({ intensity: 0, framesLeft: 0 });
+
   const triggerScreenShake = (intensity = 8) => {
-    let shakes = 10;
-    const interval = setInterval(() => {
-      if (shakes <= 0) {
-        screenShakeOffset.current = { x: 0, y: 0 };
-        clearInterval(interval);
-      } else {
-        screenShakeOffset.current = {
-          x: (Math.random() - 0.5) * intensity,
-          y: (Math.random() - 0.5) * intensity,
-        };
-        shakes--;
-      }
-    }, 25);
+    screenShakeRef.current.intensity = intensity;
+    screenShakeRef.current.framesLeft = 10;
   };
 
   // Filter PVP rooms
@@ -200,7 +216,7 @@ export default function PetPvPArenaCanvas({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Lỗi khi tạo phòng');
 
-      if (data.userCoins !== undefined) onUpdateCoins(data.userCoins);
+      if (typeof data.userCoins === 'number') syncCoinsFromServer(data.userCoins);
       setCurrentRoom(data.room);
       setShowCreateModal(false);
       setGameState('waiting_guest');
@@ -241,7 +257,7 @@ export default function PetPvPArenaCanvas({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Lỗi khi vào phòng');
 
-      if (data.userCoins !== undefined) onUpdateCoins(data.userCoins);
+      if (typeof data.userCoins === 'number') syncCoinsFromServer(data.userCoins);
 
       // Real host opponent
       const hostOpponent: OpponentData = {
@@ -280,7 +296,7 @@ export default function PetPvPArenaCanvas({
         }),
       });
       const data = await res.json();
-      if (data.userCoins !== undefined) onUpdateCoins(data.userCoins);
+      if (typeof data.userCoins === 'number') syncCoinsFromServer(data.userCoins);
       setCurrentRoom(null);
       setGameState('lobby');
       sound.playClick();
@@ -317,7 +333,7 @@ export default function PetPvPArenaCanvas({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      if (data.userCoins !== undefined) onUpdateCoins(data.userCoins);
+      if (typeof data.userCoins === 'number') syncCoinsFromServer(data.userCoins);
 
       // Setup opponent from friend
       const friendOpponent: OpponentData = {
@@ -538,7 +554,9 @@ export default function PetPvPArenaCanvas({
 
     const prizeCoins = currentRoom ? (currentRoom.bet_coins || 100) * 2 : 150 + playerLevel * 30;
     const rewardExp = 50 + playerLevel * 10;
-    onUpdateCoins(userCoins + prizeCoins);
+    // Delta: handleVictory chạy trong setTimeout sau khi thắng, `userCoins` trong
+    // closure là ảnh chụp cũ → ghi đè sẽ nuốt số xu kiếm được trong trận.
+    applyCoinDelta(prizeCoins);
     if (onUpdatePetExp) onUpdatePetExp(rewardExp);
 
     if (currentRoom?.id && userId) {
@@ -610,6 +628,17 @@ export default function PetPvPArenaCanvas({
         if (p.x >= p.targetX) {
           p.active = false;
         }
+      }
+
+      // Rung màn hình: đếm frame trong chính vòng rAF nên tự dừng khi unmount
+      if (screenShakeRef.current.framesLeft > 0) {
+        screenShakeRef.current.framesLeft--;
+        screenShakeOffset.current = {
+          x: (Math.random() - 0.5) * screenShakeRef.current.intensity,
+          y: (Math.random() - 0.5) * screenShakeRef.current.intensity,
+        };
+      } else if (screenShakeOffset.current.x !== 0 || screenShakeOffset.current.y !== 0) {
+        screenShakeOffset.current = { x: 0, y: 0 };
       }
 
       // Coordinate transform

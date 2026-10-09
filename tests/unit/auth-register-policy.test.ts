@@ -99,7 +99,7 @@ describe('validateRegistrationPassword — chính sách mật khẩu đăng ký 
 });
 
 describe('POST /api/auth catch-all không trả err.message cho client (L2)', () => {
-  it('body JSON không hợp lệ → 500 với thông báo CHUNG, không lộ SyntaxError', async () => {
+  it('body JSON không hợp lệ → 400 với thông báo CHUNG, không lộ SyntaxError', async () => {
     const { POST } = await import('@/app/api/auth/route');
     const request = new Request('http://localhost:3000/api/auth', {
       method: 'POST',
@@ -108,10 +108,13 @@ describe('POST /api/auth catch-all không trả err.message cho client (L2)', ()
     });
 
     const res = await POST(request);
-    expect(res.status).toBe(500);
+    // Trước fix 2026-10-09: body hỏng ném SyntaxError rơi vào catch-all → 500.
+    // Giờ có guard riêng ngay đầu handler → 400 đúng ngữ nghĩa client-error,
+    // và thông điệp CHUNG không chứa chi tiết lỗi parse.
+    expect(res.status).toBe(400);
 
     const data = await res.json();
-    expect(data.error).toBe(GENERIC_ERROR);
+    expect(data.error).toBe('Dữ liệu gửi lên không hợp lệ.');
     // Không chứa message gốc của lỗi nội bộ (SyntaxError/chi tiết driver)
     expect(data.error).not.toContain('Unexpected');
     expect(data.error).not.toContain('JSON');

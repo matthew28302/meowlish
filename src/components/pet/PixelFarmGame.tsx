@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import PixelPetSprite, { PetAnimationState } from './PixelPetSprite';
 import {
   DutchWindmillSVG,
@@ -133,23 +133,24 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
   const [petPos, setPetPos] = useState({ x: 50, y: 55 });
   const [facing, setFacing] = useState<'left' | 'right'>('right');
   const [dayTimeMode, setDayTimeMode] = useState<'day' | 'sunset' | 'night'>('day');
-  const [animState, setAnimState] = useState<PetAnimationState>(() => {
-    if (typeof window === 'undefined') return 'idle';
-    try {
-      return localStorage.getItem('meowlish_pet_is_sleeping') === 'true' ? 'sleep' : 'idle';
-    } catch {
-      return 'idle';
-    }
-  });
+  // KHÔNG đọc localStorage trong useState initializer (đo 2026-10-09): `typeof
+  // window === 'undefined'` chỉ chặn được SERVER, còn client render lần đầu để
+  // hydrate vẫn đọc localStorage → khác HTML server → hydration mismatch + pet
+  // nhảy tư thế lúc load. src/app/pet/page.tsx:83-86 đã ghi rõ quy tắc này.
+  // Sửa: khởi tạo giá trị mặc định, hydrate ở useEffect bên dưới.
+  const [animState, setAnimState] = useState<PetAnimationState>('idle');
   const [isSpeedFast, setIsSpeedFast] = useState(false);
-  const [isSleeping, setIsSleeping] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
+  const [isSleeping, setIsSleeping] = useState<boolean>(false);
+
+  // Hydrate trạng thái ngủ SAU khi đã render khớp server.
+  useEffect(() => {
     try {
-      return localStorage.getItem('meowlish_pet_is_sleeping') === 'true';
-    } catch {
-      return false;
-    }
-  });
+      if (localStorage.getItem('meowlish_pet_is_sleeping') === 'true') {
+        setIsSleeping(true);
+        setAnimState('sleep');
+      }
+    } catch {}
+  }, []);
 
   // Click target marker
   const [targetMarker, setTargetMarker] = useState<{ x: number; y: number } | null>(null);
@@ -292,14 +293,17 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
   useEffect(() => {
     petPosRef.current = petPos;
   }, [petPos]);
-  const clearActionTimers = () => {
+  // useCallback + deps rỗng: hai hàm này chỉ chạm refs và setter (đều ổn định)
+  // nên tham chiếu không đổi giữa các render → effect [habitat] gọi được chúng
+  // mà không cần eslint-disable.
+  const clearActionTimers = useCallback(() => {
     if (moveTimerRef.current) {
       clearTimeout(moveTimerRef.current);
       moveTimerRef.current = null;
     }
     actionTimersRef.current.forEach((id) => clearTimeout(id));
     actionTimersRef.current = [];
-  };
+  }, []);
   const later = (fn: () => void, ms: number) => {
     const g = actionGenRef.current;
     const id = window.setTimeout(() => {
@@ -310,7 +314,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     actionTimersRef.current.push(id);
     return id;
   };
-  const resetTransientStates = () => {
+  const resetTransientStates = useCallback(() => {
     setIsSwinging(false);
     setIsSliding(false);
     setIsRainbowWalking(false);
@@ -328,7 +332,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     setPondSplashId(0);
     setBloomId(0);
     setWindGustId(0);
-  };
+  }, []);
   const beginNewAction = () => {
     actionGenRef.current += 1;
     clearActionTimers();
@@ -344,8 +348,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     setFx([]);
     setObjPulse(null);
     setObjHit(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [habitat]);
+  }, [habitat, clearActionTimers, resetTransientStates]);
 
   // y-sorting-depth: thứ tự vẽ theo CHÂN vật (feet Y), tiebreak ổn định theo DOM.
   // Band 5..26 (dưới pet z-40) để pet luôn đọc được khi tương tác; phối cảnh bù bằng depth-scale.
@@ -642,7 +645,10 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       clearInterval(roamingInterval);
       if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
     };
-  }, [habitat, species, isSleeping]);
+    // `isSpeedFast` BẮT BUỘC phải ở đây (đo 2026-10-09): walkTo() có tham số
+    // mặc định `isFast = isSpeedFast` đóng theo render lần chạy của effect, nên
+    // bật tốc độ không có tác dụng với đi bộ tự trị cho tới khi đổi habitat/species.
+  }, [habitat, species, isSleeping, isSpeedFast]);
 
   // Smooth path movement with zone awareness (gen-aware: hủy khi action mới đè lên)
   const walkTo = (targetX: number, targetY: number, onArrival?: () => void, isFast = isSpeedFast) => {

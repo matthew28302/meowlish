@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import { logError } from '@/lib/systemLogs';
 import logger from '@/lib/logger';
 
 // POST: Update target_exam for user
@@ -15,8 +16,9 @@ import logger from '@/lib/logger';
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
+  // Khai báo NGOÀI try: khối catch cũng cần clientIp để ghi logError.
+  const clientIp = getClientIp(request);
   try {
-    const clientIp = getClientIp(request);
     const rateCheck = checkRateLimit({
       key: `user_target:${clientIp}`,
       maxAttempts: 30,
@@ -26,8 +28,15 @@ export async function POST(request: Request) {
       return rateLimitExceededResponse('Quá nhiều yêu cầu thay đổi mục tiêu. Vui lòng thử lại sau ít phút!', rateCheck.resetInSeconds);
     }
 
-    const body = await request.json();
-    const { userId: rawUserId, targetExam } = body;
+    // JSON hỏng (body rỗng / cắt ngang) là lỗi CLIENT, không phải lỗi hệ thống:
+    // không bắt thì `request.json()` ném SyntaxError → 500 kèm chi tiết driver.
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
+    const { userId: rawUserId, targetExam } = body ?? {};
 
     const auth = getAuthenticatedUser(request, rawUserId);
     if (auth.status === 'disabled') {
@@ -42,7 +51,13 @@ export async function POST(request: Request) {
 
     const userId = auth.userId;
 
-    const cleanExam = (targetExam || '').trim().toLowerCase();
+    // `targetExam` là dữ liệu client TÙY Ý: có thể là number/object/boolean.
+    // `.trim()` trên giá trị đó ném TypeError → 500. Ép sang string ở biên,
+    // và từ chối (400) nếu không phải chuỗi thay vì âm thầm chấp nhận.
+    if (typeof targetExam !== 'string') {
+      return NextResponse.json({ error: 'Mục tiêu học tập không hợp lệ.' }, { status: 400 });
+    }
+    const cleanExam = targetExam.trim().toLowerCase();
     const validTargets = ['toeic', 'vstep', 'ielts', 'toefl', 'it_work', 'daily_comm', 'it_dev', 'toeic_speaking', 'ielts_general', 'it_scrum'];
     if (!validTargets.includes(cleanExam)) {
       return NextResponse.json({ error: 'Mục tiêu học tập không hợp lệ.' }, { status: 400 });
@@ -62,8 +77,16 @@ export async function POST(request: Request) {
       targetExam: cleanExam,
     });
   } catch (err: unknown) {
+    // KHÔNG trả err.message thô: better-sqlite3 lộ tên bảng/cột, SyntaxError
+    // của request.json() là chi tiết nội bộ. Chi tiết chỉ nằm trong log.
     logger.error('Error updating target_exam', { error: err });
-    const message = err instanceof Error ? err.message : 'Database error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    logError({
+      endpoint: 'POST /api/user/target',
+      error_message: err instanceof Error ? err.message : String(err),
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: clientIp,
+      severity: 'error',
+    });
+    return NextResponse.json({ error: 'Có lỗi xảy ra. Vui lòng thử lại.' }, { status: 500 });
   }
 }

@@ -79,7 +79,8 @@ interface AnimalState {
 
 export interface PixelFarmCanvasProps {
   userCoins: number;
-  onUpdateCoins: (newCoins: number) => void;
+  /** Nhận DELTA (dương = cộng, âm = trừ) chứ không nhận số dư tuyệt đối. */
+  onUpdateCoinsDelta: (delta: number) => void;
   onUpdatePetExp?: (exp: number) => void;
   userId?: string;
   playerSpecies?: string;
@@ -88,7 +89,7 @@ export interface PixelFarmCanvasProps {
 
 export default function PixelFarmCanvas({
   userCoins,
-  onUpdateCoins,
+  onUpdateCoinsDelta,
   onUpdatePetExp,
   userId,
   playerSpecies = 'owl',
@@ -141,6 +142,26 @@ export default function PixelFarmCanvas({
   const isMountedRef = useRef(true);
   // Chống dữ liệu cũ ghi đè dữ liệu mới (poll GET về trễ sau khi POST đã ghi)
   const lastServerTimeRef = useRef<number>(0);
+
+  // Ref đồng bộ số dư mới nhất: handler bất đồng bộ (.then của fetch) không
+  // được đọc `userCoins` của lần render đã đóng lại.
+  const userCoinsRef = useRef<number>(userCoins);
+  useEffect(() => {
+    userCoinsRef.current = userCoins;
+  });
+
+  /** Cộng/trừ delta và cập nhật ref ngay — giữ ref khớp parent giữa 2 render. */
+  const applyCoinDelta = (delta: number) => {
+    userCoinsRef.current += delta;
+    onUpdateCoinsDelta(delta);
+  };
+
+  /** Server trả số dư TUYỆT ĐỐI → đổi thành delta so với số dư đang giữ. */
+  const syncCoinsFromServer = (serverCoins: number) => {
+    const delta = serverCoins - userCoinsRef.current;
+    userCoinsRef.current = serverCoins;
+    onUpdateCoinsDelta(delta);
+  };
 
   const catalog = (type: 'chicken' | 'cow') =>
     LIVESTOCK_CATALOG[type] || LIVESTOCK_CATALOG.chicken;
@@ -289,8 +310,9 @@ export default function PixelFarmCanvas({
       return;
     }
 
-    const coinsBefore = userCoins;
-    onUpdateCoins(Math.max(0, userCoins - cost));
+    // Delta âm: parent cộng dồn nên số xu kiếm được trong lúc request chạy không
+    // bị ghi đè (bug cũ: truyền `userCoins - cost` chụp lúc render).
+    applyCoinDelta(-cost);
     sound.playClick();
 
     const foodId = `food-${Date.now()}-${Math.random()}`;
@@ -326,14 +348,14 @@ export default function PixelFarmCanvas({
         if (!isMountedRef.current) return;
         if (data?.livestock) applyLivestock(data.livestock);
         if (data?.error) {
-          // Server từ chối (đang đếm ngược / chưa đủ xu) → hoàn tiền & gỡ thức ăn
-          onUpdateCoins(coinsBefore);
+          // Server từ chối (đang đếm ngược / chưa đủ xu) → hoàn đúng số đã trừ & gỡ thức ăn
+          applyCoinDelta(cost);
           foodsRef.current = foodsRef.current.filter((f) => f.id !== foodId);
           setBannerMsg(`⛔ ${data.error}`);
           sound.playError();
           return;
         }
-        if (typeof data?.userCoins === 'number') onUpdateCoins(data.userCoins);
+        if (typeof data?.userCoins === 'number') syncCoinsFromServer(data.userCoins);
         if (data?.message) setBannerMsg(data.message);
       })
       .catch(() => {
@@ -348,9 +370,11 @@ export default function PixelFarmCanvas({
   const collectProduce = (item: FarmProduce) => {
     const animalType: 'chicken' | 'cow' = item.type === 'egg' ? 'chicken' : 'cow';
 
-    const celebrate = (coins: number, exp: number) => {
+    // `coinsDelta` = phần CỘNG (không phải số dư tuyệt đối) để không ghi đè số xu
+    // kiếm được trong lúc request harvest đang bay.
+    const celebrate = (coinsDelta: number, exp: number) => {
       sound.playCelebration();
-      onUpdateCoins(coins);
+      applyCoinDelta(coinsDelta);
       if (onUpdatePetExp) onUpdatePetExp(exp);
 
       if (item.type === 'egg') setHarvestedEggs((prev) => prev + 1);
@@ -363,7 +387,7 @@ export default function PixelFarmCanvas({
     };
 
     if (!userId) {
-      celebrate(userCoins + item.rewardCoins, item.rewardExp);
+      celebrate(item.rewardCoins, item.rewardExp);
       return;
     }
 
@@ -386,7 +410,9 @@ export default function PixelFarmCanvas({
           setBannerMsg(`⛔ ${data.error}`);
           return;
         }
-        celebrate(typeof data?.userCoins === 'number' ? data.userCoins : userCoins, item.rewardExp);
+        // Server có số dư mới → đồng bộ bằng delta; không có thì cộng đúng phần thưởng
+        if (typeof data?.userCoins === 'number') syncCoinsFromServer(data.userCoins);
+        celebrate(0, item.rewardExp);
         if (data?.message) setBannerMsg(data.message);
       })
       .catch(() => {
@@ -414,7 +440,7 @@ export default function PixelFarmCanvas({
         else setHarvestedMilk((prev) => prev + 1);
         addFloatText(`+${item.rewardCoins}🪙`, item.x, item.y - 20, '#facc15');
       });
-      onUpdateCoins(userCoins + totalCoins);
+      applyCoinDelta(totalCoins);
       if (onUpdatePetExp) onUpdatePetExp(totalExp);
       producesRef.current = [];
       sound.playCelebration();
@@ -457,7 +483,7 @@ export default function PixelFarmCanvas({
         });
         producesRef.current = producesRef.current.filter((p) => collected.indexOf(p) === -1);
 
-        if (typeof data?.userCoins === 'number') onUpdateCoins(data.userCoins);
+        if (typeof data?.userCoins === 'number') syncCoinsFromServer(data.userCoins);
         if (onUpdatePetExp && totalExp > 0) onUpdatePetExp(totalExp);
 
         sound.playCelebration();
@@ -1118,12 +1144,20 @@ export default function PixelFarmCanvas({
     return () => {
       cancelAnimationFrame(animId);
     };
-  }, [userCoins, userId]);
+  // KHÔNG để `userCoins` vào deps (đo 2026-10-09): mỗi lần đổi số dư là cả
+  // canvas 60fps bị dựng lại (set canvas.width/height → xoá framebuffer, nháy
+  // hình). Vòng lặp không đọc coins — chỉ đọc qua userCoinsRef khi cần.
+  }, [userId]);
 
   // ===== Đồng hồ chu kỳ: poll server + tick 1s cho UI =====
-  const [nowTick, setNowTick] = useState<number>(() => Date.now());
+  // useState(0) chứ không phải Date.now() trong initializer: Date.now() khác
+  // nhau giữa server và client → hydration mismatch (render lại toàn bộ).
+  const [nowTick, setNowTick] = useState<number>(0);
   useEffect(() => {
     isMountedRef.current = true;
+    // Nhánh setTimeout(0) cho `now` khớp ngay sau hydrate; set trực tiếp trong
+    // thân effect sẽ gây cascading render (react-hooks/set-state-in-effect).
+    const firstTick = window.setTimeout(() => setNowTick(Date.now()), 0);
     syncLivestock();
     const pollTimer = window.setInterval(() => {
       syncLivestock();
@@ -1133,6 +1167,7 @@ export default function PixelFarmCanvas({
     }, 1000);
     return () => {
       isMountedRef.current = false;
+      window.clearTimeout(firstTick);
       window.clearInterval(pollTimer);
       window.clearInterval(tickTimer);
     };
@@ -1260,11 +1295,13 @@ function LivestockCountdownCard({
   const end = Number(state?.producing_until ?? state?.ready_at ?? 0);
   const start = Number(state?.last_fed_at ?? state?.fed_at ?? 0);
   const cycle = Number(state?.total_seconds) || DEFAULT_CYCLE_SECONDS[type];
-  const remain = status === 'producing' && end > 0 ? Math.max(0, Math.ceil((end - now) / 1000)) : 0;
+  // `now` = 0 nghĩa là đồng hồ client chưa được set (xem useState(0) ở trên) →
+  // không được tính đếm ngược từ mốc 0 (sẽ ra số giờ khổng lồ 1 khung hình).
+  const remain = status === 'producing' && end > 0 && now > 0 ? Math.max(0, Math.ceil((end - now) / 1000)) : 0;
 
   let progress = 0;
   if (status === 'ready') progress = 1;
-  else if (end > start && now >= start) progress = Math.min(1, Math.max(0, (now - start) / (end - start)));
+  else if (end > start && now > 0 && now >= start) progress = Math.min(1, Math.max(0, (now - start) / (end - start)));
 
   const fmt = (total: number) => {
     const s = Math.max(0, Math.floor(total));

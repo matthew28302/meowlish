@@ -188,9 +188,18 @@ export function generateOTP(): string {
 }
 
 // 2. Hash OTP using SHA-256 + salt to ensure OTP is NEVER stored in plain text
+//
+// Salt đọc từ biến môi trường, literal chỉ là fallback DEV. Repo này PUBLIC:
+// literal `meowlish_admin_otp_salt_2026` ai đọc cũng biết ⇒ kẻ tấn công chỉ
+// cần dò 6 chữ số (10^6 khả năng) rồi tự hash ra `otp_hash` để so khớp ngoài
+// DB, không cần đoán được mã đang lưu. Có `ADMIN_OTP_SALT` thì salt riêng và
+// xoay được theo từng môi trường mà không phải sửa code.
+//
+// Đọc env MỖI LẦN GỌI (không cache ở module scope) để bật/tắt biến môi
+// trường không cần deploy lại — cùng quy ước với `checkRateLimitPersistent`.
 export function hashOTP(otp: string): string {
-  const salt = 'meowlish_admin_otp_salt_2026';
-  return crypto.createHash('sha256').update(otp + salt).digest('hex');
+  const SALT = process.env.ADMIN_OTP_SALT || 'meowlish_admin_otp_salt_2026';
+  return crypto.createHash('sha256').update(String(otp ?? '') + SALT).digest('hex');
 }
 
 // 3. Encrypt admin session token using AES-256-GCM (Tamper-proof & encrypted in-transit)
@@ -404,31 +413,37 @@ export function createOtpSession(otp: string): string {
 // 7. Verify OTP from user input
 export function verifyOtpInput(sessionId: string, inputOtp: string): { valid: boolean; error?: string } {
   ensureAdminTables();
-  const session = db.prepare('SELECT * FROM admin_otp_sessions WHERE id = ?').get(sessionId) as any;
+  // sessionId tới từ body JSON: better-sqlite3 chỉ bind được giá trị nguyên
+  // thuỷ, bind object là statement ném lỗi. Ép string tại biên.
+  const sid = String(sessionId);
+  const session = db.prepare('SELECT * FROM admin_otp_sessions WHERE id = ?').get(sid) as any;
 
   if (!session) {
     return { valid: false, error: 'Phiên xác thực không tồn tại hoặc đã hết hạn. Vui lòng yêu cầu lại mã.' };
   }
 
   if (session.expires_at < Date.now()) {
-    db.prepare('DELETE FROM admin_otp_sessions WHERE id = ?').run(sessionId);
+    db.prepare('DELETE FROM admin_otp_sessions WHERE id = ?').run(sid);
     return { valid: false, error: 'Mã xác thực đã hết hạn (quá 5 phút). Vui lòng nhận mã mới.' };
   }
 
   if (session.attempts >= 3) {
-    db.prepare('DELETE FROM admin_otp_sessions WHERE id = ?').run(sessionId);
+    db.prepare('DELETE FROM admin_otp_sessions WHERE id = ?').run(sid);
     return { valid: false, error: 'Đã nhập sai quá 3 lần. Phiên xác thực bị hủy vì lý do an toàn.' };
   }
 
-  const expectedHash = hashOTP(inputOtp.trim());
+  // `inputOtp` tới từ body JSON (có thể là object/số) — ép string TRƯỚC khi
+  // .trim() để không ném TypeError. Giữ .trim() ở đây (hashOTP không trim
+  // bên trong) vì OTP lúc tạo không có khoảng trắng.
+  const expectedHash = hashOTP(String(inputOtp ?? '').trim());
   if (expectedHash !== session.otp_hash) {
     // Increment attempts
-    db.prepare('UPDATE admin_otp_sessions SET attempts = attempts + 1 WHERE id = ?').run(sessionId);
+    db.prepare('UPDATE admin_otp_sessions SET attempts = attempts + 1 WHERE id = ?').run(sid);
     const remaining = 3 - (session.attempts + 1);
     return { valid: false, error: `Mã OTP không chính xác. Bạn còn ${remaining} lần thử.` };
   }
 
   // OTP verified successfully -> Delete session to prevent replay attacks
-  db.prepare('DELETE FROM admin_otp_sessions WHERE id = ?').run(sessionId);
+  db.prepare('DELETE FROM admin_otp_sessions WHERE id = ?').run(sid);
   return { valid: true };
 }

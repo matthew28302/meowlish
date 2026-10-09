@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Mail, Clock, CheckCircle2, AlertCircle, RefreshCw, X, ShieldCheck, Send, ArrowLeft } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
 import { AuthUser, setStoredUser } from '@/lib/auth';
+import { useEscapeToClose } from '@/lib/useEscapeToClose';
 
 interface EmailVerifyModalProps {
   isOpen: boolean;
@@ -31,6 +32,87 @@ export default function EmailVerifyModal({
   const [success, setSuccess] = useState<string | null>(null);
 
   const lastAutoSentTimeRef = React.useRef<number>(0);
+  // Timeout đóng modal sau khi xác thực thành công — phải hủy được, nếu không
+  // sẽ gọi onClose() của parent sau khi component đã unmount.
+  const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // a11y (audit 2026-10-09): modal OTP trước đây không có role=dialog, không
+  // trap focus (Tab thoát ra trang nền) và không đóng được bằng Esc. Dùng lại
+  // đúng mẫu của AuthModal.tsx (~dòng 115-178): bắt phím capture, cycle focus,
+  // trả focus về trigger khi đóng.
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  // Esc đóng modal (trừ lúc đang gọi API để không mất kết quả).
+  // useCallback để useEscapeToClose không đăng ký lại listener mỗi render.
+  const handleEscapeClose = useCallback(() => onCloseRef.current(), []);
+  useEscapeToClose(isOpen, handleEscapeClose, !loading && !resending);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const FOCUSABLE =
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    triggerRef.current = (document.activeElement as HTMLElement) || null;
+
+    const raf = requestAnimationFrame(() => {
+      const container = modalRef.current;
+      if (!container) return;
+      const first = container.querySelector<HTMLElement>(FOCUSABLE) || container;
+      first.focus();
+    });
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const container = modalRef.current;
+      if (!container) return;
+      const focusables = Array.from(
+        container.querySelectorAll<HTMLElement>(FOCUSABLE)
+      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+      if (focusables.length === 0) {
+        e.preventDefault();
+        container.focus();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const current = document.activeElement;
+      const inside = current instanceof Node && container.contains(current);
+      if (e.shiftKey) {
+        if (!inside || current === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (!inside || current === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('keydown', handleKeyDown, true);
+      const prev = triggerRef.current;
+      if (prev && document.contains(prev)) prev.focus();
+      triggerRef.current = null;
+    };
+  }, [isOpen]);
+
+  // Dọn timeout đóng modal khi unmount (tránh gọi onClose của component đã chết).
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // Sync state whenever modal opens: Tự động gửi mã OTP ngay nếu tài khoản đã có email
   useEffect(() => {
@@ -44,10 +126,18 @@ export default function EmailVerifyModal({
       setCustomEmail(user.email);
     }
 
+    // Đã có mã OTP gửi sẵn từ lúc đăng ký (server gửi + trả verifySessionId)
+    // ⇒ KHÔNG gửi lại. Điều kiện này cố tình KHÔNG phụ thuộc user.email: lúc mới
+    // đăng ký, `user` từ localStorage có thể chưa kịp có email ⇒ rơi xuống nhánh
+    // "tự động gửi", gọi request_email_verification ngay lúc session cookie
+    // chưa được trình duyệt lưu ⇒ 401 ⇒ UI báo "Lỗi kết nối máy chủ" dù đăng ký
+    // đã thành công (đo 2026-10-09: request chạy song song register → 401).
     if (initialSessionId) {
       setSessionId(initialSessionId);
       setStep('otp');
-      setSuccess(`Mã xác thực OTP đã được gửi đến email ${user.email || ''}! Vui lòng kiểm tra hộp thư.`);
+      setSuccess(
+        `Mã xác thực OTP đã được gửi đến email ${user.email || 'bạn'}! Vui lòng kiểm tra hộp thư.`
+      );
       return;
     }
 
@@ -164,7 +254,9 @@ export default function EmailVerifyModal({
         setSuccess('Xác thực email thành công! Toàn bộ tính năng đã được kích hoạt.');
         setStoredUser(data.user);
         if (onVerified) onVerified(data.user);
-        setTimeout(() => {
+        if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = setTimeout(() => {
+          closeTimerRef.current = null;
           onClose();
         }, 1500);
       } else {
@@ -181,12 +273,20 @@ export default function EmailVerifyModal({
 
   return (
     <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 border-2 border-emerald-500/40 rounded-3xl p-6 sm:p-7 shadow-2xl relative overflow-hidden">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="email-verify-modal-title"
+        ref={modalRef}
+        tabIndex={-1}
+        className="w-full max-w-md bg-white dark:bg-slate-900 border-2 border-emerald-500/40 rounded-3xl p-6 sm:p-7 shadow-2xl relative overflow-hidden"
+      >
         {/* Floating close button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer"
           title="Đóng"
+          aria-label="Đóng cửa sổ xác thực email"
         >
           <X className="w-5 h-5" />
         </button>
@@ -212,7 +312,10 @@ export default function EmailVerifyModal({
               ✉️
             </div>
             <div>
-              <h2 className="text-xl font-black text-slate-900 dark:text-white">
+              <h2
+                id="email-verify-modal-title"
+                className="text-xl font-black text-slate-900 dark:text-white"
+              >
                 Kích Hoạt Tài Khoản Email
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed px-2">
@@ -285,7 +388,10 @@ export default function EmailVerifyModal({
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-xl shadow-inner mx-auto">
                 🔐
               </div>
-              <h2 className="text-xl font-black text-slate-900 dark:text-white">
+              <h2
+                id="email-verify-modal-title"
+                className="text-xl font-black text-slate-900 dark:text-white"
+              >
                 Nhập Mã Xác Thực OTP
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed px-2 flex items-center justify-center gap-1.5">

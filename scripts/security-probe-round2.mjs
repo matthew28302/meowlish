@@ -1,6 +1,12 @@
 // Probe xác minh lần 2: chạy lại đúng các đòn tấn công đã thành công ở đợt
 // audit trước, trên dev server CỤC BỘ. Chỉ đọc, không in bí mật.
 const BASE = process.env.PROBE_BASE || 'http://localhost:3000';
+// userId nạn nhân, username và mẫu PII lấy từ môi trường — KHÔNG hardcode
+// tên/email người dùng thật vào repo. Chưa cấu hình thì dùng sentinel bất khả
+// trùng + regex rỗng ⇒ các phép so khớp trả false (probe báo "không lọt").
+const VICTIM = process.env.PROBE_VICTIM_USER_ID || '__no_victim_configured__';
+const VICTIM_USERNAME = process.env.PROBE_VICTIM_USERNAME || '__no_victim_configured__';
+const LEAK_RE = new RegExp(process.env.PROBE_LEAK_PATTERN || '(?!x)x');
 const out = [];
 const ck = (label, pass, extra = '') => out.push(`${pass ? 'PASS' : 'FAIL'} ${label}${extra ? ' — ' + extra : ''}`);
 
@@ -26,7 +32,6 @@ const setCookie = login.headers.get('set-cookie') || '';
 const session = withIp({ cookie: setCookie.split(';')[0] });
 ck('demo đăng nhập được', login.ok && session.cookie.startsWith('meowlish_user_session='), `HTTP ${login.status}`);
 
-const VICTIM = 'user_1791298260433_rh7b';
 const noAuth = { cookie: 'meowlish_user_session=forged-token-not-a-real-signature' };
 
 // ---- 1. Chiếm tài khoản qua xác thực email ----
@@ -55,13 +60,13 @@ ck('ghi đè email tài khoản KHÁC bằng phiên hợp lệ bị chặn',
   takeover2.status === 403 || takeover2.status === 401, `HTTP ${takeover2.status}`);
 
 // ---- 2. Enumeration qua GET /api/auth ----
-for (const [label, qs] of [['theo username', 'username=kangyoungha'], ['theo userId', `userId=${VICTIM}`]]) {
+for (const [label, qs] of [['theo username', `username=${VICTIM_USERNAME}`], ['theo userId', `userId=${VICTIM}`]]) {
   const r = await fetch(`${BASE}/api/auth?${qs}`);
   ck(`GET /api/auth ${label} không phiên → chặn`, r.status === 401 || r.status === 400, `HTTP ${r.status}`);
 }
 const otherAcct = await fetch(`${BASE}/api/auth?userId=${VICTIM}`, { headers: session });
 const otherBody = await otherAcct.text();
-const leakProfile = /kangyoungha|강영하|945/.test(otherBody);
+const leakProfile = LEAK_RE.test(otherBody);
 ck('GET /api/auth xem tài khoản khác không lộ email/coins',
   !leakProfile, otherBody.includes('"limited":true') ? 'chỉ trả tối thiểu' : `HTTP ${otherAcct.status}`);
 const ownAcct = await fetch(`${BASE}/api/auth?userId=user_demo_default`, { headers: session });

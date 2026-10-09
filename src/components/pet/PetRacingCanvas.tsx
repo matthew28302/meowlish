@@ -15,7 +15,8 @@ export interface PetRacingCanvasProps {
   playerPetName: string;
   playerLevel?: number;
   userCoins: number;
-  onUpdateCoins: (newCoins: number) => void;
+  /** Nhận DELTA (dương = cộng, âm = trừ) chứ không nhận số dư tuyệt đối. */
+  onUpdateCoinsDelta: (delta: number) => void;
   onUpdatePetExp?: (addedExp: number) => void;
   userId?: string;
   userDisplayName?: string;
@@ -45,7 +46,7 @@ export default function PetRacingCanvas({
   playerPetName = 'Lexi Trí Tuệ',
   playerLevel = 1,
   userCoins,
-  onUpdateCoins,
+  onUpdateCoinsDelta,
   onUpdatePetExp,
   userId,
   userDisplayName = 'Bạn',
@@ -85,6 +86,29 @@ export default function PetRacingCanvas({
   const racersRef = useRef<Racer[]>([]);
   const animFrameRef = useRef<number>(0);
   const rankCountRef = useRef<number>(1);
+  // Interval đếm ngược 3-2-1 tạo trong handler startRaceWithOpponents
+  const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Ref đồng bộ số dư mới nhất. Handler bất đồng bộ (await fetch, setTimeout)
+  // không được đọc `userCoins` của lần render đã đóng lại — nếu không số xu
+  // kiếm được trong lúc request bay sẽ bị ghi đè.
+  const userCoinsRef = useRef<number>(userCoins);
+  useEffect(() => {
+    userCoinsRef.current = userCoins;
+  });
+
+  /** Cộng/trừ delta và cập nhật ref ngay — giữ ref khớp parent giữa 2 render. */
+  const applyCoinDelta = (delta: number) => {
+    userCoinsRef.current += delta;
+    onUpdateCoinsDelta(delta);
+  };
+
+  /** Server trả số dư TUYỆT ĐỐI → đổi thành delta so với số dư đang giữ. */
+  const syncCoinsFromServer = (serverCoins: number) => {
+    const delta = serverCoins - userCoinsRef.current;
+    userCoinsRef.current = serverCoins;
+    onUpdateCoinsDelta(delta);
+  };
 
   // Filter racing rooms
   const racingRooms = activeRooms.filter((r) => r.game_type === 'racing' && r.status === 'waiting');
@@ -212,19 +236,39 @@ export default function PetRacingCanvas({
     sound.playClick();
 
     let count = 3;
-    const interval = setInterval(() => {
+    // Interval tạo trong handler mà không giữ ref sẽ sống dai qua unmount: đổi
+    // gameTab trong lúc đếm 3-2-1 là nó vẫn gọi loadNextQuestion() trên
+    // component đã chết. Giữ ref + clear trong effect sở hữu raceState.
+    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+    countdownTimerRef.current = setInterval(() => {
       count--;
       if (count > 0) {
         setCountdown(count);
         sound.playPop();
       } else {
-        clearInterval(interval);
+        // Capture id interval vào biến cục bộ: trong callback, TS không thu hẹp
+        // được `ref.current` (có thể bị set null ở nơi khác giữa chừng).
+        const intervalId = countdownTimerRef.current;
+        if (intervalId) clearInterval(intervalId);
+        countdownTimerRef.current = null;
         setRaceState('racing');
         sound.playCelebration();
         loadNextQuestion();
       }
     }, 1000);
   };
+
+  // Sở hữu vòng đếm ngược: rời 'countdown' (đổi gameTab, huỷ phòng) hoặc unmount
+  // → dừng interval, tránh setState trên component đã chết.
+  useEffect(() => {
+    if (raceState !== 'countdown') return;
+    return () => {
+      if (countdownTimerRef.current) {
+        clearInterval(countdownTimerRef.current);
+        countdownTimerRef.current = null;
+      }
+    };
+  }, [raceState]);
 
   // Handle Create Racing Room
   const handleCreateRoom = async () => {
@@ -255,7 +299,7 @@ export default function PetRacingCanvas({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Lỗi tạo phòng đua');
 
-      if (data.userCoins !== undefined) onUpdateCoins(data.userCoins);
+      if (typeof data.userCoins === 'number') syncCoinsFromServer(data.userCoins);
       setCurrentRoom(data.room);
       setShowCreateModal(false);
       setRaceState('waiting_competitors');
@@ -296,7 +340,7 @@ export default function PetRacingCanvas({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Lỗi khi vào phòng');
 
-      if (data.userCoins !== undefined) onUpdateCoins(data.userCoins);
+      if (typeof data.userCoins === 'number') syncCoinsFromServer(data.userCoins);
       setCurrentRoom(data.room || room);
 
       // Start race with room host as main competitor
@@ -336,7 +380,7 @@ export default function PetRacingCanvas({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Lỗi hủy giải đua');
-      if (data.userCoins !== undefined) onUpdateCoins(data.userCoins);
+      if (typeof data.userCoins === 'number') syncCoinsFromServer(data.userCoins);
       // Chỉ reset về sảnh khi hủy đúng phòng đang mở/chờ
       if (!room || room.id === currentRoom?.id) {
         setCurrentRoom(null);
@@ -457,7 +501,10 @@ export default function PetRacingCanvas({
                 if (racer.finishRank === 1) {
                   const rewardCoins = currentRoom ? currentRoom.bet_coins * 2 : Math.round(betCoins * 2.5);
                   const rewardExp = 80;
-                  onUpdateCoins(userCoins + rewardCoins);
+                  // Delta, KHÔNG phải `userCoins + thưởng`: setTimeout 1s này được
+                  // hẹn từ rAF loop trước đó, `userCoins` trong closure là ảnh chụp
+                  // cũ → xu kiếm được trong cuộc đua bị nuốt mất.
+                  applyCoinDelta(rewardCoins);
                   if (onUpdatePetExp) onUpdatePetExp(rewardExp);
 
                   if (currentRoom?.id && userId) {

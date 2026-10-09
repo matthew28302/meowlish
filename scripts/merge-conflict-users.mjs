@@ -7,7 +7,8 @@
 // `forkRejoin` lưu vào key english_learning.conflict.db rồi bản remote thắng —
 // ghi cục bộ bị vứt, KHÔNG gộp lại. Hậu quả: tài khoản vừa đăng ký biến mất
 // khỏi hệ thống dù người dùng đã thấy "đăng ký thành công".
-// Đã xảy ra thật: user kangyoungha (14:51:00) chỉ còn trong conflict key.
+// Đã xảy ra thật: một tài khoản người dùng (14:51:00) chỉ còn trong conflict key.
+// (Không ghi tên/email vào repo — xem git history nếu cần tra.)
 //
 // NGUYÊN TẮC AN TOÀN
 // 1. CHỈ THÊM, KHÔNG XOÁ: tài khoản có trong conflict mà thiếu trong bản chính

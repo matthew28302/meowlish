@@ -34,7 +34,8 @@ export interface PetSocialHubProps {
   playerSpecies: string;
   playerPetName: string;
   userCoins: number;
-  onUpdateCoins: (newCoins: number) => void;
+  /** Nhận DELTA (dương = cộng, âm = trừ) chứ không nhận số dư tuyệt đối. */
+  onUpdateCoinsDelta: (delta: number) => void;
   onSendSpeech: (text: string) => void;
   initialFriends?: any[];
   initialIncomingRequests?: any[];
@@ -54,7 +55,7 @@ export default function PetSocialHub({
   playerSpecies = 'owl',
   playerPetName = 'Lexi Trí Tuệ',
   userCoins,
-  onUpdateCoins,
+  onUpdateCoinsDelta,
   onSendSpeech,
   initialFriends = [],
   initialIncomingRequests = [],
@@ -107,11 +108,42 @@ export default function PetSocialHub({
     }
   }, [chatMessages, activeTab]);
 
+  // Ref đồng bộ số dư mới nhất: handler bất đồng bộ (await fetch) không được
+  // đọc `userCoins` của lần render đã đóng lại.
+  const userCoinsRef = useRef<number>(userCoins);
+  useEffect(() => {
+    userCoinsRef.current = userCoins;
+  });
+
+  /** Cộng/trừ delta và cập nhật ref ngay — giữ ref khớp parent giữa 2 render. */
+  const applyCoinDelta = (delta: number) => {
+    userCoinsRef.current += delta;
+    onUpdateCoinsDelta(delta);
+  };
+
+  /** Server trả về số dư TUYỆT ĐỐI → đổi thành delta so với số dư đang giữ. */
+  const syncCoinsFromServer = (serverCoins: number) => {
+    const delta = serverCoins - userCoinsRef.current;
+    userCoinsRef.current = serverCoins;
+    onUpdateCoinsDelta(delta);
+  };
+
   // Show status notification
+  // (đo 2026-10-09: trước đây setTimeout không lưu ref nên toast thứ 2 bị timer
+  // của toast thứ 1 xoá sớm, và setState chạy sau khi component unmount.)
+  const notifTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showToast = (msg: string) => {
     setStatusMessage(msg);
-    setTimeout(() => setStatusMessage(null), 4000);
+    if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
+    notifTimerRef.current = setTimeout(() => setStatusMessage(null), 4000);
   };
+
+  // Dọn timer khi rời tab / đổi gameTab để không setState trên component đã unmount
+  useEffect(() => {
+    return () => {
+      if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
+    };
+  }, []);
 
   // ================= 1. CHAT LOGIC =================
   const handleSendMessage = async (text: string) => {
@@ -274,7 +306,10 @@ export default function PetSocialHub({
 
     sound.playCelebration();
     confetti({ particleCount: 40, spread: 60 });
-    onUpdateCoins(Math.max(0, userCoins - selectedRing.price));
+    // Delta âm: parent cộng dồn nên không thể ghi đè số xu kiếm được trong lúc
+    // request đang bay (bug cũ: onUpdateCoins(userCoins - price) dùng userCoins
+    // chụp lúc render → nuốt mất thưởng đã cộng).
+    applyCoinDelta(-selectedRing.price);
     setPendingSentProposal(true);
 
     try {
@@ -291,7 +326,9 @@ export default function PetSocialHub({
       const data = await res.json();
       if (res.ok) {
         showToast(data.message || 'Đã gửi lời cầu hôn thành công! 💍💖');
-        if (data.userCoins !== undefined) onUpdateCoins(data.userCoins);
+        // Server trả về số dư TUYỆT ĐỐI → đồng bộ bằng delta (nhẫn đã trừ ở trên),
+        // không ghi đè số xu kiếm được trong lúc chờ.
+        if (typeof data.userCoins === 'number') syncCoinsFromServer(data.userCoins);
       } else {
         showToast(data.error || 'Không thể gửi lời cầu hôn!');
         setPendingSentProposal(false);

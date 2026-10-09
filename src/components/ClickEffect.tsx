@@ -41,13 +41,18 @@ export default function ClickEffect() {
   const particlesRef = useRef<Particle[]>([]);
   const ripplesRef = useRef<Ripple[]>([]);
   const animIdRef = useRef<number | null>(null);
-  const [isTouchDevice] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return (
+  // Bug hydration (audit 2026-10-09): matchMedia trong useState initializer chạy
+  // KHÁC nhau ở server (luôn false) và client (true trên mobile) → mismatch,
+  // React vẽ lại cả overlay fixed z-[99999]. Giống ThemeToggle: mặc định an
+  // toàn (false = hiện canvas), đọc giá trị thật trong useEffect sau mount.
+  const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
+
+  useEffect(() => {
+    setIsTouchDevice(
       window.matchMedia('(pointer: coarse) and not (pointer: fine)').matches ||
-      ('ontouchstart' in window && window.innerWidth < 1024)
+        ('ontouchstart' in window && window.innerWidth < 1024)
     );
-  });
+  }, []);
 
   useEffect(() => {
     if (isTouchDevice) return;

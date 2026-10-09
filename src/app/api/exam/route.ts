@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db, sanitizeText } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import { logError } from '@/lib/systemLogs';
 import logger from '@/lib/logger';
 
 /**
@@ -61,15 +62,24 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json({ success: true, history: formattedHistory });
-  } catch (error) {
-    logger.error('Error in GET /api/exam', { error });
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (err: unknown) {
+    // Thông báo chung cho client; chi tiết driver chỉ nằm trong log nội bộ.
+    logger.error('Error in GET /api/exam', { error: err });
+    logError({
+      endpoint: 'GET /api/exam',
+      error_message: err instanceof Error ? err.message : String(err),
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: getClientIp(request),
+      severity: 'error',
+    });
+    return NextResponse.json({ error: 'Có lỗi xảy ra. Vui lòng thử lại.' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
+  // Khai báo NGOÀI try: khối catch cũng cần clientIp để ghi logError.
+  const clientIp = getClientIp(request);
   try {
-    const clientIp = getClientIp(request);
     const rateCheck = checkRateLimit({
       key: `exam_post:${clientIp}`,
       maxAttempts: 30,
@@ -79,8 +89,15 @@ export async function POST(request: Request) {
       return rateLimitExceededResponse('Quá nhiều yêu cầu nộp bài thi. Vui lòng thử lại sau ít phút!', rateCheck.resetInSeconds);
     }
 
-    const body = await request.json();
-    const { userId: rawUserId, testId, testName, score, totalQuestions, correctCount, percentage, passed } = body;
+    // JSON hỏng (body rỗng / cắt ngang) là lỗi CLIENT, không phải lỗi hệ thống:
+    // không bắt thì `request.json()` ném SyntaxError → 500 kèm chi tiết driver.
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
+    const { userId: rawUserId, testId, testName, score, totalQuestions, correctCount, percentage, passed } = body ?? {};
 
     const auth = getAuthenticatedUser(request, rawUserId);
     if (auth.status === 'disabled') {
@@ -98,8 +115,12 @@ export async function POST(request: Request) {
 
     const userId = auth.userId;
 
-    const cleanTestId = sanitizeText(testId || 'test_exam').slice(0, 100);
-    const cleanTestName = sanitizeText(testName || cleanTestId || 'General Test').slice(0, 200);
+    // `testId`/`testName` từ body là dữ liệu client KHÔNG kiểm soát kiểu.
+    // `sanitizeText` gọi `.replace()` nên number/object sẽ ném TypeError → 500.
+    // Ép string ở biên TRƯỚC khi sanitize/slice (kể cả khi sanitizeText được
+    // mở rộng sang `unknown`, đây vẫn là một chuỗi hợp lệ đã giới hạn độ dài).
+    const cleanTestId = sanitizeText(String(testId || 'test_exam')).slice(0, 100);
+    const cleanTestName = sanitizeText(String(testName || cleanTestId || 'General Test')).slice(0, 200);
 
     const safeTotal = Math.min(500, Math.max(1, parseInt(totalQuestions, 10) || 1));
     const safeCorrect = Math.min(safeTotal, Math.max(0, parseInt(correctCount, 10) || 0));
@@ -132,8 +153,16 @@ export async function POST(request: Request) {
         correctCount: safeCorrect
       }
     });
-  } catch (error) {
-    logger.error('Error in POST /api/exam', { error });
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (err: unknown) {
+    // Thông báo chung cho client; chi tiết driver chỉ nằm trong log nội bộ.
+    logger.error('Error in POST /api/exam', { error: err });
+    logError({
+      endpoint: 'POST /api/exam',
+      error_message: err instanceof Error ? err.message : String(err),
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: clientIp,
+      severity: 'error',
+    });
+    return NextResponse.json({ error: 'Có lỗi xảy ra. Vui lòng thử lại.' }, { status: 500 });
   }
 }

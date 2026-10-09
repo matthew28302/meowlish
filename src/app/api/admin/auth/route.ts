@@ -9,9 +9,32 @@ import {
   verifyAdminToken,
   getAdminMaskedEmail,
 } from '@/lib/adminAuth';
-import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import {
+  getClientIp,
+  checkRateLimit,
+  checkRateLimitPersistent,
+  clearRateLimitPersistent,
+  rateLimitExceededResponse,
+} from '@/lib/rateLimit';
 import { logAccess, logError } from '@/lib/systemLogs';
 import logger from '@/lib/logger';
+
+/**
+ * Khoá đăng nhập admin BỀN VỮNG (checkRateLimitPersistent).
+ *
+ * Vì sao cần: `checkRateLimit` chỉ đếm trong RAM của TỪNG instance Vercel —
+ * mỗi instance một `Map` riêng, reset theo process. Dàn request qua nhiều
+ * instance ⇒ bộ đếm bị chia nhỏ và kẻ tấn công dò mật khẩu root admin vô hạn
+ * lần. `checkRateLimitPersistent` đếm chung qua Upstash Redis khi có env,
+ * fallback về chính Map đó khi thiếu — cùng cơ chế đã dùng để khoá đăng nhập
+ * người dùng theo username (src/app/api/auth/route.ts).
+ *
+ * Khoá theo IP + hằng số 'admin' chứ KHÔNG theo `username` từ body: username
+ * ở luồng này luôn phải là 'admin' nên khoá theo nó là khoá toàn cục — chính
+ * quản trị viên cũng bị chặn nếu kẻ tấn công dồn lượt.
+ */
+const ADMIN_FAIL_LIMIT = 5;
+const ADMIN_FAIL_WINDOW_MS = 15 * 60 * 1000;
 
 /**
  * 60s thay vì mặc định 10s của Vercel.
@@ -106,6 +129,29 @@ export async function POST(request: Request) {
 
       // verifyPassword chấp nhận cả hash cũ (SHA-256 + salt) lẫn hash mới
       // (scrypt) → admin không bị khoá ngoài khi salt đổi giữa các môi trường.
+      //
+      // Bộ đếm bền vững đặt TRƯỚC khi tra mật khẩu, y hệt hàng người dùng:
+      // lần thứ 6 bị chặn ngay kể cả khi nhập đúng. Khoá theo IP + hằng số
+      // 'admin_pwd_fail' ⇒ chỉ khi có Upstash (bộ đếm dùng chung) mới đổi IP
+      // không thoát được; không có env thì rơi về hành vi cũ theo instance.
+      const adminPwdFailKey = `admin_pwd_fail:${clientIp}`;
+      const adminPwdLock = await checkRateLimitPersistent(adminPwdFailKey, ADMIN_FAIL_LIMIT, ADMIN_FAIL_WINDOW_MS);
+      if (!adminPwdLock.allowed) {
+        logger.warn(`Admin password lockout triggered for IP: ${clientIp}`);
+        logAccess({
+          username: 'admin',
+          action: 'admin_login_pwd_locked',
+          ip: clientIp,
+          user_agent: userAgent,
+          status: 'rate_limited',
+          details: `Khoá đăng nhập quản trị: quá ${ADMIN_FAIL_LIMIT} lần trong 15 phút`,
+        });
+        return rateLimitExceededResponse(
+          'Bạn đã nhập sai mật khẩu quản trị quá nhiều lần. Tài khoản tạm thời bị khoá, vui lòng thử lại sau ít phút!',
+          adminPwdLock.resetInSeconds
+        );
+      }
+
       const adminPwdCheck = verifyPassword(cleanPass, admin.password_hash);
       if (!adminPwdCheck.ok) {
         logger.warn('Admin 2FA login failed: incorrect password');
@@ -120,6 +166,11 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Mật khẩu quản trị không chính xác.' }, { status: 401 });
       }
 
+      // Mật khẩu ĐÚNG: xoá bộ đếm thất bại của IP này để quản trị viên thật
+      // không bị kẹt khoá cũ chỉ vì một lần gõ nhầm. Chạy nền, lỗi Upstash đã
+      // được handle + warn bên trong helper.
+      clearRateLimitPersistent(adminPwdFailKey).catch(() => {});
+
       // Generate 6-digit OTP
       const otpCode = generateOTP();
       const newSessionId = createOtpSession(otpCode);
@@ -128,6 +179,9 @@ export async function POST(request: Request) {
       const sendResult = await sendAdminOtpEmail(otpCode);
 
       if (!sendResult.success) {
+        // Chi tiết lỗi SMTP chỉ nằm trong log nội bộ. `sendAdminOtpEmail` bọc
+        // nguyên lý nodemailer, message của nó chứa host/port SMTP và đôi khi
+        // cả lý do xác thực thất bại — trả về client là lộ hạ tầng mail.
         logger.error('[Admin Auth] Error sending OTP email:', { error: sendResult.error });
         logAccess({
           username: 'admin',
@@ -135,10 +189,10 @@ export async function POST(request: Request) {
           ip: clientIp,
           user_agent: userAgent,
           status: 'failed',
-          details: sendResult.error || 'Lỗi gửi email OTP máy chủ',
+          details: 'Không gửi được email OTP quản trị từ máy chủ',
         });
         return NextResponse.json(
-          { error: `Không thể gửi mã xác thực tới email. Chi tiết: ${sendResult.error || 'Lỗi SMTP'}` },
+          { error: 'Không thể gửi mã xác thực tới email lúc này. Vui lòng thử lại sau giây lát hoặc liên hệ quản trị viên.' },
           { status: 500 }
         );
       }
@@ -179,7 +233,30 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Vui lòng nhập đầy đủ mã xác thực OTP.' }, { status: 400 });
       }
 
-      const verifyRes = verifyOtpInput(sessionId, otp);
+      // Bộ đếm bền vững cho bước dò OTP: `admin_otp_sessions.attempts` chỉ giữ
+      // 3 lần trên MỘT phiên, còn kẻ tấn công cứ xin session mới (chỉ cần đúng
+      // mật khẩu root — mà rate limit phía trên đã chặn dồn cục bộ) thì bộ đếm
+      // đó luôn về 0. Khoá IP + hằng số 'admin_otp_fail' để 6 số OTP không thể
+      // bị dò kiểu bất tận trên nhiều instance.
+      const adminOtpFailKey = `admin_otp_fail:${clientIp}`;
+      const adminOtpLock = await checkRateLimitPersistent(adminOtpFailKey, ADMIN_FAIL_LIMIT, ADMIN_FAIL_WINDOW_MS);
+      if (!adminOtpLock.allowed) {
+        logger.warn(`Admin OTP lockout triggered for IP: ${clientIp}`);
+        logAccess({
+          username: 'admin',
+          action: 'admin_otp_verify_locked',
+          ip: clientIp,
+          user_agent: userAgent,
+          status: 'rate_limited',
+          details: `Khoá xác thực OTP quản trị: quá ${ADMIN_FAIL_LIMIT} lần trong 15 phút`,
+        });
+        return rateLimitExceededResponse(
+          'Bạn đã nhập sai mã xác thực quá nhiều lần. Vui lòng chờ trước khi thử lại!',
+          adminOtpLock.resetInSeconds
+        );
+      }
+
+      const verifyRes = verifyOtpInput(String(sessionId), String(otp));
       if (!verifyRes.valid) {
         logAccess({
           username: 'admin',
@@ -191,6 +268,10 @@ export async function POST(request: Request) {
         });
         return NextResponse.json({ error: verifyRes.error || 'Mã xác thực không hợp lệ.' }, { status: 400 });
       }
+
+      // OTP đúng: xoá bộ đếm dò sai của IP này (giống hàng người dùng xoá bộ
+      // đếm sau khi mật khẩu đúng) để quản trị viên thật không bị kẹt khoá.
+      clearRateLimitPersistent(adminOtpFailKey).catch(() => {});
 
       // Generate encrypted AES-256-GCM session token
       const sessionToken = createEncryptedAdminToken('admin');

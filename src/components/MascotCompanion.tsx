@@ -41,11 +41,16 @@ function MascotCompanion({
 
   return (
     <div className="relative inline-flex items-center gap-2.5 sm:gap-3 select-none max-w-full">
-      {/* Mascot Graphic (Lexi the Owl) */}
-      <div
+      {/* Mascot Graphic (Lexi the Owl)
+          a11y (audit 2026-10-09): <div onClick> không focus được và không
+          phản ứng với Enter/Space. Bọc bằng <button> (không có nút con bên
+          trong nên an toàn) để có role/tabIndex/keydown miễn phí. */}
+      <button
+        type="button"
         onClick={handleMascotClick}
-        className="relative group cursor-pointer transform hover:scale-105 active:scale-95 transition-transform shrink-0"
+        className="relative group cursor-pointer transform hover:scale-105 active:scale-95 transition-transform shrink-0 p-0 bg-transparent border-0"
         title="Bấm vào Lexi để nhận lời khuyên học tập!"
+        aria-label="Bấm vào Lexi để nhận lời khuyên học tập!"
       >
         <div
           className={`${sizeClasses} bg-gradient-to-b from-emerald-400 via-emerald-500 to-teal-600 rounded-2xl sm:rounded-3xl p-1.5 shadow-lg border-2 border-emerald-300 flex items-center justify-center relative overflow-hidden animate-float-soft`}
@@ -102,7 +107,7 @@ function MascotCompanion({
             <Sparkles className="w-3.5 h-3.5 text-amber-900" />
           </div>
         </div>
-      </div>
+      </button>
 
       {/* Speech Bubble */}
       <div className="relative bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-800 rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm max-w-[calc(100vw-5.5rem)] sm:max-w-md min-w-0 flex-1 text-xs sm:text-sm text-slate-700 dark:text-slate-200">

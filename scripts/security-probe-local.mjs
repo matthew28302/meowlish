@@ -2,6 +2,11 @@
 // Dùng đúng các mẫu tấn công đã xác nhận thành công trên production trước đây.
 // TUYỆT ĐỐI không in hash/mật khẩu.
 const BASE = 'http://localhost:3000';
+// userId nạn nhân + mẫu PII để so khớp lấy từ môi trường. KHÔNG hardcode id/tên
+// người dùng thật vào repo (PII nằm vĩnh viễn trong git history). Chưa cấu hình
+// thì dùng sentinel bất khả trùng và regex rỗng ⇒ probe báo "không lọt".
+const VICTIM = process.env.PROBE_VICTIM_USER_ID || '__no_victim_configured__';
+const LEAK_RE = new RegExp(process.env.PROBE_LEAK_PATTERN || '(?!x)x');
 const out = [];
 const ck = (label, pass, extra = '') => out.push(`${pass ? 'PASS' : 'FAIL'} ${label}${extra ? ' — ' + extra : ''}`);
 
@@ -31,7 +36,7 @@ for (const path of ['/api/progress?userId=user_demo_default', '/api/pet?userId=u
     const body = await r.text();
     // Guest xem demo vẫn được (đọc-only) → không phải lỗ hổng nữa.
     // Điều cần chứng minh: request SỬA dữ liệu phải bị chặn.
-    ck(`GET ${path.slice(0, 22)} (${name}) không lộ dữ liệu người KHÁC`, !/kangyoungha/.test(body), `HTTP ${r.status}`);
+    ck(`GET ${path.slice(0, 22)} (${name}) không lộ dữ liệu người KHÁC`, !LEAK_RE.test(body), `HTTP ${r.status}`);
   }
 }
 
@@ -47,20 +52,20 @@ for (const path of ['/api/progress', '/api/pet', '/api/bookmarks']) {
 
 // 2b. IDOR dạng "phiên hợp lệ của tôi + userId của người khác" (nạn nhân thật)
 const idorTargets = [
-  ['/api/progress?userId=user_1791298260433_rh7b', null],
-  ['/api/pet?userId=user_1791298260433_rh7b', null],
-  ['/api/bookmarks?userId=user_1791298260433_rh7b', null],
+  [`/api/progress?userId=${VICTIM}`, null],
+  [`/api/pet?userId=${VICTIM}`, null],
+  [`/api/bookmarks?userId=${VICTIM}`, null],
 ];
 for (const [path] of idorTargets) {
   const r = await fetch(BASE + path, { headers: validCookie });
   const body = await r.text();
-  ck(`GET ${path.slice(0, 26)} (phiên hợp lệ) → 403`, r.status === 403, `HTTP ${r.status}${/kangyoungha|강영하/.test(body) ? ' — LO DUU LIEU' : ''}`);
+  ck(`GET ${path.slice(0, 26)} (phiên hợp lệ) → 403`, r.status === 403, `HTTP ${r.status}${LEAK_RE.test(body) ? ' — LO DUU LIEU' : ''}`);
 }
 for (const path of ['/api/progress', '/api/pet', '/api/bookmarks']) {
   const r = await fetch(BASE + path, {
     method: 'POST',
     headers: { ...validCookie, 'content-type': 'application/json' },
-    body: JSON.stringify({ userId: 'user_1791298260433_rh7b', moduleType: 'vocab', itemId: 'probe_idor', score: 100 }),
+    body: JSON.stringify({ userId: VICTIM, moduleType: 'vocab', itemId: 'probe_idor', score: 100 }),
   });
   ck(`POST ${path} nhắm userId người khác → 403`, r.status === 403 || r.status === 401, `HTTP ${r.status}`);
 }
@@ -103,10 +108,17 @@ ck('harvest_crop cây chưa chín bị từ chối', harvestBlocked, `HTTP ${har
 // 5. /api/support không lộ phiếu của người khác
 const sup1 = await fetch(BASE + '/api/support?userId=user_khong_ton_tai_zzz', { headers: forged });
 ck('GET /api/support?userId của người khác → 401', sup1.status === 401, `HTTP ${sup1.status}`);
-const sup2 = await fetch(BASE + '/api/support?email=kangyoungha%40gmail.com', { headers: forged });
-const sup2Body = await sup2.json().catch(() => ({}));
-const leak = JSON.stringify(sup2Body).match(/"message"|"admin_reply"|"name"|"email"/);
-ck('GET /api/support?email người khác → không lộ nội dung', !leak, sup2Body.redacted ? 'đã rút gọn (redacted)' : `HTTP ${sup2.status}`);
+// Email nạn nhân lấy từ biến môi trường — không commit PII người dùng thật vào
+// repo. Chạy: PROBE_EMAIL='...' node scripts/security-probe-local.mjs
+const PROBE_EMAIL = process.env.PROBE_EMAIL || '';
+if (PROBE_EMAIL) {
+  const sup2 = await fetch(BASE + '/api/support?email=' + encodeURIComponent(PROBE_EMAIL), { headers: forged });
+  const sup2Body = await sup2.json().catch(() => ({}));
+  const leak = JSON.stringify(sup2Body).match(/"message"|"admin_reply"|"name"|"email"/);
+  ck('GET /api/support?email người khác → không lộ nội dung', !leak, sup2Body.redacted ? 'đã rút gọn (redacted)' : `HTTP ${sup2.status}`);
+} else {
+  console.log('SKIP  GET /api/support?email — thieu PROBE_EMAIL (khong ghi PII nguoi that vao repo)');
+}
 
 // 6. Log truy cập: không ghi được log giả mang tên người khác
 const before = await (await fetch(BASE + '/api/progress?userId=user_demo_default', { headers: validCookie })).json();

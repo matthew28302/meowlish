@@ -4,9 +4,18 @@
 // Đo xem có race khiến request thứ 2 fail / chậm.
 const BASE = process.env.PROBE_BASE || 'https://meowlish.io.vn';
 
+// Mật khẩu tài khoản probe phải đến từ biến môi trường, KHÔNG ghi literal vào
+// repo (mật khẩu nằm trong git là rò rỉ thật; guard
+// tests/unit/no-hardcoded-secrets.test.ts chặn đúng mẫu này).
+// Chạy: PROBE_PASSWORD='...' node scripts/diag-prod-race.mjs
+const password = process.env.PROBE_PASSWORD;
+if (!password) {
+  console.error('Thieu PROBE_PASSWORD — canh bien khong chay. Khong ghi mat khau fallback vao repo.');
+  process.exit(1);
+}
+
 const stamp = Date.now().toString(36);
 const username = `probe3_${stamp}`;
-const password = 'Aa123456!x';
 const email = `probe3.${stamp}@example.invalid`;
 
 // Gửi register và (giả lập) request thứ 2 CÙNG LẬP — không chờ register xong.

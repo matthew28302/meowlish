@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { db, sanitizeText } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
+import { logError } from '@/lib/systemLogs';
+import logger from '@/lib/logger';
 
 /**
  * 60s thay vì mặc định 10s của Vercel.
@@ -11,6 +13,26 @@ import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/ra
  * cắt giữa chừng ⇒ dữ liệu mất. 60s là trần của gói Vercel Hobby.
  */
 export const maxDuration = 60;
+
+/**
+ * Log nội bộ rồi trả thông báo chung cho client.
+ *
+ * KHÔNG trả `err.message` thô: better-sqlite3 lộ tên bảng/cột và text driver
+ * (vd "Too few parameter values were provided"), `SyntaxError` của
+ * `request.json()`... là chi tiết nội bộ. Đo 2026-10-09: client nhận nguyên
+ * văn driver thay vì thông báo dễ hiểu — chi tiết chỉ nằm trong log nội bộ.
+ */
+function internalErrorResponse(endpoint: string, err: unknown, ip: string) {
+  logger.error(`Error in ${endpoint}`, { error: err });
+  logError({
+    endpoint,
+    error_message: err instanceof Error ? err.message : String(err),
+    stack_trace: err instanceof Error ? err.stack : null,
+    ip,
+    severity: 'error',
+  });
+  return NextResponse.json({ error: 'Có lỗi xảy ra. Vui lòng thử lại.' }, { status: 500 });
+}
 
 export async function GET(request: Request) {
   try {
@@ -37,14 +59,13 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ bookmarks });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Database error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalErrorResponse('GET /api/bookmarks', err, getClientIp(request));
   }
 }
 
 export async function POST(request: Request) {
+  const clientIp = getClientIp(request);
   try {
-    const clientIp = getClientIp(request);
     const rateCheck = checkRateLimit({
       key: `bm_post:${clientIp}`,
       maxAttempts: 60,
@@ -54,16 +75,25 @@ export async function POST(request: Request) {
       return rateLimitExceededResponse('Tần suất lưu từ quá nhanh. Vui lòng thử lại sau giây lát!', rateCheck.resetInSeconds);
     }
 
-    const body = await request.json();
+    // JSON hỏng (body rỗng / cắt ngang) là lỗi CLIENT, không phải lỗi hệ thống:
+    // không bắt thì `request.json()` ném SyntaxError → 500 kèm chi tiết driver.
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
     const {
       userId: rawUserId,
       word,
-      phonetic = '',
       translation,
-      contextSentence = '',
-      note = '',
-      tags = 'general',
-    } = body;
+    } = body ?? {};
+    // Các field tuỳ chọn: `sanitizeText` gọi `.replace()` nên number/object/array
+    // sẽ ném TypeError → 500. Ép sang string ở biên TRƯỚC khi sanitize/slice.
+    const phonetic = String(body?.phonetic ?? '');
+    const contextSentence = String(body?.contextSentence ?? '');
+    const note = String(body?.note ?? '');
+    const tags = String(body?.tags ?? 'general');
 
     const auth = getAuthenticatedUser(request, rawUserId);
     if (auth.status === 'disabled') {
@@ -85,10 +115,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Từ vựng và bản dịch nghĩa là bắt buộc' }, { status: 400 });
     }
 
-    // Làm sạch dữ liệu đầu vào chống XSS / HTML Injection
-    const cleanWord = sanitizeText(word).slice(0, 100);
+    // Làm sạch dữ liệu đầu vào chống XSS / HTML Injection.
+    // `word`/`translation` là bắt buộc nên ép string tường minh; `sanitizeText`
+    // gọi `.replace()` và sẽ ném TypeError nếu client gửi number/object.
+    const cleanWord = sanitizeText(String(word ?? '')).slice(0, 100);
     const cleanPhonetic = sanitizeText(phonetic).slice(0, 100);
-    const cleanTranslation = sanitizeText(translation).slice(0, 200);
+    const cleanTranslation = sanitizeText(String(translation ?? '')).slice(0, 200);
     const cleanSentence = sanitizeText(contextSentence).slice(0, 500);
     const cleanNote = sanitizeText(note).slice(0, 500);
     const cleanTags = sanitizeText(tags || 'general').slice(0, 50);
@@ -120,14 +152,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, bookmark: created });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Database error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalErrorResponse('POST /api/bookmarks', err, clientIp);
   }
 }
 
 export async function DELETE(request: Request) {
+  const clientIp = getClientIp(request);
   try {
-    const clientIp = getClientIp(request);
     const rateCheck = checkRateLimit({
       key: `bm_del:${clientIp}`,
       maxAttempts: 60,
@@ -161,14 +192,13 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true, id });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Database error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalErrorResponse('DELETE /api/bookmarks', err, clientIp);
   }
 }
 
 export async function PATCH(request: Request) {
+  const clientIp = getClientIp(request);
   try {
-    const clientIp = getClientIp(request);
     const rateCheck = checkRateLimit({
       key: `bm_patch:${clientIp}`,
       maxAttempts: 60,
@@ -178,8 +208,15 @@ export async function PATCH(request: Request) {
       return rateLimitExceededResponse('Quá nhiều yêu cầu cập nhật. Vui lòng thử lại sau giây lát!', rateCheck.resetInSeconds);
     }
 
-    const body = await request.json();
-    const { id, masteryLevel, userId: rawUserId } = body;
+    // JSON hỏng (body rỗng / cắt ngang) là lỗi CLIENT, không phải lỗi hệ thống:
+    // không bắt thì `request.json()` ném SyntaxError → 500 kèm chi tiết driver.
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
+    const { id, masteryLevel, userId: rawUserId } = body ?? {};
 
     if (!id || masteryLevel === undefined) {
       return NextResponse.json({ error: 'Mã từ vựng và cấp độ thành thạo là bắt buộc' }, { status: 400 });
@@ -196,7 +233,9 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Bạn không có quyền sửa từ vựng của người khác.' }, { status: 403 });
     }
 
-    const cleanLevel = Math.min(5, Math.max(0, parseInt(masteryLevel, 10) || 0));
+    // `parseInt` ép string tự động (Number → String) nhưng `Symbol`/`BigInt`
+    // vẫn ném TypeError; `String()` ở biên cho mọi kiểu đều an toàn.
+    const cleanLevel = Math.min(5, Math.max(0, parseInt(String(masteryLevel ?? '0'), 10) || 0));
     const now = new Date().toISOString();
 
     // BẢO MẬT IDOR: BẮT BUỘC lọc theo user_id phiên người dùng
@@ -214,7 +253,6 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ success: true, bookmark: updated });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Database error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return internalErrorResponse('PATCH /api/bookmarks', err, clientIp);
   }
 }

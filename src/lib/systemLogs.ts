@@ -35,6 +35,20 @@ export interface EmailLogEntry {
   ip?: string | null;
 }
 
+/**
+ * Escape ký tự đại diện của LIKE (`\`, `%`, `_`).
+ *
+ * Vì sao cần: các hàm bên dưới ghép `%${search}%` để tìm "chứa". Nếu không
+ * escape, admin gõ `%` hoặc `_` là toàn bộ bảng bị quét (LIKE '%%' khớp mọi
+ * dòng) ⇒ 1 thao tác search kéo full-table-scan trên `system_*_logs`. Escape
+ * + `ESCAPE '\'` giữ đúng nghĩa "tìm chuỗi con" mà không mở đường wildcard.
+ * Placeholder `?` vẫn dùng như cũ — đây KHÔNG phải SQL injection.
+ * (Cùng cách làm với `escapeLikeTerm` trong `api/dictionary/search/route.ts`.)
+ */
+function escapeLikeTerm(rawQuery: string): string {
+  return rawQuery.replace(/[\\%_]/g, '\\$1');
+}
+
 // 1. Ghi log truy cập / đăng nhập / thao tác
 export function logAccess(entry: AccessLogEntry): void {
   try {
@@ -115,8 +129,8 @@ export function getAccessLogs(params: {
     const values: any[] = [];
 
     if (params.search && params.search.trim()) {
-      const q = `%${params.search.trim()}%`;
-      conditions.push('(username LIKE ? OR user_id LIKE ? OR ip LIKE ? OR action LIKE ? OR details LIKE ?)');
+      const q = `%${escapeLikeTerm(params.search.trim())}%`;
+      conditions.push("(username LIKE ? ESCAPE '\\' OR user_id LIKE ? ESCAPE '\\' OR ip LIKE ? ESCAPE '\\' OR action LIKE ? ESCAPE '\\' OR details LIKE ? ESCAPE '\\')");
       values.push(q, q, q, q, q);
     }
 
@@ -164,8 +178,8 @@ export function getErrorLogs(params: {
     const values: any[] = [];
 
     if (params.search && params.search.trim()) {
-      const q = `%${params.search.trim()}%`;
-      conditions.push('(endpoint LIKE ? OR error_message LIKE ? OR stack_trace LIKE ? OR ip LIKE ?)');
+      const q = `%${escapeLikeTerm(params.search.trim())}%`;
+      conditions.push("(endpoint LIKE ? ESCAPE '\\' OR error_message LIKE ? ESCAPE '\\' OR stack_trace LIKE ? ESCAPE '\\' OR ip LIKE ? ESCAPE '\\')");
       values.push(q, q, q, q);
     }
 
@@ -209,8 +223,8 @@ export function getEmailLogs(params: {
     const values: any[] = [];
 
     if (params.search && params.search.trim()) {
-      const q = `%${params.search.trim()}%`;
-      conditions.push('(recipient LIKE ? OR subject LIKE ? OR purpose LIKE ? OR error_message LIKE ?)');
+      const q = `%${escapeLikeTerm(params.search.trim())}%`;
+      conditions.push("(recipient LIKE ? ESCAPE '\\' OR subject LIKE ? ESCAPE '\\' OR purpose LIKE ? ESCAPE '\\' OR error_message LIKE ? ESCAPE '\\')");
       values.push(q, q, q, q);
     }
 

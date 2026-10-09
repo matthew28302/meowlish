@@ -126,7 +126,10 @@ export default function SupportPage() {
       content:
         'Meow! Chào bạn học viên! Mình là **Trợ Lý Mèo AI Meowlish** 🐱✨.\n\nMình có thể giải đáp ngay lập tức cách kiếm Coins, cách chăm sóc thú cưng khi đói, phương pháp học Ngữ Pháp Lego, cách bật 2FA, mẹo làm bài thi hoặc bất kỳ thắc mắc nào của bạn. Bạn cứ tự nhiên hỏi nhé!',
       provider: 'groq',
-      timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+      // Rỗng lúc render đầu: `new Date()` trong useState initializer là khác biệt
+      // server/client (đồng hồ máy chủ vs máy người dùng) → hydration mismatch.
+      // Giống ThemeToggle: mặc định an toàn, đọc giá trị thật trong useEffect.
+      timestamp: '',
     },
   ]);
   const [inputQuestion, setInputQuestion] = useState<string>('');
@@ -180,6 +183,19 @@ export default function SupportPage() {
     return () => {
       confetti.reset();
     };
+  }, []);
+
+  // Sau mount mới đóng dấu giờ cho tin chào — server đã render chuỗi rỗng.
+  useEffect(() => {
+    const stamp = new Date().toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    setChatMessages((prev) =>
+      prev[0]?.id === 'welcome' && !prev[0].timestamp
+        ? prev.map((m, i) => (i === 0 ? { ...m, timestamp: stamp } : m))
+        : prev
+    );
   }, []);
 
   // Tự động cuộn chat xuống đáy khi có tin nhắn mới

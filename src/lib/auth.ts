@@ -15,6 +15,16 @@ export interface AuthUser {
   status?: 'active' | 'disabled';
   two_factor_enabled?: boolean;
   email_verified?: boolean;
+  /** Thời điểm tạo tài khoản — response đăng nhập thật từ server LUÔN có. */
+  created_at?: string;
+  /**
+   * CHỈ object fallback demo do getStoredUser() tự tạo khi CHƯA đăng nhập —
+   * KHÔNG phải kết quả đăng nhập thật. Tài khoản demo thật trong DB được seed
+   * với đúng id 'user_demo_default' (db.ts) nên KHÔNG thể phân biệt hai nguồn
+   * bằng id: phải dùng cờ này (thêm 2026-10-09, sửa gate chặn nhầm user demo
+   * đã đăng nhập thật).
+   */
+  isDemoFallback?: boolean;
 }
 
 const STORAGE_KEY = 'english_for_me_user';
@@ -92,6 +102,11 @@ export function getStoredUser(): AuthUser {
     coins: 1000,
     two_factor_enabled: false,
     email_verified: true,
+    // Đánh dấu rõ đây là fallback client, KHÔNG phải đăng nhập thật (xem
+    // AuthUser.isDemoFallback). Pet page có thể ghi object này vào localStorage
+    // (setStoredUser trong applyCoinDelta cho khách) — cờ giúp AppShell phân
+    // biệt với user demo đăng nhập THẬT, cùng id 'user_demo_default'.
+    isDemoFallback: true,
   };
 }
 

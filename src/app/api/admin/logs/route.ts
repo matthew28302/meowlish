@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyAdminToken } from '@/lib/adminAuth';
-import { getAccessLogs, getErrorLogs, getEmailLogs, getLogSummary } from '@/lib/systemLogs';
+import { getAccessLogs, getErrorLogs, getEmailLogs, getLogSummary, logError } from '@/lib/systemLogs';
 import logger from '@/lib/logger';
+import { getClientIp } from '@/lib/rateLimit';
 
 function verifyAdmin(request: Request, authHeader?: string | null, adminSecret?: string | null): boolean {
   if (authHeader) {
@@ -107,17 +108,33 @@ export async function GET(request: Request) {
       success: true,
       summary,
     });
-  } catch (err: any) {
-    logger.error('Error in GET /api/admin/logs:', { error: err });
-    return NextResponse.json({ error: err.message || 'Lỗi tải nhật ký hệ thống' }, { status: 500 });
+  } catch (err: unknown) {
+    // KHÔNG trả err.message thô: better-sqlite3 lộ tên bảng/cột driver.
+    logger.error('Error in GET /api/admin/logs', { error: err });
+    logError({
+      endpoint: 'GET /api/admin/logs',
+      error_message: err instanceof Error ? err.message : String(err),
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: getClientIp(request),
+      severity: 'error',
+    });
+    return NextResponse.json({ error: 'Lỗi tải nhật ký hệ thống' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
+  const clientIp = getClientIp(request);
   try {
     const authHeader = request.headers.get('authorization');
-    const body = await request.json();
-    const { action, logType, adminSecret } = body;
+    // JSON hỏng (body rỗng / cắt ngang) là lỗi CLIENT, không phải lỗi hệ thống:
+    // không bắt thì `request.json()` ném SyntaxError → 500 kèm chi tiết driver.
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
+    const { action, logType, adminSecret } = body ?? {};
 
     if (!verifyAdmin(request, authHeader, adminSecret)) {
       return NextResponse.json({ error: 'Truy cập bị từ chối.' }, { status: 401 });
@@ -135,7 +152,17 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ error: 'Action không hợp lệ.' }, { status: 400 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Lỗi thao tác' }, { status: 500 });
+  } catch (err: unknown) {
+    // Khối catch này TRƯỚC ĐÂY KHÔNG LOG GÌ — lỗi DELETE log hệ thống biến
+    // mất hoàn toàn và im lặng. Bổ sung logger.error + logError để còn dấu vết.
+    logger.error('Error in POST /api/admin/logs', { error: err });
+    logError({
+      endpoint: 'POST /api/admin/logs',
+      error_message: err instanceof Error ? err.message : String(err),
+      stack_trace: err instanceof Error ? err.stack : null,
+      ip: clientIp,
+      severity: 'error',
+    });
+    return NextResponse.json({ error: 'Lỗi thao tác' }, { status: 500 });
   }
 }
