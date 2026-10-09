@@ -14,8 +14,8 @@ export interface PetConfig {
   description: string;
   isSpecialVip?: boolean;
   /**
-   * Đường dẫn tới tranh nhân vật 2D dạng "standee" (WebP bo góc alpha feather)
-   * do pipeline `scripts/build-pet-art-2d.mjs` sinh ra, vd:
+   * Đường dẫn sprite nhân vật 2D (WebP nền TRONG SUỐT — cutout rembg, trim sát
+   * nhân vật) do pipeline `scripts/build-pet-art-2d.mjs` sinh ra, vd:
    * "/pet-art-2d/art2d_sanrio__hello_kitty.webp".
    * Chỉ là public asset path nên an toàn khi file này bị đóng gói xuống client.
    */

@@ -27,14 +27,19 @@ export interface Art2dPetSpriteProps {
 type CatalogEntry = PetConfig & { sprite2d?: string; art2dFranchise?: string };
 
 /**
- * Chiều cao khung standee theo cùng "pipeline scale" của chibi (chibi: 64×scale).
- * Nhân vật 2D là NGƯỜI đứng thẳng: 96 = 1.5×64 để không bị lùn kế thú cưng
- * (đo 2026-10-09: 34 webp tại /public/pet-art-2d đều cao 420px, tỉ lệ ~1:2).
+ * Chiều cao khung sprite theo cùng "pipeline scale" của chibi (chibi: 64×scale).
+ * SỬA 2026-10-09 (yêu cầu user): "kích cỡ pet bằng với các pet ban đầu" —
+ * bản trước để 96 = 1.5×64 khiến nhân vật 2D nổi bật to hơn hẳn thú chibi
+ * (TinyFish đo trên prod: ~1/3 chiều cao khu vườn, "bigger" hơn chibi).
+ * Sprite giờ đã TRIM SÁT nhân vật (bỏ padding poster + nền đã xóa bằng
+ * rembg ở scripts/build-pet-art-2d.mjs) nên 64 là chiều cao THẬT của nhân
+ * vật, so sánh trực tiếp với chibi 64 được.
  */
-const ART2D_BASE_H = 96;
+const ART2D_BASE_H = 64;
 
-/** Aspect mặc định trước khi ảnh load — 21/34 webp là 210×420 (=0.5), sai số nhỏ nhất. */
-const DEFAULT_ASPECT = 0.5;
+/** Aspect mặc định trước khi ảnh load — median đo thật của 34 sprite sau
+ * trim (2026-10-09): 0.598. Chỉ tránh CLS khung hình lúc ảnh chưa decode. */
+const DEFAULT_ASPECT = 0.6;
 
 /** Fallback chibi theo franchise khi sprite thiếu/404 — giữ vườn không trống pet. */
 const FALLBACK_CHIBI: Record<string, string> = {
@@ -201,7 +206,7 @@ function Art2dPetSprite({
         species={FALLBACK_CHIBI[franchise] ?? 'owl'}
         animationState={animationState}
         facing={facing}
-        scale={scale * 1.5} /* 64×1.5 = 96: chibi fallback cao bằng khung standee */
+        scale={scale} /* fallback chibi cùng khung 64 — cao bằng sprite 2D */
         className={className}
         isSleeping={isSleeping}
       />

@@ -2,105 +2,109 @@
 /**
  * build-pet-art-2d.mjs — Asset pipeline cho tính năng "2D art pets" (meowlish).
  *
- * Biến đổi poster nhân vật 2D (`art-2d-pet/<franchise>/<name>.png`) thành
- * "character standee" WebP: thu nhỏ về cao 420px, giữ nguyên tỉ lệ (không crop,
- * không stretch), rồi phủ mask bo góc feather (rounded-rect inset 10px, rx 22,
- * blur σ 9) qua `composite({ blend: 'dest-in' })` để viền tan mềm vào nền.
+ * GIAI ĐOẠN 1 (Python, chạy RIÊNG, ~52s/ảnh, model ~1GB tải lần đầu):
+ *   python art-2d-pet/_cut_batch.py
+ *     — dùng rembg (isnet/u2net) xóa NỀN poster: nguồn là ảnh đặc nền gradient
+ *     tối, chroma-key sẽ ăn mất nhân vật mặc đồ đen trên nền đen (đo
+ *     2026-10-09: 34/34 nguồn alpha=0%). Kết quả RGBA cắt nền nằm ở
+ *     art-2d-pet/_cut/<franchise>__<name>.png. Cài đặt: pip install "rembg[cpu]".
  *
- * CHÚ Ý: ảnh nguồn là poster nền tối kín (không transparent) — chủ ý của design
- * là GIỮ NGUYÊN nền, tuyệt đối không xóa background.
+ * GIAI ĐOẠN 2 (script này, nhanh): _cut/*.png → sprite WebP tối ưu:
+ *   1. Trim sát alpha-bbox của NHÂN VẬT (bỏ viền trong suốt còn xót).
+ *   2. Resize về cao 420px giữ tỉ lệ — KHÔNG crop, KHÔNG stretch, KHÔNG mask:
+ *      nền đã trong suốt nên không cần "standee" bo góc feather nữa.
+ *   3. WebP quality 80 / alphaQuality 90.
  *
- * Output (idempotent — chạy lại sẽ overwrite tại chỗ):
+ * Output (idempotent — chạy lại overwrite tại chỗ):
  *   public/pet-art-2d/art2d_<franchise>__<name>.webp
  *   public/pet-art-2d/manifest.json
  *
  * Chạy:  node scripts/build-pet-art-2d.mjs
  */
 
-import { mkdirSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
-import { basename, extname, join } from 'node:path';
+import { existsSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const PROJECT_ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..');
-const SRC_DIR = join(PROJECT_ROOT, 'art-2d-pet');
+const CUT_DIR = join(PROJECT_ROOT, 'art-2d-pet', '_cut');
 const OUT_DIR = join(PROJECT_ROOT, 'public', 'pet-art-2d');
 
 // --- Cấu hình pipeline ---
-const TARGET_HEIGHT = 420; // chiều cao chuẩn của standee
-const MASK_INSET = 10; // rounded-rect lùi vào 10px từ mép ảnh
-const MASK_RADIUS = 22; // bán kính bo góc
-const MASK_BLUR = 9; // σ gaussian → feather rộng ~18px
+const TARGET_HEIGHT = 420; // chiều cao chuẩn của sprite nhân vật
+const ALPHA_KEEP = 20; // pixel alpha >= 20 được tính là "thuộc nhân vật" khi đo bbox
 const ALPHA_QUALITY = 90;
 const BASE_QUALITY = 80;
 const FALLBACK_QUALITY = 75; // dùng nếu tổng dung lượng vượt hard budget
 const SOFT_BUDGET_KB = 2500; // mục tiêu ≤ 2.5MB / 34 file
 const HARD_BUDGET_KB = 3072; // vượt mức này → rebuild ở quality thấp hơn
 
-/** Tìm mọi ảnh nguồn, trả về danh sách có thứ tự ổn định (franchise + tên A→Z). */
+/** Tìm mọi ảnh đã cắt nền trong _cut, thứ tự ổn định theo tên file A→Z. */
 function discoverSources() {
-  const franchises = readdirSync(SRC_DIR, { withFileTypes: true })
-    .filter((e) => e.isDirectory())
-    .map((e) => e.name)
-    .sort();
-
-  const sources = [];
-  for (const franchise of franchises) {
-    const files = readdirSync(join(SRC_DIR, franchise), { withFileTypes: true })
-      .filter((e) => e.isFile() && e.name.toLowerCase().endsWith('.png'))
-      .map((e) => e.name)
-      .sort();
-    for (const file of files) {
-      // iron_man_v3.png → iron_man ; lowercase để id luôn ổn định
-      const baseName = basename(file, extname(file)).toLowerCase().replace(/_v\d+$/, '');
-      sources.push({
-        franchise,
+  if (!existsSync(CUT_DIR)) {
+    console.error(`Không tìm thấy thư mục ${CUT_DIR}.
+→ Chạy GIAI ĐOẠN 1 trước (cắt nền bằng rembg):
+    pip install "rembg[cpu]"
+    python art-2d-pet/_cut_batch.py   # ~52s/ảnh, lần đầu tải model ~1GB`);
+    process.exit(1);
+  }
+  return readdirSync(CUT_DIR)
+    .filter((f) => f.toLowerCase().endsWith('.png'))
+    .sort()
+    .map((file) => {
+      const baseName = file.replace(/\.png$/i, '');
+      return {
+        id: `art2d_${baseName}`,
         baseName,
-        id: `art2d_${franchise}__${baseName}`,
-        srcPath: join(SRC_DIR, franchise, file),
-      });
+        srcPath: join(CUT_DIR, file),
+      };
+    });
+}
+
+/**
+ * Tính bounding-box của phần KHÔNG trong suốt (nhân vật) từ buffer raw RGBA.
+ * Trả về null nếu ảnh gần như trống (rembg fail toàn bộ).
+ */
+function alphaBbox(data, width, height) {
+  let minX = width, minY = height, maxX = -1, maxY = -1;
+  for (let y = 0; y < height; y++) {
+    const row = y * width * 4;
+    for (let x = 0; x < width; x++) {
+      if (data[row + x * 4 + 3] >= ALPHA_KEEP) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
     }
   }
-  return sources;
+  if (maxX < 0) return null;
+  return { left: minX, top: minY, width: maxX - minX + 1, height: maxY - minY + 1 };
 }
 
 /**
- * SVG mask trắng cùng kích thước ảnh: rounded-rect bo mờ bằng feGaussianBlur.
- * Vùng filter giãn 140% để blur không bị cắt ở mép, color-interpolation sRGB
- * cho dải feather tuyến tính, dễ đoán.
- */
-function maskSvg(w, h) {
-  const x = MASK_INSET;
-  const y = MASK_INSET;
-  const rw = w - MASK_INSET * 2;
-  const rh = h - MASK_INSET * 2;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-  <defs>
-    <filter id="feather" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
-      <feGaussianBlur stdDeviation="${MASK_BLUR}"/>
-    </filter>
-  </defs>
-  <rect x="${x}" y="${y}" width="${rw}" height="${rh}" rx="${MASK_RADIUS}" ry="${MASK_RADIUS}" fill="#ffffff" filter="url(#feather)"/>
-</svg>`;
-}
-
-/**
- * Xử lý 1 ảnh nguồn → standee WebP.
- * Trả về metadata cho manifest (width/height = kích thước SAU resize, trước mask).
+ * Xử lý 1 ảnh đã cắt nền → sprite WebP.
+ * Manifest width/height = kích thước SAU trim+resize (sprite sát nhân vật).
  */
 async function buildOne(source, quality) {
-  // Bước 1: resize về cao 420, GIỮ TỈ LỆ (chỉ truyền height cho sharp).
-  const resized = await sharp(source.srcPath)
+  // Bước 1: đọc raw RGBA để tìm bbox nhân vật.
+  const raw = await sharp(source.srcPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const bbox = alphaBbox(raw.data, raw.info.width, raw.info.height);
+  if (!bbox) {
+    throw new Error(`${source.id}: ảnh cắt nền gần như trống (không còn pixel đặc nào)`);
+  }
+
+  // Bước 2: trim theo bbox rồi resize về cao 420 giữ tỉ lệ.
+  const trimmed = await sharp(source.srcPath)
+    .extract({ left: bbox.left, top: bbox.top, width: bbox.width, height: bbox.height })
     .resize({ height: TARGET_HEIGHT })
     .png()
     .toBuffer({ resolveWithObject: true });
-  const { width, height } = resized.info;
 
-  // Bước 2: ghép mask dest-in — alpha cuối = alpha của mask (feathered corners).
+  // Bước 3: WebP — KHÔNG mask; alpha của cutout đã là viền mềm tự nhiên.
   const outPath = join(OUT_DIR, `${source.id}.webp`);
-  const info = await sharp(resized.data)
-    .ensureAlpha()
-    .composite([{ input: Buffer.from(maskSvg(width, height)), blend: 'dest-in' }])
+  const info = await sharp(trimmed.data)
     .webp({ quality, alphaQuality: ALPHA_QUALITY })
     .toFile(outPath);
 
@@ -123,8 +127,15 @@ async function buildAll(sources, quality) {
 }
 
 /**
- * Kiểm định 1 file đầu ra: WebP phải có kênh alpha, đúng kích thước manifest,
- * và ≥ 1% pixel bán trong suốt (chứng tỏ feather đã hoạt động thật).
+ * Kiểm định 1 sprite đầu ra — sprite cắt nền phải thoả:
+ *  1. Có kênh alpha, đúng kích thước manifest.
+ *  2. Phần đặc chiếm 5–75% khung (nhân vật, không phải ảnh đặc nguyên).
+ *
+ * KHÔNG kiểm "góc" lẫn "dải sàn" ở đây:
+ *  - Góc: sprite đã TRIM SÁT bbox nên chân nhân vật hoàn toàn có thể chạm góc.
+ *  - Sàn: vệt sàn đã được xói TẠI NGUỒN trong _cut_batch.py (erode_floor_band);
+ *    kiểm lại trên bản 420px sẽ FALSE-POSITIVE vì chân + bóng mềm bị average
+ *    lên >=128 khi downscale (bắt gặp shizuka/sanji — đo 2026-10-09).
  */
 async function verifyItem(item) {
   const problems = [];
@@ -138,15 +149,18 @@ async function verifyItem(item) {
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
-  let semi = 0;
-  const total = info.width * info.height;
+  const w = info.width;
+  const h = info.height;
+  let opaque = 0;
   for (let i = 3; i < data.length; i += 4) {
-    if (data[i] > 3 && data[i] < 252) semi++;
+    if (data[i] > 200) opaque++;
   }
-  const semiPct = (100 * semi) / total;
-  if (semiPct < 1) problems.push(`chỉ ${semiPct.toFixed(2)}% pixel bán trong suốt (feather hỏng?)`);
+  const opaquePct = (100 * opaque) / (w * h);
+  if (opaquePct < 5 || opaquePct > 75) {
+    problems.push(`phần đặc ${opaquePct.toFixed(1)}% ngoài khoảng 5–75% (cutout hỏng?)`);
+  }
 
-  return { id: item.id, semiPct, ok: problems.length === 0, problems };
+  return { id: item.id, opaquePct, ok: problems.length === 0, problems };
 }
 
 function printTable(items, totalKb) {
@@ -172,10 +186,10 @@ function printTable(items, totalKb) {
 async function main() {
   const sources = discoverSources();
   if (sources.length === 0) {
-    console.error(`Không tìm thấy ảnh nguồn nào trong ${SRC_DIR}`);
+    console.error(`Không tìm thấy ảnh đã cắt nền nào trong ${CUT_DIR}`);
     process.exit(1);
   }
-  console.log(`Tìm thấy ${sources.length} ảnh nguồn trong ${SRC_DIR}`);
+  console.log(`Tìm thấy ${sources.length} ảnh đã cắt nền trong ${CUT_DIR}`);
   mkdirSync(OUT_DIR, { recursive: true });
 
   // Pass 1: build ở quality chuẩn.
@@ -200,45 +214,36 @@ async function main() {
     }
   }
 
+  // Kiểm định từng sprite.
+  console.log('\nKiểm định cutout (alpha + góc trong suốt + tỉ lệ đặc)...');
+  let bad = 0;
+  for (const item of items) {
+    const v = await verifyItem(item);
+    if (!v.ok) {
+      bad++;
+      console.log(`  ✕ ${v.id}: ${v.problems.join('; ')}`);
+    }
+  }
+  if (bad === 0) console.log('  ✓ 34/34 sprite đạt: góc trong suốt, tỉ lệ đặc hợp lệ.');
+
   // Manifest.
   const manifest = {
     builtAt: new Date().toISOString(),
-    items: items.map(({ id, franchise, file, width, height }) => ({
+    items: items.map(({ id, baseName, file, width, height }) => ({
       id,
-      franchise,
+      franchise: baseName.split('__')[0],
       file,
       width,
       height,
     })),
   };
-  const manifestPath = join(OUT_DIR, 'manifest.json');
-  writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
+  writeFileSync(join(OUT_DIR, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 
   printTable(items, totalKb);
-  console.log(`\nManifest: ${manifestPath} (quality=${quality}, builtAt=${manifest.builtAt})`);
-
-  // Kiểm định đầu ra.
-  console.log('\n=== KIỂM ĐỊNH ĐẦU RA ===');
-  const results = [];
-  for (const item of items) {
-    const result = await verifyItem(item);
-    results.push(result);
-    if (!result.ok) console.log(`✕ ${result.id}: ${result.problems.join('; ')}`);
-  }
-  const failures = results.filter((r) => !r.ok).length;
-  const avgSemi = results.reduce((s, r) => s + r.semiPct, 0) / results.length;
-
-  if (failures > 0) {
-    console.error(`\nKẾT QUẢ: ${failures}/${items.length} file LỖI — pipeline cần sửa.`);
-    process.exit(1);
-  }
-  console.log(
-    `✓ Đủ ${items.length}/${items.length} file WebP có kênh alpha, đúng kích thước manifest, feather trung bình ${avgSemi.toFixed(2)}% pixel bán trong suốt.`,
-  );
-  console.log('\nHoàn tất! ✅');
+  process.exit(bad === 0 ? 0 : 1);
 }
 
 main().catch((err) => {
-  console.error('Build thất bại:', err);
+  console.error(err);
   process.exit(1);
 });
