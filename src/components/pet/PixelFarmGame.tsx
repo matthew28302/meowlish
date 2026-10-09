@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import PixelPetSprite, { PetAnimationState } from './PixelPetSprite';
+import Art2dPetSprite from './Art2dPetSprite';
 import {
   DutchWindmillSVG,
   GrandOakTreeSVG,
@@ -3630,16 +3631,28 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
             className="relative transform group-hover:scale-120 transition-transform"
             style={{ filter: 'drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4))' }}
           >
-            <PixelPetSprite
-              species={species}
-              animationState={animState}
-              facing={facing}
-              scale={(isMobile ? 0.735 : 0.945) * petDepthScale}
-              equippedHat={equippedHat}
-              equippedOutfit={equippedOutfit}
-              equippedAccessory={equippedAccessory}
-              isSleeping={isSleeping}
-            />
+            {species.startsWith('art2d_') ? (
+              /* Nhân vật 2D (art2d_*): standee người — mũ/áo/phụ kiện chibi không khớp
+                 nhân vật nên CỐ Ý không truyền equippedHat/Outfit/Accessory */
+              <Art2dPetSprite
+                species={species}
+                animationState={animState}
+                facing={facing}
+                scale={(isMobile ? 0.735 : 0.945) * petDepthScale}
+                isSleeping={isSleeping}
+              />
+            ) : (
+              <PixelPetSprite
+                species={species}
+                animationState={animState}
+                facing={facing}
+                scale={(isMobile ? 0.735 : 0.945) * petDepthScale}
+                equippedHat={equippedHat}
+                equippedOutfit={equippedOutfit}
+                equippedAccessory={equippedAccessory}
+                isSleeping={isSleeping}
+              />
+            )}
           </div>
         </div>
       </div>

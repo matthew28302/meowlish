@@ -9,6 +9,7 @@ import {
   Flame, CheckCircle, XCircle, Plus, Users, Clock, AlertCircle, RefreshCw, X
 } from 'lucide-react';
 import { drawChibiPet } from './drawChibiPet';
+import { drawArt2dPet, isArt2dSpecies, preloadArt2dSprite } from './drawArt2dPet';
 
 export interface OpponentData {
   id: string;
@@ -110,6 +111,10 @@ export default function PetPvPArenaCanvas({
   const floatingTextsRef = useRef<CombatFloatingText[]>([]);
   const projectileFxRef = useRef<{ active: boolean; x: number; y: number; targetX: number; targetY: number; color: string } | null>(null);
 
+  // Cache sprite WebP "tranh 2D" (key = species art2d_*): ảnh chỉ vào map sau khi
+  // load xong — trước đó vòng vẽ vẫn dùng chibi vector như cũ.
+  const art2dSpritesRef = useRef<Map<string, HTMLImageElement>>(new Map());
+
   // Ref đồng bộ số dư mới nhất: handler bất đồng bộ (await fetch, setTimeout)
   // không được đọc `userCoins` của lần render đã đóng lại.
   const userCoinsRef = useRef<number>(userCoins);
@@ -129,6 +134,20 @@ export default function PetPvPArenaCanvas({
     userCoinsRef.current = serverCoins;
     onUpdateCoinsDelta(delta);
   };
+
+  // Nạp sẵn sprite art2d của cả hai phe ngay khi cặp đấu được chọn, để vòng vẽ
+  // có ảnh từ hiệp đầu thay vì pet nhảy chibi→standee giữa trận khó chịu.
+  useEffect(() => {
+    const cache = art2dSpritesRef.current;
+    const roster: string[] = [playerSpecies];
+    if (selectedOpponent) roster.push(selectedOpponent.pet_type);
+    roster.filter((sp) => isArt2dSpecies(sp)).forEach((sp) => {
+      if (cache.has(sp)) return;
+      preloadArt2dSprite(sp).then((img) => {
+        if (img) cache.set(sp, img);
+      });
+    });
+  }, [playerSpecies, selectedOpponent]);
 
   const addCombatText = (text: string, x: number, y: number, color = '#facc15', size = 18) => {
     floatingTextsRef.current.push({
@@ -714,16 +733,36 @@ export default function PetPvPArenaCanvas({
       const pHop = Math.sin(frame * 0.12) * 3;
 
       ctx.save();
-      drawChibiPet({
-        ctx,
-        x: pBaseX,
-        y: pBaseY - 10 + pHop,
-        scale: 1.35,
-        species: playerSpecies,
-        state: playerStunned ? 'stunned' : playerXOffset.current > 10 ? 'attack' : 'idle',
-        frame,
-        direction: 1,
-      });
+      // Loài art2d_* && có ảnh trong cache → vẽ standee "tranh 2D";
+      // không thì giữ nguyên vector chibi như cũ.
+      const playerArt2d = isArt2dSpecies(playerSpecies)
+        ? art2dSpritesRef.current.get(playerSpecies)
+        : undefined;
+      if (playerArt2d) {
+        drawArt2dPet({
+          ctx,
+          x: pBaseX,
+          y: pBaseY - 10 + pHop,
+          scale: 1.35,
+          species: playerSpecies,
+          state: playerStunned ? 'stunned' : playerXOffset.current > 10 ? 'attack' : 'idle',
+          frame,
+          direction: 1,
+          img: playerArt2d,
+          imgAspect: playerArt2d.naturalWidth / playerArt2d.naturalHeight || undefined,
+        });
+      } else {
+        drawChibiPet({
+          ctx,
+          x: pBaseX,
+          y: pBaseY - 10 + pHop,
+          scale: 1.35,
+          species: playerSpecies,
+          state: playerStunned ? 'stunned' : playerXOffset.current > 10 ? 'attack' : 'idle',
+          frame,
+          direction: 1,
+        });
+      }
 
       // Player Name & Level Badge
       ctx.fillStyle = '#ffffff';
@@ -752,16 +791,36 @@ export default function PetPvPArenaCanvas({
         const rHop = Math.sin(frame * 0.12 + 1) * 3;
 
         ctx.save();
-        drawChibiPet({
-          ctx,
-          x: rBaseX,
-          y: rBaseY - 10 + rHop,
-          scale: 1.35,
-          species: selectedOpponent.pet_type,
-          state: rivalStunned ? 'stunned' : rivalXOffset.current < -10 ? 'attack' : 'idle',
-          frame,
-          direction: -1,
-        });
+        // Loài art2d_* && có ảnh trong cache → vẽ standee "tranh 2D";
+        // không thì giữ nguyên vector chibi như cũ.
+        const rivalArt2d = isArt2dSpecies(selectedOpponent.pet_type)
+          ? art2dSpritesRef.current.get(selectedOpponent.pet_type)
+          : undefined;
+        if (rivalArt2d) {
+          drawArt2dPet({
+            ctx,
+            x: rBaseX,
+            y: rBaseY - 10 + rHop,
+            scale: 1.35,
+            species: selectedOpponent.pet_type,
+            state: rivalStunned ? 'stunned' : rivalXOffset.current < -10 ? 'attack' : 'idle',
+            frame,
+            direction: -1,
+            img: rivalArt2d,
+            imgAspect: rivalArt2d.naturalWidth / rivalArt2d.naturalHeight || undefined,
+          });
+        } else {
+          drawChibiPet({
+            ctx,
+            x: rBaseX,
+            y: rBaseY - 10 + rHop,
+            scale: 1.35,
+            species: selectedOpponent.pet_type,
+            state: rivalStunned ? 'stunned' : rivalXOffset.current < -10 ? 'attack' : 'idle',
+            frame,
+            direction: -1,
+          });
+        }
 
         if (rivalStunned) {
           const starRot = frame * 0.15;

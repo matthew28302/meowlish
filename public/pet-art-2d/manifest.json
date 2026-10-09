@@ -1,0 +1,243 @@
+{
+  "builtAt": "2026-10-09T09:58:30.073Z",
+  "items": [
+    {
+      "id": "art2d_avengers__black_widow",
+      "franchise": "avengers",
+      "file": "art2d_avengers__black_widow.webp",
+      "width": 420,
+      "height": 420
+    },
+    {
+      "id": "art2d_avengers__captain_america",
+      "franchise": "avengers",
+      "file": "art2d_avengers__captain_america.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_avengers__doctor_strange",
+      "franchise": "avengers",
+      "file": "art2d_avengers__doctor_strange.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_avengers__hulk",
+      "franchise": "avengers",
+      "file": "art2d_avengers__hulk.webp",
+      "width": 420,
+      "height": 420
+    },
+    {
+      "id": "art2d_avengers__iron_man",
+      "franchise": "avengers",
+      "file": "art2d_avengers__iron_man.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_avengers__spider_man",
+      "franchise": "avengers",
+      "file": "art2d_avengers__spider_man.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_avengers__thor",
+      "franchise": "avengers",
+      "file": "art2d_avengers__thor.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_doraemon__doraemon",
+      "franchise": "doraemon",
+      "file": "art2d_doraemon__doraemon.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_doraemon__gian",
+      "franchise": "doraemon",
+      "file": "art2d_doraemon__gian.webp",
+      "width": 420,
+      "height": 420
+    },
+    {
+      "id": "art2d_doraemon__nobita",
+      "franchise": "doraemon",
+      "file": "art2d_doraemon__nobita.webp",
+      "width": 420,
+      "height": 420
+    },
+    {
+      "id": "art2d_doraemon__shizuka",
+      "franchise": "doraemon",
+      "file": "art2d_doraemon__shizuka.webp",
+      "width": 420,
+      "height": 420
+    },
+    {
+      "id": "art2d_doraemon__suneo",
+      "franchise": "doraemon",
+      "file": "art2d_doraemon__suneo.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_harry_potter__dumbledore",
+      "franchise": "harry_potter",
+      "file": "art2d_harry_potter__dumbledore.webp",
+      "width": 280,
+      "height": 420
+    },
+    {
+      "id": "art2d_harry_potter__hagrid",
+      "franchise": "harry_potter",
+      "file": "art2d_harry_potter__hagrid.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_harry_potter__harry",
+      "franchise": "harry_potter",
+      "file": "art2d_harry_potter__harry.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_harry_potter__hermione",
+      "franchise": "harry_potter",
+      "file": "art2d_harry_potter__hermione.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_harry_potter__ron",
+      "franchise": "harry_potter",
+      "file": "art2d_harry_potter__ron.webp",
+      "width": 420,
+      "height": 420
+    },
+    {
+      "id": "art2d_harry_potter__snape",
+      "franchise": "harry_potter",
+      "file": "art2d_harry_potter__snape.webp",
+      "width": 420,
+      "height": 420
+    },
+    {
+      "id": "art2d_harry_potter__voldemort",
+      "franchise": "harry_potter",
+      "file": "art2d_harry_potter__voldemort.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_naruto__hinata",
+      "franchise": "naruto",
+      "file": "art2d_naruto__hinata.webp",
+      "width": 420,
+      "height": 420
+    },
+    {
+      "id": "art2d_naruto__kakashi",
+      "franchise": "naruto",
+      "file": "art2d_naruto__kakashi.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_naruto__naruto",
+      "franchise": "naruto",
+      "file": "art2d_naruto__naruto.webp",
+      "width": 280,
+      "height": 420
+    },
+    {
+      "id": "art2d_naruto__sakura",
+      "franchise": "naruto",
+      "file": "art2d_naruto__sakura.webp",
+      "width": 420,
+      "height": 420
+    },
+    {
+      "id": "art2d_naruto__sasuke",
+      "franchise": "naruto",
+      "file": "art2d_naruto__sasuke.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_onepiece__chopper",
+      "franchise": "onepiece",
+      "file": "art2d_onepiece__chopper.webp",
+      "width": 420,
+      "height": 420
+    },
+    {
+      "id": "art2d_onepiece__luffy",
+      "franchise": "onepiece",
+      "file": "art2d_onepiece__luffy.webp",
+      "width": 420,
+      "height": 420
+    },
+    {
+      "id": "art2d_onepiece__nami",
+      "franchise": "onepiece",
+      "file": "art2d_onepiece__nami.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_onepiece__sanji",
+      "franchise": "onepiece",
+      "file": "art2d_onepiece__sanji.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_onepiece__zoro",
+      "franchise": "onepiece",
+      "file": "art2d_onepiece__zoro.webp",
+      "width": 420,
+      "height": 420
+    },
+    {
+      "id": "art2d_sanrio__cinnamoroll",
+      "franchise": "sanrio",
+      "file": "art2d_sanrio__cinnamoroll.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_sanrio__hello_kitty",
+      "franchise": "sanrio",
+      "file": "art2d_sanrio__hello_kitty.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_sanrio__kuromi",
+      "franchise": "sanrio",
+      "file": "art2d_sanrio__kuromi.webp",
+      "width": 420,
+      "height": 420
+    },
+    {
+      "id": "art2d_sanrio__my_melody",
+      "franchise": "sanrio",
+      "file": "art2d_sanrio__my_melody.webp",
+      "width": 210,
+      "height": 420
+    },
+    {
+      "id": "art2d_sanrio__pompompurin",
+      "franchise": "sanrio",
+      "file": "art2d_sanrio__pompompurin.webp",
+      "width": 420,
+      "height": 420
+    }
+  ]
+}

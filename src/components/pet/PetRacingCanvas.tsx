@@ -9,6 +9,7 @@ import {
   Plus, Users, X, Clock, Play, Flame
 } from 'lucide-react';
 import { drawChibiPet } from './drawChibiPet';
+import { drawArt2dPet, isArt2dSpecies, preloadArt2dSprite } from './drawArt2dPet';
 
 export interface PetRacingCanvasProps {
   playerSpecies: string;
@@ -89,6 +90,10 @@ export default function PetRacingCanvas({
   // Interval đếm ngược 3-2-1 tạo trong handler startRaceWithOpponents
   const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Cache sprite WebP "tranh 2D" (key = species art2d_*). Ảnh chỉ vào map sau khi
+  // load xong — trước đó vòng vẽ vẫn dùng chibi vector như cũ.
+  const art2dSpritesRef = useRef<Map<string, HTMLImageElement>>(new Map());
+
   // Ref đồng bộ số dư mới nhất. Handler bất đồng bộ (await fetch, setTimeout)
   // không được đọc `userCoins` của lần render đã đóng lại — nếu không số xu
   // kiếm được trong lúc request bay sẽ bị ghi đè.
@@ -109,6 +114,24 @@ export default function PetRacingCanvas({
     userCoinsRef.current = serverCoins;
     onUpdateCoinsDelta(delta);
   };
+
+  // Nạp sẵn mọi sprite art2d trong đội hình: vòng rAF cần ảnh ngay khi xuất phát,
+  // nạp trong lúc vẽ sẽ khiến pet nhảy chibi→standee giữa đường đua rất khó chịu.
+  useEffect(() => {
+    const cache = art2dSpritesRef.current;
+    // Roster thật nằm trong racersRef (được lấp ngay trước khi raceState chuyển
+    // sang 'countdown' nên effect này chạy sau đó là đủ); trước cuộc đua chỉ có
+    // pet của người chơi — nạp sớm cho sẵn sàng.
+    const roster = racersRef.current.length > 0
+      ? racersRef.current.map((r) => r.species)
+      : [playerSpecies];
+    roster.filter((sp) => isArt2dSpecies(sp)).forEach((sp) => {
+      if (cache.has(sp)) return;
+      preloadArt2dSprite(sp).then((img) => {
+        if (img) cache.set(sp, img);
+      });
+    });
+  }, [raceState, playerSpecies]);
 
   // Filter racing rooms
   const racingRooms = activeRooms.filter((r) => r.game_type === 'racing' && r.status === 'waiting');
@@ -658,17 +681,37 @@ export default function PetRacingCanvas({
             ctx.restore();
           }
 
-          // Chibi Vector Pet Sprite
-          drawChibiPet({
-            ctx,
-            x: screenX,
-            y: screenY,
-            scale: 0.95,
-            species: racer.species,
-            state: racer.isStunned ? 'stunned' : racer.boostTimer > 0 ? 'attack' : 'walk',
-            frame,
-            direction: 1,
-          });
+          // Pet sprite: loài art2d_* && đã có ảnh trong cache → vẽ standee
+          // "tranh 2D"; không thì giữ nguyên vector chibi như cũ.
+          const art2dImg = isArt2dSpecies(racer.species)
+            ? art2dSpritesRef.current.get(racer.species)
+            : undefined;
+          if (art2dImg) {
+            drawArt2dPet({
+              ctx,
+              x: screenX,
+              y: screenY,
+              scale: 0.95,
+              species: racer.species,
+              state: racer.isStunned ? 'stunned' : racer.boostTimer > 0 ? 'attack' : 'walk',
+              frame,
+              direction: 1,
+              img: art2dImg,
+              imgAspect: art2dImg.naturalWidth / art2dImg.naturalHeight || undefined,
+            });
+          } else {
+            // Chibi Vector Pet Sprite
+            drawChibiPet({
+              ctx,
+              x: screenX,
+              y: screenY,
+              scale: 0.95,
+              species: racer.species,
+              state: racer.isStunned ? 'stunned' : racer.boostTimer > 0 ? 'attack' : 'walk',
+              frame,
+              direction: 1,
+            });
+          }
 
           // Stunned indicator
           if (racer.isStunned) {

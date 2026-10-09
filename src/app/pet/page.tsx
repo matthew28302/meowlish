@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
 import { getCurrentUser, getStoredUser, setStoredUser, AuthUser } from '@/lib/auth';
-import { PETS_CATALOG, SHOP_ITEMS, ShopItem, getPetTitle } from '@/lib/petData';
+import { PETS_CATALOG, SHOP_ITEMS, ShopItem, PetConfig, getPetTitle } from '@/lib/petData';
 import confetti from '@/lib/confetti';
 import PixelFarmGame, { PixelFarmHandle } from '@/components/pet/PixelFarmGame';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
@@ -41,6 +41,70 @@ import PetRacingCanvas from '@/components/pet/PetRacingCanvas';
 import PetSocialHub from '@/components/pet/PetSocialHub';
 import { SocialFriend } from '@/lib/petSocialData';
 import { useEscapeToClose } from '@/lib/useEscapeToClose';
+
+/**
+ * Nhóm standee 2D "Nhân Vật Nổi Tiếng" cho modal Đổi Thú Cưng (MODAL 4).
+ *
+ * 34 id `art2d_<franchise>__<name>` do agent dữ liệu thêm thẳng vào PETS_CATALOG
+ * — KHÔNG hardcode id ở đây: quét catalog lúc load module rồi nhóm theo segment
+ * franchise trong id. Trước khi dữ liệu đó đổ về thì mảng rỗng ⇒ modal y nguyên
+ * như cũ, không render tab/section thừa. (đo 2026-10-09: 34 webp đã sẵn tại
+ * /public/pet-art-2d — 6 franchise: avengers/doraemon/harry_potter/naruto/onepiece/sanrio)
+ */
+type Art2dEntry = PetConfig & { sprite2d?: string; art2dFranchise?: string };
+
+/** Số thú cưng chibi của 7 section hardcode bên dưới (3+3+3+3+3+6+6). */
+const CHIBI_PET_COUNT = 27;
+
+const ART2D_FRANCHISE_META: Record<string, { emoji: string; label: string }> = {
+  avengers: { emoji: '🦸', label: 'Avengers' },
+  doraemon: { emoji: '🔵', label: 'Doraemon' },
+  harry_potter: { emoji: '⚡', label: 'Harry Potter' },
+  naruto: { emoji: '🍥', label: 'Naruto' },
+  onepiece: { emoji: '🏴‍☠️', label: 'One Piece' },
+  sanrio: { emoji: '🎀', label: 'Sanrio' },
+};
+
+const ART2D_PET_IDS = Object.keys(PETS_CATALOG).filter((id) => id.startsWith('art2d_'));
+
+/** Gom id theo franchise (segment giữa `art2d_` và `__`), giữ thứ tự gặp đầu. */
+const ART2D_FRANCHISE_GROUPS = (() => {
+  const groups = new Map<string, string[]>();
+  for (const id of ART2D_PET_IDS) {
+    const franchise = id.split('__')[0]?.slice('art2d_'.length) || 'other';
+    const ids = groups.get(franchise) ?? [];
+    ids.push(id);
+    groups.set(franchise, ids);
+  }
+  return [...groups.entries()].map(([franchise, petIds]) => {
+    const meta = ART2D_FRANCHISE_META[franchise];
+    return {
+      key: `art2d_${franchise}`,
+      shortLabel: meta?.label ?? franchise.replace(/_/g, ' '),
+      emoji: meta?.emoji ?? '🎬',
+      petIds,
+    };
+  });
+})();
+
+/** Section modal cho từng franchise 2D — cuối danh sách (chibi trước, 2D sau);
+ *  bảng tím thống nhất cho mọi franchise, lạ thì rơi vào fallback 🎬. */
+const ART2D_SECTIONS = ART2D_FRANCHISE_GROUPS.map((g) => ({
+  key: g.key,
+  title: `Nhân Vật 2D: ${g.shortLabel}`,
+  emoji: g.emoji,
+  headerBg: 'text-violet-800 bg-violet-100 dark:text-violet-200 dark:bg-violet-950',
+  badgeBg: 'text-violet-700 bg-violet-50 dark:text-violet-300 dark:bg-violet-950',
+  activeBorder: 'border-violet-500 bg-violet-50 ring-2 ring-violet-300 dark:bg-violet-950',
+  petIds: g.petIds,
+}));
+
+/** Chip lọc theo franchise — reuse hàng tab sẵn có (tab id phải khớp sec.key). */
+const ART2D_TABS = ART2D_FRANCHISE_GROUPS.map((g) => ({
+  id: g.key,
+  label: `${g.shortLabel} 2D (${g.petIds.length})`,
+  emoji: g.emoji,
+}));
 
 /**
  * Một mục trong menu "Thêm" của thanh công cụ.
@@ -2278,7 +2342,7 @@ export default function PetPage() {
                   >
                     Chọn Bạn Đồng Hành Nuôi Dưỡng
                   </h3>
-                  <p className="text-[12px] text-emerald-100 font-medium">Bao gồm 27 siêu thú cưng Anime, Manga & Linh vật tri thức đỉnh cao!</p>
+                  <p className="text-[12px] text-emerald-100 font-medium">Bao gồm {CHIBI_PET_COUNT + ART2D_PET_IDS.length} siêu thú cưng Anime, Manga & nhân vật 2D nổi tiếng!</p>
                 </div>
               </div>
               <button
@@ -2293,7 +2357,7 @@ export default function PetPage() {
             {/* Universe Filter Tabs */}
             <div className="px-3 sm:px-5 py-2 bg-slate-100 border-b border-slate-200 flex items-center gap-1.5 overflow-x-auto text-xs font-bold shrink-0 dark:bg-slate-800 dark:border-white/10">
               {[
-                { id: 'all', label: 'Tất Cả (27)', emoji: '✨' },
+                { id: 'all', label: `Tất Cả (${CHIBI_PET_COUNT + ART2D_PET_IDS.length})`, emoji: '✨' },
                 { id: 'one_piece', label: 'One Piece (3)', emoji: '🏴‍☠️' },
                 { id: 'naruto', label: 'Naruto (3)', emoji: '🍥' },
                 { id: 'harry_potter', label: 'Harry Potter (3)', emoji: '⚡' },
@@ -2301,6 +2365,7 @@ export default function PetPage() {
                 { id: 'doraemon_kirby', label: 'Doraemon & Kirby (3)', emoji: '🌟' },
                 { id: 'sanrio', label: 'Sanrio (6)', emoji: '🎀' },
                 { id: 'classic', label: 'Tri Thức (6)', emoji: '🦉' },
+                ...ART2D_TABS,
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -2386,6 +2451,7 @@ export default function PetPage() {
                   activeBorder: 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-300 dark:bg-emerald-950',
                   petIds: ['owl', 'cat', 'dog', 'fox', 'panda', 'bunny'],
                 },
+                ...ART2D_SECTIONS,
               ]
                 .filter((sec) => switchPetCategory === 'all' || switchPetCategory === sec.key)
                 .map((sec) => (
@@ -2403,6 +2469,10 @@ export default function PetPage() {
                       {sec.petIds.map((petId) => {
                         const pet = PETS_CATALOG[petId];
                         if (!pet) return null;
+                        // art2d: sprite2d/art2dFranchise theo contract với agent dữ liệu
+                        // (field optional — đọc qua intersect để compile cả khi chưa đổ về)
+                        const art2dSprite = (pet as Art2dEntry).sprite2d;
+                        const art2dFranchise = (pet as Art2dEntry).art2dFranchise;
                         const isCurrent = petData?.pet_type === pet.id;
                         const isCinnamoroll = pet.id === 'cinnamoroll';
                         const cinnaAccess = isCinnamoroll ? cinnaServerAccess : null;
@@ -2432,7 +2502,20 @@ export default function PetPage() {
                             )}
 
                             <div className="w-14 h-14 flex items-center justify-center mb-1 relative">
-                              <PixelPetSprite species={pet.id} scale={0.98} animationState="happy" />
+                              {art2dSprite ? (
+                                /* Standee 2D: ảnh webp thay cho sprite SVG — mirror đúng
+                                   khung w-14 h-14 của card chibi phía trên */
+                                <img
+                                  src={art2dSprite}
+                                  alt={pet.name}
+                                  loading="lazy"
+                                  decoding="async"
+                                  draggable={false}
+                                  className="w-14 h-14 object-contain rounded-xl"
+                                />
+                              ) : (
+                                <PixelPetSprite species={pet.id} scale={0.98} animationState="happy" />
+                              )}
                               {isLocked && (
                                 <div className="absolute inset-0 bg-slate-950/35 rounded-2xl flex items-center justify-center backdrop-blur-[0.5px]">
                                   <div className="w-7 h-7 rounded-full bg-slate-900/90 border border-amber-400/70 flex items-center justify-center shadow-lg dark:bg-white/90">
@@ -2443,6 +2526,13 @@ export default function PetPage() {
                             </div>
                             <div className="font-black text-xs text-slate-900 truncate max-w-full dark:text-slate-100">{pet.name}</div>
                             <div className="text-[12px] text-slate-500 font-medium max-w-full leading-snug dark:text-slate-400">{pet.species}</div>
+
+                            {/* Chip franchise cho nhân vật 2D — cùng ngôn ngữ class chip buff bên dưới */}
+                            {art2dFranchise && (
+                              <div className="text-[11px] font-black text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full mt-1.5 line-clamp-1 border border-violet-200/60 dark:text-violet-300 dark:bg-violet-950 dark:border-violet-800">
+                                🎬 {art2dFranchise}
+                              </div>
+                            )}
 
                             {isLocked ? (
                               <div className="text-[11px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full mt-1.5 line-clamp-1 border border-rose-200 flex items-center gap-1 shadow-xs dark:text-rose-300 dark:bg-rose-950 dark:border-rose-800">

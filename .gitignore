@@ -57,6 +57,11 @@ next-env.d.ts
 scratch/
 *.py
 *.html
+
+# Art goc 2D pet (37MB PNG nguon, chi ton tai local): pipeline
+# scripts/build-pet-art-2d.mjs da xuat ban WebP toi uu vao public/pet-art-2d/
+# (phan duoc commit de deploy). Nguon giu nguyen tren may de build lai.
+/art-2d-pet/
 /click.png
 /forgot.png
 /home.png

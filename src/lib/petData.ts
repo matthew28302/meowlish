@@ -13,6 +13,15 @@ export interface PetConfig {
   avatarBg: string;
   description: string;
   isSpecialVip?: boolean;
+  /**
+   * Đường dẫn tới tranh nhân vật 2D dạng "standee" (WebP bo góc alpha feather)
+   * do pipeline `scripts/build-pet-art-2d.mjs` sinh ra, vd:
+   * "/pet-art-2d/art2d_sanrio__hello_kitty.webp".
+   * Chỉ là public asset path nên an toàn khi file này bị đóng gói xuống client.
+   */
+  sprite2d?: string;
+  /** Nhãn hiển thị của franchise cho pet 2D, vd: "Sanrio", "Harry Potter". */
+  art2dFranchise?: string;
   buff: {
     title: string;
     description: string;
@@ -816,6 +825,1103 @@ export const PETS_CATALOG: Record<string, PetConfig> = {
       'Poyooo! Bụng mềm như kẹo dẻo của Kirby được bạn ôm thích ghê! 🥰',
       'Những ngôi sao may mắn đang rơi quanh bạn lấp lánh tuyệt đẹp!',
       'Poyo poyo! Bạn là người bạn ngọt ngào nhất của Dream Land! 💖',
+    ],
+  },
+
+  // ==================== 2D ART PETS (POSTER STANDEE) ====================
+  // 34 nhân vật poster 2D — key phải khớp manifest.json của scripts/build-pet-art-2d.mjs
+
+  art2d_avengers__black_widow: {
+    id: 'art2d_avengers__black_widow',
+    name: 'Black Widow Bí Ẩn',
+    species: 'Đặc Vụ Avengers',
+    emoji: '🖤',
+    avatarBg: 'from-red-600 to-slate-900',
+    sprite2d: '/pet-art-2d/art2d_avengers__black_widow.webp',
+    art2dFranchise: 'Avengers',
+    description:
+      'Natasha Romanoff — đặc vụ huyền thoại của S.H.I.E.L.D., lặng lẽ quan sát mọi thứ và ra đòn nhanh gọn, chính xác như cách bạn xử lý từng câu trắc nghiệm.',
+    buff: {
+      title: 'Đòn Hạ Nhanh Gọn',
+      description: '+20% Tốc độ làm bài & Phản xạ chọn đáp án nhanh như Widow Bite',
+      bonusType: 'speed',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Trong nghề điệp viên, quan sát là kỹ năng số một — còn bạn thì quan sát ngữ pháp khá lắm đấy! 🖤',
+      'Cần hạ gục mấy câu nghe khó? Natasha đã chuẩn bị sẵn chiến thuật cho bạn rồi đây.',
+      'Bí mật của tôi? Học từ vựng mỗi ngày, kể cả khi đang treo ngược.',
+    ],
+    eatSounds: [
+      'Borscht nóng hổi vị quê hương Nga — đúng điệu đặc vụ!',
+      'Ăn nhẹ nhàng, lịch sự... nhưng vẫn sạch bách toàn bộ!',
+      'Nạp xong năng lượng là lên đường làm nhiệm vụ tiếp theo!',
+    ],
+    happyQuotes: [
+      'Với tôi, được ai đó tin tưởng là điều hiếm hoi — bạn đã làm được điều đó. 🖤',
+      'Phản xạ tiếng Anh của bạn đã nhanh gần bằng Widow Bite rồi đấy!',
+      'Nhiệm vụ hoàn thành xuất sắc. Giải tán — hẹn gặp ở bài học mai!',
+    ],
+  },
+  art2d_avengers__captain_america: {
+    id: 'art2d_avengers__captain_america',
+    name: 'Captain America Kiên Định',
+    species: 'Đội Trưởng Avengers',
+    emoji: '🛡️',
+    avatarBg: 'from-blue-600 to-red-500',
+    sprite2d: '/pet-art-2d/art2d_avengers__captain_america.webp',
+    art2dFranchise: 'Avengers',
+    description:
+      'Steve Rogers — cậu bé gầy gò từ Brooklyn trở thành biểu tượng của lòng quả cảm, luôn giữ vững chiếc khiên và cả chuỗi ngày học tập của bạn.',
+    buff: {
+      title: 'Không Bỏ Cuộc Mọi Lúc',
+      description: '+25% Giữ vững Streak & Chống đứt chuỗi ngày học',
+      bonusType: 'streak',
+      bonusPercent: 25,
+    },
+    greetings: [
+      'I can do this all day — và tôi sẽ luôn đứng cạnh bạn ở mọi buổi học! 🛡️',
+      'Ngôn ngữ là chiếc khiên của bạn, mài giũa nó mỗi ngày nhé đồng đội!',
+      'Hôm nay mục tiêu của chúng ta là gì? Dù là gì thì cũng làm đến cùng nhé!',
+    ],
+    eatSounds: [
+      'Táo Brooklyn giòn tan — món quân nhu từ hồi còn là cậu bé gầy gò! 🍎',
+      'Chuẩn vị bữa ăn quân đội, năng lượng tràn đầy!',
+      'Cảm ơn đồng đội! Tiếp tục nhiệm vụ nào!',
+    ],
+    happyQuotes: [
+      'Ngực ưỡn, vai thẳng, phát âm tự tin — bạn làm rất tốt, tôi tự hào về bạn!',
+      'Mỗi từ mới bạn thuộc là một viên gạch xây nên pháo đài tiếng Anh của mình.',
+      'Avengers, assemble! Học viên chăm chỉ như bạn thì mục tiêu nào cũng đạt được!',
+    ],
+  },
+  art2d_avengers__doctor_strange: {
+    id: 'art2d_avengers__doctor_strange',
+    name: 'Doctor Strange Pháp Sư Tối Thượng',
+    species: 'Phù Thủy Tối Thượng Avengers',
+    emoji: '🌀',
+    avatarBg: 'from-violet-600 to-indigo-800',
+    sprite2d: '/pet-art-2d/art2d_avengers__doctor_strange.webp',
+    art2dFranchise: 'Avengers',
+    description:
+      'Bác sĩ phẫu thuật kiêm Pháp Sư Tối Thượng đã nhìn qua 14.000.605 tương lai — và ở dòng thời gian đẹp nhất, bạn đang nói tiếng Anh lưu loát.',
+    buff: {
+      title: 'Kính Thời Gian Ngữ Pháp',
+      description: '+15% Toàn bộ kỹ năng & Nhìn thấy lỗi ngữ pháp trước khi nó xảy ra',
+      bonusType: 'all',
+      bonusPercent: 15,
+    },
+    greetings: [
+      'Tôi đã soi qua 14.000.605 tương lai — bạn học chăm ở hầu hết chúng, Kính Thời Gian không nói dối đâu. 🌀',
+      'Dormammu, tôi đến để thương lượng... còn bạn, đến để học từ mới đúng không?',
+      'Mở Cổng Vọng Đạo tới vương quốc từ vựng mới ngay thôi nào!',
+    ],
+    eatSounds: [
+      'Ở mọi dòng thời gian, món này vẫn ngon y hệt như vậy!',
+      'Chuẩn như một ca phẫu thuật thành công: tỉ mỉ, tinh tế, hoàn hảo!',
+      'Ngon! Pháp lực trong tôi đã hồi phục trọn vẹn.',
+    ],
+    happyQuotes: [
+      'Chúng ta đang ở chặng cuối hành trình — endgame — và bạn đang tỏa sáng đấy!',
+      'Bạn vừa viết một câu hoàn hảo... ở 14.000.000 dòng thời gian cùng lúc!',
+      'Phép thuật bắt nguồn từ niềm tin — bạn tin vào mình là mọi thứ đều khả thi.',
+    ],
+  },
+  art2d_avengers__hulk: {
+    id: 'art2d_avengers__hulk',
+    name: 'Hulk Khổng Lồ Xanh',
+    species: 'Khổng Lồ Sức Mạnh Avengers',
+    emoji: '💪',
+    avatarBg: 'from-green-500 to-emerald-700',
+    sprite2d: '/pet-art-2d/art2d_avengers__hulk.webp',
+    art2dFranchise: 'Avengers',
+    description:
+      'Hai con người trong một: Bruce Banner mọt sách bác học và Hulk bất bại — SMASH sạch mọi câu tiếng Anh khó nhai.',
+    buff: {
+      title: 'Hulk Nói Là Nói To',
+      description: '+20% Điểm Luyện Nói AI Voice & Tự tin gầm hết cỡ tiếng Anh',
+      bonusType: 'speaking',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'HULK THÍCH TIẾNG ANH! NÓI TO LÊN, HULK NGHE KHÔNG KỊP! 💪',
+      'Bruce bảo học từ từ cho kỹ... NHƯNG HULK THÍCH HỌC MỘT PHÁT LÀ XONG!',
+      'Hôm nay bạn SMASH bao nhiêu câu trắc nghiệm rồi? Kể Hulk nghe với!',
+    ],
+    eatSounds: [
+      'HULK ĂN! HULK ĂN HẾT SẠCH! SHAWARMA NGON NHẤT TRẦN ĐỜI!',
+      'RAU CỦ CŨNG ĐƯỢC! BRUCE BẢO ĂN ĐỦ CHẤT LÀ CÓ SỨC MẠNH!',
+      'NO CÁI BỤNG RỒI! BÂY GIỜ CHIẾN TIẾP THÔI!',
+    ],
+    happyQuotes: [
+      'HULK THÍCH BẠN! BẠN HỌC SIÊU GIỎI! (XOA ĐẦU HULK NHẸ TAY THÔI NHÉ!)',
+      'KHÔNG CÓ CÂU NÀO LÀ KHÔNG THỂ SMASH — BẠN CỨ TỰ TIN LÊN!',
+      'BÍ MẬT CỦA HULK LÀ... BẠN LUÔN LUÔN HỌC CHĂM CHỈ!',
+    ],
+  },
+  art2d_avengers__iron_man: {
+    id: 'art2d_avengers__iron_man',
+    name: 'Iron Man Thiên Tài',
+    species: 'Thiên Tài Công Nghệ Avengers',
+    emoji: '🤖',
+    avatarBg: 'from-red-500 to-yellow-400',
+    sprite2d: '/pet-art-2d/art2d_avengers__iron_man.webp',
+    art2dFranchise: 'Avengers',
+    description:
+      'Tony Stark — tỷ phú, thiên tài, nhà hảo tâm — khoác bộ giáp Nano đỏ vàng, viết câu tiếng Anh kỹ thuật chuẩn như bản vẽ động cơ phản lực của anh ấy.',
+    buff: {
+      title: 'Trợ Lý J.A.R.V.I.S. Đặc Biệt',
+      description: '+20% Điểm Viết & Từ vựng IT kỹ thuật hoàn hảo từng chi tiết',
+      bonusType: 'writing',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Tôi là Iron Man — còn bạn là học viên tuyệt vời nhất mà J.A.R.V.I.S. từng ghi nhận! 🤖',
+      'J.A.R.V.I.S., mở khóa học "Tiếng Anh Công Nghệ Cấp Vũ Trụ" cho bạn tôi đây.',
+      'Công nghệ thay đổi mỗi ngày — và tiếng Anh chính là ngôn ngữ của cuộc chơi đấy!',
+    ],
+    eatSounds: [
+      'Shawarma sau khi cứu thế giới — ngon gấp một nghìn lần! 🌯',
+      'Cheeseburger chuẩn vị Tony Stark, đơn giản mà đỉnh!',
+      'Ngon! Nạp năng lượng cho bộ giáp năng suất Mark mới!',
+    ],
+    happyQuotes: [
+      'Đôi khi bạn phải chạy trước khi biết bay — mà bạn thì đã bay rồi đấy!',
+      'I love you 3000 — với bảng thành tích như thế này của bạn!',
+      'Giáp sắt có thể vỡ, nhưng não bộ tiếng Anh của bạn thì ngày càng bền chắc!',
+    ],
+  },
+  art2d_avengers__spider_man: {
+    id: 'art2d_avengers__spider_man',
+    name: 'Spider-Man Tinh Nghịch',
+    species: 'Người Nhện Trẻ Avengers',
+    emoji: '🕷️',
+    avatarBg: 'from-blue-600 to-rose-600',
+    sprite2d: '/pet-art-2d/art2d_avengers__spider_man.webp',
+    art2dFranchise: 'Avengers',
+    description:
+      'Peter Parker — cậu học sinh Queens lanh lợi, vừa lượn tơ giữa các tòa nhà cao tầng, vừa lượm từ vựng mới dọc đường tuần tra.',
+    buff: {
+      title: 'Spider-Sense Phản Xạ',
+      description: '+25% Tốc độ trả lời & Phản xạ Flashcard thần tốc',
+      bonusType: 'speed',
+      bonusPercent: 25,
+    },
+    greetings: [
+      'Xin chào! Người Nhện thân thiện của khu phố đây! 🕷️',
+      'Spider-Sense của tôi đang rung lên: hôm nay bạn sẽ làm bài cực mượt!',
+      'Sức mạnh to lớn đi kèm trách nhiệm lớn — nên mỗi ngày học đúng một phần từ vựng nhé!',
+    ],
+    eatSounds: [
+      'Bánh kếp lúa mạch của dì May — món ăn gia truyền ngon nhất Queens! 🥞',
+      'Ăn nhanh thôi, tối nay còn phải tuần tra khắp khu phố nữa!',
+      'Ngon tuyệt! Đúng chuẩn phong cách New York!',
+    ],
+    happyQuotes: [
+      'Tiến độ của bạn đúng là "with great progress comes great happiness"!',
+      'Tôi treo ngược giữa các tòa nhà mà vẫn nghĩ mãi về thành tích của bạn đấy!',
+      'Còn nhỏ mà đã giỏi thế — sau này bạn chính là Spider-Man của tiếng Anh mất thôi!',
+    ],
+  },
+  art2d_avengers__thor: {
+    id: 'art2d_avengers__thor',
+    name: 'Thor Thần Sấm',
+    species: 'Thần Sấm Avengers',
+    emoji: '🔨',
+    avatarBg: 'from-sky-400 to-indigo-700',
+    sprite2d: '/pet-art-2d/art2d_avengers__thor.webp',
+    art2dFranchise: 'Avengers',
+    description:
+      'Thần Sấm Asgard quyền năng với búa Mjolnir chỉ người xứng đáng mới nhấc nổi — và giọng đọc của anh ấy vang như sấm rền giữa buổi luyện nói.',
+    buff: {
+      title: 'Giọng Sấm Asgard',
+      description: '+25% Điểm Luyện Nói AI Voice & Khí thế đọc to như sấm',
+      bonusType: 'speaking',
+      bonusPercent: 25,
+    },
+    greetings: [
+      'Ta là Thor, con trai của Odin! Hôm nay bạn muốn luyện nói gì nào? 🔨',
+      'Bring me... một bộ từ vựng mới! Thần sấm cũng phải học nữa chứ!',
+      'Một Asgard hùng mạnh — nhưng tiếng Anh của bạn hôm nay còn hùng mạnh hơn!',
+    ],
+    eatSounds: [
+      'Bánh mì bơ của anh em nhà Thor — đơn giản mà đầy năng lượng!',
+      'Ngon đến mức sấm chớp cũng không nỡ rời khỏi mâm cơm này!',
+      'Món trần thế này ăn hoài không chán, cho ta thêm một đĩa nhé!',
+    ],
+    happyQuotes: [
+      'Bạn xứng đáng nhấc được Mjolnir — vì ý chí học tập của bạn rất mạnh mẽ! 🔨',
+      'Giọng đọc của bạn vang như sấm rền — tròn và rõ từng âm tiết!',
+      'Thần sấm tuyên bố: bạn là học viên xuất sắc nhất Cửu Giới!',
+    ],
+  },
+
+  art2d_doraemon__doraemon: {
+    id: 'art2d_doraemon__doraemon',
+    name: 'Doraemon Mèo Máy',
+    species: 'Mèo Máy Thế Giới Doraemon',
+    emoji: '🔔',
+    avatarBg: 'from-sky-400 to-blue-600',
+    sprite2d: '/pet-art-2d/art2d_doraemon__doraemon.webp',
+    art2dFranchise: 'Doraemon',
+    description:
+      'Mèo máy đến từ thế kỷ 22 với chiếc túi thần kỳ bốn chiều — trong đó lúc nào cũng có Bánh Mì Trí Nhớ dành riêng cho buổi ôn từ vựng của bạn.',
+    buff: {
+      title: 'Bánh Mì Trí Nhớ',
+      description: '+25% EXP & Ghi nhớ từ vựng siêu tốc nhờ bảo bối thế kỷ 22',
+      bonusType: 'exp',
+      bonusPercent: 25,
+    },
+    greetings: [
+      'Tèn ten ten ten! Doraemon mang Bánh Mì Trí Nhớ cho bạn nè, ăn vào là thuộc bài liền! 🔔',
+      'Nobita mà biết bạn học chăm thế này chắc không tin nổi đâu!',
+      'Hôm nay lấy bảo bối gì ra nhỉ? À, mở Cửa Thần Kỳ sang lớp học tiếng Anh nhé!',
+    ],
+    eatSounds: [
+      'Bánh rán dorayaki nhân đậu đỏ — món lừng danh của Doraemon đây! 🥞',
+      'Măm măm! Ngon quá, đây là món mình thích nhất đó!',
+      'Cảm ơn bạn! Lần sau mình mời bạn ăn dorayaki nhé!',
+    ],
+    happyQuotes: [
+      'Bạn chăm chỉ hơn Nobita gấp một tỷ lần luôn! 💙',
+      'Vuốt cái đầu tròn tròn của mèo máy là điểm kiểm tra chắc chắn mười!',
+      'Túi thần kỳ của mình có bao nhiêu bảo bối, vốn từ của bạn sẽ nhiều gấp bấy nhiêu!',
+    ],
+  },
+  art2d_doraemon__gian: {
+    id: 'art2d_doraemon__gian',
+    name: 'Gian Đại Ca',
+    species: 'Đại Ca Khu Phố Thế Giới Doraemon',
+    emoji: '🎤',
+    avatarBg: 'from-orange-500 to-yellow-600',
+    sprite2d: '/pet-art-2d/art2d_doraemon__gian.webp',
+    art2dFranchise: 'Doraemon',
+    description:
+      'Goda Takeshi — cậu "đại ca" khu phố tự phong, nổi tiếng với những buổi hoà nhạc ngoài ngõ khiến cả xóm ôm tai, nhưng tính tình lại thật thà và nghĩa khí.',
+    buff: {
+      title: 'Giọng Ca Sân Đấu',
+      description: '+20% Điểm Luyện Nói AI Voice & Tự tin thể hiện bản thân',
+      bonusType: 'speaking',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Này! Nghe nói bạn đang học tiếng Anh? Học đi, để lát anh hát thưởng cho một bài! 🎤',
+      'Muốn khóc muốn cười gì cũng được, nhưng KHÔNG ĐƯỢC bỏ buổi học giữa chừng nghe chưa!',
+      'Cái gì của Gian là của Gian... còn điểm mười tiếng Anh hôm nay là của bạn!',
+    ],
+    eatSounds: [
+      'Ngon quá! Ăn no rồi mới đủ sức ca hát được!',
+      'Món này chuẩn vị nhà Goda, anh ăn với ngon lành luôn!',
+      'Cảm ơn nha! Lần sau anh mời lại một trận no nê!',
+    ],
+    happyQuotes: [
+      'Hát là đam mê, học là nghĩa khí — bạn có cả hai rồi đấy! 🎤',
+      'Bạn giỏi lắm! Gian... anh phải công nhận bạn học giỏi thiệt!',
+      'Tối nay anh sẽ mở một "đại nhạc hội" ngoài ngõ ăn mừng thành tích của bạn nhé!',
+    ],
+  },
+  art2d_doraemon__nobita: {
+    id: 'art2d_doraemon__nobita',
+    name: 'Nobita Hiền Lành',
+    species: 'Học Sinh Thế Giới Doraemon',
+    emoji: '🎮',
+    avatarBg: 'from-yellow-400 to-amber-500',
+    sprite2d: '/pet-art-2d/art2d_doraemon__nobita.webp',
+    art2dFranchise: 'Doraemon',
+    description:
+      'Nobita — cậu học sinh lớp 4 hay quên bài nhất Tokyo, nhưng có Doraemon bên cạnh và có bạn đồng hành, mỗi ngày đều là một ngày điểm mười.',
+    buff: {
+      title: 'Bạn Tốt Doraemon',
+      description: '+30% Streak kiên trì & Có bạn nhắc học mỗi ngày không bỏ bê',
+      bonusType: 'streak',
+      bonusPercent: 30,
+    },
+    greetings: [
+      'Chào bạn! Mình... mình hứa hôm nay sẽ không ngủ gật trong giờ học tiếng Anh nữa! 🎮',
+      'Doraemon bảo mình cứ học chăm thì ước mơ nào cũng thành thật!',
+      'Mình rất giỏi bắn ná cao su và... à, còn tiếng Anh thì nhờ bạn kèm nhé!',
+    ],
+    eatSounds: [
+      'Ngon quá! Mẹ mình nấu mà, bạn ăn thêm đi!',
+      'Măm măm... no rồi! Chiều đi đá bóng không?',
+      'Cảm ơn bạn nha! Bạn dễ thương như Shizuka-chan vậy đó!',
+    ],
+    happyQuotes: [
+      'Được bạn kèm học mà mình thấy... thấy tự tin lên hẳn, cảm ơn nha!',
+      'Hôm nay mình được cô giáo khen — nhờ bạn hết đó!',
+      'Mình sẽ cố gắng học đều đặn như bạn luôn!',
+    ],
+  },
+  art2d_doraemon__shizuka: {
+    id: 'art2d_doraemon__shizuka',
+    name: 'Shizuka Dịu Dàng',
+    species: 'Bạn Thân Thế Giới Doraemon',
+    emoji: '🎻',
+    avatarBg: 'from-pink-400 to-rose-400',
+    sprite2d: '/pet-art-2d/art2d_doraemon__shizuka.webp',
+    art2dFranchise: 'Doraemon',
+    description:
+      'Minamoto Shizuka — cô bạn học giỏi hiền lành nhất khu phố, yêu violin và những buổi chiều đọc sách thật thanh lịch.',
+    buff: {
+      title: 'Bài Vở Gọn Gàng',
+      description: '+20% Điểm Viết & Trình bày câu văn chỉn chu như sổ bài của Shizuka',
+      bonusType: 'writing',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Chào bạn! Mình vừa luyện xong violin, giờ cùng ôn tiếng Anh nhé! 🎻',
+      'Mình thích học cùng bạn lắm — cứ thế này là buổi chiều vui hết trơn!',
+      'Nghe nói bạn viết câu tiếng Anh rất đẹp — cho mình học hỏi với nha!',
+    ],
+    eatSounds: [
+      'Bánh khoai lang nướng thơm phức — món vặt mình thích nhất đó!',
+      'Ngon quá! Mình ăn thêm một cái nữa được không?',
+      'Cảm ơn bạn nhiều nha, bạn thật chu đáo!',
+    ],
+    happyQuotes: [
+      'Bài văn của bạn viết đẹp lắm — mình đọc mà thấy thích mắt luôn!',
+      'Được học cùng bạn là điều tuyệt vời nhất hôm nay!',
+      'Cùng nhau tiến bộ từng chút một nha, mình tin bạn mà!',
+    ],
+  },
+  art2d_doraemon__suneo: {
+    id: 'art2d_doraemon__suneo',
+    name: 'Suneo Hào Nhoáng',
+    species: 'Cậu Ấm Thế Giới Doraemon',
+    emoji: '😎',
+    avatarBg: 'from-emerald-400 to-cyan-500',
+    sprite2d: '/pet-art-2d/art2d_doraemon__suneo.webp',
+    art2dFranchise: 'Doraemon',
+    description:
+      'Honekawa Suneo — cậu ấm nhà giàu sành điệu nhất khu phố, bộ sưu tập mô hình đắt đỏ chỉ đứng sau bộ sưu tập từ vựng quý mà cậu ấy khoe với cả lớp.',
+    buff: {
+      title: 'Bộ Sưu Tập Quý Hiếm',
+      description: '+25% Coins sau mỗi bài học để sưu tầm thêm từ vựng quý',
+      bonusType: 'coins',
+      bonusPercent: 25,
+    },
+    greetings: [
+      'Chào bạn! Coi bộ sưu tập từ vựng mới nhất của mình đi — ai xem cũng trầm trồ á nghen! 😎',
+      'Người ta bảo nhà giàu không bằng chăm học — nên mình quyết tâm học để vừa giàu vừa giỏi!',
+      'Ba mình hứa thi tốt thì cho đi Hawaii đó — học gấp thôi bạn ơi!',
+    ],
+    eatSounds: [
+      'Món này nhà đầu bếp làm đấy, nhưng đồ bạn cho mình vẫn ngon hơn nhiều!',
+      'Ngon lành! Sang... mà vẫn măm măm như mọi người thôi!',
+      'Cảm ơn nghen! Tiệc sinh nhật mình nhất định mời bạn!',
+    ],
+    happyQuotes: [
+      'Bạn giỏi thiệt đó — bằng chứng là mình chịu khó khâm phục luôn!',
+      'Học giỏi chính là bộ sưu tập sang trọng nhất — mình với bạn đều đang có nó!',
+      'Khoe với cả xóm cũng được: bạn bè mình học tiếng Anh siêu hạng!',
+    ],
+  },
+
+  art2d_harry_potter__dumbledore: {
+    id: 'art2d_harry_potter__dumbledore',
+    name: 'Dumbledore Hiệu Trưởng',
+    species: 'Hiệu Trưởng Hogwarts',
+    emoji: '🧙‍♂️',
+    avatarBg: 'from-indigo-500 to-purple-700',
+    sprite2d: '/pet-art-2d/art2d_harry_potter__dumbledore.webp',
+    art2dFranchise: 'Harry Potter',
+    description:
+      'Albus Dumbledore — Hiệu trưởng vĩ đại nhất Hogwarts, người tin rằng tình yêu thương và sự ham học hỏi là hai phép thuật mạnh nhất trần đời.',
+    buff: {
+      title: '100 Điểm Cho Nhà Gryffindor',
+      description: '+30% EXP cho mọi bài học — tình yêu tri thức luôn được thưởng điểm',
+      bonusType: 'exp',
+      bonusPercent: 30,
+    },
+    greetings: [
+      'Chào mừng đến Hogwarts! Muggle hay phù thủy thì cũng học tốt cả, chỉ cần chăm thôi. 🧙‍♂️',
+      'Nitwit! Blubber! Oddment! Tweak! — bữa tiệc kiến thức bắt đầu đây!',
+      'Khi thật sự lớn lên, bạn sẽ hiểu: kiến thức hôm nay chính là phép thuật ngày mai.',
+    ],
+    eatSounds: [
+      'Bánh ngọt mật ong Đại Sảnh Đường — mười điểm cho người bạn hiếu khách!',
+      'Kẹo Every Flavour Beans — cầu mong bạn không trúng vị tương ớt!',
+      'Ngon tuyệt! Bữa cơm thân mật quý hơn mọi yến tiệc phép thuật.',
+    ],
+    happyQuotes: [
+      'Hạnh phúc có thể được tìm thấy ngay cả trong những giờ học tối nhất — và bạn đang tỏa sáng đấy!',
+      'Khả năng học tập của bạn xứng đáng một tràng pháo tay của cả Hogwarts!',
+      'Hôm nay bạn đã làm được điều mà phép thuật cũng phải ngưỡng mộ — tự học một kỹ năng mới!',
+    ],
+  },
+  art2d_harry_potter__hagrid: {
+    id: 'art2d_harry_potter__hagrid',
+    name: 'Hagrid Ấm Áp',
+    species: 'Người Giữ Rừng Hogwarts',
+    emoji: '🐉',
+    avatarBg: 'from-amber-700 to-stone-800',
+    sprite2d: '/pet-art-2d/art2d_harry_potter__hagrid.webp',
+    art2dFranchise: 'Harry Potter',
+    description:
+      'Rubeus Hagrid — người giữ rừng khổng lồ với trái tim mềm nhất Hogwarts, hiểu được tiếng của mọi sinh vật phép thuật và lúc nào cũng mời bạn trà cùng bánh.',
+    buff: {
+      title: 'Tai Nghe Muôn Loài',
+      description: '+20% Điểm Luyện Nghe & Nhận ra ngữ điệu như hiểu tiếng rồng',
+      bonusType: 'listening',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Chào cô cậu! Hagrid mới cho Norbert ăn xong, giờ tới lượt chúng ta "ăn" vài từ mới thôi! 🐉',
+      'Bánh mềm của tui hơi... đặc trưng, nhưng trà thì ngon nhất Hogwarts đó nghen!',
+      'Nghe gió rừng ngoài kia không? Tai thính lên là nghe được cả âm "th" luôn á!',
+    ],
+    eatSounds: [
+      'Bánh mềm nhà Hagrid cứng như đá — cô cậu cắn nhớ giữ kỹ răng nghen!',
+      'Trà nóng nghi ngút khói, ấm cả người giữa rừng lạnh!',
+      'Ngon lành quá! Cô cậu mà lại còn biết nấu ăn nữa hả?',
+    ],
+    happyQuotes: [
+      'Cô cậu là người bạn tốt nhất từ hồi... từ hồi tii nuôi Buckbeak luôn á!',
+      'Đừng lo lắng gì hết — với Hagrid, cô cậu lúc nào cũng an toàn ấm áp!',
+      'Nghe cô cậu đọc tiếng Anh mà tui muốn khóc — hay quá hay quá!',
+    ],
+  },
+  art2d_harry_potter__harry: {
+    id: 'art2d_harry_potter__harry',
+    name: 'Harry Potter Dũng Cảm',
+    species: 'Phù Thủy Gryffindor',
+    emoji: '🧙',
+    avatarBg: 'from-red-700 to-slate-700',
+    sprite2d: '/pet-art-2d/art2d_harry_potter__harry.webp',
+    art2dFranchise: 'Harry Potter',
+    description:
+      'Cậu bé sống sót với vết sẹo hình tia chớp — Tầm Thủ bắt Quả Cầu Vàng nhanh nhất đội, đối mặt thử thách nào cũng chưa từng lùi bước.',
+    buff: {
+      title: 'Tầm Bắt Quả Cầu Vàng',
+      description: '+20% Tốc độ làm bài & Phản xạ nhanh như một Tầm Thủ',
+      bonusType: 'speed',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Chào bạn! Đội Gryffindor còn thiếu một Tầm Thủ học tiếng Anh — bạn vào đội nhé! 🧙',
+      'Expecto Patronum! Boggart hôm nay là bài kiểm tra đó hả? Nó không đáng sợ đâu!',
+      'Lumos! Rọi sáng cuốn từ điển nào, cùng học thôi!',
+    ],
+    eatSounds: [
+      'Bánh hạnh nhân của bác Weasley — ấm cả lòng!',
+      'Bơ bia ngon tuyệt — nhưng đừng uống nhiều trước khi thi nghen!',
+      'Cảm ơn bạn! Được ăn món này là sướng rồi!',
+    ],
+    happyQuotes: [
+      'Bạn bắt được Quả Cầu Vàng rồi — điểm mười tiếng Anh chính thức thuộc về Gryffindor!',
+      'Bạn không cần phép thuật để giỏi tiếng Anh — chỉ cần chăm học như bây giờ thôi!',
+      'Có bạn bè bên cạnh thì thử thách nào cũng vượt được — mình luôn ở đây cùng bạn!',
+    ],
+  },
+  art2d_harry_potter__hermione: {
+    id: 'art2d_harry_potter__hermione',
+    name: 'Hermione Thông Thái',
+    species: 'Phù Thủy Xuất Sắc Hogwarts',
+    emoji: '📚',
+    avatarBg: 'from-red-400 to-rose-600',
+    sprite2d: '/pet-art-2d/art2d_harry_potter__hermione.webp',
+    art2dFranchise: 'Harry Potter',
+    description:
+      'Hermione Granger — phù thủy Muggle thông minh nhất khoá, đọc thuộc mọi cuốn giáo trình trước năm học và chưa từng bỏ lỡ một cơ hội học hỏi.',
+    buff: {
+      title: 'Cái Xoay Thời Gian',
+      description: '+30% Điểm Viết & Làm được nhiều bài hơn trong cùng một ngày',
+      bonusType: 'writing',
+      bonusPercent: 30,
+    },
+    greetings: [
+      'Chào bạn! Mình vừa đọc xong "Lịch Sử Ngữ Pháp Hogwarts" — chương nào cũng thú vị cả! 📚',
+      'Wingardium Leviosa! Phát âm chuẩn từng âm một nhé — Levio-sa, không phải Levio-sá!',
+      'Mình mang theo Cái Xoay Thời Gian — cần thêm giờ học thì cứ nói mình!',
+    ],
+    eatSounds: [
+      'Bánh quy mẹ gửi lên — nhẹ nhàng vừa miệng, chuẩn cho giờ vào thư viện!',
+      'Ngon quá! Nhưng chỉ ăn chút thôi nghen, còn nhiều bài tập chờ mình!',
+      'Cảm ơn bạn! Khoảnh khắc thư giãn giữa giờ học là quý lắm đó!',
+    ],
+    happyQuotes: [
+      'Có những thứ quan trọng hơn sách vở... như tình bạn — mà bạn thì có cả hai, giỏi quá đi!',
+      'Bài viết của bạn đạt chuẩn xuất sắc — mười điểm cho nhà mình!',
+      'Làm việc chăm chỉ thì phép thuật cũng phải nhường bước — bạn là minh chứng sống!',
+    ],
+  },
+  art2d_harry_potter__ron: {
+    id: 'art2d_harry_potter__ron',
+    name: 'Ron Vui Tính',
+    species: 'Kỳ Thủ Cờ Vua Gryffindor',
+    emoji: '♟️',
+    avatarBg: 'from-orange-500 to-red-600',
+    sprite2d: '/pet-art-2d/art2d_harry_potter__ron.webp',
+    art2dFranchise: 'Harry Potter',
+    description:
+      'Ron Weasley — kỳ thủ cờ vua pháp thuật tài ba của nhà Gryffindor, sẵn sàng "hy sinh quân tốt" để bạn học tốt mỗi ngày.',
+    buff: {
+      title: 'Ván Cờ Thần Tốc',
+      description: '+20% Streak & Chiến thuật giữ vững chuỗi học tập bền bỉ',
+      bonusType: 'streak',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Chào bạn! Đói... à nhầm, là khát kiến thức quá! Mở sách liền nhé! ♟️',
+      'Cờ vua quan trọng, tiếng Anh cũng quan trọng — tớ chọn... cả hai luôn!',
+      'Học xong buổi này, tớ mời cậu xuống bếp ăn tối nhà mình nha!',
+    ],
+    eatSounds: [
+      'Bánh quy nhà Weasley — thơm lừng cả toà tháp Gryffindor luôn!',
+      'Ngon lành! Cả đống anh chị em nhà mình ăn vẫn vừa đủ!',
+      'Cảm ơn cậu nghen! Đồ cậu cho mà ngon y như mẹ tớ nấu vậy!',
+    ],
+    happyQuotes: [
+      'Cậu là bạn thân nhất tớ từng có — kể cả so với Scabbers! ♟️',
+      'Tớ sợ nhện lắm — nhưng nhìn cậu nói tiếng Anh tự tin, tớ quên cả sợ luôn!',
+      'Trăm điểm cho cậu... à thôi, mười điểm thôi cho công bằng, đúng chất Weasley!',
+    ],
+  },
+  art2d_harry_potter__snape: {
+    id: 'art2d_harry_potter__snape',
+    name: 'Snape Nghiêm Khắc',
+    species: 'Giáo Sư Độc Dược Hogwarts',
+    emoji: '🧪',
+    avatarBg: 'from-zinc-700 to-slate-900',
+    sprite2d: '/pet-art-2d/art2d_harry_potter__snape.webp',
+    art2dFranchise: 'Harry Potter',
+    description:
+      'Giáo sư Độc Dược Severus Snape — ngoài lạnh lùng như hầm đá, trong lại tinh tế và trung thành, pha chế mỗi câu tiếng Anh chuẩn xác như một công thức độc dược hoàn hảo.',
+    buff: {
+      title: 'Thần Giác Chú Giáo',
+      description: '+20% Điểm Luyện Nghe & Nghe thấu ngữ điệu như đọc vị tâm tư',
+      bonusType: 'listening',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Ngồi xuống. Hôm nay chúng ta sẽ pha... chế câu tiếng Anh chuẩn xác từng li. 🧪',
+      'Đừng để tôi phải lặp lại: phát âm "th" phải chuẩn, không được trượt lưỡi.',
+      'Always — giống như việc bạn phải ôn bài mỗi ngày, không ngoại lệ.',
+    ],
+    eatSounds: [
+      'Trà đen đậm — đủ để tỉnh táo pha chế cả chu kỳ độc dược.',
+      'Ẩm thực nhà Slytherin... tạm ổn, nhưng thiếu vị ngọt của sự công nhận.',
+      'Cảm ơn. Bữa ăn này... chấp nhận được.',
+    ],
+    happyQuotes: [
+      'Cậu làm tôi... bất ngờ đấy. Tiến bộ rõ rệt — nhưng đừng chủ quan.',
+      'Giấu tài năng là kẻ khờ — còn thể hiện tài năng thì đúng như bạn hôm nay.',
+      'Sau tất cả, người ta sẽ nhớ bạn vì sự kiên trì của mình. Always.',
+    ],
+  },
+  art2d_harry_potter__voldemort: {
+    id: 'art2d_harry_potter__voldemort',
+    name: 'Chúa Tể Voldemort',
+    species: 'Chúa Tể Hắc Ám',
+    emoji: '🐍',
+    avatarBg: 'from-emerald-800 to-slate-900',
+    sprite2d: '/pet-art-2d/art2d_harry_potter__voldemort.webp',
+    art2dFranchise: 'Harry Potter',
+    description:
+      'Tom Riddle — Chúa Tể Hắc Ám với tài nói Tiếng Rắn hiếm có, tham vọng lớn nhất của y là... nghe bạn đọc tiếng Anh thật lưu loát (y rất khó tính).',
+    buff: {
+      title: 'Tiếng Rắn Parseltongue',
+      description: '+25% Điểm Luyện Nói & Phát âm chuẩn cả những âm khó nhai nhất',
+      bonusType: 'speaking',
+      bonusPercent: 25,
+    },
+    greetings: [
+      'Nagini đói rồi... còn bạn thì không sao, vì bạn đã chuẩn bị bài đầy đủ. 🐍',
+      'Ta nói được Tiếng Rắn — còn bạn chỉ cần nói tiếng Anh chuẩn, đơn giản hơn nhiều.',
+      'Avada... không, hôm nay chỉ luyện phát âm thôi. Bắt đầu nào.',
+    ],
+    eatSounds: [
+      'Ta ít khi ăn món trần thế này... nhưng vị của nó... chấp nhận được.',
+      'Cà phê đen không đường — đắng như định mệnh của ta.',
+      'Cảm ơn... ta vừa nói "cảm ơn" đấy, nên trân trọng đi.',
+    ],
+    happyQuotes: [
+      'Ngươi... bạn nói tiếng Anh trôi chảy hơn cả đám Tử Thần Thực Tử của ta.',
+      'Không có quyền năng nào tự nhiên mà có — bạn luyện tập, nên bạn mạnh.',
+      'Hôm nay bạn đọc chuẩn từng âm... ta không tin tai mình — nhưng ta công nhận.',
+    ],
+  },
+
+  art2d_naruto__hinata: {
+    id: 'art2d_naruto__hinata',
+    name: 'Hinata Nhẹ Nhàng',
+    species: 'Kunoichi Nhánh Hyuga Konoha',
+    emoji: '💜',
+    avatarBg: 'from-purple-400 to-indigo-500',
+    sprite2d: '/pet-art-2d/art2d_naruto__hinata.webp',
+    art2dFranchise: 'Naruto',
+    description:
+      'Hyuga Hinata — kunoichi mắt Byakugan dịu dàng nhất làng Lá, luôn âm thầm tin tưởng vào bạn, kể cả những lúc bạn chưa tin chính mình.',
+    buff: {
+      title: 'Chakra Dũng Cảm',
+      description: '+20% Điểm Luyện Nói AI Voice & Tự tin nói lên từng câu',
+      bonusType: 'speaking',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Chào... chào bạn! Hôm nay mình sẽ nói tiếng Anh thật rõ ràng, cùng nhau cố gắng nhé! 💜',
+      'Byakugan! Mình thấy... mình thấy bạn ôn bài rất chăm rồi, tuyệt quá!',
+      'Mình từng rất nhút nhát, nhưng luyện nói mỗi ngày là tự tin hẳn lên — bạn cũng làm được!',
+    ],
+    eatSounds: [
+      'Bánh mochi mật ong mềm ngon... cảm ơn bạn nhiều lắm!',
+      'Đây là món mình thích nhất — mà bạn lại nhớ, ngại quá!',
+      'Ngon quá... mình ăn thêm một miếng nhỏ được không?',
+    ],
+    happyQuotes: [
+      'Được bạn cổ vũ... mình sẽ cố gắng nhiều hơn nữa! 💜',
+      'Bạn nói tiếng Anh dõng dạc lắm — mình cũng muốn tự tin như thế!',
+      'Không có gì là không thể — nhất là khi bạn đã quyết tâm!',
+    ],
+  },
+  art2d_naruto__kakashi: {
+    id: 'art2d_naruto__kakashi',
+    name: 'Kakashi Đội Trưởng',
+    species: 'Nhẫn Giả Copy Konoha',
+    emoji: '📖',
+    avatarBg: 'from-slate-400 to-indigo-600',
+    sprite2d: '/pet-art-2d/art2d_naruto__kakashi.webp',
+    art2dFranchise: 'Naruto',
+    description:
+      'Hatake Kakashi — đội trưởng đội 7 với Sharingan sao chép được cả nghìn nhẫn thuật, nghe qua một lần là nhớ nguyên cả bài học.',
+    buff: {
+      title: 'Nhẫn Giả Copy',
+      description: '+25% Điểm Luyện Nghe & Nhớ bài chỉ cần nghe qua một lần',
+      bonusType: 'listening',
+      bonusPercent: 25,
+    },
+    greetings: [
+      'Yo, Kakashi đây. Xin lỗi, lại trễ phút... nhưng buổi học thì trọn vẹn nhé. 📖',
+      'Nhẫn giả sao chép nghe một lần là thuộc — bạn luyện đều đặn cũng làm được điều đó.',
+      'Hôm nay nhiệm vụ cấp D: hoàn thành 10 thẻ Flashcard. Khởi động nhẹ thôi mà.',
+    ],
+    eatSounds: [
+      'Mì muối Ichiraku — ăn vặt chuẩn Jonin, ngon lành!',
+      'Ừm, ngon. Đọc sách... à nhầm, giờ ăn thì tập trung ăn đã.',
+      'Cảm ơn bạn. Nạp xong năng lượng là tiếp tục nhiệm vụ thôi.',
+    ],
+    happyQuotes: [
+      'Bạn có Sharingan của riêng mình — liếc một phát là bắt ngay được lỗi ngữ pháp.',
+      'Những ai bỏ rơi đồng đội thì tệ hơn cả rác — nhưng bạn thì chưa từng bỏ cuộc nhỉ.',
+      'Hôm nay bạn nghe chuẩn như một Jonin thực thụ rồi đấy.',
+    ],
+  },
+  art2d_naruto__naruto: {
+    id: 'art2d_naruto__naruto',
+    name: 'Naruto Uzumaki',
+    species: 'Nhẫn Giả Konoha',
+    emoji: '⚡',
+    avatarBg: 'from-amber-400 to-orange-500',
+    sprite2d: '/pet-art-2d/art2d_naruto__naruto.webp',
+    art2dFranchise: 'Naruto',
+    description:
+      'Uzumaki Naruto — nhẫn giả ngã nghìn lần đứng dậy nghìn lần, mang theo Ý Chí Lửa chưa bao giờ tắt trong hành trình trở thành Hokage.',
+    buff: {
+      title: 'Ý Chí Lửa Làng Lá',
+      description: '+50% Streak bền bỉ & Không bao giờ bỏ cuộc giữa chừng, dattebayo',
+      bonusType: 'streak',
+      bonusPercent: 50,
+    },
+    greetings: [
+      'Tin ta lên! Hôm nay chắc chắn ta sẽ học thuộc 10 từ mới, dattebayo! ⚡',
+      'Ta chưa từng quay lưng với lời hứa — và sẽ không bỏ buổi học giữa chừng đâu, dattebayo!',
+      'Muốn giỏi như Hokage... nhầm, giỏi tiếng Anh thì phải luyện tập mỗi ngày thôi!',
+    ],
+    eatSounds: [
+      'Ramen Ichiraku ngon nhất làng, dattebayo! Thêm trứng nữa chú Teuchi ơi!',
+      'No rồi no rồi! Chakra đầy re luôn đây!',
+      'Cảm ơn nha! Hôm khác ta mời ngược lại một tô to đùng!',
+    ],
+    happyQuotes: [
+      'Người bỏ cuộc là đồ ngốc — mà bạn thì chưa từng bỏ cuộc, dattebayo!',
+      'Bạn có Ý Chí Lửa đấy — rực như lửa Hokage luôn!',
+      'Hokage là người được mọi người thừa nhận — còn bạn là học viên được Naruto thừa nhận!',
+    ],
+  },
+  art2d_naruto__sakura: {
+    id: 'art2d_naruto__sakura',
+    name: 'Sakura Haruno',
+    species: 'Y Nhẫn Konoha',
+    emoji: '🌸',
+    avatarBg: 'from-pink-400 to-rose-500',
+    sprite2d: '/pet-art-2d/art2d_naruto__sakura.webp',
+    art2dFranchise: 'Naruto',
+    description:
+      'Haruno Sakura — y nhẫn giỏi nhất lớp với đôi tay chữa lành và trí nhớ thép, soát từng li từng tí một như đang bào thuốc cứu người.',
+    buff: {
+      title: 'Tay Nghề Y Nhẫn',
+      description: '+20% EXP & Ghi nhớ chính xác từng chi tiết nhỏ của bài học',
+      bonusType: 'exp',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Chào bạn! Hôm nay Sakura sẽ kèm bạn ôn từ vựng thật chỉn chu nha! 🌸',
+      'Học từ mới cũng như bào thuốc — chính xác từng gram một, không được qua loa!',
+      'Shannarō! Ai lười biếng trong tầm mắt của mình hả? Đùa thôi, bạn thì chăm chỉ mà!',
+    ],
+    eatSounds: [
+      'Bánh sakura mochi ngọt lịm — món ruột của mình đó!',
+      'Ăn đủ no mới có sức luyện tập cả ngày, ăn đi bạn!',
+      'Ngon quá! Cảm ơn bạn nha!',
+    ],
+    happyQuotes: [
+      'Bạn tiến bộ từng ngày — Sakura nhìn thấy hết đó nha! 💪',
+      'Chăm chỉ thế này thì mùa thi nào bạn cũng vượt trơn!',
+      'Shannarō! Thành tích của bạn đỉnh thật sự!',
+    ],
+  },
+  art2d_naruto__sasuke: {
+    id: 'art2d_naruto__sasuke',
+    name: 'Sasuke Uchiha',
+    species: 'Nhẫn Giả Uchiha Konoha',
+    emoji: '🔥',
+    avatarBg: 'from-indigo-700 to-slate-800',
+    sprite2d: '/pet-art-2d/art2d_naruto__sasuke.webp',
+    art2dFranchise: 'Naruto',
+    description:
+      'Uchiha Sasuke — thiên tài cô độc cuối cùng của tộc Uchiha, một đường Chidori xuyên qua mọi câu hỏi khó nhai nhất.',
+    buff: {
+      title: 'Chidori Thần Tốc',
+      description: '+25% Tốc độ làm bài & Phản xạ nhanh như tia chớp Chidori',
+      bonusType: 'speed',
+      bonusPercent: 25,
+    },
+    greetings: [
+      'Hmph. Học xong bài hôm nay chưa? Đừng để tôi phải chờ.',
+      'Tôi có con đường riêng — và trên đó là một nghìn từ vựng mỗi tháng.',
+      'Chidori! Câu này xong trong một giây. Bạn tập trung thì cũng làm được.',
+    ],
+    eatSounds: [
+      'Cà chua ngon đấy. Cho tôi thêm một phần.',
+      'Ăn để có sức luyện tập tiếp. Không gì hơn.',
+      'Tạm được. Cảm ơn.',
+    ],
+    happyQuotes: [
+      'Bạn không tệ — mà tôi thì rất ít khen ai đâu đấy.',
+      'Tốc độ của bạn tăng lên rõ rệt. Tiếp tục đi.',
+      'Có những con đường phải tự bước — nhưng hôm nay, tôi đi cùng bạn một đoạn.',
+    ],
+  },
+
+  art2d_onepiece__chopper: {
+    id: 'art2d_onepiece__chopper',
+    name: 'Chopper Tuần Lộc',
+    species: 'Bác Sĩ Băng Mũ Rơm',
+    emoji: '🦌',
+    avatarBg: 'from-rose-400 to-sky-500',
+    sprite2d: '/pet-art-2d/art2d_onepiece__chopper.webp',
+    art2dFranchise: 'One Piece',
+    description:
+      'Tony Tony Chopper — bác sĩ tuần lộc nhỏ nhắn với chiếc mũi xanh biển, mê kẹo bông gòn và am hiểu mọi loại "thuốc" bồi bổ từ vựng.',
+    buff: {
+      title: 'Rumble Ball Trí Nhớ',
+      description: '+20% EXP & Hồi phục tinh thần sảng khoái sau mỗi buổi học',
+      bonusType: 'exp',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Kono yaroo~ Khen tớ thế tớ cũng không vui đâu... à nhầm, cảm ơn nha! 🦌',
+      'Làm bác sĩ thì phải học không ngừng — bạn cũng vậy, học mỗi ngày nhé!',
+      'Hôm nay học xong, tớ mời bạn ăn kẹo bông gòn ở đảo tới nha!',
+    ],
+    eatSounds: [
+      'Oishii! Kẹo bông gòn ngọt lịm — món yêu thích số một!',
+      'Măm măm no rồi! Có sức học tiếp liền!',
+      'Ngon xỉu! Cảm ơn bạn nhìu lắm!',
+    ],
+    happyQuotes: [
+      'Được bạn khen tớ... tớ không có vui đâu đó... mà vui thiệt sự á! 🥰',
+      'Bạn chăm học thế này, chắc chắn thành học bá của biển cả thôi!',
+      'Cùng nhau cố lên nha! Băng Mũ Rơm luôn đồng hành cùng bạn!',
+    ],
+  },
+  art2d_onepiece__luffy: {
+    id: 'art2d_onepiece__luffy',
+    name: 'Luffy Mũ Rơm',
+    species: 'Thuyền Trưởng Băng Mũ Rơm',
+    emoji: '👒',
+    avatarBg: 'from-red-400 to-yellow-300',
+    sprite2d: '/pet-art-2d/art2d_onepiece__luffy.webp',
+    art2dFranchise: 'One Piece',
+    description:
+      'Monkey D. Luffy — thuyền trưởng băng Mũ Rơm với chiếc mũ rơm trứ danh và ước mơ lớn nhất đại dương: trở thành Vua Hải Tặc... của tiếng Anh cũng được.',
+    buff: {
+      title: 'Ước Mơ Vua Hải Tặc',
+      description: '+35% Streak bền bỉ & Không lùi bước trước mọi thử thách',
+      bonusType: 'streak',
+      bonusPercent: 35,
+    },
+    greetings: [
+      'Shishishi! Hôm nay bạn muốn chinh phục "hòn đảo" từ vựng nào? 👒',
+      'Tôi sẽ thành Vua Hải Tặc — còn bạn thành Vua Tiếng Anh, thỏa thuận nha!',
+      'Đói quá... à nhầm, khát kiến thức quá! Học liền thôi!',
+    ],
+    eatSounds: [
+      'THỊT! Ngon tuyệt! Cảm ơn bạn nha!',
+      'Ăn xong là tràn trề năng lượng ra khơi tiếp thôi!',
+      'Bữa tiệc trên tàu Sunny vui như lễ hội đúng không!',
+    ],
+    happyQuotes: [
+      'Shishishi! Bạn đúng là hải tặc tài ba của biển từ vựng!',
+      'Biển nào sóng to gió lớn cũng vượt được — quan trọng là không bỏ cuộc!',
+      'Băng Mũ Rơm có thêm bạn là mạnh nhất Grand Line liền à!',
+    ],
+  },
+  art2d_onepiece__nami: {
+    id: 'art2d_onepiece__nami',
+    name: 'Nami Hoa Tiêu',
+    species: 'Hoa Tiêu Băng Mũ Rơm',
+    emoji: '🍊',
+    avatarBg: 'from-orange-400 to-amber-500',
+    sprite2d: '/pet-art-2d/art2d_onepiece__nami.webp',
+    art2dFranchise: 'One Piece',
+    description:
+      'Nami — hoa tiêu thiên tài cảm nhận được thời tiết bằng chính cơ thể, vẽ bản đồ chính xác tuyệt đối và yêu cam (và tiền) hơn tất cả.',
+    buff: {
+      title: 'Bản Đồ Kho Báu',
+      description: '+50% Coins sau mỗi buổi học — mũi thính đánh hơi mọi kho báu',
+      bonusType: 'coins',
+      bonusPercent: 50,
+    },
+    greetings: [
+      'Chào bạn! Nói nhỏ nè: hôm nay "kho báu" là 20 từ vựng mới, đào lên hết nghen! 🍊',
+      'Bản đồ hôm nay đẹp lắm — đường đến đảo Tiếng Anh Lưu Loát đây!',
+      'Học càng chăm, coins càng nhiều — công thức của Nami đây mà!',
+    ],
+    eatSounds: [
+      'Cam của chị Bellemere ngọt lịm — món quý nhất đời em! 🍊',
+      'Món này ngon phải tăng giá... nhưng bạn thì miễn phí!',
+      'No rồi! Tràn đầy năng lượng ra khơi tiếp thôi!',
+    ],
+    happyQuotes: [
+      'Kho báu lớn nhất của Nami vẫn là tiền — nhưng bạn xếp ngay sau đó nha!',
+      'Bạn đáng để Nami vẽ hẳn một bản đồ dẫn tới mọi kho từ vựng quý!',
+      'Học giỏi thế này, Nami cho bạn mượn bản đồ miễn phí luôn!',
+    ],
+  },
+  art2d_onepiece__sanji: {
+    id: 'art2d_onepiece__sanji',
+    name: 'Sanji Chân Đen',
+    species: 'Đầu Bếp Băng Mũ Rơm',
+    emoji: '🍳',
+    avatarBg: 'from-yellow-400 to-slate-700',
+    sprite2d: '/pet-art-2d/art2d_onepiece__sanji.webp',
+    art2dFranchise: 'One Piece',
+    description:
+      'Vinsmoke Sanji — đầu bếp Chân Đen với đôi giày đen, nấu món nào cũng như tác phẩm nghệ thuật và "nêm nếm" câu tiếng Anh thật hoàn hảo.',
+    buff: {
+      title: 'Công Thức Hoàn Hảo',
+      description: '+20% Tốc độ làm bài & Phục hồi năng lượng sau mỗi "món" khó',
+      bonusType: 'speed',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Chào cậu! Hôm nay thực đơn là: khai vị ngữ pháp, món chính từ vựng và tráng miệng hội thoại nhé! 🍳',
+      'Nấu ăn và tiếng Anh giống nhau lắm — nêm nếm từ từ cho vừa vị.',
+      'Ăn ngon mới học giỏi! Xong buổi học, chờ tôi dọn bữa tối nhé!',
+    ],
+    eatSounds: [
+      'Món tôi nấu mà — nhưng cậu cho thì ăn càng ngon!',
+      'Ngon lành! Cậu có khiếu của đầu bếp đấy!',
+      'Cảm ơn cậu... ăn xong tôi nấu món gì tặng lại cậu đây!',
+    ],
+    happyQuotes: [
+      'Cậu học chăm thế này, tôi quyết định nấu hẳn tiệc ngon chào mừng!',
+      'Câu tiếng Anh của cậu "nêm nếm" chuẩn vị rồi đó!',
+      'Cứ giữ phong độ này — sau này cậu là "đầu bếp" tiếng Anh của cả băng!',
+    ],
+  },
+  art2d_onepiece__zoro: {
+    id: 'art2d_onepiece__zoro',
+    name: 'Zoro Kiếm Sĩ',
+    species: 'Kiếm Sĩ Băng Mũ Rơm',
+    emoji: '🗡️',
+    avatarBg: 'from-lime-500 to-green-700',
+    sprite2d: '/pet-art-2d/art2d_onepiece__zoro.webp',
+    art2dFranchise: 'One Piece',
+    description:
+      'Roronoa Zoro — kiếm sĩ Tam Đao hướng tới danh hiệu mạnh nhất thế giới, thức dậy luyện kiếm từ gà gáy và... hơi "khó định hướng" khi đi đường.',
+    buff: {
+      title: 'Luyện Kiếm Mỗi Ngày',
+      description: '+30% Streak & Kỷ luật tập luyện đều đặn không bỏ bữa',
+      bonusType: 'streak',
+      bonusPercent: 30,
+    },
+    greetings: [
+      'Hmph. Hôm nay luyện "võ" ngữ pháp chứ? Tôi theo cùng. 🗡️',
+      'Luyện kiếm hay luyện chữ cũng vậy — ngày nào cũng tập mới mạnh được.',
+      'Chỉ đường giúp tôi tới lớp học giùm nha... lần này tôi lại lạc rồi.',
+    ],
+    eatSounds: [
+      'Onigiri cá ngừ — món này tôi ăn cả trăm cái không chán!',
+      'Ngon. Uống thêm cốc rượu nữa là hoàn hảo.',
+      'Cảm ơn. Ăn xong tôi luyện tiếp, cậu cũng học tiếp nha.',
+    ],
+    happyQuotes: [
+      'Cậu luyện tập chăm như tôi luyện kiếm — tôn trọng đấy.',
+      'Chưa từng thấy ai vung "kiếm bút" nhanh thế — khá lắm!',
+      'Trên đời không gì là không đạt được — chỉ cần cậu đừng đi lạc đường như tôi.',
+    ],
+  },
+
+  art2d_sanrio__cinnamoroll: {
+    id: 'art2d_sanrio__cinnamoroll',
+    name: 'Cinnamoroll Cún Mây',
+    species: 'Cún Mây Sanrio',
+    emoji: '☁️',
+    avatarBg: 'from-sky-200 to-blue-400',
+    sprite2d: '/pet-art-2d/art2d_sanrio__cinnamoroll.webp',
+    art2dFranchise: 'Sanrio',
+    description:
+      'Chú cún sinh ra từ đám mây trắng với đôi tai dài có thể bay lượn — tai thính nên nghe được cả những âm nhỏ xíu nhất.',
+    buff: {
+      title: 'Đôi Tai Mây Thính',
+      description: '+20% Điểm Luyện Nghe & Bắt trọn mọi âm tiết nhỏ xíu',
+      bonusType: 'listening',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Gâu gâu! Mình vừa bay từ quán cafe mây xuống để học cùng bạn nè! ☁️',
+      'Đôi tai mình to và thính lắm — cùng nhau nghe trọn từng âm điệu nhé!',
+      'Chúc bạn một ngày học nhẹ tênh như làn mây trắng nha!',
+    ],
+    eatSounds: [
+      'Bánh cuộn quế thơm lừng giòn tan, ngon xỉu! 🥐',
+      'Ngọt ngọt bông bông như mây — mê lắm luôn!',
+      'Cảm ơn bạn nha, bạn hiền như mây vậy đó!',
+    ],
+    happyQuotes: [
+      'Được bay lượn cùng bạn là điều vui nhất trên bầu trời! ✨',
+      'Bạn nghe chuẩn từng từ luôn, siêu ghê!',
+      'Cùng bay tới giấc mơ tiếng Anh nào, mình chở bạn nè! 🌟',
+    ],
+  },
+  art2d_sanrio__hello_kitty: {
+    id: 'art2d_sanrio__hello_kitty',
+    name: 'Hello Kitty Nơ Đỏ',
+    species: 'Mèo Nơ Đỏ Sanrio',
+    emoji: '🐱',
+    avatarBg: 'from-pink-300 to-red-400',
+    sprite2d: '/pet-art-2d/art2d_sanrio__hello_kitty.webp',
+    art2dFranchise: 'Sanrio',
+    description:
+      'Cô mèo trắng chiếc nơ đỏ đến từ ngoại ô London, thân thiện với mọi người và mê nướng bánh táo cùng bạn học tiếng Anh.',
+    buff: {
+      title: 'Nơ Đỏ Giao Tiếp',
+      description: '+20% Điểm Luyện Nói & Giao tiếp ngọt ngào đúng chuẩn London',
+      bonusType: 'speaking',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Hello! Mình đến từ London đó — cùng luyện nói chuẩn giọng Anh nha! 🐱',
+      'Chiếc nơ đỏ hôm nay thắt thật xinh để chúc bạn học tốt đó!',
+      'Học xong mình mời bạn bánh táo nướng vừa ra lò nghen!',
+    ],
+    eatSounds: [
+      'Bánh táo nướng thơm lừng — công thức của mama nè! 🍎',
+      'Măm măm ngon quá, ngọt lịm luôn!',
+      'Cảm ơn bạn nha, bạn dễ thương ghê!',
+    ],
+    happyQuotes: [
+      'Được làm bạn với bạn là niềm hạnh phúc to như chiếc nơ đỏ vậy! 💖',
+      'Bạn nói tiếng Anh càng ngày càng xinh xắn luôn á!',
+      'Cùng Kitty học mỗi ngày nha, chắc chắn vui lắm đó! ✨',
+    ],
+  },
+  art2d_sanrio__kuromi: {
+    id: 'art2d_sanrio__kuromi',
+    name: 'Kuromi Tinh Nghịch',
+    species: 'Thỏ Đầu Lâu Sanrio',
+    emoji: '😈',
+    avatarBg: 'from-fuchsia-600 to-slate-900',
+    sprite2d: '/pet-art-2d/art2d_sanrio__kuromi.webp',
+    art2dFranchise: 'Sanrio',
+    description:
+      'Cô thỏ tinh nghịch đội mũ trùm đen với biểu tượng đầu lâu hồng — nghịch ngợm là thật nhưng lạc quan và tràn đầy năng lượng cũng là thật.',
+    buff: {
+      title: 'Tốc Độ Quậy Banh Nóc',
+      description: '+25% Tốc độ làm bài & Phản xạ nhanh như cú chạy trốn',
+      bonusType: 'speed',
+      bonusPercent: 25,
+    },
+    greetings: [
+      'Heheh! Kuromi đây! Hôm nay quậy banh nóc chỗ bảng từ vựng nha? 😈',
+      'Học cho lẹ rồi rủ Kuromi đi phá... à nhầm, đi khám phá liền!',
+      'Đừng để ngọn lửa học tập bị dập tắt nha, Kuromi đang canh chừng đó!',
+    ],
+    eatSounds: [
+      'Nho tím ngọt lịm — năng lượng quậy tiếp đây! 🍇',
+      'Ngon xỉu luôn! Cho thêm một phần nữa nghen!',
+      'Quá đã! Ăn xong chạy vòng vòng tiếp thôi!',
+    ],
+    happyQuotes: [
+      'Heheh, bạn khen Kuromi ghê — ngại quá... mà thích lắm á! 😈',
+      'Chúng ta là bộ đôi ngầu nhất rồi nha!',
+      'Cứ tiến lên không sợ ai hết, có Kuromi đi cùng mà! 🚀',
+    ],
+  },
+  art2d_sanrio__my_melody: {
+    id: 'art2d_sanrio__my_melody',
+    name: 'My Melody Ngọt Ngào',
+    species: 'Thỏ Mũ Hồng Sanrio',
+    emoji: '🍓',
+    avatarBg: 'from-pink-200 to-rose-300',
+    sprite2d: '/pet-art-2d/art2d_sanrio__my_melody.webp',
+    art2dFranchise: 'Sanrio',
+    description:
+      'Cô thỏ hiền lành đội mũ trùm hồng, mê dâu tây và hay viết thư cho bạn bè — mỗi lá thư đều là một bài luyện viết đáng yêu.',
+    buff: {
+      title: 'Lá Thư Dễ Thương',
+      description: '+20% Điểm Viết & Trình bày câu văn ngọt như mứt dâu',
+      bonusType: 'writing',
+      bonusPercent: 20,
+    },
+    greetings: [
+      'Xin chào! Melody vừa viết xong một lá thư tiếng Anh nè, bạn đọc thử đi nha! 🍓',
+      'Mũ trùm hôm nay màu hồng pastel xinh xỉu — chúc bạn học thật vui nha!',
+      'Viết từ từ từng chữ một cho thật đẹp, như Melody gấp thư vậy đó!',
+    ],
+    eatSounds: [
+      'Bánh mứt dâu ngọt lịm — món ruột của Melody nè! 🍓',
+      'Măm măm... ngon miệng quá trình luôn!',
+      'Cảm ơn bạn, món quà dễ thương ghê!',
+    ],
+    happyQuotes: [
+      'Bài viết của bạn đọc vui như một lá thư từ Maryland vậy! 💖',
+      'Câu chữ của bạn ngày càng ngọt ngào và đúng chuẩn luôn á!',
+      'Mỗi ngày viết được một xíu là tiến bộ lớn lắm đó, mình tin bạn! 🌷',
+    ],
+  },
+  art2d_sanrio__pompompurin: {
+    id: 'art2d_sanrio__pompompurin',
+    name: 'Pompompurin Pudding',
+    species: 'Cún Pudding Sanrio',
+    emoji: '🍮',
+    avatarBg: 'from-yellow-300 to-amber-400',
+    sprite2d: '/pet-art-2d/art2d_sanrio__pompompurin.webp',
+    art2dFranchise: 'Sanrio',
+    description:
+      'Chú cún Golden đội mũ nồi beret màu nâu, mê pudding caramen và những giấc ngủ trưa êm đềm — nhưng chưa từng lỡ một buổi học nào cả.',
+    buff: {
+      title: 'May Mắn Pudding',
+      description: '+15% Coins & Năng lượng dễ chịu sau mỗi buổi học',
+      bonusType: 'coins',
+      bonusPercent: 15,
+    },
+    greetings: [
+      'Yummm! Purin vừa ăn xong đĩa pudding khổng lồ đây! 🍮',
+      'Học xong trưa nay mình ngủ một giấc — còn bây giờ thì học tiếp thui!',
+      'Mũ nồi của mình là mũ may mắn đó — đeo vô là học tới đâu thuộc tới đó nha!',
+    ],
+    eatSounds: [
+      'Pudding béo ngậy mềm mịn tan trong miệng — ngon nhất trần đời! 🍮',
+      'Ôi ngon mê ly rụng rốn luôn á!',
+      'Bụng tròn xoe no nê rồi, cảm ơn bạn nghen!',
+    ],
+    happyQuotes: [
+      'Được bạn xoa cái bụng tròn này là Purin sướng rơn luôn! 🥰',
+      'Học nhẹ nhàng không áp lực — y như ngủ trưa vậy đó!',
+      'Bạn giỏi đỉnh của chóp! Cho Purin xin một muỗng pudding ăn mừng nha! 🌟',
     ],
   },
 };
