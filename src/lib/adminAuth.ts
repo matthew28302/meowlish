@@ -5,6 +5,7 @@ import { db, hashPassword } from './db';
 import logger from './logger';
 import { logEmail } from './systemLogs';
 import { adminOtpTemplate, mailFrom, EMAIL_BRAND } from './emailTemplates';
+import { checkEmailDeliverable } from './mailDeliverability';
 
 async function resolveIpv4(host: string): Promise<string> {
   try {
@@ -295,7 +296,27 @@ export async function sendAdminOtpEmail(otp: string): Promise<{ success: boolean
     sentAt: now,
   });
 
+  // Khai báo NGOÀI try: nhánh catch (L380) cũng ghi log recipient.
+  let adminEmail = '';
   try {
+    // Chặn "gửi thành công giả": nếu domain người nhận không có MX thì SMTP
+    // relay nhận email rồi bỏ im lặng — người dùng thấy "đã gửi" mà không có
+    // gì tới. Đo 2026-10-09: admin@meowlish.com không tồn tại trong DNS.
+    adminEmail = getAdminEmail();
+    const deliverability = await checkEmailDeliverable(adminEmail);
+    if (deliverability.knownUndeliverable) {
+      logger.error('[Admin 2FA] Email quan tri khong nhan duoc mail:', {
+        domain: deliverability.domain,
+        detail: deliverability.detail,
+      });
+      return {
+        success: false,
+        error:
+          `Email quan tri hien tai khong nhan duoc mail (${deliverability.domain} khong co MX). ` +
+          'Cap nhat bien ADMIN_EMAIL trong Vercel roi deploy lai.',
+      };
+    }
+
     // Không dự phòng hardcode: repo PUBLIC nên literal ở đây là lộ mật khẩu email.
     const smtpUser = process.env.SMTP_USER;
     const smtpPass = process.env.SMTP_PASS;
@@ -333,7 +354,7 @@ export async function sendAdminOtpEmail(otp: string): Promise<{ success: boolean
 
     const mailOptions = {
       from: mailFrom(smtpUser),
-      to: getAdminEmail(),
+      to: adminEmail,
       replyTo: EMAIL_BRAND.contactEmail,
       subject: emailContent.subject,
       html: emailContent.html,
@@ -343,7 +364,7 @@ export async function sendAdminOtpEmail(otp: string): Promise<{ success: boolean
     await transporter.sendMail(mailOptions);
     logger.info(`[Admin 2FA] OTP email successfully sent to admin inbox`);
     logEmail({
-      recipient: getAdminEmail(),
+      recipient: adminEmail,
       subject: emailContent.subject,
       purpose: 'admin_2fa',
       status: 'sent',
@@ -352,7 +373,7 @@ export async function sendAdminOtpEmail(otp: string): Promise<{ success: boolean
   } catch (err: any) {
     logger.error('[Admin 2FA] Failed to send OTP email:', { error: err });
     logEmail({
-      recipient: getAdminEmail(),
+      recipient: adminEmail,
       subject: emailContent.subject,
       purpose: 'admin_2fa',
       status: 'failed',
