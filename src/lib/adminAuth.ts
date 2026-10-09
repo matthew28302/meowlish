@@ -66,7 +66,17 @@ export function getAdminEmail(): string {
       | { email?: string | null }
       | undefined;
     const fromDb = (row?.email || '').trim().toLowerCase();
-    if (fromDb) return fromDb;
+    if (fromDb) {
+      // Canh bao de loi "khong nhan duoc OTP" khong xay ra trong im lang:
+      // do 2026-10-09 — ADMIN_EMAIL tro toi `meowlish.com`, domain KHONG ton tai
+      // trong DNS (NXDOMAIN) nen SMTP nhan email roi khong ai nhan duoc. Email
+      // trong DB cung co the la du lieu mau, nen phai set ADMIN_EMAIL that.
+      logger.warn(
+        '[Admin Auth] Chua dat bien moi truong ADMIN_EMAIL — dang dung email trong CSDL. ' +
+          'Neu email do khong phai inbox that, OTP se khong bao gio den.'
+      );
+      return fromDb;
+    }
   } catch (err) {
     logger.warn('[Admin Auth] Khong doc duoc email admin tu DB:', { error: err });
   }
