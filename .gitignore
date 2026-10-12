@@ -86,3 +86,7 @@ scratch/
 test-results/
 playwright-report/
 blob-report/
+
+# Thu muc lam viec tam: preview email, ban so sanh GIF, artifact chan doan.
+# Nguon Lottie da commit o scripts/assets/lottie/ nen temp/ khong can luu.
+temp/

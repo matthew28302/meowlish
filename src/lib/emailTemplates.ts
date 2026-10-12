@@ -304,7 +304,7 @@ function meowLayout({
   <style>
     @media only screen and (max-width: 620px) {
       .email-container { width: 100% !important; }
-      .code-digit { width: 44px !important; height: 54px !important; font-size: 26px !important; }
+      .code-digits { font-size: 26px !important; letter-spacing: 10px !important; padding: 12px 18px 12px 30px !important; }
       .hero-title { font-size: 26px !important; }
     }
   </style>
@@ -329,7 +329,7 @@ function meowLayout({
             </tr>
             <tr>
               <td align="center" style="padding:12px 32px 0 32px; background-color:#FFFFFF;">
-                <img src="${escapeHtml(assetUrl(gifFile))}" alt="${escapeHtml(gifAlt)}" width="220" style="display:block; width:220px; max-width:60%; height:auto; border-radius:18px; border:3px solid ${M.link};" />
+                <img src="${escapeHtml(assetUrl(gifFile))}" alt="${escapeHtml(gifAlt)}" width="220" style="display:block; width:220px; max-width:60%; height:auto;" />
               </td>
             </tr>
 ${sections}
@@ -349,21 +349,19 @@ ${sections}
 </html>`;
 }
 
-/** Ô mã 6 số tách từng ô (chỉ nhận chữ số để không vỡ layout). */
+/**
+ * Mã 6 số — CỐ Ý gộp thành MỘT ô duy nhất chứa nguyên chuỗi "482915".
+ *
+ * Bản cũ tách 6 số vào 6 ô `<td>` của bảng ⇒ khi người dùng chọn/copy trong
+ * email client, trình duyệt chèn ký tự TAB giữa các ô ("4⇥⇥8⇥⇥2⇥⇥9⇥⇥1⇥⇥5")
+ * ⇒ dán vào ô nhập mã bị lỗi. Một text node duy nhất ⇒ copy ra đúng 6 số.
+ * Vẻ hộp/giãn cách vẫn giữ bằng `letter-spacing` + nền hồng.
+ */
 function meowCodeBoxes(otp: string): string {
-  const digits = String(otp).replace(/\D/g, '').padEnd(6, '0').slice(0, 6).split('');
-  const tds = digits
-    .map(
-      (d, i) =>
-        (i > 0 ? '<td style="width:10px;"></td>' : '') +
-        `<td class="code-digit" align="center" style="width:56px; height:68px; background-color:${M.pinkPale}; border:2px solid ${M.pinkLine}; border-radius:14px; font-family:${FONT}; font-size:32px; font-weight:800; color:${M.pinkDeep};">${escapeHtml(d)}</td>`
-    )
-    .join('');
+  const digits = String(otp).replace(/\D/g, '').padEnd(6, '0').slice(0, 6);
   return `            <tr>
               <td align="center" style="padding:24px 32px 0 32px; background-color:#FFFFFF;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
-                  <tr>${tds}</tr>
-                </table>
+                <div class="code-digits" style="display:inline-block; padding:16px 24px 16px 40px; background-color:${M.pinkPale}; border:2px solid ${M.pinkLine}; border-radius:16px; font-family:${MONO}; font-size:34px; font-weight:800; letter-spacing:16px; line-height:1.1; color:${M.pinkDeep}; white-space:nowrap; -webkit-text-size-adjust:none;">${escapeHtml(digits)}</div>
               </td>
             </tr>`;
 }
