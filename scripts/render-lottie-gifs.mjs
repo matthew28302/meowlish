@@ -168,20 +168,67 @@ async function renderFrames(browser, animationData) {
   return { shots, delay };
 }
 
-/** PNG 440² (nền trong) → RGBA 440² nền trắng (khớp thẻ trắng của email). */
+/**
+ * PNG → RGBA, **GIỮ NỀN TRONG SUỐT**.
+ *
+ * KHÔNG được flatten thành trắng đục. Đã xảy ra lỗi thật: bản flatten nền
+ * trắng khiến GIF mất trong email — email client ở chế độ tối (dark mode)
+ * tự đảo màu ảnh có nền sáng thành nền tối, mèo cũng bị đảo màu nên gần như
+ * biến mất. Bản GIF gốc của LottieFiles giữ alpha và hiển thị tốt.
+ *
+ * Nền trong suốt cũng giúp GIF hợp với mọi nền thư (kể cả nền tối) thay vì
+ * bị một khối trắng 440px chặn giữa email.
+ */
 async function toRgba(shot) {
   return sharp(shot)
-    .flatten({ background: '#ffffff' })
-    .removeAlpha()
+    .ensureAlpha() // PNG trong suốt → RGBA, giữ alpha
     .raw()
     .toBuffer();
 }
 
-/** Palette chung cho mọi khung ⇒ không nhấp nháy màu giữa các frame. */
+/** Ngưỡng alpha coi là "trong suốt" (GIF chỉ hỗ trợ trong suốt 1 bit). */
+const ALPHA_CUTOFF = 128;
+
+/**
+ * Palette chung cho mọi khung ⇒ không nhấp nháy màu giữa các frame.
+ *
+ * Chỉ gom pixel **đục** (alpha >= ALPHA_CUTOFF). Nền trong suốt chiếm ~70% ảnh,
+ * nếu đưa cả vào palette thì 256 chỗ bị phí cho màu rác ở vùng nền ⇒ mèo chỉ
+ * còn ~80 màu ⇒ vỡ sạc màu. Gom riêng pixel đục thì 256 màu dồn hết cho con mèo.
+ */
 function buildGlobalPalette(frames) {
   const picks = frames.filter((_, i) => i % Math.max(1, Math.floor(frames.length / 8)) === 0).slice(0, 8);
-  const merged = Buffer.concat(picks.map((p) => Buffer.from(p)));
-  return quantize(merged, 256);
+  const opaque = [];
+  for (const p of picks) {
+    for (let i = 0; i < p.length; i += 4) {
+      if (p[i + 3] < ALPHA_CUTOFF) continue; // bỏ pixel trong suốt
+      opaque.push(p[i], p[i + 1], p[i + 2], 255);
+    }
+  }
+  const buf = Buffer.from(opaque);
+  const palette = quantize(buf, 256);
+  // Dành index 0 cho "trong suốt". Đặt nó thành màu phổ biến nhất thay vì đen:
+  // nếu client nào bỏ qua cờ trong suốt thì ảnh vẫn dễ chịu, không thành khối đen.
+  palette[0] = mostCommonOpaqueColor(buf);
+  return palette;
+}
+
+/** Màu xuất hiện nhiều nhất trong buffer RGBA — màu dự phòng cho index 0. */
+function mostCommonOpaqueColor(rgba) {
+  const counts = new Map();
+  for (let i = 0; i < rgba.length; i += 4) {
+    const key = (rgba[i] << 16) | (rgba[i + 1] << 8) | rgba[i + 2];
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  let best = 0;
+  let bestN = -1;
+  for (const [k, n] of counts) {
+    if (n > bestN) {
+      bestN = n;
+      best = k;
+    }
+  }
+  return best;
 }
 
 /** Cộng nhiễu Bayer 8×8 vào ảnh RGBA (dither trên ẢNH NGUỒN, không phải trên
@@ -229,9 +276,12 @@ function buildLookup(palette) {
       const gg = (g * 255) / (SIZE - 1);
       for (let b = 0; b < SIZE; b++) {
         const bb = (b * 255) / (SIZE - 1);
-        let best = 0;
+        let best = 1;
         let bestD = Infinity;
-        for (let i = 0; i < 256; i++) {
+        // Bắt đầu từ index 1: index 0 dành riêng cho pixel trong suốt, không
+        // được phép "thắng" ở bước tìm màu gần nhất (nếu không cạnh mờ sẽ bị
+        // nhốt vào index trong suốt và bị cắt thành lỗ thủng).
+        for (let i = 1; i < 256; i++) {
           const dr = rr - prArr[i];
           const dg = gg - pgArr[i];
           const db = bb - pbArr[i];
@@ -252,12 +302,19 @@ const prArr = new Int16Array(256);
 const pgArr = new Int16Array(256);
 const pbArr = new Int16Array(256);
 
-/** Dither Bayer 8×8 rồi ép palette qua bảng tra → chỉ số 1 byte/pixel. */
+/**
+ * Dither Bayer 8×8 rồi ép palette qua bảng tra → chỉ số 1 byte/pixel.
+ * Pixel trong suốt (alpha < ALPHA_CUTOFF) luôn ra index 0.
+ */
 function ditherToIndex(rgba, lut, out) {
   for (let y = 0; y < OUT; y++) {
     const brow = BAYER8[y & 7];
     for (let x = 0; x < OUT; x++) {
       const p = (y * OUT + x) * 4;
+      if (rgba[p + 3] < ALPHA_CUTOFF) {
+        out[y * OUT + x] = 0; // trong suốt
+        continue;
+      }
       const d = brow[x & 7] * DITHER_SPREAD;
       const r = rgba[p] + d;
       const g = rgba[p + 1] + d;
@@ -280,7 +337,17 @@ async function encodeGif(shots, delay, dest) {
   for (const rgba of frames) {
     const index = Buffer.allocUnsafe(OUT * OUT);
     ditherToIndex(rgba, lut, index);
-    gif.writeFrame(index, OUT, OUT, { palette, delay, repeat: 0 });
+    // `transparent: true` bật cờ trong suốt 1 bit cho từng khung, dùng
+    // `transparentIndex: 0` làm chỉ số trong suốt. BẮT BUỘC: bản trước thiếu
+    // cờ này và nền bị đóng thành trắng đục → client dark mode đảo thành nền
+    // đen, GIF biến mất trong email.
+    gif.writeFrame(index, OUT, OUT, {
+      palette,
+      delay,
+      repeat: 0,
+      transparent: true,
+      transparentIndex: 0,
+    });
   }
   gif.finish();
   fs.mkdirSync(path.dirname(dest), { recursive: true });
