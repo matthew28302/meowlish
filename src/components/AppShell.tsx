@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -37,6 +38,7 @@ import { AuthUser, getCurrentUser, setStoredUser, clearStoredUser, removeSavedAc
 import AuthModal from './AuthModal';
 import EmailVerifyModal from './EmailVerifyModal';
 import ProfileEditModal from './ProfileEditModal';
+import FloatingAiChat from './FloatingAiChat';
 
 interface NavItem {
   href: string;
@@ -63,6 +65,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [emailVerifySessionId, setEmailVerifySessionId] = useState<string | null>(null);
   const [disabledNotice, setDisabledNotice] = useState<string | null>(null);
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+  // Vị trí dropdown avatar — render bằng portal ra body để thoát stacking
+  // context của header (z-30) và không bị modal/toast z-50 của page đè.
+  const avatarBtnRef = useRef<HTMLButtonElement>(null);
+  const [avatarMenuPos, setAvatarMenuPos] = useState<{ top: number; right: number } | null>(null);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   // H5 (audit 2026-10-08): guest gate ĐÓNG ĐƯỢC THẬT — sau khi đóng, user xem
   // nội dung đằng sau và có thể bấm "Đăng nhập" từ header để mở lại. Reset về
@@ -105,6 +111,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [showAvatarMenu, mobileDrawerOpen]);
+
+  // Dropdown avatar render bằng portal (fixed theo toạ độ nút) — nếu trang
+  // cuộn hoặc cửa sổ resize thì toạ độ cũ lệch, đóng luôn cho an toàn.
+  useEffect(() => {
+    if (!showAvatarMenu) return;
+    const close = () => setShowAvatarMenu(false);
+    window.addEventListener('scroll', close, true); // capture: bắt cả scroll của container con
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [showAvatarMenu]);
 
   // Xử lý đăng xuất lập tức khi tài khoản bị vô hiệu hóa
   const handleAccountDisabled = (reason?: string) => {
@@ -423,23 +442,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* 1. DESKTOP FIXED SIDEBAR (Standard Duolingo/Notion App Layout) */}
       <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 z-40 bg-white dark:bg-slate-900 border-r-2 border-slate-100 dark:border-white/10 shadow-xs select-none">
-        {/* Logo Brand */}
+        {/* Logo Brand — chỉ còn icon (bỏ wordmark "Meowlish" theo yêu cầu) */}
         <div className="p-5 border-b border-slate-100 dark:border-white/10">
           <Link
             href="/"
             onClick={() => sound.playClick()}
+            title="Về trang chủ Meowlish"
             className="flex items-center gap-3 group"
           >
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform text-2xl">
               🐱
-            </div>
-            <div>
-              <div className="font-black text-xl text-slate-900 dark:text-slate-100 tracking-tight flex items-center">
-                Meow<span className="text-emerald-600 dark:text-emerald-400">lish</span>
-              </div>
-              <div className="text-[12px] font-bold text-slate-400 dark:text-slate-500">
-                Giao Tiếp Thực Chiến
-              </div>
             </div>
           </Link>
         </div>
@@ -644,10 +656,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="relative">
                   <button
                     type="button"
+                    ref={avatarBtnRef}
                     onClick={() => {
                       sound.playClick();
-                      if (currentUser) setShowAvatarMenu((v) => !v);
-                      else setShowAuth(true);
+                      if (currentUser) {
+                        const rect = avatarBtnRef.current?.getBoundingClientRect();
+                        if (rect) setAvatarMenuPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+                        setShowAvatarMenu((v) => !v);
+                      } else setShowAuth(true);
                     }}
                     className="tap-target flex items-center gap-1.5 bg-slate-50 dark:bg-white/10 hover:bg-slate-100 dark:hover:bg-white/15 text-slate-800 dark:text-slate-100 p-1 sm:px-2.5 sm:py-1.5 rounded-2xl text-xs font-bold transition border border-slate-200 dark:border-white/10 cursor-pointer shadow-xs"
                   >
@@ -657,17 +673,23 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     </span>
                   </button>
 
-                  {showAvatarMenu && currentUser && (
+                  {showAvatarMenu && currentUser && avatarMenuPos && createPortal(
                     <>
                       {/* M12: Bắt click ra ngoài để đóng menu — overlay toàn màn
                           hình vô hình, không phải control thật nên aria-hidden
-                          (keyboard đóng qua Escape — effect ở đầu file) */}
+                          (keyboard đóng qua Escape — effect ở đầu file).
+                          H6 (2026-10-12): render qua portal ra <body> để dropdown
+                          thoát stacking context z-30 của header — hết bị modal
+                          z-50 của page (shop/toast…) đè lên. */}
                       <div
-                        className="fixed inset-0 z-40"
+                        className="fixed inset-0 z-[9998]"
                         onClick={() => setShowAvatarMenu(false)}
                         aria-hidden="true"
                       />
-                      <div className="absolute right-0 top-full mt-2 w-60 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div
+                        className="fixed w-60 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-2 shadow-2xl z-[9999] animate-in fade-in zoom-in-95 duration-150"
+                        style={{ top: avatarMenuPos.top, right: avatarMenuPos.right }}
+                      >
                         <div className="px-3 py-2 mb-1 border-b border-slate-100 dark:border-slate-800">
                           <div className="text-sm font-black text-slate-900 dark:text-white truncate">
                             {currentUser.display_name}
@@ -701,7 +723,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                           Tài khoản &amp; Bảo mật
                         </button>
                       </div>
-                    </>
+                    </>, document.body
                   )}
                 </div>
               </div>
@@ -979,6 +1001,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       )}
+
+      {/* 5.b FLOATING AI CHAT — Trợ Lý Mèo AI 24/7 mọi trang (không hiện trên /support) */}
+      <FloatingAiChat />
 
       {/* 6. AUTH MODAL — H5: với guest gate, modal mở ép như cũ NHƯNG onClose
           THẬT: đóng modal (nút X / Escape) = gỡ cả gate → user thấy nội dung

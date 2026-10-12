@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
 import { getCurrentUser, getStoredUser, setStoredUser, AuthUser } from '@/lib/auth';
-import { PETS_CATALOG, SHOP_ITEMS, ShopItem, PetConfig, getPetTitle } from '@/lib/petData';
+import { PETS_CATALOG, SHOP_ITEMS, ShopItem, getPetTitle } from '@/lib/petData';
 import confetti from '@/lib/confetti';
 import PixelFarmGame, { PixelFarmHandle } from '@/components/pet/PixelFarmGame';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
@@ -42,69 +42,10 @@ import PetSocialHub from '@/components/pet/PetSocialHub';
 import { SocialFriend } from '@/lib/petSocialData';
 import { useEscapeToClose } from '@/lib/useEscapeToClose';
 
-/**
- * Nhóm standee 2D "Nhân Vật Nổi Tiếng" cho modal Đổi Thú Cưng (MODAL 4).
- *
- * 34 id `art2d_<franchise>__<name>` do agent dữ liệu thêm thẳng vào PETS_CATALOG
- * — KHÔNG hardcode id ở đây: quét catalog lúc load module rồi nhóm theo segment
- * franchise trong id. Trước khi dữ liệu đó đổ về thì mảng rỗng ⇒ modal y nguyên
- * như cũ, không render tab/section thừa. (đo 2026-10-09: 34 webp đã sẵn tại
- * /public/pet-art-2d — 6 franchise: avengers/doraemon/harry_potter/naruto/onepiece/sanrio)
- */
-type Art2dEntry = PetConfig & { sprite2d?: string; art2dFranchise?: string };
-
-/** Số thú cưng chibi của 7 section hardcode bên dưới (3+3+3+3+3+6+6). */
+/** Số thú cưng chibi của 7 section hardcode bên dưới (3+3+3+3+3+6+6).
+ * (H14 2026-10-12: đã bỏ toàn bộ "Nhân Vật 2D" art2d_* theo yêu cầu — catalog,
+ * component, tab/section modal đều đã xoá.) */
 const CHIBI_PET_COUNT = 27;
-
-const ART2D_FRANCHISE_META: Record<string, { emoji: string; label: string }> = {
-  avengers: { emoji: '🦸', label: 'Avengers' },
-  doraemon: { emoji: '🔵', label: 'Doraemon' },
-  harry_potter: { emoji: '⚡', label: 'Harry Potter' },
-  naruto: { emoji: '🍥', label: 'Naruto' },
-  onepiece: { emoji: '🏴‍☠️', label: 'One Piece' },
-  sanrio: { emoji: '🎀', label: 'Sanrio' },
-};
-
-const ART2D_PET_IDS = Object.keys(PETS_CATALOG).filter((id) => id.startsWith('art2d_'));
-
-/** Gom id theo franchise (segment giữa `art2d_` và `__`), giữ thứ tự gặp đầu. */
-const ART2D_FRANCHISE_GROUPS = (() => {
-  const groups = new Map<string, string[]>();
-  for (const id of ART2D_PET_IDS) {
-    const franchise = id.split('__')[0]?.slice('art2d_'.length) || 'other';
-    const ids = groups.get(franchise) ?? [];
-    ids.push(id);
-    groups.set(franchise, ids);
-  }
-  return [...groups.entries()].map(([franchise, petIds]) => {
-    const meta = ART2D_FRANCHISE_META[franchise];
-    return {
-      key: `art2d_${franchise}`,
-      shortLabel: meta?.label ?? franchise.replace(/_/g, ' '),
-      emoji: meta?.emoji ?? '🎬',
-      petIds,
-    };
-  });
-})();
-
-/** Section modal cho từng franchise 2D — cuối danh sách (chibi trước, 2D sau);
- *  bảng tím thống nhất cho mọi franchise, lạ thì rơi vào fallback 🎬. */
-const ART2D_SECTIONS = ART2D_FRANCHISE_GROUPS.map((g) => ({
-  key: g.key,
-  title: `Nhân Vật 2D: ${g.shortLabel}`,
-  emoji: g.emoji,
-  headerBg: 'text-violet-800 bg-violet-100 dark:text-violet-200 dark:bg-violet-950',
-  badgeBg: 'text-violet-700 bg-violet-50 dark:text-violet-300 dark:bg-violet-950',
-  activeBorder: 'border-violet-500 bg-violet-50 ring-2 ring-violet-300 dark:bg-violet-950',
-  petIds: g.petIds,
-}));
-
-/** Chip lọc theo franchise — reuse hàng tab sẵn có (tab id phải khớp sec.key). */
-const ART2D_TABS = ART2D_FRANCHISE_GROUPS.map((g) => ({
-  id: g.key,
-  label: `${g.shortLabel} 2D (${g.petIds.length})`,
-  emoji: g.emoji,
-}));
 
 /**
  * Một mục trong menu "Thêm" của thanh công cụ.
@@ -235,6 +176,11 @@ export default function PetPage() {
     status: 'locked_not_logged_in',
     message: 'Bé Cinnamoroll là Thú Cưng Độc Quyền Giới Hạn dành riêng cho Quản Trị Viên (Admin).',
   });
+  // H12 (2026-10-12): user bấm Cinnamoroll nhưng email chưa xác thực → nhớ ý
+  // định; sau khi OTP xác thực thành công thì TỰ MỞ bé Cinnamoroll luôn
+  // (bug cũ: xác thực xong vẫn khoá tới khi reload trang vì snapshot state cũ).
+  const pendingCinnaSwitchRef = useRef(false);
+  const handleSwitchPetRef = useRef<(petId: string, accessOverride?: { isUnlocked: boolean; status: string; message: string }) => void>(() => {});
   const [inventory, setInventory] = useState<any[]>([]);
   const [gardenDecor, setGardenDecor] = useState<any[]>([]);
   const [userCoins, setUserCoins] = useState<number>(0);
@@ -268,7 +214,7 @@ export default function PetPage() {
   const [outgoingFriendIds, setOutgoingFriendIds] = useState<string[]>([]);
   const [communityUsers, setCommunityUsers] = useState<any[]>([]);
   const [coupleData, setCoupleData] = useState<any>(null);
-  const [incomingProposal, setIncomingProposal] = useState<any>(null);
+  // (H13) state incomingProposal đã xoá cùng Lễ Đường Kết Đôi.
   const [activeRooms, setActiveRooms] = useState<any[]>([]);
   const [recentChat, setRecentChat] = useState<any[]>([]);
 
@@ -411,7 +357,11 @@ export default function PetPage() {
     return pet;
   };
 
-  const loadPetData = async () => {
+  const loadPetData = async (): Promise<{ isUnlocked: boolean; status: string; message: string } | null> => {
+    // H12 (2026-10-12): trả về `cinnamorollAccess` mới nhất để caller (listener
+    // auth-state-changed) biết ngay bé Cinnamoroll đã mở khoá chưa, không phải
+    // đợi state re-render.
+    let freshCinnaAccess: { isUnlocked: boolean; status: string; message: string } | null = null;
     const user = getStoredUser();
     setCurrentUser(user);
     // Số xu CHỈ lấy từ user đăng nhập thật. getStoredUser() trả fallback demo
@@ -445,10 +395,13 @@ export default function PetPage() {
         if (data.outgoingFriendIds) setOutgoingFriendIds(data.outgoingFriendIds);
         if (data.communityUsers) setCommunityUsers(data.communityUsers);
         if (data.couple) setCoupleData(data.couple);
-        if (data.incomingProposal !== undefined) setIncomingProposal(data.incomingProposal);
+        // (H13) incomingProposal không còn UI hiển thị — bỏ lưu, đã xoá Lễ Đường Kết Đôi.
         if (data.activeRooms) setActiveRooms(data.activeRooms);
         if (data.recentChat) setRecentChat(data.recentChat);
-        if (data.cinnamorollAccess) setCinnaServerAccess(data.cinnamorollAccess);
+        if (data.cinnamorollAccess) {
+          setCinnaServerAccess(data.cinnamorollAccess);
+          freshCinnaAccess = data.cinnamorollAccess;
+        }
         // ƯU TIÊN localStorage (giá trị từ action response gần nhất —
         // read-your-writes) thay vì ghi đè bằng giá trị GET đọc được: GET có
         // thể hit instance khác ĐANG STALE (sync lag ~28s trên prod khi chưa
@@ -471,6 +424,7 @@ export default function PetPage() {
     } finally {
       setIsLoading(false);
     }
+    return freshCinnaAccess;
   };
 
   useEffect(() => {
@@ -479,13 +433,36 @@ export default function PetPage() {
 
   // Lắng nghe thay đổi auth/coins từ các trang khác (ví dụ: làm bài tập kiếm thêm xu)
   useEffect(() => {
-    const handleAuthChange = () => {
-      setCurrentUser(getStoredUser());
+    // SQLite trả 1/0, client type là boolean — nhận cả hai cho chắc.
+    const isVerifiedFlag = (v: boolean | number | undefined) => v === true || v === 1;
+    let lastVerified: boolean | number | undefined = getStoredUser()?.email_verified;
+    const handleAuthChange = async () => {
+      const nextUser = getStoredUser();
+      setCurrentUser(nextUser);
       // Số xu lấy từ user đăng nhập thật. getStoredUser() trả fallback demo
       // (1000 xu) cho khách → mỗi lần trang khác bắn 'auth-state-changed' lại
       // đẩy "1.000" trở về (bản cũ). Khách/đã đăng xuất → 0.
       const realUser = getCurrentUser();
       setUserCoins(realUser?.coins ?? 0);
+
+      // H12 (2026-10-12) — bug "xác thực email thành công mà Cinnamoroll vẫn
+      // không mở": server đã set email_verified=1 nhưng `cinnaServerAccess`
+      // là snapshot từ lần GET đầu tiên (locked_unverified_email) và không
+      // bao giờ được refetch. Nay: bắt đúng khoảnh khắc false→true của
+      // email_verified → refetch /api/pet; nếu user trước đó đã bấm chọn bé
+      // Cinnamoroll thì TỰ ĐỔI sang bé luôn, không cần reload trang.
+      const nowVerified = isVerifiedFlag(nextUser?.email_verified);
+      const wasVerified = isVerifiedFlag(lastVerified);
+      lastVerified = nextUser?.email_verified;
+      if (nowVerified && !wasVerified) {
+        const freshAccess = await loadPetData();
+        if (freshAccess?.isUnlocked && pendingCinnaSwitchRef.current) {
+          pendingCinnaSwitchRef.current = false;
+          // Chờ state `cinnaServerAccess` re-render xong rồi gọi bản mới nhất
+          // của handleSwitchPet (qua ref) kèm cờ server tươi.
+          window.setTimeout(() => handleSwitchPetRef.current('cinnamoroll', freshAccess), 400);
+        }
+      }
     };
     window.addEventListener('auth-state-changed', handleAuthChange);
     return () => window.removeEventListener('auth-state-changed', handleAuthChange);
@@ -723,13 +700,15 @@ export default function PetPage() {
   };
 
   // Action: Switch Pet Species (Optimistic Update)
-  const handleSwitchPet = async (petId: string) => {
+  const handleSwitchPet = async (petId: string, accessOverride?: { isUnlocked: boolean; status: string; message: string }) => {
     if (petId === 'cinnamoroll') {
       // Dùng cờ do SERVER gửi kèm, không tự tính ở client: tính ở client đòi
       // hỏi danh sách email được cấp quyền — mà danh sách đó là PII thật, tuyệt
       // đối không được đóng gói vào bundle (đã từng bị phát hiện trong JS tải
       // về cho mọi khách truy cập /pet).
-      const access = cinnaServerAccess;
+      // `accessOverride`: giá trị server MỚI NHẤT khi caller vừa refetch xong
+      // (H12) — tránh đọc snapshot state cũ ngay sau khi xác thực email.
+      const access = accessOverride ?? cinnaServerAccess;
       if (!access.isUnlocked) {
         sound.playWrong();
         if (access.status === 'locked_not_logged_in') {
@@ -740,6 +719,8 @@ export default function PetPage() {
             action: 'login',
           });
         } else if (access.status === 'locked_unverified_email') {
+          // H12: nhớ ý định "muốn mở Cinnamoroll" — xác thực xong sẽ tự mở.
+          pendingCinnaSwitchRef.current = true;
           setSpecialPetModal({
             isOpen: true,
             title: 'Kích Hoạt Đặc Quyền Admin ✉️✨',
@@ -815,6 +796,9 @@ export default function PetPage() {
       }
     } catch {}
   };
+  // Luôn giữ bản handleSwitchPet mới nhất cho listener Auth chạy đúng state
+  // tươi (H12) — tránh stale closure từ render đầu tiên.
+  handleSwitchPetRef.current = handleSwitchPet;
 
   // Action: Change Habitat
   const handleChangeHabitat = async (habitatId: string) => {
@@ -1125,7 +1109,7 @@ export default function PetPage() {
             }`}
           >
             <span>🌾</span>
-            <span>Nông Trại 2.5D (Gà & Bò)</span>
+            <span>Nông Trại 2.5D (Gà, Bò, Cừu & Hồ Cá)</span>
           </button>
 
           <button
@@ -1469,7 +1453,7 @@ export default function PetPage() {
         </div>
       )}
 
-      {/* ================= TAB 5: SOCIAL HUB & COUPLE ================= */}
+      {/* ================= TAB 5: SOCIAL HUB (H13: đã bỏ Lễ Đường Kết Đôi) ================= */}
       {gameTab === 'social' && (
         <div className="w-full flex-1 min-h-0">
           <PetSocialHub
@@ -1479,14 +1463,11 @@ export default function PetPage() {
             playerSpecies={petData?.pet_type || 'owl'}
             playerPetName={petData?.pet_name || currentPetMeta.name}
             userCoins={userCoins}
-            onUpdateCoinsDelta={(d) => applyCoinDelta(d)}
             onSendSpeech={(text) => setPetSpeech(text)}
             initialFriends={acceptedFriends}
             initialIncomingRequests={incomingFriendRequests}
             initialOutgoingFriendIds={outgoingFriendIds}
             initialCommunityUsers={communityUsers}
-            coupleData={coupleData}
-            incomingProposal={incomingProposal}
             recentChatList={recentChat}
             onVisitFriendFarm={(f) => {
               sound.playCelebration();
@@ -2342,7 +2323,7 @@ export default function PetPage() {
                   >
                     Chọn Bạn Đồng Hành Nuôi Dưỡng
                   </h3>
-                  <p className="text-[12px] text-emerald-100 font-medium">Bao gồm {CHIBI_PET_COUNT + ART2D_PET_IDS.length} siêu thú cưng Anime, Manga & nhân vật 2D nổi tiếng!</p>
+                  <p className="text-[12px] text-emerald-100 font-medium">Bao gồm {CHIBI_PET_COUNT} siêu thú cưng Anime, Manga nổi tiếng!</p>
                 </div>
               </div>
               <button
@@ -2357,7 +2338,7 @@ export default function PetPage() {
             {/* Universe Filter Tabs */}
             <div className="px-3 sm:px-5 py-2 bg-slate-100 border-b border-slate-200 flex items-center gap-1.5 overflow-x-auto text-xs font-bold shrink-0 dark:bg-slate-800 dark:border-white/10">
               {[
-                { id: 'all', label: `Tất Cả (${CHIBI_PET_COUNT + ART2D_PET_IDS.length})`, emoji: '✨' },
+                { id: 'all', label: `Tất Cả (${CHIBI_PET_COUNT})`, emoji: '✨' },
                 { id: 'one_piece', label: 'One Piece (3)', emoji: '🏴‍☠️' },
                 { id: 'naruto', label: 'Naruto (3)', emoji: '🍥' },
                 { id: 'harry_potter', label: 'Harry Potter (3)', emoji: '⚡' },
@@ -2365,7 +2346,6 @@ export default function PetPage() {
                 { id: 'doraemon_kirby', label: 'Doraemon & Kirby (3)', emoji: '🌟' },
                 { id: 'sanrio', label: 'Sanrio (6)', emoji: '🎀' },
                 { id: 'classic', label: 'Tri Thức (6)', emoji: '🦉' },
-                ...ART2D_TABS,
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -2451,7 +2431,6 @@ export default function PetPage() {
                   activeBorder: 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-300 dark:bg-emerald-950',
                   petIds: ['owl', 'cat', 'dog', 'fox', 'panda', 'bunny'],
                 },
-                ...ART2D_SECTIONS,
               ]
                 .filter((sec) => switchPetCategory === 'all' || switchPetCategory === sec.key)
                 .map((sec) => (
@@ -2469,10 +2448,6 @@ export default function PetPage() {
                       {sec.petIds.map((petId) => {
                         const pet = PETS_CATALOG[petId];
                         if (!pet) return null;
-                        // art2d: sprite2d/art2dFranchise theo contract với agent dữ liệu
-                        // (field optional — đọc qua intersect để compile cả khi chưa đổ về)
-                        const art2dSprite = (pet as Art2dEntry).sprite2d;
-                        const art2dFranchise = (pet as Art2dEntry).art2dFranchise;
                         const isCurrent = petData?.pet_type === pet.id;
                         const isCinnamoroll = pet.id === 'cinnamoroll';
                         const cinnaAccess = isCinnamoroll ? cinnaServerAccess : null;
@@ -2502,20 +2477,7 @@ export default function PetPage() {
                             )}
 
                             <div className="w-14 h-14 flex items-center justify-center mb-1 relative">
-                              {art2dSprite ? (
-                                /* Standee 2D: ảnh webp thay cho sprite SVG — mirror đúng
-                                   khung w-14 h-14 của card chibi phía trên */
-                                <img
-                                  src={art2dSprite}
-                                  alt={pet.name}
-                                  loading="lazy"
-                                  decoding="async"
-                                  draggable={false}
-                                  className="w-14 h-14 object-contain rounded-xl"
-                                />
-                              ) : (
-                                <PixelPetSprite species={pet.id} scale={0.98} animationState="happy" />
-                              )}
+                              <PixelPetSprite species={pet.id} scale={0.98} animationState="happy" />
                               {isLocked && (
                                 <div className="absolute inset-0 bg-slate-950/35 rounded-2xl flex items-center justify-center backdrop-blur-[0.5px]">
                                   <div className="w-7 h-7 rounded-full bg-slate-900/90 border border-amber-400/70 flex items-center justify-center shadow-lg dark:bg-white/90">
@@ -2526,13 +2488,6 @@ export default function PetPage() {
                             </div>
                             <div className="font-black text-xs text-slate-900 truncate max-w-full dark:text-slate-100">{pet.name}</div>
                             <div className="text-[12px] text-slate-500 font-medium max-w-full leading-snug dark:text-slate-400">{pet.species}</div>
-
-                            {/* Chip franchise cho nhân vật 2D — cùng ngôn ngữ class chip buff bên dưới */}
-                            {art2dFranchise && (
-                              <div className="text-[11px] font-black text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full mt-1.5 line-clamp-1 border border-violet-200/60 dark:text-violet-300 dark:bg-violet-950 dark:border-violet-800">
-                                🎬 {art2dFranchise}
-                              </div>
-                            )}
 
                             {isLocked ? (
                               <div className="text-[11px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full mt-1.5 line-clamp-1 border border-rose-200 flex items-center gap-1 shadow-xs dark:text-rose-300 dark:bg-rose-950 dark:border-rose-800">
