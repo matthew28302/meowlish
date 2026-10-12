@@ -143,6 +143,62 @@ export async function POST(request: Request) {
     // phân biệt "vừa học liên tục" với "bỏ ngày rồi quay lại" khi cộng streak.
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
+    // H17 (2026-10-12) — nhánh PHẠT lộ trình học 28 ngày (moduleType
+    // 'study_penalty'): cho phép TRỪ exp/coins, flow thường chỉ cho cộng.
+    // Chống gian lận:
+    // - itemId do client gửi gắn ngày + UNIQUE(user,module,item) ⇒ mỗi khoản
+    //   phạt chỉ tính đúng 1 lần (gọi lặp trả alreadyPenalized, không trừ nữa).
+    // - Clamp mỗi khoản ≤ 60; coins/exp kẹp sàn 0 trong SQL (không bao giờ âm).
+    // - Không tiêu hạn mức thưởng ngày (phạt không phải thưởng).
+    if (cleanModule === 'study_penalty') {
+      const penExp = Math.min(60, Math.max(0, parseInt(body.expPenalty, 10) || 0));
+      const penCoins = Math.min(60, Math.max(0, parseInt(body.coinsPenalty, 10) || 0));
+      if (penExp === 0 && penCoins === 0) {
+        return NextResponse.json({ error: 'Khoản phạt phải lớn hơn 0.' }, { status: 400 });
+      }
+
+      const penRowId = `pen-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+      const insertedPen =
+        db
+          .prepare(`
+        INSERT INTO progress (id, user_id, module_type, item_id, score, status, completed_at)
+        VALUES (?, ?, ?, ?, 0, 'completed', CURRENT_TIMESTAMP)
+        ON CONFLICT(user_id, module_type, item_id) DO NOTHING
+      `)
+          .run(penRowId, userId, cleanModule, cleanItem).changes > 0;
+
+      if (!insertedPen) {
+        return NextResponse.json({
+          success: true,
+          alreadyPenalized: true,
+          penalized: false,
+          deducted: { exp: 0, coins: 0 },
+          message: 'Khoản phạt này đã được tính rồi.',
+        });
+      }
+
+      // Trừ TRONG SQL (đọc-nhìn-ghi một câu lệnh — cùng lý do với flow cộng ở
+      // dưới): kẹp sàn 0, level tính lại từ exp mới.
+      db.prepare(`
+        UPDATE users
+        SET exp = MAX(0, exp - ?),
+            level = CAST(MAX(0, exp - ?) / 200 AS INTEGER) + 1,
+            coins = MAX(0, coins - ?),
+            last_active_date = ?
+        WHERE id = ?
+      `).run(penExp, penExp, penCoins, today, userId);
+
+      const penalizedUser = db.prepare('SELECT id, username, display_name, avatar, streak, exp, level, coins, target_exam, created_at FROM users WHERE id = ?').get(userId);
+      syncDbToS3Now().catch(() => {});
+
+      return NextResponse.json({
+        success: true,
+        penalized: true,
+        deducted: { exp: penExp, coins: penCoins },
+        user: penalizedUser,
+      });
+    }
+
     // Upsert progress. Chỉ lần ĐẦU (tạo dòng mới) mới được cộng EXP/Coins.
     //
     // PHẢI dùng `DO NOTHING`, KHÔNG dùng `DO UPDATE`: với `DO UPDATE`, SQLite luôn

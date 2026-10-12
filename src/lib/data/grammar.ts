@@ -67,17 +67,17 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     summary: 'Phân biệt thói quen hằng ngày (Hiện tại đơn) và việc đang diễn ra/tạm thời (Hiện tại tiếp diễn) trong công việc.',
     icon: '⏳',
     legoExample: {
-      // Công thức phải khớp 1-1 với `blocks` (4 khối). Bản cũ tách
-      // [Adverb of Frequency] và [Present Simple V] thành 2 slot trong khi cả hai
-      // nằm chung 1 khối "usually code in Python," và để [Connector] lẻ một slot
-      // dù khối Time Signal đã gộp cả "but currently" ⇒ công thức dài hơn khối,
-      // gây rối khi soạn bài.
-      formulaPattern: '[Subject] + [Adverb of Frequency + Present Simple V] + [Connector / Time Signal] + [Present Continuous V-ing]',
+      // H15 (2026-10-12): tách thành 5 khối khớp 1-1 với công thức — mỗi vai
+      // ngữ pháp 1 khối riêng (trước đây gộp trạng từ + động từ vào 1 khối
+      // gây rối). Công thức này là MẪU CÂU ĐỐI CHIẾU 2 thì trong 1 câu,
+      // không phải 1 cấu trúc đơn lẻ.
+      formulaPattern: '[Subject] + [Adverb of Frequency] + [Present Simple V] + [Time Signal] + [Present Continuous V-ing]',
       blocks: [
         { label: 'Subject', word: 'I', color: 'indigo', explanation: 'Chủ thể', roleHint: 'Chủ ngữ câu' },
-        { label: 'Routine (V1)', word: 'usually code in Python,', color: 'emerald', explanation: 'Thói quen: Hiện tại đơn', roleHint: 'Động từ chỉ thói quen' },
-        { label: 'Time Signal', word: 'but currently', color: 'amber', explanation: 'Trạng từ chuyển đổi ngữ cảnh', roleHint: 'Dấu hiệu thì tiếp diễn' },
-        { label: 'In Progress (V-ing)', word: 'I am debugging a Java app.', color: 'rose', explanation: 'Hành động đang làm hiện tại', roleHint: 'Động từ to be + V-ing' },
+        { label: 'Frequency', word: 'usually', color: 'sky', explanation: 'Trạng từ chỉ tần suất → báo hiệu Hiện tại đơn', roleHint: 'always / usually / often / every day' },
+        { label: 'Routine (V1)', word: 'code in Python,', color: 'emerald', explanation: 'Thói quen: Hiện tại đơn (S + V nguyên mẫu)', roleHint: 'Động từ chỉ thói quen' },
+        { label: 'Time Signal', word: 'but currently', color: 'amber', explanation: 'Trạng từ chuyển đổi ngữ cảnh → báo hiệu Tiếp diễn', roleHint: 'but / right now / currently / at the moment' },
+        { label: 'In Progress (V-ing)', word: 'I am debugging a Java app.', color: 'rose', explanation: 'Hành động đang làm hiện tại (S + am/is/are + V-ing)', roleHint: 'Động từ to be + V-ing' },
       ],
       fullSentence: 'I usually code in Python, but currently I am debugging a Java app.',
       translation: 'Tôi thường lập trình bằng Python, nhưng hiện tại tôi đang gỡ lỗi một ứng dụng Java.',
@@ -93,6 +93,11 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
         '💡 Thần chú ngôi 3 số ít: He / She / It / Danh từ số ít (The server, The API, The user) -> Luôn thêm S hoặc ES vào động từ hiện tại đơn.',
         '💡 Trạng từ chỉ tần suất đứng trước động từ thường nhưng đứng sau động từ To Be: "He *always tests* code" nhưng "He *is always* on time".',
         '💡 Phàn nàn khó chịu với ALWAYS + V-ing: "He is always pushing to main without PR!" (Anh ta suốt ngày push thẳng lên main không thèm tạo PR).'
+      ],
+      usageTable: [
+        { category: 'Hiện tại đơn (Thói quen)', prepositions: 'always, usually, often, every day, every sprint', examples: 'I usually code in Python. / The API returns JSON.', note: 'S + V(s/es); ngôi 3 số ít thêm s/es.' },
+        { category: 'Hiện tại tiếp diễn (Đang diễn ra)', prepositions: 'now, right now, currently, at the moment, this week', examples: 'I am debugging a Java app. / We are migrating to Next.js.', note: 'S + am/is/are + V-ing.' },
+        { category: 'Cấm V-ing (Stative verbs)', prepositions: 'know, understand, need, want, belong, contain', examples: 'I understand the code. (SAI: I am understanding)', note: 'Động từ trạng thái không chia tiếp diễn.' }
       ]
     },
     tenseVariants: [

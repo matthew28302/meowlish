@@ -41,6 +41,7 @@ import { getStoredUser, AuthUser, setStoredUser } from '@/lib/auth';
 import { PETS_CATALOG, getPetTitle } from '@/lib/petData';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
 import { LEARNING_PATHS, LearningPath, PathNode } from '@/lib/learningPathsData';
+import StudyPlanSection from '@/components/StudyPlanSection';
 
 export default function HomePage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
@@ -535,6 +536,13 @@ export default function HomePage() {
             );
           })}
         </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* SECTION: KẾ HOẠCH HỌC 28 NGÀY (H17) — học theo ngày, có ôn/test/phạt */}
+      {/* ========================================================================= */}
+      <section className="space-y-6">
+        <StudyPlanSection key={activeTargetCode} pathId={activeTargetCode} />
       </section>
 
       {/* ========================================================================= */}
