@@ -65,10 +65,17 @@ Dùng cho phần nông trại 2.5D + PvP/đua thú (game loop, arrival callback,
 - **Lỗi mã xác thực khi copy đã sửa:** bản cũ tách 6 số vào 6 ô `<td>` ⇒ trình duyệt chèn **TAB** khi copy ("4⇥⇥8⇥⇥2…"). Nay gộp thành **một text node duy nhất** `482915` (giữ vẻ hộp bằng `letter-spacing`), copy ra đúng 6 số. Ô nhập OTP trong app vốn đã lọc `/\D/g` nên dán cũng an toàn.
 - **Chạy lại:** `node scripts/render-lottie-gifs.mjs`.
 
-⚠️ **Lưu ý triển khai:** email nhúng GIF bằng URL tuyệt đối `https://meowlish.io.vn/<file>` ⇒ **phải deploy (`git push`) thì email mới hiện bản mới**. Xem trước offline: `temp/email-preview/*.html` đã trỏ tới file local.
+✅ **Đã deploy production** (2026-10-12): 5 commit push lên `main` (`136a09c..e22ffa2`), Vercel build xong ~26 giây. Xác minh production phục vụ đúng bản mới:
+
+| file | trước deploy | sau deploy (production) | local |
+|---|---|---|---|
+| `Dance-cat.gif` | 313.013 B (150²) | **69.288 B (440²)** ✅ | 69.288 B |
+| `cat-forgot.gif` | 252.916 B (150²) | **110.841 B (440²)** ✅ | 110.841 B |
+
+Email nhúng GIF bằng URL tuyệt đối `https://meowlish.io.vn/<file>` nên **mọi email gửi từ lúc này đã hiện bản mới**. Xem trước offline: `temp/email-preview/*.html`.
 
 **Đã thử & loại:**
-- Link lottie.host bạn gửi (`/embed/<uuid>/<token>.lottie`) → **trả về HTML player, KHÔNG phải file animation**; bản đúng phải bỏ `/embed` mới tải được file. Tải về và đối chiếu SHA256: **trùng khớp tuyệt đối** với 2 file `.lottie` đã có trong `temp` ⇒ lottie.host KHÔNG cho nguồn chất lượng cao hơn, chỉ là bản sao.
+- Link lottie.host bạn gửi (`/embed/<uuid>/<token>.lottie`) → **trả về HTML player, KHÔNG phải file animation**; bản đúng phải bỏ `/embed` mới tải được file. Tải về và đối chiếu SHA256: **trùng khớp tuyệt đối** với 2 file `.lottie` đã có ⇒ lottie.host KHÔNG cho nguồn chất lượng cao hơn, chỉ là bản sao. 2 file nguồn (19KB) đã commit ở `scripts/assets/lottie/` nên pipeline tái lập được không cần tải lại; `temp/` đã thêm vào `.gitignore`.
 - WebP/AVIF (Chromium không encode animation WebP: `MediaRecorder.isTypeSupported('image/webp') = false`; ffmpeg của Playwright chỉ có PNG+VP8), WebM (chỉ vài client hỗ trợ).
 - `applyPalette` của gifenc: đo thực tế cho file **nặng gấp 10×** (68KB → 748KB) do sinh chỉ số rơi rác ⇒ đã thay bằng bảng tra nearest-color tự build (khoảng cách perceptual 0.299/0.587/0.114).
 
