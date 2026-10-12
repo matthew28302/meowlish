@@ -9,7 +9,6 @@ import {
   Plus, Users, X, Clock, Play, Flame
 } from 'lucide-react';
 import { drawChibiPet } from './drawChibiPet';
-import { drawArt2dPet, isArt2dSpecies, preloadArt2dSprite } from './drawArt2dPet';
 
 export interface PetRacingCanvasProps {
   playerSpecies: string;
@@ -89,10 +88,10 @@ export default function PetRacingCanvas({
   const rankCountRef = useRef<number>(1);
   // Interval đếm ngược 3-2-1 tạo trong handler startRaceWithOpponents
   const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // H16: nhịp giả lập "bot trả lời đúng" — mỗi 2.5–4.5s cho 1 bot chạy 1 đoạn.
+  const botDashTimerRef = useRef<number>(180);
 
-  // Cache sprite WebP "tranh 2D" (key = species art2d_*). Ảnh chỉ vào map sau khi
-  // load xong — trước đó vòng vẽ vẫn dùng chibi vector như cũ.
-  const art2dSpritesRef = useRef<Map<string, HTMLImageElement>>(new Map());
+  // (H14) Cache sprite art2d + effect nạp sẵn đã xoá cùng "Nhân Vật 2D".
 
   // Ref đồng bộ số dư mới nhất. Handler bất đồng bộ (await fetch, setTimeout)
   // không được đọc `userCoins` của lần render đã đóng lại — nếu không số xu
@@ -115,23 +114,7 @@ export default function PetRacingCanvas({
     onUpdateCoinsDelta(delta);
   };
 
-  // Nạp sẵn mọi sprite art2d trong đội hình: vòng rAF cần ảnh ngay khi xuất phát,
-  // nạp trong lúc vẽ sẽ khiến pet nhảy chibi→standee giữa đường đua rất khó chịu.
-  useEffect(() => {
-    const cache = art2dSpritesRef.current;
-    // Roster thật nằm trong racersRef (được lấp ngay trước khi raceState chuyển
-    // sang 'countdown' nên effect này chạy sau đó là đủ); trước cuộc đua chỉ có
-    // pet của người chơi — nạp sớm cho sẵn sàng.
-    const roster = racersRef.current.length > 0
-      ? racersRef.current.map((r) => r.species)
-      : [playerSpecies];
-    roster.filter((sp) => isArt2dSpecies(sp)).forEach((sp) => {
-      if (cache.has(sp)) return;
-      preloadArt2dSprite(sp).then((img) => {
-        if (img) cache.set(sp, img);
-      });
-    });
-  }, [raceState, playerSpecies]);
+  // (H14) Effect nạp sẵn sprite art2d đã xoá — chỉ còn vector chibi.
 
   // Filter racing rooms
   const racingRooms = activeRooms.filter((r) => r.game_type === 'racing' && r.status === 'waiting');
@@ -455,10 +438,11 @@ export default function PetRacingCanvas({
 
     if (isCorrect) {
       sound.playCelebration();
-      // BOOST: Thú cưng phóng vọt về phía trước 1 đoạn xa ("đi thêm 1 khúc")!
+      // H16: trả lời ĐÚNG → pet chạy 1 đoạn (~200px) rồi ĐỨNG YÊN chờ câu tiếp.
+      // (Bỏ cú nhảy teleport +200 tức thì: giờ boostTimer làm "đà chạy", game
+      // loop cho chạy 4.5px/khung hình trong 45 khung hình ≈ 200px.)
       if (playerRacer && !playerRacer.isFinished) {
-        playerRacer.x += 200; // Big distance leap
-        playerRacer.boostTimer = 45; // Nitro flame effect
+        playerRacer.boostTimer = 45; // đà chạy + hiệu ứng lửa nitro
       }
     } else {
       sound.playError();
@@ -492,6 +476,18 @@ export default function PetRacingCanvas({
       const frame = animFrameRef.current;
 
       if (raceState === 'racing') {
+        // H16: pet ĐỨNG YÊN — chỉ chạy khi có đà (trả lời đúng mới có đà).
+        // Bot giả lập "trả lời đúng" mỗi 2.5–4.5s: 1 bot ngẫu nhiên chạy 1 đoạn.
+        botDashTimerRef.current--;
+        if (botDashTimerRef.current <= 0) {
+          botDashTimerRef.current = 150 + Math.floor(Math.random() * 120);
+          const candidates = racersRef.current.filter((r) => !r.isPlayer && !r.isFinished);
+          if (candidates.length > 0) {
+            const lucky = candidates[Math.floor(Math.random() * candidates.length)];
+            lucky.boostTimer = 45;
+          }
+        }
+
         // Update racers
         racersRef.current.forEach((racer) => {
           if (racer.isFinished) return;
@@ -499,14 +495,15 @@ export default function PetRacingCanvas({
           if (racer.boostTimer > 0) racer.boostTimer--;
 
           if (racer.isPlayer) {
-            // Player base movement (surges come from answering questions!)
-            if (!racer.isStunned) {
-              racer.x += racer.boostTimer > 0 ? 3.5 : 0.8;
+            // Player: đà chạy từ câu trả lời đúng — hết đà thì đứng yên chờ.
+            if (!racer.isStunned && racer.boostTimer > 0) {
+              racer.x += 4.5;
             }
           } else {
-            // Competitor movement: periodic surges
-            const compSurge = Math.sin(frame * 0.05 + racer.lane) > 0.85 ? 2.4 : 0.9;
-            racer.x += racer.speed * compSurge;
+            // Bot: đứng yên, chỉ chạy khi tới lượt "trả lời đúng" giả lập.
+            if (!racer.isStunned && racer.boostTimer > 0) {
+              racer.x += 3.2 * racer.speed;
+            }
           }
 
           // Check Finish Line
@@ -681,37 +678,18 @@ export default function PetRacingCanvas({
             ctx.restore();
           }
 
-          // Pet sprite: loài art2d_* && đã có ảnh trong cache → vẽ standee
-          // "tranh 2D"; không thì giữ nguyên vector chibi như cũ.
-          const art2dImg = isArt2dSpecies(racer.species)
-            ? art2dSpritesRef.current.get(racer.species)
-            : undefined;
-          if (art2dImg) {
-            drawArt2dPet({
-              ctx,
-              x: screenX,
-              y: screenY,
-              scale: 0.95,
-              species: racer.species,
-              state: racer.isStunned ? 'stunned' : racer.boostTimer > 0 ? 'attack' : 'walk',
-              frame,
-              direction: 1,
-              img: art2dImg,
-              imgAspect: art2dImg.naturalWidth / art2dImg.naturalHeight || undefined,
-            });
-          } else {
-            // Chibi Vector Pet Sprite
-            drawChibiPet({
-              ctx,
-              x: screenX,
-              y: screenY,
-              scale: 0.95,
-              species: racer.species,
-              state: racer.isStunned ? 'stunned' : racer.boostTimer > 0 ? 'attack' : 'walk',
-              frame,
-              direction: 1,
-            });
-          }
+          // H14: chỉ vẽ vector chibi (đã bỏ standee "tranh 2D").
+          // Chibi Vector Pet Sprite
+          drawChibiPet({
+            ctx,
+            x: screenX,
+            y: screenY,
+            scale: 0.95,
+            species: racer.species,
+            state: racer.isStunned ? 'stunned' : racer.boostTimer > 0 ? 'attack' : 'idle',
+            frame,
+            direction: 1,
+          });
 
           // Stunned indicator
           if (racer.isStunned) {
