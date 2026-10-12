@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db, sanitizeText, claimTimedReward, rewardCooldownRemaining, REWARD_CATALOG } from '@/lib/db';
 import { PETS_CATALOG, SHOP_ITEMS } from '@/lib/petData';
 import { checkCinnamorollAccess } from '@/lib/cinnamorollAccess';
-import { CROPS_CATALOG, LIVESTOCK_CATALOG } from '@/lib/petFarmData';
+import { CROPS_CATALOG, LIVESTOCK_CATALOG, FARM_ANIMAL_SHOP, DOG_BREEDS, CAT_BREEDS, FARM_INCUBATOR } from '@/lib/petFarmData';
 import { WEDDING_RINGS, MOCK_COMMUNITY_USERS } from '@/lib/petSocialData';
 import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
@@ -94,12 +94,13 @@ function ensurePet(userId: string) {
 
 // ============================================================
 // SERVER-SIDE LIVESTOCK PRODUCTION CYCLES (CHU KỲ CHĂN NUÔI)
-// Chu kỳ mặc định bắt buộc: GÀ = 3 GIỜ, BÒ = 24 GIỜ.
+// Chu kỳ mặc định bắt buộc: GÀ = 3 GIỜ, BÒ = 24 GIỜ, CỪU = 12 GIỜ.
 // Chỉ được rút ngắn khi set env FARM_CYCLE_TEST (đơn vị: giây) — dùng cho test.
 // ============================================================
-const LIVESTOCK_CYCLE_SECONDS: Record<'chicken' | 'cow', number> = {
+const LIVESTOCK_CYCLE_SECONDS: Record<string, number> = {
   chicken: 3 * 60 * 60, // 3 giờ = 10800 giây
   cow: 24 * 60 * 60,    // 24 giờ = 86400 giây
+  sheep: 12 * 60 * 60,  // 12 giờ = 43200 giây
 };
 
 /** Định dạng đồng hồ đếm ngược dạng 3:00:00 / 12:45 */
@@ -112,7 +113,7 @@ function formatCountdown(totalSeconds: number): string {
   return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${minutes}:${pad(seconds)}`;
 }
 
-function resolveCycleSeconds(animalType: 'chicken' | 'cow'): number {
+function resolveCycleSeconds(animalType: string): number {
   const raw = process.env.FARM_CYCLE_TEST;
   if (raw) {
     const seconds = Number(raw);
@@ -120,7 +121,12 @@ function resolveCycleSeconds(animalType: 'chicken' | 'cow'): number {
       return Math.max(1, Math.floor(seconds));
     }
   }
-  return LIVESTOCK_CYCLE_SECONDS[animalType];
+  return LIVESTOCK_CYCLE_SECONDS[animalType] ?? 12 * 60 * 60;
+}
+
+/** Chuẩn hoá animalType từ client: chỉ nhận key có trong LIVESTOCK_CATALOG. */
+function resolveLivestockType(raw: unknown): string {
+  return typeof raw === 'string' && LIVESTOCK_CATALOG[raw] ? raw : 'chicken';
 }
 
 type LivestockStatus = 'idle' | 'producing' | 'ready';
@@ -158,7 +164,7 @@ function ensureLivestockProductionColumns() {
   }
 }
 
-function readLivestockRow(userId: string, animalType: 'chicken' | 'cow') {
+function readLivestockRow(userId: string, animalType: string) {
   return db.prepare('SELECT * FROM pet_farm_livestock WHERE user_id = ? AND animal_type = ?').get(userId, animalType) as any;
 }
 
@@ -185,7 +191,7 @@ function livestockStatusOf(row: any, now: number = Date.now()): LivestockStatus 
 /** Trang trí livestock row thêm status / countdown để client vẽ thanh tiến trình. */
 function decorateLivestock(rows: any[], now: number = Date.now()) {
   return (rows || []).map((row) => {
-    const type: 'chicken' | 'cow' = row.animal_type === 'cow' ? 'cow' : 'chicken';
+    const type: string = LIVESTOCK_CATALOG[row.animal_type] ? row.animal_type : 'chicken';
     const status = livestockStatusOf(row, now);
     const end = livestockEndAt(row);
     const start = livestockStartAt(row);
@@ -215,6 +221,69 @@ function allLivestockFor(userId: string, now: number = Date.now()) {
   );
 }
 
+// ============================================================
+// H18: CỬA HÀNG NÔNG TRẠI + LÒ ẤP TRỨNG
+// ============================================================
+
+/** Loài vật nuôi từ kind shop ('dog:shiba' → 'dog'). */
+function farmSpeciesOf(kind: string): string {
+  return kind.includes(':') ? kind.split(':')[0] : kind;
+}
+
+/** Entry shop cho kind (kể cả giống chó/mèo) — null nếu kind không hợp lệ. */
+function farmShopEntryOf(kind: string): { name: string; emoji: string; buyPrice: number; sellPrice: number; species: string } | null {
+  if (FARM_ANIMAL_SHOP[kind]) {
+    const e = FARM_ANIMAL_SHOP[kind];
+    return { name: e.name, emoji: e.emoji, buyPrice: e.buyPrice, sellPrice: e.sellPrice, species: kind };
+  }
+  if (kind.startsWith('dog:')) {
+    const breed = DOG_BREEDS.find((b) => b.id === kind.slice(4));
+    if (!breed) return null;
+    return { name: `Chó ${breed.name}`, emoji: breed.emoji, buyPrice: FARM_ANIMAL_SHOP.dog.buyPrice, sellPrice: FARM_ANIMAL_SHOP.dog.sellPrice, species: 'dog' };
+  }
+  if (kind.startsWith('cat:')) {
+    const breed = CAT_BREEDS.find((b) => b.id === kind.slice(4));
+    if (!breed) return null;
+    return { name: `Mèo ${breed.name}`, emoji: breed.emoji, buyPrice: FARM_ANIMAL_SHOP.cat.buyPrice, sellPrice: FARM_ANIMAL_SHOP.cat.sellPrice, species: 'cat' };
+  }
+  return null;
+}
+
+function allFarmStockFor(userId: string) {
+  try {
+    return db.prepare('SELECT kind, count FROM farm_animals WHERE user_id = ?').all(userId) as { kind: string; count: number }[];
+  } catch {
+    // Bảng chưa được tạo (user chưa từng gọi ensure) — client coi như rỗng.
+    return [];
+  }
+}
+
+function farmStockCount(userId: string, species: string): number {
+  try {
+    const rows = db.prepare('SELECT kind, count FROM farm_animals WHERE user_id = ?').all(userId) as { kind: string; count: number }[];
+    return rows.filter((r) => farmSpeciesOf(r.kind) === species).reduce((s, r) => s + (r.count || 0), 0);
+  } catch {
+    return 0;
+  }
+}
+
+function readIncubatorFor(userId: string, now: number = Date.now()) {
+  try {
+    const row = db.prepare('SELECT * FROM farm_incubator WHERE user_id = ? LIMIT 1').get(userId) as any;
+    if (!row) return null;
+    const readyAt = Number(row.ready_at);
+    const ready = Number.isFinite(readyAt) && now >= readyAt;
+    return {
+      ...row,
+      status: ready ? 'ready' : 'incubating',
+      remaining_seconds: ready ? 0 : Math.max(0, Math.ceil((readyAt - now) / 1000)),
+      server_time: now,
+    };
+  } catch {
+    return null;
+  }
+}
+
 function ensureFarmAndLivestock(userId: string) {
   ensureLivestockProductionColumns();
   const existingPlots = db.prepare('SELECT COUNT(*) as count FROM pet_farm_plots WHERE user_id = ?').get(userId) as any;
@@ -228,17 +297,39 @@ function ensureFarmAndLivestock(userId: string) {
     }
   }
 
-  const existingLivestock = db.prepare('SELECT COUNT(*) as count FROM pet_farm_livestock WHERE user_id = ?').get(userId) as any;
-  if (!existingLivestock || existingLivestock.count === 0) {
-    db.prepare(`
-      INSERT OR IGNORE INTO pet_farm_livestock (id, user_id, animal_type, produced_count)
-      VALUES (?, ?, 'chicken', 0)
-    `).run(`live-${userId}-chicken`, userId);
+  // H18: seed từng loại chu kỳ riêng (INSERT OR IGNORE nên an toàn khi gọi
+  // lặp — user cũ đã có chicken/cow sẽ được thêm sheep mà không mất chu kỳ).
+  const seedLivestock = db.prepare(`
+    INSERT OR IGNORE INTO pet_farm_livestock (id, user_id, animal_type, produced_count)
+    VALUES (?, ?, ?, 0)
+  `);
+  for (const t of Object.keys(LIVESTOCK_CATALOG)) {
+    seedLivestock.run(`live-${userId}-${t}`, userId, t);
+  }
 
-    db.prepare(`
-      INSERT OR IGNORE INTO pet_farm_livestock (id, user_id, animal_type, produced_count)
-      VALUES (?, ?, 'cow', 0)
-    `).run(`live-${userId}-cow`, userId);
+  // H18: bảng sở hữu vật nuôi + lò ấp trứng (shop mua/bán, ấp trứng nở gà mái).
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS farm_animals (
+      user_id TEXT NOT NULL,
+      kind TEXT NOT NULL,
+      count INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (user_id, kind)
+    )
+  `).run();
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS farm_incubator (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL UNIQUE,
+      started_at TEXT NOT NULL,
+      ready_at TEXT NOT NULL
+    )
+  `).run();
+  const seedAnimal = db.prepare(`
+    INSERT OR IGNORE INTO farm_animals (user_id, kind, count)
+    VALUES (?, ?, ?)
+  `);
+  for (const [kind, entry] of Object.entries(FARM_ANIMAL_SHOP)) {
+    seedAnimal.run(userId, kind, entry.defaultCount);
   }
 }
 
@@ -457,6 +548,9 @@ export async function GET(request: Request) {
       gardenDecor,
       farmPlots,
       livestock,
+      // H18: tồn kho vật nuôi + lò ấp trứng cho shop nông trại.
+      farmStock: allFarmStockFor(userId),
+      incubator: readIncubatorFor(userId),
       serverNow: Date.now(),
       acceptedFriends,
       incomingFriendRequests,
@@ -1059,7 +1153,7 @@ export async function POST(request: Request) {
 
     // 11. ACTION: FEED LIVESTOCK / CHĂN NUÔI GÀ & BÒ (SERVER TIMER 3H / 24H)
     if (action === 'feed_livestock') {
-      const animalType: 'chicken' | 'cow' = body.animalType === 'cow' ? 'cow' : 'chicken';
+      const animalType: string = resolveLivestockType(body.animalType);
       const animal = LIVESTOCK_CATALOG[animalType];
 
       ensureFarmAndLivestock(userId);
@@ -1137,7 +1231,7 @@ export async function POST(request: Request) {
 
     // 12. ACTION: HARVEST LIVESTOCK / THU HOẠCH TRỨNG & SỮA
     if (action === 'harvest_livestock') {
-      const animalType: 'chicken' | 'cow' = body.animalType === 'cow' ? 'cow' : 'chicken';
+      const animalType: string = resolveLivestockType(body.animalType);
       const animal = LIVESTOCK_CATALOG[animalType];
 
       ensureFarmAndLivestock(userId);
@@ -1206,7 +1300,7 @@ export async function POST(request: Request) {
 
       for (const row of rows) {
         if (livestockStatusOf(row, now) !== 'ready') continue;
-        const animal = LIVESTOCK_CATALOG[row.animal_type === 'cow' ? 'cow' : 'chicken'];
+        const animal = LIVESTOCK_CATALOG[LIVESTOCK_CATALOG[row.animal_type] ? row.animal_type : 'chicken'];
         // M6: guard "còn đang sẵn sàng" giống harvest_all_crops — chỉ request nào
         // xoá được chu kỳ mới được tính thưởng (chống 2 instance cùng +coins cho
         // một mẻ; xong chu kỳ thì các trường ready_at/producing_until đã null).
@@ -1239,6 +1333,204 @@ export async function POST(request: Request) {
         harvested: count,
         livestock: allLivestockFor(userId),
         userCoins: freshUser?.coins || 0,
+        pet: freshPet,
+      });
+    }
+
+    // 12c. ACTION: FARM SHOP BUY / MUA VẬT NUÔI (H18)
+    // kind: 'hen' | 'cow' | 'sheep' | 'fish' | 'dog:<breed>' | 'cat:<breed>'.
+    if (action === 'farm_shop_buy') {
+      const kind = typeof body.kind === 'string' ? body.kind : '';
+      const entry = farmShopEntryOf(kind);
+      if (!entry) {
+        return NextResponse.json({ error: 'Vật nuôi không hợp lệ!' }, { status: 400 });
+      }
+      ensureFarmAndLivestock(userId);
+
+      const buyTx = db.transaction((): { ok: boolean; error?: string } => {
+        const owned = farmStockCount(userId, entry.species);
+        const cap = FARM_ANIMAL_SHOP[entry.species]?.maxOwned ?? 3;
+        if (owned >= cap) {
+          return { ok: false, error: `${entry.name} đã đạt tối đa ${cap} con! Hãy bán bớt trước khi mua thêm.` };
+        }
+        const coinUpdate = db.prepare('UPDATE users SET coins = coins - ? WHERE id = ? AND coins >= ?')
+          .run(entry.buyPrice, userId, entry.buyPrice);
+        if (coinUpdate.changes === 0) {
+          return { ok: false, error: `Không đủ Coins để mua ${entry.name} (${entry.buyPrice} xu)!` };
+        }
+        db.prepare(`
+          INSERT INTO farm_animals (user_id, kind, count)
+          VALUES (?, ?, 1)
+          ON CONFLICT(user_id, kind) DO UPDATE SET count = farm_animals.count + 1
+        `).run(userId, kind);
+        const fresh = db.prepare('SELECT coins FROM users WHERE id = ?').get(userId) as any;
+        db.prepare(
+          'INSERT INTO coin_transactions (id, user_id, amount, balance_after, reason) VALUES (?, ?, ?, ?, ?)'
+        ).run(
+          `tx-${userId}-${Date.now()}-farmbuy-${uniqueSuffix()}`,
+          userId,
+          -entry.buyPrice,
+          fresh?.coins || 0,
+          `Mua ${entry.name} ở cửa hàng nông trại`
+        );
+        return { ok: true };
+      });
+      const result = buyTx();
+      if (!result.ok) {
+        return NextResponse.json({ error: result.error || 'Không thể mua vật nuôi!' }, { status: 400 });
+      }
+      const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
+      void syncDbToS3Now();
+      return NextResponse.json({
+        success: true,
+        message: `Đã mua ${entry.emoji} ${entry.name}! Chào mừng thành viên mới của nông trại!`,
+        farmStock: allFarmStockFor(userId),
+        userCoins: freshUser?.coins || 0,
+      });
+    }
+
+    // 12d. ACTION: FARM SHOP SELL / BÁN VẬT NUÔI (H18)
+    // Giữ tối thiểu 1 con với loài sản xuất (gà/bò/cừu) để chu kỳ không mồ côi.
+    if (action === 'farm_shop_sell') {
+      const kind = typeof body.kind === 'string' ? body.kind : '';
+      const entry = farmShopEntryOf(kind);
+      if (!entry) {
+        return NextResponse.json({ error: 'Vật nuôi không hợp lệ!' }, { status: 400 });
+      }
+      ensureFarmAndLivestock(userId);
+      const isProducer = entry.species === 'hen' || entry.species === 'cow' || entry.species === 'sheep';
+      const minKeep = isProducer ? 1 : 0;
+
+      const sellTx = db.transaction((): { ok: boolean; error?: string } => {
+        const dec = db.prepare(
+          'UPDATE farm_animals SET count = count - 1 WHERE user_id = ? AND kind = ? AND count > ?'
+        ).run(userId, kind, minKeep);
+        if (dec.changes === 0) {
+          const cur = db.prepare('SELECT count FROM farm_animals WHERE user_id = ? AND kind = ?').get(userId, kind) as any;
+          if (!cur || (cur.count || 0) <= minKeep) {
+            return {
+              ok: false,
+              error: isProducer
+                ? `Phải giữ lại ít nhất 1 ${entry.name} để chăm sóc chu kỳ sản xuất!`
+                : `Bạn không còn ${entry.name} nào để bán!`,
+            };
+          }
+          return { ok: false, error: 'Không thể bán lúc này, vui lòng thử lại!' };
+        }
+        db.prepare('UPDATE users SET coins = coins + ? WHERE id = ?').run(entry.sellPrice, userId);
+        const fresh = db.prepare('SELECT coins FROM users WHERE id = ?').get(userId) as any;
+        db.prepare(
+          'INSERT INTO coin_transactions (id, user_id, amount, balance_after, reason) VALUES (?, ?, ?, ?, ?)'
+        ).run(
+          `tx-${userId}-${Date.now()}-farmsell-${uniqueSuffix()}`,
+          userId,
+          entry.sellPrice,
+          fresh?.coins || 0,
+          `Bán ${entry.name} ở cửa hàng nông trại`
+        );
+        return { ok: true };
+      });
+      const result = sellTx();
+      if (!result.ok) {
+        return NextResponse.json({ error: result.error || 'Không thể bán vật nuôi!' }, { status: 400 });
+      }
+      const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
+      void syncDbToS3Now();
+      return NextResponse.json({
+        success: true,
+        message: `Đã bán ${entry.emoji} ${entry.name}! Nhận +${entry.sellPrice} Coins!`,
+        farmStock: allFarmStockFor(userId),
+        userCoins: freshUser?.coins || 0,
+      });
+    }
+
+    // 12e. ACTION: FARM INCUBATE START / BẮT ĐẦU ẤP TRỨNG (H18)
+    // Tốn xu, chờ 8 giờ → nở 1 gà mái (thu ở action dưới).
+    if (action === 'farm_incubate_start') {
+      ensureFarmAndLivestock(userId);
+      const now = Date.now();
+      const existing = readIncubatorFor(userId, now);
+      if (existing) {
+        return NextResponse.json({
+          error: existing.status === 'ready'
+            ? 'Trứng đã nở rồi! Hãy đón bé gà mái mới trước khi ấp mẻ khác.'
+            : `Lò ấp đang ấp — còn ${formatCountdown(existing.remaining_seconds)} nữa mới nở!`,
+          incubator: existing,
+          blocked: true,
+        }, { status: 409 });
+      }
+      const coinUpdate = db.prepare('UPDATE users SET coins = coins - ? WHERE id = ? AND coins >= ?')
+        .run(FARM_INCUBATOR.costCoins, userId, FARM_INCUBATOR.costCoins);
+      if (coinUpdate.changes === 0) {
+        return NextResponse.json({ error: `Không đủ Coins để ấp trứng (${FARM_INCUBATOR.costCoins} xu)!` }, { status: 400 });
+      }
+      const readyAt = String(now + FARM_INCUBATOR.durationSeconds * 1000);
+      try {
+        db.prepare('INSERT INTO farm_incubator (id, user_id, started_at, ready_at) VALUES (?, ?, ?, ?)')
+          .run(`incu-${userId}-${now}`, userId, String(now), readyAt);
+      } catch {
+        return NextResponse.json({ error: 'Lò ấp đang bận, vui lòng thử lại!' }, { status: 409 });
+      }
+      const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
+      db.prepare(
+        'INSERT INTO coin_transactions (id, user_id, amount, balance_after, reason) VALUES (?, ?, ?, ?, ?)'
+      ).run(
+        `tx-${userId}-${now}-incu-${uniqueSuffix()}`,
+        userId,
+        -FARM_INCUBATOR.costCoins,
+        freshUser?.coins || 0,
+        'Ấp trứng nở gà mái ở nông trại'
+      );
+      void syncDbToS3Now();
+      return NextResponse.json({
+        success: true,
+        message: `Đã cho trứng vào lò ấp! Bé gà mái sẽ nở sau ${formatCountdown(FARM_INCUBATOR.durationSeconds)}.`,
+        incubator: readIncubatorFor(userId, now),
+        userCoins: freshUser?.coins || 0,
+      });
+    }
+
+    // 12f. ACTION: FARM INCUBATE COLLECT / ĐÓN GÀ MÁI MỚI NỞ (H18)
+    if (action === 'farm_incubate_collect') {
+      ensureFarmAndLivestock(userId);
+      const now = Date.now();
+      const existing = readIncubatorFor(userId, now);
+      if (!existing) {
+        return NextResponse.json({ error: 'Lò ấp đang trống — hãy cho trứng vào ấp trước!' }, { status: 400 });
+      }
+      if (existing.status !== 'ready') {
+        return NextResponse.json({
+          error: `Trứng chưa nở — còn ${formatCountdown(existing.remaining_seconds)} nữa!`,
+          incubator: existing,
+          blocked: true,
+        }, { status: 409 });
+      }
+      const henCount = farmStockCount(userId, 'hen');
+      const henCap = FARM_ANIMAL_SHOP.hen.maxOwned;
+      if (henCount >= henCap) {
+        return NextResponse.json({
+          error: `Chuồng gà đã đầy (${henCap}/${henCap})! Hãy bán bớt gà mái rồi đón bé mới.`,
+          incubator: existing,
+          blocked: true,
+        }, { status: 409 });
+      }
+      const collectTx = db.transaction(() => {
+        db.prepare('DELETE FROM farm_incubator WHERE user_id = ?').run(userId);
+        db.prepare(`
+          INSERT INTO farm_animals (user_id, kind, count)
+          VALUES (?, 'hen', 1)
+          ON CONFLICT(user_id, kind) DO UPDATE SET count = farm_animals.count + 1
+        `).run(userId);
+        db.prepare('UPDATE user_pets SET exp = exp + ? WHERE user_id = ?').run(FARM_INCUBATOR.rewardExp, userId);
+      });
+      collectTx();
+      const freshPet = ensurePet(userId);
+      void syncDbToS3Now();
+      return NextResponse.json({
+        success: true,
+        message: `Chúc mừng! Bé gà mái mới đã nở! Nhận +${FARM_INCUBATOR.rewardExp} EXP cho linh vật!`,
+        farmStock: allFarmStockFor(userId),
+        incubator: null,
         pet: freshPet,
       });
     }

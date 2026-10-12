@@ -80,7 +80,7 @@ export const CROPS_CATALOG: Record<string, CropInfo> = {
 };
 
 export interface LivestockInfo {
-  type: 'chicken' | 'cow';
+  type: string;
   name: string;
   emoji: string;
   feedPrice: number;
@@ -120,6 +120,19 @@ export const LIVESTOCK_CATALOG: Record<string, LivestockInfo> = {
     rewardExp: 35,
     description: 'Bò sữa hiền lành gặm cỏ non xanh mướt cho dòng sữa ngọt béo bổ dưỡng!',
   },
+  sheep: {
+    type: 'sheep',
+    name: 'Đàn Cừu Bông Mây Trắng',
+    emoji: '🐑',
+    feedPrice: 25,
+    feedEmoji: '🌿',
+    produceName: 'Cuộn Len Mềm Mại',
+    produceEmoji: '🧶',
+    cycleSeconds: 40,
+    rewardCoins: 80,
+    rewardExp: 30,
+    description: 'Cừu bông trắng muốt gặm cỏ đồng cỏ xanh, cho những cuộn len ấm áp mỗi ngày!',
+  },
 };
 
 export interface FarmPlotState {
@@ -132,9 +145,133 @@ export interface FarmPlotState {
 }
 
 export interface LivestockState {
-  animalType: 'chicken' | 'cow';
+  animalType: string;
   isFed: boolean;
   fedAt: number | null;
   readyAt: number | null;
   producedCount: number;
 }
+
+// ============================================================
+// CỬA HÀNG NÔNG TRẠI (H18 — 2026-10-12): mua/bán vật nuôi, ấp trứng.
+// ============================================================
+
+/** Chu kỳ sản xuất MẶC ĐỊNH của server (giây) — client chỉ dùng để fallback. */
+export const FARM_CYCLE_FALLBACK_SECONDS: Record<string, number> = {
+  chicken: 3 * 60 * 60, // 3 giờ
+  cow: 24 * 60 * 60, // 24 giờ
+  sheep: 12 * 60 * 60, // 12 giờ
+};
+
+export interface FarmAnimalShopEntry {
+  kind: string;
+  name: string;
+  emoji: string;
+  buyPrice: number;
+  sellPrice: number;
+  maxOwned: number;
+  defaultCount: number;
+  /** false = chỉ nuôi cho đẹp (chó/mèo/cá), không có chu kỳ sản xuất. */
+  isProducer: boolean;
+  description: string;
+}
+
+export const FARM_ANIMAL_SHOP: Record<string, FarmAnimalShopEntry> = {
+  hen: {
+    kind: 'hen',
+    name: 'Gà Mái Đẻ Trứng',
+    emoji: '🐔',
+    buyPrice: 150,
+    sellPrice: 80,
+    maxOwned: 6,
+    defaultCount: 3,
+    isProducer: true,
+    description: 'Chỉ gà MÁI mới đẻ trứng! Cho ăn thóc, thu trứng vàng mỗi 3 giờ.',
+  },
+  cow: {
+    kind: 'cow',
+    name: 'Bò Sữa',
+    emoji: '🐮',
+    buyPrice: 400,
+    sellPrice: 220,
+    maxOwned: 4,
+    defaultCount: 2,
+    isProducer: true,
+    description: 'Cho ăn cỏ, vắt sữa tươi mỗi 24 giờ. Càng nhiều bò càng vui!',
+  },
+  sheep: {
+    kind: 'sheep',
+    name: 'Cừu Bông',
+    emoji: '🐑',
+    buyPrice: 300,
+    sellPrice: 160,
+    maxOwned: 4,
+    defaultCount: 1,
+    isProducer: true,
+    description: 'Cho ăn cỏ, xén len mềm mỗi 12 giờ trên đồng cỏ xanh.',
+  },
+  fish: {
+    kind: 'fish',
+    name: 'Cá Chép Hồ Sen',
+    emoji: '🐟',
+    buyPrice: 60,
+    sellPrice: 30,
+    maxOwned: 8,
+    defaultCount: 2,
+    isProducer: false,
+    description: 'Thả xuống hồ sen cho đẹp, bơi lội tung tăng. Bán lại khi cần xu.',
+  },
+  dog: {
+    kind: 'dog',
+    name: 'Chó Cảnh',
+    emoji: '🐶',
+    buyPrice: 500,
+    sellPrice: 250,
+    maxOwned: 3,
+    defaultCount: 0,
+    isProducer: false,
+    description: 'Nuôi cho đẹp, canh giữ nông trại. Có nhiều giống để chọn!',
+  },
+  cat: {
+    kind: 'cat',
+    name: 'Mèo Cảnh',
+    emoji: '🐱',
+    buyPrice: 500,
+    sellPrice: 250,
+    maxOwned: 3,
+    defaultCount: 0,
+    isProducer: false,
+    description: 'Nuôi cho đẹp, nằm sưởi nắng bên chuồng mèo. Có nhiều giống để chọn!',
+  },
+};
+
+export interface FarmBreed {
+  id: string;
+  name: string;
+  emoji: string;
+  /** Màu lông chính / phụ để vẽ sprite. */
+  coat: string;
+  coatDark: string;
+  extra?: string;
+}
+
+export const DOG_BREEDS: FarmBreed[] = [
+  { id: 'shiba', name: 'Shiba Inu', emoji: '🐕', coat: '#e8a34d', coatDark: '#b8742a', extra: 'fox' },
+  { id: 'corgi', name: 'Corgi', emoji: '🦊', coat: '#f0b35e', coatDark: '#c07f2e', extra: 'short' },
+  { id: 'poodle', name: 'Poodle', emoji: '🐩', coat: '#f5f0e8', coatDark: '#cfc4b4', extra: 'curly' },
+  { id: 'husky', name: 'Husky', emoji: '🐺', coat: '#8fa3b8', coatDark: '#5b6b7d', extra: 'mask' },
+];
+
+export const CAT_BREEDS: FarmBreed[] = [
+  { id: 'muop', name: 'Mèo Mướp', emoji: '🐈', coat: '#d9a066', coatDark: '#9c6b3d', extra: 'stripes' },
+  { id: 'bengal', name: 'Mèo Bengal', emoji: '🐆', coat: '#e0a458', coatDark: '#8a5a24', extra: 'spots' },
+  { id: 'siamese', name: 'Mèo Xiêm', emoji: '🐱', coat: '#efe6d8', coatDark: '#6b5b4c', extra: 'points' },
+  { id: 'munckin', name: 'Mèo Munchkin', emoji: '🐈‍⬛', coat: '#7d7d8d', coatDark: '#4c4c58', extra: 'short' },
+];
+
+/** Lò ấp trứng: tốn xu + chờ 8 giờ → nở 1 gà mái (tối đa = maxOwned của gà). */
+export const FARM_INCUBATOR = {
+  costCoins: 40,
+  durationSeconds: 8 * 60 * 60,
+  rewardExp: 15,
+} as const;

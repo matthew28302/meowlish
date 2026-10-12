@@ -4,20 +4,44 @@ import React, { useState, useEffect, useRef } from 'react';
 import { sound } from '@/lib/soundFx';
 import confetti from 'canvas-confetti';
 import { Sparkles, Utensils, Award, RefreshCw, Volume2, Info, ChevronRight, Check } from 'lucide-react';
-import { drawChibiChicken, drawChibiDairyCow } from './drawFarmLivestock';
-import { LIVESTOCK_CATALOG } from '@/lib/petFarmData';
+import { drawChibiChicken, drawChibiDairyCow, drawChibiSheep, drawChibiDog, drawChibiCat, drawChibiFish } from './drawFarmLivestock';
+import { LIVESTOCK_CATALOG, FARM_ANIMAL_SHOP, DOG_BREEDS, CAT_BREEDS, FARM_INCUBATOR } from '@/lib/petFarmData';
 
 type LivestockStatus = 'idle' | 'producing' | 'ready';
 
-// Chu kỳ mặc định (bắt buộc khớp với server): GÀ 3 GIỜ / BÒ 24 GIỜ
-const DEFAULT_CYCLE_SECONDS: Record<'chicken' | 'cow', number> = {
+// Chu kỳ mặc định (bắt buộc khớp với server): GÀ 3 GIỜ / BÒ 24 GIỜ / CỪU 12 GIỜ
+const DEFAULT_CYCLE_SECONDS: Record<string, number> = {
   chicken: 3 * 60 * 60,
   cow: 24 * 60 * 60,
+  sheep: 12 * 60 * 60,
 };
+
+/** Bản đồ sản phẩm theo loài (dùng chung cho spawn/thu hoạch). */
+const PRODUCE_OF: Record<string, 'egg' | 'milk' | 'wool'> = {
+  chicken: 'egg',
+  cow: 'milk',
+  sheep: 'wool',
+};
+const LIVESTOCK_OF_PRODUCE: Record<string, string> = {
+  egg: 'chicken',
+  milk: 'cow',
+  wool: 'sheep',
+};
+
+// H18: ranh giới từng khu vực trên bản đồ 840x520.
+const ZONES: Record<string, { minX: number; maxX: number; minY: number; maxY: number }> = {
+  chicken: { minX: 110, maxX: 340, minY: 205, maxY: 320 },
+  cow: { minX: 460, maxX: 770, minY: 205, maxY: 320 },
+  sheep: { minX: 100, maxX: 400, minY: 340, maxY: 450 },
+  dog: { minX: 340, maxX: 510, minY: 210, maxY: 300 },
+  cat: { minX: 560, maxX: 730, minY: 150, maxY: 215 },
+};
+// H18: hồ sen lớn (nuôi cá) góc dưới-phải.
+const POND = { x: 620, y: 420, rx: 110, ry: 38 };
 
 /** Dòng trạng thái server trả về cho mỗi loài (nguồn sự thật của chu kỳ). */
 interface LivestockState {
-  animal_type: 'chicken' | 'cow';
+  animal_type: string;
   fed_at?: string | null;
   ready_at?: string | null;
   last_fed_at?: string | null;
@@ -41,7 +65,7 @@ interface FoodDrop {
 
 interface FarmProduce {
   id: string;
-  type: 'egg' | 'milk';
+  type: 'egg' | 'milk' | 'wool';
   x: number;
   y: number;
   rewardCoins: number;
@@ -61,7 +85,8 @@ interface FloatingText {
 
 interface AnimalState {
   id: string;
-  type: 'chicken' | 'cow';
+  // H18: gà (CHỈ gà mái mới đẻ) / bò / cừu / chó / mèo / cá.
+  type: 'chicken' | 'cow' | 'sheep' | 'dog' | 'cat' | 'fish';
   name: string;
   x: number;
   y: number;
@@ -73,8 +98,12 @@ interface AnimalState {
   animFrame: number;
   isHungry: boolean;
   heartTimer: number;
-  isRooster?: boolean;
-  isChick?: boolean;
+  /** Giống chó/mèo (id trong DOG_BREEDS/CAT_BREEDS) — quyết định màu vẽ. */
+  breed?: string;
+  /** Cá dùng actionTimer làm pha bơi quanh hồ. */
+  coat?: string;
+  coatDark?: string;
+  extra?: string;
 }
 
 export interface PixelFarmCanvasProps {
@@ -101,40 +130,109 @@ export default function PixelFarmCanvas({
   // Stats
   const [harvestedEggs, setHarvestedEggs] = useState(0);
   const [harvestedMilk, setHarvestedMilk] = useState(0);
+  const [harvestedWool, setHarvestedWool] = useState(0);
   const [activeTool, setActiveTool] = useState<'wheat' | 'hay' | 'hand'>('wheat');
   const [bannerMsg, setBannerMsg] = useState<string>(
-    'Chào mừng đến Nông Trại Meowlish 2.5D! Chạm vào đồng cỏ để rải thóc 🌾 cho gà hoặc cỏ 🌿 cho bò!'
+    'Chào mừng đến Nông Trại Meowlish 2.5D! Rải thóc 🌾 cho gà mái, rải cỏ 🌿 cho bò (rải trong đồng cỏ để cho cừu)! Mở 🏪 Cửa Hàng để mua/bán vật nuôi và ấp trứng!'
   );
 
   // High-DPI Dimensions
   const canvasWidth = 840;
   const canvasHeight = 520;
 
-  // Entities
-  const animalsRef = useRef<AnimalState[]>([
-    // Chickens (Hen, Rooster, Baby Chick)
-    { id: 'chk_1', type: 'chicken', name: 'Gà Mái Hoa Mơ', x: 190, y: 240, targetX: 190, targetY: 240, state: 'idle', direction: 1, actionTimer: 60, animFrame: 0, isHungry: true, heartTimer: 0 },
-    { id: 'chk_2', type: 'chicken', name: 'Gà Trống Cồ', x: 270, y: 200, targetX: 270, targetY: 200, state: 'idle', direction: -1, actionTimer: 90, animFrame: 0, isHungry: true, heartTimer: 0, isRooster: true },
-    { id: 'chk_3', type: 'chicken', name: 'Gà Con Chíp Chíp', x: 220, y: 280, targetX: 220, targetY: 280, state: 'idle', direction: 1, actionTimer: 45, animFrame: 0, isHungry: true, heartTimer: 0, isChick: true },
-    // Dairy Cows
-    { id: 'cow_1', type: 'cow', name: 'Bò Sữa Daisy', x: 570, y: 270, targetX: 570, targetY: 270, state: 'idle', direction: -1, actionTimer: 100, animFrame: 0, isHungry: true, heartTimer: 0 },
-    { id: 'cow_2', type: 'cow', name: 'Bò Sữa Bella', x: 680, y: 340, targetX: 680, targetY: 340, state: 'idle', direction: 1, actionTimer: 120, animFrame: 0, isHungry: true, heartTimer: 0 },
-  ]);
+  // Entities — H18: đàn vật nuôi dựng ĐỘNG từ tồn kho shop (mua/bán).
+  // Gà trống + gà con đã bỏ — CHỈ GÀ MÁI mới đẻ trứng.
+  const HEN_NAMES = ['Gà Mái Hoa Mơ', 'Gà Mái Lúa Vàng', 'Gà Mái Trứng Ngọt', 'Gà Mái Cục Tác', 'Gà Mái Vàng Óng', 'Gà Mái Chăm Chỉ'];
+  const COW_NAMES = ['Bò Sữa Daisy', 'Bò Sữa Bella', 'Bò Sữa Kem Tươi', 'Bò Sữa Đốm Bi'];
+  const SHEEP_NAMES = ['Cừu Mây Trắng', 'Cừu Bông Xù', 'Cừu Len Mềm', 'Cừu Cỏ Non'];
+  const FISH_NAMES = ['Cá Chép Vàng', 'Cá Chép Đỏ', 'Cá Koi Trắng', 'Cá Vàng Óng', 'Cá Chép Bạc', 'Cá Koi Đen', 'Cá Vảy Hồng', 'Cá Hồ Sen'];
+
+  // Tồn kho vật nuôi (kind → số con). Khách dùng mặc định local.
+  const [farmStockUi, setFarmStockUi] = useState<Record<string, number>>({ hen: 3, cow: 2, sheep: 1, fish: 2 });
+  const [incubatorUi, setIncubatorUi] = useState<any>(null);
+  const [showShop, setShowShop] = useState(false);
+  const [selectedDogBreed, setSelectedDogBreed] = useState<string>(DOG_BREEDS[0].id);
+  const [selectedCatBreed, setSelectedCatBreed] = useState<string>(CAT_BREEDS[0].id);
+
+  function buildAnimalsFromStock(stock: Record<string, number>): AnimalState[] {
+    const list: AnimalState[] = [];
+    const rnd = (a: number, b: number) => a + Math.random() * (b - a);
+    const mk = (
+      id: string,
+      type: AnimalState['type'],
+      name: string,
+      z: { minX: number; maxX: number; minY: number; maxY: number },
+      extra?: Partial<AnimalState>
+    ): AnimalState => {
+      const x = rnd(z.minX, z.maxX);
+      const y = rnd(z.minY, z.maxY);
+      return {
+        id, type, name, x, y, targetX: x, targetY: y,
+        state: 'idle', direction: Math.random() > 0.5 ? 1 : -1,
+        actionTimer: 40 + Math.random() * 80, animFrame: 0,
+        isHungry: true, heartTimer: 0, ...extra,
+      };
+    };
+    const countOf = (kind: string, fallback: number, cap: number) =>
+      Math.max(0, Math.min(cap, Math.round(stock[kind] ?? fallback)));
+    for (let i = 0; i < countOf('hen', 3, 6); i++)
+      list.push(mk(`hen_${i}`, 'chicken', HEN_NAMES[i % HEN_NAMES.length], ZONES.chicken));
+    for (let i = 0; i < countOf('cow', 2, 4); i++)
+      list.push(mk(`cow_${i}`, 'cow', COW_NAMES[i % COW_NAMES.length], ZONES.cow));
+    for (let i = 0; i < countOf('sheep', 1, 4); i++)
+      list.push(mk(`sheep_${i}`, 'sheep', SHEEP_NAMES[i % SHEEP_NAMES.length], ZONES.sheep));
+    // Chó/mèo theo từng giống đã mua (kind 'dog:shiba', 'cat:muop'...)
+    let dogTotal = 0;
+    for (const [kind, c] of Object.entries(stock)) {
+      if (!kind.startsWith('dog:') || dogTotal >= 3) continue;
+      const breed = DOG_BREEDS.find((b) => b.id === kind.slice(4)) ?? DOG_BREEDS[0];
+      const n = Math.max(0, Math.min(3 - dogTotal, Math.round(c)));
+      for (let i = 0; i < n; i++) {
+        list.push(mk(`dog_${breed.id}_${i}`, 'dog', `Chó ${breed.name}`, ZONES.dog, {
+          breed: breed.id, coat: breed.coat, coatDark: breed.coatDark, extra: breed.extra,
+        }));
+        dogTotal++;
+      }
+    }
+    let catTotal = 0;
+    for (const [kind, c] of Object.entries(stock)) {
+      if (!kind.startsWith('cat:') || catTotal >= 3) continue;
+      const breed = CAT_BREEDS.find((b) => b.id === kind.slice(4)) ?? CAT_BREEDS[0];
+      const n = Math.max(0, Math.min(3 - catTotal, Math.round(c)));
+      for (let i = 0; i < n; i++) {
+        list.push(mk(`cat_${breed.id}_${i}`, 'cat', `Mèo ${breed.name}`, ZONES.cat, {
+          breed: breed.id, coat: breed.coat, coatDark: breed.coatDark, extra: breed.extra,
+        }));
+        catTotal++;
+      }
+    }
+    // Cá bơi quanh hồ (pha bơi lệch nhau để không chập một chỗ)
+    for (let i = 0; i < countOf('fish', 2, 8); i++) {
+      list.push({
+        id: `fish_${i}`, type: 'fish', name: FISH_NAMES[i % FISH_NAMES.length],
+        x: POND.x, y: POND.y, targetX: POND.x, targetY: POND.y,
+        state: 'walk', direction: 1, actionTimer: i * 2.4, animFrame: 0,
+        isHungry: false, heartTimer: 0, coat: i % 2 === 0 ? '#fb923c' : '#f87171',
+      });
+    }
+    return list;
+  }
+
+  const animalsRef = useRef<AnimalState[]>(buildAnimalsFromStock({ hen: 3, cow: 2, sheep: 1, fish: 2 }));
+  // Dựng lại đàn khi tồn kho đổi (mua/bán) — vị trí random lại trong khu vực.
+  useEffect(() => {
+    animalsRef.current = buildAnimalsFromStock(farmStockUi);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [farmStockUi]);
 
   const foodsRef = useRef<FoodDrop[]>([]);
   const producesRef = useRef<FarmProduce[]>([]);
   const floatTextsRef = useRef<FloatingText[]>([]);
   const frameCountRef = useRef<number>(0);
 
-  // ===== SERVER-SIDE PRODUCTION TIMERS (3h gà / 24h bò) =====
-  const livestockRef = useRef<Record<'chicken' | 'cow', LivestockState | null>>({
-    chicken: null,
-    cow: null,
-  });
-  const [livestockUi, setLivestockUi] = useState<Record<'chicken' | 'cow', LivestockState | null>>({
-    chicken: null,
-    cow: null,
-  });
+  // ===== SERVER-SIDE PRODUCTION TIMERS (gà 3h / bò 24h / cừu 12h) =====
+  const livestockRef = useRef<Record<string, LivestockState | null>>({});
+  const [livestockUi, setLivestockUi] = useState<Record<string, LivestockState | null>>({});
   // Khóa đồng bộ tạm thời: true trong lúc POST đang chạy để tránh rải thêm thức ăn
   const feedLockRef = useRef<boolean>(false);
   // Chu kỳ đã spawn sản phẩm lên canvas (không spawn trùng khi poll lại)
@@ -163,7 +261,7 @@ export default function PixelFarmCanvas({
     onUpdateCoinsDelta(delta);
   };
 
-  const catalog = (type: 'chicken' | 'cow') =>
+  const catalog = (type: string) =>
     LIVESTOCK_CATALOG[type] || LIVESTOCK_CATALOG.chicken;
 
   // ===== Helpers: chu kỳ sản xuất phía máy chủ =====
@@ -179,12 +277,12 @@ export default function PixelFarmCanvas({
   const cycleKeyOf = (row: LivestockState) =>
     String(row?.producing_until ?? row?.ready_at ?? '');
 
-  /** Đẩy sản phẩm (trứng/sữa) lên đồng cỏ khi server báo chu kỳ đã xong. */
-  const spawnProduceFor = (type: 'chicken' | 'cow', row: LivestockState) => {
+  /** Đẩy sản phẩm (trứng/sữa/len) lên đồng cỏ khi server báo chu kỳ đã xong. */
+  const spawnProduceFor = (type: string, row: LivestockState) => {
     const key = cycleKeyOf(row);
     if (!key) return;
     if (spawnedCycleRef.current[type] === key) return;
-    const produceType = type === 'chicken' ? 'egg' : 'milk';
+    const produceType = PRODUCE_OF[type] ?? 'egg';
     if (producesRef.current.some((p) => p.type === produceType)) return;
     spawnedCycleRef.current[type] = key;
 
@@ -205,10 +303,10 @@ export default function PixelFarmCanvas({
       createdAt: Date.now(),
     });
     addFloatText(
-      produceType === 'egg' ? '🥚 Trứng Vàng!' : '🥛 Sữa Tươi!',
+      produceType === 'egg' ? '🥚 Trứng Vàng!' : produceType === 'milk' ? '🥛 Sữa Tươi!' : '🧶 Len Mềm!',
       x,
       y - 26,
-      produceType === 'egg' ? '#fef08a' : '#93c5fd'
+      produceType === 'egg' ? '#fef08a' : produceType === 'milk' ? '#93c5fd' : '#d8b4fe'
     );
     sound.playPop();
   };
@@ -224,10 +322,10 @@ export default function PixelFarmCanvas({
       lastServerTimeRef.current = serverTime;
     }
 
-    const next: Record<'chicken' | 'cow', LivestockState | null> = { chicken: null, cow: null };
+    const next: Record<string, LivestockState | null> = {};
     rows.forEach((raw) => {
       if (!raw) return;
-      const type: 'chicken' | 'cow' = raw.animal_type === 'cow' ? 'cow' : 'chicken';
+      const type: string = LIVESTOCK_CATALOG[raw.animal_type] ? raw.animal_type : 'chicken';
       next[type] = {
         ...raw,
         animal_type: type,
@@ -239,13 +337,13 @@ export default function PixelFarmCanvas({
     });
     livestockRef.current = next;
     if (isMountedRef.current) setLivestockUi(next);
-    (['chicken', 'cow'] as const).forEach((type) => {
+    Object.keys(next).forEach((type) => {
       const row = next[type];
       if (row && row.status === 'ready') spawnProduceFor(type, row);
     });
   };
 
-  /** Poll trạng thái chu kỳ từ server (nguồn sự thật duy nhất). */
+  /** Poll trạng thái chu kỳ + tồn kho + lò ấp từ server (nguồn sự thật duy nhất). */
   const syncLivestock = async () => {
     if (!userId) return;
     if (feedLockRef.current) return; // đừng poll lúc đang có POST chưa xong
@@ -254,6 +352,23 @@ export default function PixelFarmCanvas({
       const data = await res.json().catch(() => null);
       if (!isMountedRef.current) return;
       if (data?.livestock) applyLivestock(data.livestock);
+      if (Array.isArray(data?.farmStock)) {
+        const map: Record<string, number> = {};
+        for (const r of data.farmStock) {
+          if (r && typeof r.kind === 'string') map[r.kind] = Number(r.count) || 0;
+        }
+        // So sánh theo ngữ nghĩa (sắp xếp key): JSON.stringify thô khác nhau
+        // khi server trả thứ tự hàng khác nhau → setState mỗi poll 4s → đàn
+        // vật bị dựng lại vị trí liên tục.
+        setFarmStockUi((prev) => {
+          const ka = Object.keys(prev).sort();
+          const kb = Object.keys(map).sort();
+          const same =
+            ka.length === kb.length && ka.every((k, i) => k === kb[i] && prev[k] === map[k]);
+          return same ? prev : map;
+        });
+      }
+      if (data?.incubator !== undefined) setIncubatorUi(data.incubator);
     } catch {
       // offline — giữ nguyên trạng thái hiện tại
     }
@@ -273,7 +388,8 @@ export default function PixelFarmCanvas({
 
   // Drop food on ground (BỊ KHÓA khi server đang đếm chu kỳ sản xuất)
   const dropFoodAt = (x: number, y: number, type: 'wheat' | 'hay') => {
-    const animalType: 'chicken' | 'cow' = type === 'wheat' ? 'chicken' : 'cow';
+    // H18: thóc → gà mái; cỏ → cừu nếu rải trong đồng cỏ, còn lại → bò sữa.
+    const animalType: string = type === 'wheat' ? 'chicken' : x < 440 && y > 335 ? 'sheep' : 'cow';
     const meta = catalog(animalType);
     const row = livestockRef.current[animalType];
     const status: LivestockStatus = row?.status ?? 'idle';
@@ -305,7 +421,7 @@ export default function PixelFarmCanvas({
 
     const cost = meta.feedPrice;
     if (userCoins < cost) {
-      setBannerMsg(`Bạn cần ít nhất ${cost} Coins để mua ${type === 'wheat' ? 'thóc cho gà' : 'cỏ cho bò'}!`);
+      setBannerMsg(`Bạn cần ít nhất ${cost} Coins để mua ${type === 'wheat' ? 'thóc cho gà mái' : animalType === 'sheep' ? 'cỏ cho cừu' : 'cỏ cho bò'}!`);
       sound.playError();
       return;
     }
@@ -327,8 +443,10 @@ export default function PixelFarmCanvas({
     addFloatText(`-${cost} 🪙`, x, y - 10, '#ef4444');
     setBannerMsg(
       type === 'wheat'
-        ? '🌾 Đã rải thóc vàng! Đàn gà đang hớn hở chạy lại mổ...'
-        : '🌿 Đã rải bó cỏ ngọt thơm! Đàn bò sữa đang ung dung tới ăn...'
+        ? '🌾 Đã rải thóc vàng! Đàn gà mái đang hớn hở chạy lại mổ...'
+        : animalType === 'sheep'
+          ? '🌿 Đã rải cỏ non! Đàn cừu bông đang tung tăng tới gặm...'
+          : '🌿 Đã rải bó cỏ ngọt thơm! Đàn bò sữa đang ung dung tới ăn...'
     );
 
     if (!userId) return; // Khách chơi vui — không có chu kỳ server
@@ -366,9 +484,9 @@ export default function PixelFarmCanvas({
       });
   };
 
-  // Collect Produce (Egg / Milk) — server kiểm tra chu kỳ mới cho nhận
+  // Collect Produce (Egg / Milk / Wool) — server kiểm tra chu kỳ mới cho nhận
   const collectProduce = (item: FarmProduce) => {
-    const animalType: 'chicken' | 'cow' = item.type === 'egg' ? 'chicken' : 'cow';
+    const animalType: string = LIVESTOCK_OF_PRODUCE[item.type] ?? 'chicken';
 
     // `coinsDelta` = phần CỘNG (không phải số dư tuyệt đối) để không ghi đè số xu
     // kiếm được trong lúc request harvest đang bay.
@@ -378,7 +496,8 @@ export default function PixelFarmCanvas({
       if (onUpdatePetExp) onUpdatePetExp(exp);
 
       if (item.type === 'egg') setHarvestedEggs((prev) => prev + 1);
-      else setHarvestedMilk((prev) => prev + 1);
+      else if (item.type === 'milk') setHarvestedMilk((prev) => prev + 1);
+      else setHarvestedWool((prev) => prev + 1);
 
       addFloatText(`+${item.rewardCoins} 🪙`, item.x, item.y - 20, '#facc15');
       addFloatText(`+${item.rewardExp} EXP ⭐`, item.x, item.y - 38, '#60a5fa');
@@ -424,9 +543,9 @@ export default function PixelFarmCanvas({
 
   // Collect All Produce
   const handleCollectAll = () => {
-    const readyNow = (['chicken', 'cow'] as const).filter((t) => livestockRef.current[t]?.status === 'ready');
+    const readyNow = Object.keys(livestockRef.current).filter((t) => livestockRef.current[t]?.status === 'ready');
     if (producesRef.current.length === 0 && readyNow.length === 0) {
-      setBannerMsg('Hiện chưa có Trứng hoặc Sữa nào chín. Hãy cho gà và bò ăn no rồi đợi chu kỳ nhé!');
+      setBannerMsg('Hiện chưa có Trứng, Sữa hay Len nào chín. Hãy cho gà, bò và cừu ăn no rồi đợi chu kỳ nhé!');
       return;
     }
 
@@ -437,7 +556,8 @@ export default function PixelFarmCanvas({
         totalCoins += item.rewardCoins;
         totalExp += item.rewardExp;
         if (item.type === 'egg') setHarvestedEggs((prev) => prev + 1);
-        else setHarvestedMilk((prev) => prev + 1);
+        else if (item.type === 'milk') setHarvestedMilk((prev) => prev + 1);
+        else setHarvestedWool((prev) => prev + 1);
         addFloatText(`+${item.rewardCoins}🪙`, item.x, item.y - 20, '#facc15');
       });
       applyCoinDelta(totalCoins);
@@ -467,10 +587,10 @@ export default function PixelFarmCanvas({
         const stillReady = new Set(
           (Array.isArray(data?.livestock) ? data.livestock : [])
             .filter((r: any) => r.status === 'ready')
-            .map((r: any) => (r.animal_type === 'cow' ? 'cow' : 'chicken'))
+            .map((r: any) => (LIVESTOCK_CATALOG[r.animal_type] ? r.animal_type : 'chicken'))
         );
         const collected = producesRef.current.filter(
-          (p) => !stillReady.has(p.type === 'egg' ? 'chicken' : 'cow')
+          (p) => !stillReady.has(LIVESTOCK_OF_PRODUCE[p.type] ?? 'chicken')
         );
         let totalCoins = 0;
         let totalExp = 0;
@@ -478,7 +598,8 @@ export default function PixelFarmCanvas({
           totalCoins += item.rewardCoins;
           totalExp += item.rewardExp;
           if (item.type === 'egg') setHarvestedEggs((prev) => prev + 1);
-          else setHarvestedMilk((prev) => prev + 1);
+          else if (item.type === 'milk') setHarvestedMilk((prev) => prev + 1);
+          else setHarvestedWool((prev) => prev + 1);
           addFloatText(`+${item.rewardCoins}🪙`, item.x, item.y - 20, '#facc15');
         });
         producesRef.current = producesRef.current.filter((p) => collected.indexOf(p) === -1);
@@ -574,17 +695,38 @@ export default function PixelFarmCanvas({
       animalsRef.current.forEach((animal) => {
         if (animal.heartTimer > 0) animal.heartTimer--;
 
-        // Search for nearest suitable food drop
-        const targetFood = foodsRef.current.find(
-          (f) =>
-            f.remaining > 0 &&
-            ((animal.type === 'chicken' && f.type === 'wheat') ||
-              (animal.type === 'cow' && f.type === 'hay'))
-        );
+        // H18: cá bơi vòng quanh hồ sen (không đi bộ, không ăn).
+        if (animal.type === 'fish') {
+          const phase = animal.actionTimer;
+          const nx = POND.x + Math.cos(frame * 0.012 + phase) * (POND.rx - 28);
+          const ny = POND.y + Math.sin(frame * 0.016 + phase) * (POND.ry - 13);
+          animal.direction = nx >= animal.x ? 1 : -1;
+          animal.x = nx;
+          animal.y = ny;
+          animal.state = 'walk';
+          return;
+        }
+
+        const isProducer = animal.type === 'chicken' || animal.type === 'cow' || animal.type === 'sheep';
+        // Search for nearest suitable food drop (gà→thóc, bò/cừu→cỏ)
+        const targetFood = isProducer
+          ? foodsRef.current.find(
+              (f) =>
+                f.remaining > 0 &&
+                ((animal.type === 'chicken' && f.type === 'wheat') ||
+                  ((animal.type === 'cow' || animal.type === 'sheep') && f.type === 'hay'))
+            )
+          : undefined;
 
         if (targetFood && animal.state !== 'eating' && animal.state !== 'producing') {
           animal.targetX = targetFood.x + (Math.random() * 20 - 10);
           animal.targetY = targetFood.y + (Math.random() * 20 - 10);
+          // H18: kẹp mục tiêu trong khu vực của loài — không lội xuống hồ sen.
+          const zz = ZONES[animal.type];
+          if (zz) {
+            animal.targetX = Math.max(zz.minX, Math.min(zz.maxX, animal.targetX));
+            animal.targetY = Math.max(zz.minY, Math.min(zz.maxY, animal.targetY));
+          }
 
           const dx = animal.targetX - animal.x;
           const dy = animal.targetY - animal.y;
@@ -593,7 +735,7 @@ export default function PixelFarmCanvas({
           if (dist < 16) {
             // Arrived at food -> Eat!
             animal.state = 'eating';
-            animal.actionTimer = animal.type === 'chicken' ? 50 : 80;
+            animal.actionTimer = animal.type === 'chicken' ? 50 : animal.type === 'cow' ? 80 : 65;
             animal.direction = dx > 0 ? 1 : -1;
             targetFood.remaining--;
             if (targetFood.remaining <= 0) {
@@ -602,7 +744,7 @@ export default function PixelFarmCanvas({
           } else {
             animal.state = 'walk';
             animal.direction = dx > 0 ? 1 : -1;
-            const speed = animal.type === 'chicken' ? 1.6 : 1.0;
+            const speed = animal.type === 'chicken' ? 1.6 : animal.type === 'cow' ? 1.0 : 1.2;
             animal.x += (dx / dist) * speed;
             animal.y += (dy / dist) * speed;
           }
@@ -622,16 +764,13 @@ export default function PixelFarmCanvas({
             animal.actionTimer = 60 + Math.random() * 80;
           }
         } else {
-          // Wander peacefully
+          // Wander peacefully — mỗi loài đi trong khu vực riêng (H18)
           animal.actionTimer--;
           if (animal.actionTimer <= 0) {
             if (animal.state === 'idle') {
-              const minX = animal.type === 'chicken' ? 130 : 440;
-              const maxX = animal.type === 'chicken' ? 390 : 760;
-              const minY = 200;
-              const maxY = 450;
-              animal.targetX = minX + Math.random() * (maxX - minX);
-              animal.targetY = minY + Math.random() * (maxY - minY);
+              const z = ZONES[animal.type] ?? ZONES.chicken;
+              animal.targetX = z.minX + Math.random() * (z.maxX - z.minX);
+              animal.targetY = z.minY + Math.random() * (z.maxY - z.minY);
               animal.state = 'walk';
               animal.direction = animal.targetX > animal.x ? 1 : -1;
               animal.actionTimer = 80 + Math.random() * 100;
@@ -646,7 +785,12 @@ export default function PixelFarmCanvas({
             const dy = animal.targetY - animal.y;
             const dist = Math.hypot(dx, dy);
             if (dist > 4) {
-              const speed = animal.type === 'chicken' ? 1.0 : 0.65;
+              const speed =
+                animal.type === 'chicken' ? 1.0
+                : animal.type === 'cow' ? 0.65
+                : animal.type === 'sheep' ? 0.8
+                : animal.type === 'dog' ? 0.9
+                : 0.7;
               animal.x += (dx / dist) * speed;
               animal.y += (dy / dist) * speed;
             } else {
@@ -818,39 +962,52 @@ export default function PixelFarmCanvas({
       // --- ĐƯỜNG MÒN UỐN LƯỢN nối 2 chuồng ra tiền cảnh ---
       drawWindingTrail(ctx, canvasWidth, canvasHeight, frame);
 
-      // --- LAYER 3: AO SEN THƠ MỘNG (bờ cỏ + nước trong + lá sen) ---
+      // --- LAYER 3: HỒ SEN LỚN NUÔI CÁ (H18 — to gấp đôi, có cá bơi) ---
       ctx.save();
-      const pondX = 95;
-      const pondY = 430;
-      // Bóng đổ mềm của ao trên cỏ
+      const pondX = POND.x;
+      const pondY = POND.y;
+      const bankRx = POND.rx + 14;
+      const bankRy = POND.ry + 14;
+      // Bóng đổ mềm của hồ trên cỏ
       ctx.fillStyle = 'rgba(27, 77, 32, 0.22)';
       ctx.beginPath();
-      ctx.ellipse(pondX + 6, pondY + 8, 88, 52, -0.15, 0, Math.PI * 2);
+      ctx.ellipse(pondX + 8, pondY + 10, bankRx, bankRy, -0.1, 0, Math.PI * 2);
       ctx.fill();
-      // Bờ ao đất + viền cỏ
+      // Bờ hồ đất + viền cỏ
       ctx.fillStyle = '#d9b98f';
       ctx.beginPath();
-      ctx.ellipse(pondX, pondY, 82, 50, -0.15, 0, Math.PI * 2);
+      ctx.ellipse(pondX, pondY, bankRx, bankRy, -0.1, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = '#7fbf6a';
-      ctx.lineWidth = 4;
+      ctx.lineWidth = 5;
       ctx.beginPath();
-      ctx.ellipse(pondX, pondY, 82, 50, -0.15, 0, Math.PI * 2);
+      ctx.ellipse(pondX, pondY, bankRx, bankRy, -0.1, 0, Math.PI * 2);
       ctx.stroke();
+      // Đá trang trí quanh bờ
+      ctx.fillStyle = '#a8a29e';
+      for (let si = 0; si < 12; si++) {
+        const a = (si / 12) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(pondX + Math.cos(a) * (bankRx - 3), pondY + Math.sin(a) * (bankRy - 3), 4.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       // Mặt nước trong xanh chuyển tông
-      const waterGrad = ctx.createLinearGradient(pondX - 60, pondY - 30, pondX + 60, pondY + 30);
+      const waterGrad = ctx.createLinearGradient(pondX - 110, pondY - 50, pondX + 110, pondY + 50);
       waterGrad.addColorStop(0, '#7dd3fc');
       waterGrad.addColorStop(0.5, '#38bdf8');
       waterGrad.addColorStop(1, '#0369a1');
       ctx.fillStyle = waterGrad;
       ctx.beginPath();
-      ctx.ellipse(pondX, pondY, 72, 42, -0.15, 0, Math.PI * 2);
+      ctx.ellipse(pondX, pondY, POND.rx, POND.ry, -0.1, 0, Math.PI * 2);
       ctx.fill();
       // Vệt sáng mặt nước
       ctx.fillStyle = 'rgba(255,255,255,0.35)';
       ctx.beginPath();
-      ctx.ellipse(pondX - 22, pondY - 14, 26, 8, -0.3, 0, Math.PI * 2);
+      ctx.ellipse(pondX - 40, pondY - 20, 44, 12, -0.25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(pondX + 52, pondY + 18, 30, 8, -0.25, 0, Math.PI * 2);
       ctx.fill();
 
       // Gợn sóng lan tỏa
@@ -858,38 +1015,38 @@ export default function PixelFarmCanvas({
       ctx.lineWidth = 2;
       const ripple = (frame * 0.04) % 18;
       ctx.beginPath();
-      ctx.arc(pondX - 8, pondY, 14 + ripple, 0, Math.PI * 2);
+      ctx.arc(pondX - 16, pondY, 20 + ripple, 0, Math.PI * 2);
       ctx.stroke();
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
       ctx.beginPath();
-      ctx.arc(pondX + 10, pondY + 6, 8 + ripple * 0.6, 0, Math.PI * 2);
+      ctx.arc(pondX + 24, pondY + 8, 12 + ripple * 0.6, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Lá sen + hoa sen hồng
-      drawLilyPad(ctx, pondX - 30, pondY - 10, 11);
-      drawLilyPad(ctx, pondX + 28, pondY + 10, 13);
-      drawLotusFlower(ctx, pondX - 10, pondY + 12);
-      drawLotusFlower(ctx, pondX + 34, pondY - 8);
+      // Lá sen + hoa sen hồng (nhiều cụm hơn cho hồ lớn)
+      drawLilyPad(ctx, pondX - 66, pondY - 16, 12);
+      drawLilyPad(ctx, pondX - 10, pondY + 20, 14);
+      drawLilyPad(ctx, pondX + 58, pondY - 12, 11);
+      drawLotusFlower(ctx, pondX - 40, pondY + 14);
+      drawLotusFlower(ctx, pondX + 30, pondY - 18);
+      drawLotusFlower(ctx, pondX + 78, pondY + 12);
 
-      // Cầu gỗ nhỏ + cỏ lau bên bờ
-      ctx.fillStyle = '#8a5a2b';
-      ctx.fillRect(pondX + 44, pondY - 32, 28, 11);
-      ctx.fillStyle = '#a8713a';
-      ctx.fillRect(pondX + 44, pondY - 30, 28, 3);
-      ctx.fillRect(pondX + 44, pondY - 24, 28, 3);
+      // Cỏ lau hai bên bờ
       ctx.strokeStyle = '#4d7c0f';
       ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(pondX - 72, pondY - 18);
-      ctx.quadraticCurveTo(pondX - 76, pondY - 34, pondX - 70, pondY - 40);
-      ctx.moveTo(pondX - 64, pondY - 16);
-      ctx.quadraticCurveTo(pondX - 64, pondY - 32, pondX - 58, pondY - 36);
-      ctx.stroke();
-      ctx.fillStyle = '#a16207';
-      ctx.beginPath();
-      ctx.ellipse(pondX - 70, pondY - 42, 3, 6, 0.2, 0, Math.PI * 2);
-      ctx.ellipse(pondX - 58, pondY - 38, 3, 6, -0.2, 0, Math.PI * 2);
-      ctx.fill();
+      for (const side of [-1, 1]) {
+        const bx = pondX + side * (bankRx - 4);
+        ctx.beginPath();
+        ctx.moveTo(bx, pondY - 6);
+        ctx.quadraticCurveTo(bx + side * 6, pondY - 26, bx + side * 2, pondY - 34);
+        ctx.moveTo(bx - side * 8, pondY - 4);
+        ctx.quadraticCurveTo(bx - side * 8, pondY - 22, bx - side * 2, pondY - 28);
+        ctx.stroke();
+        ctx.fillStyle = '#a16207';
+        ctx.beginPath();
+        ctx.ellipse(bx + side * 2, pondY - 36, 3, 6, side * 0.2, 0, Math.PI * 2);
+        ctx.ellipse(bx - side * 2, pondY - 30, 3, 6, -side * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
       ctx.restore();
 
       // --- 2.5D: MẶT ĐẤT PHÍA TRƯỚC + HÀNG RÀO ĐÁ TIỀN CẢNH ---
@@ -923,11 +1080,10 @@ export default function PixelFarmCanvas({
       drawFlowerBed(ctx, 330, 172, ['#ef4444', '#f472b6', '#facc15']);
       drawFlowerBed(ctx, 560, 172, ['#ffffff', '#f472b6', '#fb923c']);
 
-      // COZY CHICKEN BARN (Chuồng Gà Meowlish)
-      drawCozyChickenCoop(ctx, 45, 55);
-
-      // COZY DAIRY BARN (Chuồng Bò Meowlish)
-      drawCozyDairyBarn(ctx, canvasWidth - 235, 45);
+      // H18: BỎ chuồng gà + chuồng bò → ĐỒNG CỎ cho cừu + CHUỒNG CHÓ + CHUỒNG MÈO
+      drawMeadowPatch(ctx, canvasWidth, canvasHeight, frame);
+      drawDogHouse(ctx, 350, 148);
+      drawCatHouse(ctx, 540, 148);
 
       // --- LAYER 5: FOOD DROPS ---
       foodsRef.current.forEach((food) => {
@@ -969,9 +1125,12 @@ export default function PixelFarmCanvas({
         if (prod.type === 'egg') {
           glowGrad.addColorStop(0, 'rgba(250, 204, 21, 0.7)');
           glowGrad.addColorStop(1, 'rgba(250, 204, 21, 0)');
-        } else {
+        } else if (prod.type === 'milk') {
           glowGrad.addColorStop(0, 'rgba(147, 197, 253, 0.7)');
           glowGrad.addColorStop(1, 'rgba(147, 197, 253, 0)');
+        } else {
+          glowGrad.addColorStop(0, 'rgba(192, 132, 252, 0.7)');
+          glowGrad.addColorStop(1, 'rgba(192, 132, 252, 0)');
         }
         ctx.fillStyle = glowGrad;
         ctx.beginPath();
@@ -1003,7 +1162,7 @@ export default function PixelFarmCanvas({
           ctx.fillStyle = '#ffffff';
           ctx.font = '10px sans-serif';
           ctx.fillText('✨', prod.x + 6, py - 8);
-        } else {
+        } else if (prod.type === 'milk') {
           // Classic Glass Milk Bottle
           ctx.fillStyle = '#f8fafc';
           ctx.fillRect(prod.x - 8, py - 10, 16, 20); // Bottle body
@@ -1030,6 +1189,37 @@ export default function PixelFarmCanvas({
           ctx.fillStyle = '#ffffff';
           ctx.font = '10px sans-serif';
           ctx.fillText('✨', prod.x + 8, py - 9);
+        } else {
+          // H18: Cuộn len tím mềm mại (cừu)
+          const woolGrad = ctx.createLinearGradient(prod.x - 9, py - 9, prod.x + 9, py + 9);
+          woolGrad.addColorStop(0, '#e9d5ff');
+          woolGrad.addColorStop(0.5, '#c084fc');
+          woolGrad.addColorStop(1, '#9333ea');
+          ctx.fillStyle = woolGrad;
+          ctx.beginPath();
+          ctx.arc(prod.x, py, 11, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#7e22ce';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.strokeStyle = 'rgba(126, 34, 206, 0.7)';
+          ctx.lineWidth = 1.2;
+          for (let w = -2; w <= 2; w++) {
+            ctx.beginPath();
+            ctx.moveTo(prod.x - 9, py + w * 4);
+            ctx.quadraticCurveTo(prod.x, py + w * 4 - 4, prod.x + 9, py + w * 4);
+            ctx.stroke();
+          }
+          // Đầu sợi len thõng xuống
+          ctx.strokeStyle = '#7e22ce';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(prod.x + 9, py + 6);
+          ctx.quadraticCurveTo(prod.x + 18, py + 10, prod.x + 16, py + 18);
+          ctx.stroke();
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '10px sans-serif';
+          ctx.fillText('✨', prod.x - 10, py - 10);
         }
 
         // Crisp Harvest Pill Badge
@@ -1050,25 +1240,36 @@ export default function PixelFarmCanvas({
 
       sortedAnimals.forEach((animal) => {
         const isCow = animal.type === 'cow';
+        const isSheep = animal.type === 'sheep';
+        const isFish = animal.type === 'fish';
+        // Kích thước bóng/hào quang theo loài (H18)
+        const shadowY = isCow ? 24 : isSheep ? 18 : 15;
+        const shadowRx = isCow ? 42 : isSheep ? 30 : 24;
+        const shadowRy = isCow ? 13 : isSheep ? 10 : 8;
 
         // 1) Bóng đổ đậm ngay dưới thân — làm con vật "đứng trên mặt đất"
-        ctx.save();
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.3)';
-        ctx.beginPath();
-        ctx.ellipse(animal.x + 7, animal.y + (isCow ? 24 : 15), isCow ? 42 : 26, isCow ? 13 : 8, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+        // (cá bơi trong nước nên không vẽ bóng)
+        if (!isFish) {
+          ctx.save();
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.3)';
+          ctx.beginPath();
+          ctx.ellipse(animal.x + 7, animal.y + shadowY, shadowRx, shadowRy, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
 
         // 2) Hào quang sáng nhẹ để tách con vật khỏi nền (nổi bật hơn)
-        const haloRadius = isCow ? 62 : 44;
-        const halo = ctx.createRadialGradient(animal.x, animal.y - 8, 6, animal.x, animal.y - 8, haloRadius);
-        halo.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
-        halo.addColorStop(0.6, 'rgba(255, 255, 255, 0.1)');
-        halo.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        ctx.fillStyle = halo;
-        ctx.beginPath();
-        ctx.arc(animal.x, animal.y - 8, haloRadius, 0, Math.PI * 2);
-        ctx.fill();
+        const haloRadius = isCow ? 62 : isSheep ? 52 : 44;
+        if (!isFish) {
+          const halo = ctx.createRadialGradient(animal.x, animal.y - 8, 6, animal.x, animal.y - 8, haloRadius);
+          halo.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+          halo.addColorStop(0.6, 'rgba(255, 255, 255, 0.1)');
+          halo.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          ctx.fillStyle = halo;
+          ctx.beginPath();
+          ctx.arc(animal.x, animal.y - 8, haloRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
         // 3) Phóng to 14% quanh điểm đặt chân — con vật to, dễ nhìn hơn
         ctx.save();
@@ -1078,6 +1279,7 @@ export default function PixelFarmCanvas({
         ctx.translate(-animal.x, -animal.y);
 
         if (animal.type === 'chicken') {
+          // H18: chỉ còn gà mái (đã bỏ gà trống/gà con)
           drawChibiChicken({
             ctx,
             x: animal.x,
@@ -1085,8 +1287,54 @@ export default function PixelFarmCanvas({
             direction: animal.direction,
             state: animal.state,
             frame,
-            isRooster: animal.isRooster,
-            isChick: animal.isChick,
+            heartTimer: animal.heartTimer,
+          });
+        } else if (animal.type === 'sheep') {
+          drawChibiSheep({
+            ctx,
+            x: animal.x,
+            y: animal.y,
+            direction: animal.direction,
+            state: animal.state,
+            frame,
+            heartTimer: animal.heartTimer,
+          });
+        } else if (animal.type === 'dog') {
+          const breed = DOG_BREEDS.find((b) => b.id === animal.breed) ?? DOG_BREEDS[0];
+          drawChibiDog({
+            ctx,
+            x: animal.x,
+            y: animal.y,
+            direction: animal.direction,
+            state: animal.state,
+            frame,
+            coat: animal.coat ?? breed.coat,
+            coatDark: animal.coatDark ?? breed.coatDark,
+            extra: animal.extra ?? breed.extra,
+            heartTimer: animal.heartTimer,
+          });
+        } else if (animal.type === 'cat') {
+          const breed = CAT_BREEDS.find((b) => b.id === animal.breed) ?? CAT_BREEDS[0];
+          drawChibiCat({
+            ctx,
+            x: animal.x,
+            y: animal.y,
+            direction: animal.direction,
+            state: animal.state,
+            frame,
+            coat: animal.coat ?? breed.coat,
+            coatDark: animal.coatDark ?? breed.coatDark,
+            extra: animal.extra ?? breed.extra,
+            heartTimer: animal.heartTimer,
+          });
+        } else if (animal.type === 'fish') {
+          drawChibiFish({
+            ctx,
+            x: animal.x,
+            y: animal.y,
+            direction: animal.direction,
+            frame,
+            coat: animal.coat,
             heartTimer: animal.heartTimer,
           });
         } else {
@@ -1108,8 +1356,8 @@ export default function PixelFarmCanvas({
       sortedAnimals.forEach((animal) => {
         const row = livestockRef.current[animal.type];
         if (!row) return;
-        const isCow = animal.type === 'cow';
-        const barTop = animal.y - (isCow ? 66 : 52);
+        // Chó/mèo/cá không có chu kỳ nên không bao giờ tới đây (row undefined).
+        const barTop = animal.y - (animal.type === 'cow' ? 66 : animal.type === 'sheep' ? 58 : 52);
 
         if (row.status === 'producing') {
           const start = Number(row.last_fed_at ?? row.fed_at ?? 0);
@@ -1174,6 +1422,62 @@ export default function PixelFarmCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  // ===== H18: CỬA HÀNG + LÒ ẤP (gọi API farm_shop_buy/sell, farm_incubate_*) =====
+  const postFarmAction = async (action: string, extra: Record<string, unknown> = {}) => {
+    if (!userId) {
+      sound.playWrong();
+      setBannerMsg('Vui lòng đăng nhập để dùng cửa hàng nông trại!');
+      return null;
+    }
+    try {
+      const res = await fetch('/api/pet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, action, ...extra }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!isMountedRef.current) return null;
+      if (Array.isArray(data?.farmStock)) {
+        const map: Record<string, number> = {};
+        for (const r of data.farmStock) {
+          if (r && typeof r.kind === 'string') map[r.kind] = Number(r.count) || 0;
+        }
+        setFarmStockUi(map);
+      }
+      if (data?.incubator !== undefined) setIncubatorUi(data.incubator);
+      if (typeof data?.userCoins === 'number') syncCoinsFromServer(data.userCoins);
+      if (data?.error) {
+        sound.playError();
+        setBannerMsg(`⛔ ${data.error}`);
+        return null;
+      }
+      if (data?.message) setBannerMsg(data.message);
+      sound.playSuccess();
+      // Lò ấp cho EXP linh vật (server đã cộng) — báo parent cộng local theo
+      // đúng pattern thu hoạch ở trên (celebrate → onUpdatePetExp).
+      if (action === 'farm_incubate_collect' && onUpdatePetExp) {
+        onUpdatePetExp(FARM_INCUBATOR.rewardExp);
+      }
+      return data;
+    } catch {
+      if (isMountedRef.current) setBannerMsg('⚠️ Mất kết nối máy chủ — thử lại sau nhé!');
+      return null;
+    }
+  };
+
+  const shopBuy = (kind: string) => postFarmAction('farm_shop_buy', { kind });
+  const shopSell = (kind: string) => postFarmAction('farm_shop_sell', { kind });
+
+  const ownedOf = (kind: string, fallback = 0) => farmStockUi[kind] ?? fallback;
+
+  const incubatorRemain = (() => {
+    if (!incubatorUi) return 0;
+    if (nowTick > 0 && incubatorUi.ready_at) {
+      return Math.max(0, Math.ceil((Number(incubatorUi.ready_at) - nowTick) / 1000));
+    }
+    return Number(incubatorUi.remaining_seconds) || 0;
+  })();
+
   return (
     <div className="w-full flex flex-col gap-3" ref={containerRef}>
       {/* Top Banner Status (Purged of all external trademarks) */}
@@ -1205,6 +1509,11 @@ export default function PixelFarmCanvas({
               <span>🥛 Sữa:</span>
               <span>{harvestedMilk}</span>
             </div>
+            <div className="h-3 w-px bg-white/20" />
+            <div className="flex items-center gap-1 text-violet-300">
+              <span>🧶 Len:</span>
+              <span>{harvestedWool}</span>
+            </div>
           </div>
 
           <button
@@ -1219,10 +1528,11 @@ export default function PixelFarmCanvas({
         </div>
       </div>
 
-      {/* ===== THANH ĐẾM NGƯỢC CHU KỲ SERVER (Gà 3 giờ / Bò 24 giờ) ===== */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-        <LivestockCountdownCard type="chicken" state={livestockUi.chicken} now={nowTick} />
-        <LivestockCountdownCard type="cow" state={livestockUi.cow} now={nowTick} />
+      {/* ===== THANH ĐẾM NGƯỢC CHU KỲ SERVER (Gà 3 giờ / Cừu 12 giờ / Bò 24 giờ) ===== */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        <LivestockCountdownCard type="chicken" state={livestockUi.chicken ?? null} now={nowTick} />
+        <LivestockCountdownCard type="sheep" state={livestockUi.sheep ?? null} now={nowTick} />
+        <LivestockCountdownCard type="cow" state={livestockUi.cow ?? null} now={nowTick} />
       </div>
 
       {/* Main 2D Canvas Viewport (High-DPI Native Sharpness) */}
@@ -1256,20 +1566,208 @@ export default function PixelFarmCanvas({
                 ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-300'
                 : 'bg-white/10 text-white hover:bg-white/20'
             }`}
-            title={`Rải cỏ cho bò ăn (${LIVESTOCK_CATALOG.cow.feedPrice} xu) — khóa khi đang đếm chu kỳ`}
+            title={`Rải cỏ cho bò sữa & cừu ăn (${LIVESTOCK_CATALOG.cow.feedPrice} xu bò / ${LIVESTOCK_CATALOG.sheep.feedPrice} xu cừu) — rải trong đồng cỏ để cho cừu, còn lại cho bò; khóa khi đang đếm chu kỳ`}
           >
             <span>🌿</span>
-            <span>{`Rải Cỏ (${LIVESTOCK_CATALOG.cow.feedPrice}🪙)`}</span>
+            <span>{`Rải Cỏ (bò/cừu)`}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sound.playClick();
+              setShowShop(true);
+            }}
+            className="px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer bg-white/10 text-white hover:bg-white/20"
+            title="Cửa hàng nông trại: mua/bán gà, bò, cừu, cá, chó, mèo + ấp trứng"
+          >
+            <span>🏪</span>
+            <span>Cửa Hàng</span>
+          </button>
+
+          <button
+            onClick={() => {
+              sound.playClick();
+              setShowShop(true);
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
+              incubatorUi && incubatorUi.status === 'ready'
+                ? 'bg-amber-400 text-slate-950 ring-2 ring-amber-200 animate-pulse'
+                : 'bg-white/10 text-white hover:bg-white/20'
+            }`}
+            title="Lò ấp trứng: ấp nở gà mái mới (trong cửa hàng)"
+          >
+            <span>🥚</span>
+            <span>Ấp Trứng{incubatorUi && incubatorUi.status === 'ready' ? '!' : ''}</span>
           </button>
         </div>
       </div>
+
+      {/* ===== H18: MODAL CỬA HÀNG NÔNG TRẠI + LÒ ẤP TRỨNG ===== */}
+      {showShop && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setShowShop(false)}>
+          <div
+            className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border-4 border-amber-500 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-4 sm:px-6 py-3.5 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🏪</span>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black leading-tight">Cửa Hàng Nông Trại</h3>
+                  <p className="text-[12px] text-amber-100 font-medium">Mua/bán vật nuôi • Ấp trứng nở gà mái • Số dư: {userCoinsRef.current.toLocaleString()} 🪙</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowShop(false)}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer"
+                aria-label="Đóng cửa hàng"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 custom-scrollbar">
+              {/* Lò ấp trứng */}
+              <div className={`rounded-2xl border-2 p-3.5 ${incubatorUi && incubatorUi.status === 'ready' ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/40 animate-pulse' : 'border-orange-200 bg-orange-50 dark:bg-slate-800 dark:border-orange-800'}`}>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div>
+                    <h4 className="text-sm font-black text-slate-800 dark:text-slate-100">🥚 Lò Ấp Trứng</h4>
+                    <p className="text-[11px] text-slate-500 font-medium dark:text-slate-400">
+                      {!incubatorUi && `Tốn ${FARM_INCUBATOR.costCoins} xu + chờ 8 giờ → nở 1 gà mái (+${FARM_INCUBATOR.rewardExp} EXP)`}
+                      {incubatorUi && incubatorUi.status !== 'ready' && `Đang ấp… còn ${formatCountdown(incubatorRemain)} nữa mới nở!`}
+                      {incubatorUi && incubatorUi.status === 'ready' && 'Trứng đã nở! Đón bé gà mái mới nào!'}
+                    </p>
+                  </div>
+                  {!incubatorUi && (
+                    <button
+                      onClick={() => postFarmAction('farm_incubate_start')}
+                      className="px-4 py-2 min-h-[44px] rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-xs font-black shadow transition cursor-pointer"
+                    >
+                      Bắt đầu ấp ({FARM_INCUBATOR.costCoins}🪙)
+                    </button>
+                  )}
+                  {incubatorUi && incubatorUi.status === 'ready' && (
+                    <button
+                      onClick={() => postFarmAction('farm_incubate_collect')}
+                      className="px-4 py-2 min-h-[44px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow transition cursor-pointer"
+                    >
+                      Đón gà mái! (+{FARM_INCUBATOR.rewardExp} EXP)
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Vật nuôi sản xuất + cá */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {['hen', 'cow', 'sheep', 'fish'].map((species) => {
+                  const entry = FARM_ANIMAL_SHOP[species];
+                  const owned = ownedOf(species, entry.defaultCount);
+                  return (
+                    <div key={species} className="rounded-2xl border-2 border-slate-200 dark:border-white/10 p-3 bg-slate-50 dark:bg-slate-800/60">
+                      <div className="flex items-center gap-2">
+                        <span className="text-3xl">{entry.emoji}</span>
+                        <div className="min-w-0 flex-1">
+                          <h5 className="text-xs font-black text-slate-800 truncate dark:text-slate-100">{entry.name}</h5>
+                          <p className="text-[10px] text-slate-500 font-bold dark:text-slate-400">Đang có: {owned}/{entry.maxOwned}</p>
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-slate-500 font-medium mt-1 leading-snug dark:text-slate-400">{entry.description}</p>
+                      <div className="flex items-center gap-1.5 mt-2">
+                        <button
+                          onClick={() => shopBuy(species)}
+                          disabled={owned >= entry.maxOwned}
+                          className="flex-1 px-2 py-2 min-h-[40px] rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-[11px] font-black transition cursor-pointer"
+                        >
+                          Mua {entry.buyPrice}🪙
+                        </button>
+                        <button
+                          onClick={() => shopSell(species)}
+                          disabled={owned <= (entry.isProducer ? 1 : 0)}
+                          title={entry.isProducer ? 'Giữ lại ít nhất 1 con để chăm sóc chu kỳ' : undefined}
+                          className="flex-1 px-2 py-2 min-h-[40px] rounded-xl bg-white hover:bg-rose-50 text-rose-600 text-[11px] font-black border border-rose-200 disabled:opacity-40 transition cursor-pointer dark:bg-slate-800 dark:border-rose-800"
+                        >
+                          Bán +{entry.sellPrice}🪙
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Chó cảnh theo giống */}
+              <div className="rounded-2xl border-2 border-amber-200 bg-amber-50/60 p-3 dark:bg-slate-800/60 dark:border-amber-800">
+                <h5 className="text-xs font-black text-slate-800 dark:text-slate-100">🐶 Chó Cảnh (nuôi cho đẹp) — Đang có: {DOG_BREEDS.reduce((s, b) => s + ownedOf(`dog:${b.id}`, 0), 0)}/3</h5>
+                <div className="flex gap-1.5 mt-2 flex-wrap">
+                  {DOG_BREEDS.map((b) => (
+                    <button
+                      key={b.id}
+                      onClick={() => { sound.playClick(); setSelectedDogBreed(b.id); }}
+                      className={`px-2.5 py-1.5 rounded-xl text-[11px] font-black border-2 transition cursor-pointer ${selectedDogBreed === b.id ? 'bg-amber-500 text-white border-amber-600' : 'bg-white text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300'}`}
+                    >
+                      {b.emoji} {b.name}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1.5 mt-2">
+                  <button
+                    onClick={() => shopBuy(`dog:${selectedDogBreed}`)}
+                    className="flex-1 px-2 py-2 min-h-[40px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black transition cursor-pointer"
+                  >
+                    Mua {FARM_ANIMAL_SHOP.dog.buyPrice}🪙
+                  </button>
+                </div>
+                {DOG_BREEDS.filter((b) => ownedOf(`dog:${b.id}`, 0) > 0).map((b) => (
+                  <div key={b.id} className="flex items-center justify-between mt-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                    <span>{b.emoji} {b.name} × {ownedOf(`dog:${b.id}`, 0)}</span>
+                    <button onClick={() => shopSell(`dog:${b.id}`)} className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition cursor-pointer dark:bg-slate-800">
+                      Bán +{FARM_ANIMAL_SHOP.dog.sellPrice}🪙
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Mèo cảnh theo giống */}
+              <div className="rounded-2xl border-2 border-pink-200 bg-pink-50/60 p-3 dark:bg-slate-800/60 dark:border-pink-800">
+                <h5 className="text-xs font-black text-slate-800 dark:text-slate-100">🐱 Mèo Cảnh (nuôi cho đẹp) — Đang có: {CAT_BREEDS.reduce((s, b) => s + ownedOf(`cat:${b.id}`, 0), 0)}/3</h5>
+                <div className="flex gap-1.5 mt-2 flex-wrap">
+                  {CAT_BREEDS.map((b) => (
+                    <button
+                      key={b.id}
+                      onClick={() => { sound.playClick(); setSelectedCatBreed(b.id); }}
+                      className={`px-2.5 py-1.5 rounded-xl text-[11px] font-black border-2 transition cursor-pointer ${selectedCatBreed === b.id ? 'bg-pink-500 text-white border-pink-600' : 'bg-white text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300'}`}
+                    >
+                      {b.emoji} {b.name}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1.5 mt-2">
+                  <button
+                    onClick={() => shopBuy(`cat:${selectedCatBreed}`)}
+                    className="flex-1 px-2 py-2 min-h-[40px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black transition cursor-pointer"
+                  >
+                    Mua {FARM_ANIMAL_SHOP.cat.buyPrice}🪙
+                  </button>
+                </div>
+                {CAT_BREEDS.filter((b) => ownedOf(`cat:${b.id}`, 0) > 0).map((b) => (
+                  <div key={b.id} className="flex items-center justify-between mt-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                    <span>{b.emoji} {b.name} × {ownedOf(`cat:${b.id}`, 0)}</span>
+                    <button onClick={() => shopSell(`cat:${b.id}`)} className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition cursor-pointer dark:bg-slate-800">
+                      Bán +{FARM_ANIMAL_SHOP.cat.sellPrice}🪙
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Farm Activity Guide Card */}
       <div className="p-3.5 bg-emerald-950/70 border border-emerald-500/30 rounded-2xl flex items-center justify-between flex-wrap gap-2 text-xs text-emerald-100 font-medium">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
           <span>
-            <b>Mẹo Nông Dân Meowlish:</b> Gà đẻ 🥚 mỗi <b>3 giờ</b>, bò cho 🥛 mỗi <b>24 giờ</b> — chu kỳ tính trên máy chủ nên tải lại trang vẫn giữ nguyên. Trong lúc đếm ngược, đàn vật <b>không ăn thêm</b> được; hết chu kỳ thì chạm vào sản phẩm để nhận Coins &amp; EXP!
+            <b>Mẹo Nông Dân Meowlish:</b> Gà mái đẻ 🥚 mỗi <b>3 giờ</b>, cừu cho 🧶 mỗi <b>12 giờ</b>, bò cho 🥛 mỗi <b>24 giờ</b> — chu kỳ tính trên máy chủ nên tải lại trang vẫn giữ nguyên. Trong lúc đếm ngược, đàn vật <b>không ăn thêm</b> được; hết chu kỳ thì chạm vào sản phẩm để nhận Coins &amp; EXP!
           </span>
         </div>
       </div>
@@ -1286,7 +1784,7 @@ function LivestockCountdownCard({
   state,
   now,
 }: {
-  type: 'chicken' | 'cow';
+  type: string;
   state: LivestockState | null;
   now: number;
 }) {
@@ -1325,7 +1823,9 @@ function LivestockCountdownCard({
       ? '#facc15'
       : type === 'chicken'
         ? 'linear-gradient(90deg, #f59e0b, #fde047)'
-        : 'linear-gradient(90deg, #0ea5e9, #7dd3fc)';
+        : type === 'sheep'
+          ? 'linear-gradient(90deg, #9333ea, #d8b4fe)'
+          : 'linear-gradient(90deg, #0ea5e9, #7dd3fc)';
 
   return (
     <div
@@ -1341,7 +1841,7 @@ function LivestockCountdownCard({
             : 'border-emerald-500/40 bg-emerald-950/50'
       }`}
     >
-      <div className="text-2xl leading-none shrink-0">{type === 'chicken' ? '🐔' : '🐄'}</div>
+      <div className="text-2xl leading-none shrink-0">{meta.emoji}</div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
@@ -1350,7 +1850,7 @@ function LivestockCountdownCard({
               status === 'ready' ? 'text-amber-950' : 'text-amber-300'
             }`}
           >
-            {type === 'chicken' ? 'Gà Đẻ (chu kỳ 3 giờ)' : 'Bò Sữa (chu kỳ 24 giờ)'}
+            {meta.name} (chu kỳ {fmt(cycle)})
           </span>
           <span
             data-testid={`livestock-badge-${type}`}
@@ -1376,7 +1876,7 @@ function LivestockCountdownCard({
             {status === 'producing'
               ? `⏳ Còn ${fmt(remain)} nữa`
               : status === 'ready'
-                ? '🧺 Chạm vào trứng/sữa để thu hoạch'
+                ? `🧺 Chạm vào ${meta.produceEmoji} để thu hoạch`
                 : `${meta.name} chưa ăn · chu kỳ ${fmt(cycle)}`}
           </span>
           <span className={`shrink-0 ${status === 'ready' ? 'text-amber-950' : 'text-amber-200/90'}`}>
@@ -1681,276 +2181,203 @@ function drawLotusFlower(ctx: CanvasRenderingContext2D, x: number, y: number) {
 /**
  * Helper: Draw Cozy Chicken Coop
  */
-function drawCozyChickenCoop(ctx: CanvasRenderingContext2D, x: number, y: number) {
+/**
+ * H18: Thảm đồng cỏ cho cừu (thay chuồng gà/chuồng bò đã bỏ).
+ */
+function drawMeadowPatch(ctx: CanvasRenderingContext2D, width: number, height: number, frame: number) {
+  void width;
+  void height;
   ctx.save();
-  ctx.translate(x, y);
-
-  // --- 2.5D: BÓNG ĐỔ DỌC THEO ÁNH SÁNG (chèn xuống đất trước khi vẽ nhà) ---
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.26)';
+  // Thảm cỏ non mềm hình elip ở góc dưới-trái
+  ctx.fillStyle = 'rgba(134, 239, 172, 0.55)';
   ctx.beginPath();
-  ctx.ellipse(54, 150, 100, 21, 0, 0, Math.PI * 2);
+  ctx.ellipse(245, 400, 165, 62, -0.06, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.14)';
+  ctx.strokeStyle = 'rgba(34, 197, 94, 0.7)';
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([10, 7]);
   ctx.beginPath();
-  ctx.ellipse(34, 152, 74, 15, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Coop Main Wood Walls
-  const wallGrad = ctx.createLinearGradient(0, 40, 0, 120);
-  wallGrad.addColorStop(0, '#b45309');
-  wallGrad.addColorStop(1, '#78350f');
-  ctx.fillStyle = wallGrad;
-  ctx.fillRect(0, 40, 140, 85);
-  ctx.strokeStyle = '#451a03';
+  ctx.ellipse(245, 400, 165, 62, -0.06, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // Cỏ non đung đưa
+  ctx.strokeStyle = '#16a34a';
   ctx.lineWidth = 2;
-  ctx.strokeRect(0, 40, 140, 85);
-
-  // Wood Planks
-  ctx.fillStyle = '#92400e';
-  for (let px = 15; px < 135; px += 20) {
-    ctx.fillRect(px, 40, 3, 85);
+  for (let i = 0; i < 14; i++) {
+    const gx = 110 + i * 20 + Math.sin(frame * 0.05 + i) * 2;
+    const gy = 360 + ((i * 37) % 80);
+    ctx.beginPath();
+    ctx.moveTo(gx, gy);
+    ctx.quadraticCurveTo(gx + 2, gy - 8, gx + 5, gy - 11);
+    ctx.stroke();
   }
-
-  // Mặt bên trái tối hơn → khối nhà có bề sâu 2.5D
-  ctx.fillStyle = 'rgba(69, 26, 3, 0.62)';
+  // Hoa dại trên đồng cỏ
+  const meadowFlowers: [number, number, string][] = [
+    [150, 375, '#f472b6'], [210, 425, '#ffffff'], [280, 370, '#facc15'],
+    [330, 420, '#f472b6'], [180, 440, '#fb923c'], [300, 445, '#ffffff'],
+  ];
+  for (const [fx, fy, col] of meadowFlowers) {
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.arc(fx, fy, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.arc(fx, fy, 1.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Biển gỗ "ĐỒNG CỎ XANH"
+  ctx.fillStyle = 'rgba(27, 77, 32, 0.25)';
   ctx.beginPath();
-  ctx.moveTo(-2, 47);
-  ctx.lineTo(-15, 54);
-  ctx.lineTo(-15, 132);
-  ctx.lineTo(-2, 125);
-  ctx.closePath();
+  ctx.ellipse(116, 344, 26, 5, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = 'rgba(28, 10, 2, 0.7)';
+  ctx.fillStyle = '#7c4a1e';
+  ctx.fillRect(112, 312, 7, 32);
+  ctx.fillStyle = '#a8713a';
+  ctx.fillRect(88, 296, 58, 20);
+  ctx.strokeStyle = '#5b3410';
   ctx.lineWidth = 1.5;
-  ctx.stroke();
+  ctx.strokeRect(88, 296, 58, 20);
+  ctx.fillStyle = '#fef3c7';
+  ctx.font = 'bold 8px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('ĐỒNG CỎ', 117, 304);
+  ctx.fillText('XANH', 117, 312);
+  ctx.restore();
+}
 
-  // Gable Shingled Roof (Terracotta Red)
-  ctx.fillStyle = '#dc2626';
+/**
+ * H18: Chuồng chó gỗ ấm cúng.
+ */
+function drawDogHouse(ctx: CanvasRenderingContext2D, x: number, y: number) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(27, 77, 32, 0.25)';
   ctx.beginPath();
-  ctx.moveTo(-12, 45);
-  ctx.lineTo(70, 0);
-  ctx.lineTo(152, 45);
+  ctx.ellipse(x + 45, y + 62, 52, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Thân chuồng
+  const wallGrad = ctx.createLinearGradient(0, y, 0, y + 58);
+  wallGrad.addColorStop(0, '#d29a5b');
+  wallGrad.addColorStop(1, '#8a5a2b');
+  ctx.fillStyle = wallGrad;
+  ctx.fillRect(x, y + 8, 90, 50);
+  ctx.strokeStyle = '#5b3410';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y + 8, 90, 50);
+  // Vân gỗ
+  ctx.strokeStyle = 'rgba(91, 52, 16, 0.5)';
+  ctx.lineWidth = 1.2;
+  for (let i = 1; i < 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + 8 + i * 12);
+    ctx.lineTo(x + 90, y + 8 + i * 12);
+    ctx.stroke();
+  }
+  // Mái đỏ
+  ctx.fillStyle = '#b91c1c';
+  ctx.beginPath();
+  ctx.moveTo(x - 8, y + 10);
+  ctx.lineTo(x + 45, y - 22);
+  ctx.lineTo(x + 98, y + 10);
   ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = '#991b1b';
+  ctx.strokeStyle = '#7f1d1d';
   ctx.lineWidth = 2;
   ctx.stroke();
-
-  // Roof Eaves Trim
-  ctx.fillStyle = '#fef3c7';
-  ctx.fillRect(-12, 42, 164, 5);
-
-  // Weathercock / Rooster Silhouette
-  ctx.fillStyle = '#fbbf24';
-  ctx.beginPath();
-  ctx.moveTo(70, 0);
-  ctx.lineTo(70, -14);
-  ctx.stroke();
-  ctx.arc(70, -18, 4, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Arched Hen Doorway with Straw Bedding
+  // Cửa vòm tối
   ctx.fillStyle = '#291402';
   ctx.beginPath();
-  ctx.arc(70, 85, 18, Math.PI, 0);
-  ctx.lineTo(88, 125);
-  ctx.lineTo(52, 125);
+  ctx.arc(x + 45, y + 58, 17, Math.PI, 0);
   ctx.closePath();
   ctx.fill();
-
-  // Golden Straw in doorway
-  ctx.fillStyle = '#fde047';
-  ctx.fillRect(48, 120, 44, 7);
-
-  // Little Wooden Ramp with Steps
-  ctx.fillStyle = '#a16207';
-  ctx.beginPath();
-  ctx.moveTo(56, 125);
-  ctx.lineTo(44, 150);
-  ctx.lineTo(72, 150);
-  ctx.lineTo(84, 125);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = '#78350f';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  for (let step = 0; step < 3; step++) {
-    ctx.fillStyle = '#78350f';
-    ctx.fillRect(49 + step * 8, 131 + step * 7, 18, 2);
-  }
-
-  // Cửa sổ tròn + hộp hoa bên hông chuồng gà
-  ctx.fillStyle = '#fef9c3';
-  ctx.beginPath();
-  ctx.arc(22, 70, 11, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#451a03';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.strokeStyle = '#b45309';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(11, 70);
-  ctx.lineTo(33, 70);
-  ctx.moveTo(22, 59);
-  ctx.lineTo(22, 81);
-  ctx.stroke();
-  // Hộp hoa dưới cửa sổ
-  ctx.fillStyle = '#7c4a1e';
-  ctx.fillRect(10, 82, 24, 8);
-  ['#ef4444', '#facc15', '#f472b6'].forEach((c, i) => {
-    ctx.fillStyle = c;
-    ctx.beginPath();
-    ctx.arc(14 + i * 8, 80, 3, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  // Wooden Signboard: "CHUỒNG GÀ MEOWLISH"
+  // Biển xương "CHUỒNG CHÓ"
   ctx.fillStyle = '#fef3c7';
   ctx.beginPath();
-  ctx.roundRect(14, 22, 112, 18, 4);
+  ctx.roundRect(x + 12, y - 14, 66, 15, 7);
   ctx.fill();
-  ctx.strokeStyle = '#78350f';
+  ctx.strokeStyle = '#92400e';
   ctx.lineWidth = 1.5;
   ctx.stroke();
-  ctx.fillStyle = '#78350f';
-  ctx.font = 'bold 10px sans-serif';
+  ctx.fillStyle = '#92400e';
+  ctx.font = 'bold 8.5px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('CHUỒNG GÀ MEOWLISH', 70, 35);
-
-  ctx.restore();
-}
-
-/**
- * Helper: Draw Cozy Dairy Barn
- */
-function drawCozyDairyBarn(ctx: CanvasRenderingContext2D, x: number, y: number) {
-  ctx.save();
-  ctx.translate(x, y);
-
-  // --- 2.5D: BÓNG ĐỔ DÀI TRÊN SÂN (trước khi vẽ khối nhà) ---
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.26)';
+  ctx.fillText('🦴 CHUỒNG CHÓ', x + 45, y - 3);
+  // Bát ăn
+  ctx.fillStyle = '#dc2626';
   ctx.beginPath();
-  ctx.ellipse(66, 131, 114, 23, 0, 0, Math.PI * 2);
+  ctx.ellipse(x + 78, y + 58, 10, 5, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.13)';
-  ctx.beginPath();
-  ctx.ellipse(40, 133, 84, 16, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Stone Foundation
-  ctx.fillStyle = '#78716c';
-  ctx.fillRect(0, 95, 170, 30);
-  ctx.strokeStyle = '#44403c';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(0, 95, 170, 30);
-
-  // Mặt bên trái tối hơn → nhà bò có bề sâu 2.5D
-  ctx.fillStyle = 'rgba(28, 15, 7, 0.6)';
-  ctx.beginPath();
-  ctx.moveTo(-2, 42);
-  ctx.lineTo(-17, 50);
-  ctx.lineTo(-17, 131);
-  ctx.lineTo(-2, 125);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(10, 6, 3, 0.7)';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  // Red Timber Main Wall
-  const barnGrad = ctx.createLinearGradient(0, 35, 0, 95);
-  barnGrad.addColorStop(0, '#991b1b');
-  barnGrad.addColorStop(1, '#7f1d1d');
-  ctx.fillStyle = barnGrad;
-  ctx.fillRect(0, 35, 170, 60);
-  ctx.strokeStyle = '#450a0a';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(0, 35, 170, 60);
-
-  // Barn Gambrel Roof
-  ctx.fillStyle = '#ea580c';
-  ctx.beginPath();
-  ctx.moveTo(-10, 40);
-  ctx.lineTo(25, 8);
-  ctx.lineTo(85, 0);
-  ctx.lineTo(145, 8);
-  ctx.lineTo(180, 40);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = '#9a3412';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // White Cross-bracing on Barn Doors
-  ctx.fillStyle = '#3f1508';
-  ctx.fillRect(45, 60, 80, 65);
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(45, 60, 80, 65);
-  ctx.beginPath();
-  ctx.moveTo(45, 60); ctx.lineTo(125, 125);
-  ctx.moveTo(125, 60); ctx.lineTo(45, 125);
-  ctx.stroke();
-
-  // Sweet Hay Trough
-  ctx.fillStyle = '#78350f';
-  ctx.fillRect(20, 112, 130, 18);
-  ctx.fillStyle = '#eab308';
-  ctx.fillRect(24, 108, 122, 7); // golden hay
-
-  // Cửa sổ gác mái hình tròn + chong chóng gió trên nóc
-  ctx.fillStyle = '#fef9c3';
-  ctx.beginPath();
-  ctx.arc(140, 62, 10, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#450a0a';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.strokeStyle = '#991b1b';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(130, 62);
-  ctx.lineTo(150, 62);
-  ctx.moveTo(140, 52);
-  ctx.lineTo(140, 72);
-  ctx.stroke();
-  // Chong chóng gió
-  ctx.strokeStyle = '#44403c';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(85, 0);
-  ctx.lineTo(85, -10);
-  ctx.stroke();
   ctx.fillStyle = '#fbbf24';
-  ctx.save();
-  ctx.translate(85, -13);
-  ctx.rotate(0.6);
-  ctx.fillRect(-8, -1.5, 16, 3);
-  ctx.rotate(Math.PI / 2);
-  ctx.fillRect(-8, -1.5, 16, 3);
-  ctx.restore();
-
-  // Wooden Signboard: "CHUỒNG BÒ MEOWLISH"
-  ctx.fillStyle = '#fef3c7';
   ctx.beginPath();
-  ctx.roundRect(28, 20, 114, 18, 4);
+  ctx.ellipse(x + 78, y + 56, 7, 3, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = '#78350f';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  ctx.fillStyle = '#78350f';
-  ctx.font = 'bold 10px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('CHUỒNG BÒ MEOWLISH', 85, 33);
-
   ctx.restore();
 }
 
 /**
- * Helper 2.5D: Mặt đất phía trước — dải cỏ trên cùng + mặt cắt đất đá sỏi,
- * tạo cảm giác khối nền nổi có độ dày.
+ * H18: Chuồng mèo pastel đáng yêu.
  */
+function drawCatHouse(ctx: CanvasRenderingContext2D, x: number, y: number) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(27, 77, 32, 0.25)';
+  ctx.beginPath();
+  ctx.ellipse(x + 40, y + 58, 46, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Thân chuồng hồng pastel
+  const wallGrad = ctx.createLinearGradient(0, y, 0, y + 54);
+  wallGrad.addColorStop(0, '#fbcfe8');
+  wallGrad.addColorStop(1, '#f472b6');
+  ctx.fillStyle = wallGrad;
+  ctx.fillRect(x, y + 8, 80, 46);
+  ctx.strokeStyle = '#9d174d';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y + 8, 80, 46);
+  // Mái tím
+  ctx.fillStyle = '#a855f7';
+  ctx.beginPath();
+  ctx.moveTo(x - 7, y + 10);
+  ctx.lineTo(x + 40, y - 20);
+  ctx.lineTo(x + 87, y + 10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#6b21a8';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  // Cửa sổ tròn + đệm
+  ctx.fillStyle = '#fef3c7';
+  ctx.beginPath();
+  ctx.arc(x + 40, y + 30, 11, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#9d174d';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.strokeStyle = '#9d174d';
+  ctx.beginPath();
+  ctx.moveTo(x + 29, y + 30);
+  ctx.lineTo(x + 51, y + 30);
+  ctx.moveTo(x + 40, y + 19);
+  ctx.lineTo(x + 40, y + 41);
+  ctx.stroke();
+  // Biển cá "CHUỒNG MÈO"
+  ctx.fillStyle = '#fef3c7';
+  ctx.beginPath();
+  ctx.roundRect(x + 7, y - 13, 66, 15, 7);
+  ctx.fill();
+  ctx.strokeStyle = '#9d174d';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = '#9d174d';
+  ctx.font = 'bold 8.5px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🐟 CHUỒNG MÈO', x + 40, y - 2);
+  // Đệm nằm trước cửa
+  ctx.fillStyle = '#c084fc';
+  ctx.beginPath();
+  ctx.ellipse(x + 40, y + 58, 14, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 function drawForegroundLedge(ctx: CanvasRenderingContext2D, width: number, height: number) {
   const top = height - 40;
   ctx.save();
@@ -2012,14 +2439,14 @@ function drawCountdownBar(
   top: number,
   progress: number,
   label: string,
-  type: 'chicken' | 'cow'
+  type: string
 ) {
   const w = 78;
   const h = 10;
   const x = cx - w / 2;
-  const accent = type === 'chicken' ? '#fbbf24' : '#38bdf8';
-  const accentLight = type === 'chicken' ? '#fde047' : '#93c5fd';
-  const icon = type === 'chicken' ? '🥚' : '🥛';
+  const accent = type === 'chicken' ? '#fbbf24' : type === 'sheep' ? '#c084fc' : '#38bdf8';
+  const accentLight = type === 'chicken' ? '#fde047' : type === 'sheep' ? '#e9d5ff' : '#93c5fd';
+  const icon = type === 'chicken' ? '🥚' : type === 'sheep' ? '🧶' : '🥛';
 
   ctx.save();
 
@@ -2080,11 +2507,11 @@ function drawReadyBadge(
   ctx: CanvasRenderingContext2D,
   cx: number,
   top: number,
-  type: 'chicken' | 'cow',
+  type: string,
   frame: number
 ) {
   const pulse = 0.5 + Math.sin(frame * 0.12) * 0.5;
-  const icon = type === 'chicken' ? '🥚' : '🥛';
+  const icon = type === 'chicken' ? '🥚' : type === 'sheep' ? '🧶' : '🥛';
   const label = `${icon} SẴN SÀNG!`;
 
   ctx.save();
