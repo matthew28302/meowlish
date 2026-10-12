@@ -16,7 +16,7 @@
 | 4 | Bỏ mục "Nhân Vật 2D" | ✅ **Xong** (xoá 34 entry catalog, 2 file render, UI modal, asset, test) |
 | 5 | Tên user góc phải bị đè nội dung | ✅ **Xong** (dropdown chuyển sang portal `z-[9999]`) |
 | 6 | PvP/Đua thú: pet đứng yên, đúng mới đánh/chạy | ✅ **Xong** (PvP lao tới ~200px rồi về; đua thú bỏ chạy liên tục, đúng mới chạy ~200px, bot chạy theo nhịp giả lập) |
-| 7 | GIF email bị mờ/nhỏ | ✅ **Xong** — render lại từ file Lottie vector 512×512 ⇒ GIF 440×440 (2× khung 220px), bỏ viền hồng |
+| 7 | GIF email bị mờ/nhỏ | ✅ **Xong** — giữ GIF 150px nền trong suốt (an toàn dark mode), bỏ viền hồng, sửa lỗi copy mã OTP |
 | 8 | Xoá chữ "Meowlish" góc trên trái | ✅ **Xong** |
 | 9 | Nông trại 2.5D (mua/bán, hồ cá, chó mèo cừu…) | ✅ **Xong** (shop mua/bán + ấp trứng server-side, cừu 12h, hồ sen lớn nuôi cá, 4 giống chó + 4 giống mèo, đồng cỏ + 2 chuồng mới, chỉ gà mái đẻ) |
 | 10 | Thiết kế lại bài Present Simple vs Continuous | ✅ **Xong** (tách 5 khối khớp 1:1 công thức + bảng usageTable; test `grammar-formula` pass 4/4) |
@@ -45,48 +45,46 @@ Dùng cho phần nông trại 2.5D + PvP/đua thú (game loop, arrival callback,
 
 ---
 
-## 2. ✅ MỤC #7 — GIF EMAIL (đã sửa xong 2026-10-12)
+## 2. ✅ MỤC #7 — GIF EMAIL (đã sửa xong 2026-10-13)
 
-**Trạng thái:** đã thay GIF cũ bằng bản render từ **file Lottie vector 512×512** bạn tải về.
+**Quyết định cuối của user: giữ nguyên bản HEAD — GIF 150×150 NỀN TRONG SUỐT.**
+(Bản 440px dẹp nền trắng của tôi **bị loại**: email client ở chế độ tối tự đảo màu
+ảnh nền sáng ⇒ mèo gần như biến mất. Xem "sự cố đã gặp" bên dưới.)
 
-| File | Cũ | Lần 1 | Lần 2 (đang dùng) |
-|---|---|---|---|
-| `public/Dance-cat.gif` | 150×150, 306 KB | 440×440, 499 KB | **440×440, 68 KB** |
-| `public/cat-forgot.gif` | 150×150, 247 KB | 440×440, 838 KB | **440×440, 108 KB** |
+| File | Kích thước | Khung | Dung lượng | Nền |
+|---|---|---|---|---|
+| `public/Dance-cat.gif` (email xác thực) | 150×150 | 90 | 306 KB | trong suốt 90/90 |
+| `public/cat-forgot.gif` (email quên MK) | 150×150 | 73 | 247 KB | trong suốt 73/73 |
 
-- **Nguyên nhân mờ đã xác nhận:** GIF cũ chỉ 150×150 nhưng template hiển thị 220px ⇒ upscale 1.47× (desktop) / ~2.9× (màn 2x DPI).
-- **Cách sửa:** file `.json`/`.lottie` là **vector 512×512** nhưng email không chạy Lottie/SVG ⇒ `scripts/render-lottie-gifs.mjs` dùng Playwright + lottie-web render thẳng ở **440 device px** rồi ghép GIF.
-- **Ba kỹ thuật quyết định chất lượng (đã áp dụng):**
-  1. **Không resample:** vẽ đúng 220 CSS px × deviceScaleFactor 2 = 440 px. Bản đầu vẽ 1024px rồi Lanczos hạ về 440 ⇒ cạ mềm. Dung lượng giảm 499KB→68KB là bằng chứng ảnh sạch hơn (ít cạnh răng cưa).
-  2. **Dither Bayer 8×8:** phá dải màu (giới hạn cứng 256 màu của GIF) thành chấm nhẹ thay vì dạng băng.
-  3. **Palette chung + LUT 5-bit:** một bảng màu cho mọi khung (không nhấp nháy màu), tra cứu nhanh.
-- **Giữ nguyên tốc độ gốc:** Dance 90 khung@30fps → mỗi 2 khung, delay 67ms (3.0s). Mark loading 144 khung@60fps → mỗi 2 khung, delay 33ms (2.4s).
-- **Viền hồng đã bỏ** (`emailTemplates.ts` ~dòng 332).
-- **Lỗi mã xác thực khi copy đã sửa:** bản cũ tách 6 số vào 6 ô `<td>` ⇒ trình duyệt chèn **TAB** khi copy ("4⇥⇥8⇥⇥2…"). Nay gộp thành **một text node duy nhất** `482915` (giữ vẻ hộp bằng `letter-spacing`), copy ra đúng 6 số. Ô nhập OTP trong app vốn đã lọc `/\D/g` nên dán cũng an toàn.
-- **Chạy lại:** `node scripts/render-lottie-gifs.mjs`.
+### Đã sửa
+- **Viền hồng quanh GIF:** bỏ khỏi `emailTemplates.ts` dòng ~332.
+- **Lỗi copy mã OTP:** bản cũ tách 6 số vào 6 ô `<td>` ⇒ copy ra `4⇥⇥8⇥⇥2⇥⇥9⇥⇥1⇥⇥5`.
+  Nay gộp thành **một text node `482915`** (giữ vẻ ô bằng `letter-spacing`), copy ra
+  đúng 6 số liền mạch. Ô nhập OTP trong app vốn đã lọc `/\D/g`.
+- **Nguồn Lottie** được commit trong repo: `scripts/assets/lottie/cat-dance.lottie` +
+  `cat-loading.lottie` (vector 512×512, không phụ thuộc link CDN bên ngoài).
 
-✅ **Đã deploy production** (2026-10-12): 5 commit push lên `main` (`136a09c..e22ffa2`), Vercel build xong ~26 giây. Xác minh production phục vụ đúng bản mới:
+### Sự cố đã gặp (đã xử lý — đừng làm lại)
+- Bản 440px tôi từng làm: (a) render 1024px rồi Lanczos hạ 440 ⇒ mềm cạnh;
+  (b) **dẹp nền trắng** ⇒ **ảnh biến mất trong email client chế độ tối**. Đã bỏ.
+- Bản 150px bị tưởng "giảm chất lượng" hoàn toàn là **ảo**: bản LottieFiles cho tải
+  chỉ có 150px; muốn bản vector phải tải file `.json`/`.lottie` rồi tự render.
+- Script `render-lottie-gifs.mjs` hiện **giữ nền trong suốt** (`ensureAlpha`,
+  `transparentIndex: 0`) và nhận tham số cỡ: `node scripts/render-lottie-gifs.mjs 440`
+  cho bản 440px trong suốt (đã sẵn sàng, chỉ chưa dùng).
 
-| file | trước deploy | sau deploy (production) | local |
-|---|---|---|---|
-| `Dance-cat.gif` | 313.013 B (150²) | **69.288 B (440²)** ✅ | 69.288 B |
-| `cat-forgot.gif` | 252.916 B (150²) | **110.841 B (440²)** ✅ | 110.841 B |
+### Công cụ (đã commit)
+| Script | Việc |
+|---|---|
+| `scripts/render-lottie-gifs.mjs` | Render Lottie vector → GIF, **giữ nền trong suốt**. Mặc định 150px; `node scripts/render-lottie-gifs.mjs 440` để đổi cỡ |
+| `scripts/verify-email-gifs.mjs` | Kiểm tra cấu trúc GIF + nền trong suốt. **Chạy sau mỗi lần đổi ảnh** |
+| `scripts/send-test-emails.mjs` | Gửi 2 email test (OTP + quên MK) tới 1 địa chỉ, lưu HTML xem trước |
+| `scripts/snapshot-email-source.mjs` | Chụp source + ảnh + HTML đã gửi kèm sha256 để **khôi phục đúng thời điểm** |
 
-Email nhúng GIF bằng URL tuyệt đối `https://meowlish.io.vn/<file>` nên **mọi email gửi từ lúc này đã hiện bản mới**. Xem trước offline: `temp/email-preview/*.html`.
+⚠️ **Email nhúng ảnh bằng URL tuyệt đối** `https://meowlish.io.vn/<file>` ⇒ **phải deploy
+thì email mới thấy ảnh mới**. Xem trước offline: `temp/email-preview/*.html`.
 
-**Đã thử & loại:**
-- Link lottie.host bạn gửi (`/embed/<uuid>/<token>.lottie`) → **trả về HTML player, KHÔNG phải file animation**; bản đúng phải bỏ `/embed` mới tải được file. Tải về và đối chiếu SHA256: **trùng khớp tuyệt đối** với 2 file `.lottie` đã có ⇒ lottie.host KHÔNG cho nguồn chất lượng cao hơn, chỉ là bản sao. 2 file nguồn (19KB) đã commit ở `scripts/assets/lottie/` nên pipeline tái lập được không cần tải lại; `temp/` đã thêm vào `.gitignore`.
-- WebP/AVIF (Chromium không encode animation WebP: `MediaRecorder.isTypeSupported('image/webp') = false`; ffmpeg của Playwright chỉ có PNG+VP8), WebM (chỉ vài client hỗ trợ).
-- `applyPalette` của gifenc: đo thực tế cho file **nặng gấp 10×** (68KB → 748KB) do sinh chỉ số rơi rác ⇒ đã thay bằng bảng tra nearest-color tự build (khoảng cách perceptual 0.299/0.587/0.114).
-
-**Số liệu chẩn đoán:** artwork gốc có **3.205 màu** (mèo nhảy) / **4.310 màu** (mèo loading) — phần lớn do cạnh anti-alias; nền trắng phẳng chiếm 61–70% ảnh. GIF chỉ chứa được 256 màu ⇒ đây là **trần cứng của định dạng**, không còn nguồn nào cho thêm.
-
-**Cách thử nhanh:** `node scripts/render-lottie-gifs.mjs [kích-thước] [thư-mục]`
-- `node scripts/render-lottie-gifs.mjs` → 440px vào `public/`
-- `node scripts/render-lottie-gifs.mjs 520 temp/email-preview` → bản thử nghiệm 520px
-- Trang so sánh A/B/C: mở `temp/email-preview/compare.html` (gốc 150px vs 440px vs 520px).
-
-Đã thêm devDependency: `lottie-web`. Xem mục 14.
+Snapshot lần gửi ngày 2026-10-12 17:45 (giờ UTC): `backups/email-send-2026-10-12T17-45-11/`.
 
 ---
 
