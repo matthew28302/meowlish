@@ -22,8 +22,21 @@
  *   - supportReplyTemplate        (phản hồi của admin gửi cho người dùng)
  */
 
-/** URL gốc của site — dùng cho mọi link trong email. */
-export const APP_URL = (process.env.APP_URL || 'https://meowlish.io.vn').replace(/\/+$/, '');
+/**
+ * URL gốc của site — dùng cho mọi link trong email.
+ *
+ * BUG THẬT (báo cáo 2026-10-18): nếu trên Vercel biến APP_URL bị đặt nhầm thành
+ * http://localhost:3000, mọi email gửi cho người dùng thật sẽ chứa link
+ * localhost (không mở được). Trên Vercel (VERCEL='1') coi localhost là cấu hình
+ * SAI và bỏ qua, luôn dùng domain thật; chạy local vẫn giữ hành vi cũ (email
+ * test local trỏ localhost là đúng).
+ */
+const RAW_APP_URL = (process.env.APP_URL || 'https://meowlish.io.vn').replace(/\/+$/, '');
+const LOCALHOST_URL_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
+export const APP_URL =
+  process.env.VERCEL === '1' && LOCALHOST_URL_RE.test(RAW_APP_URL)
+    ? 'https://meowlish.io.vn'
+    : RAW_APP_URL;
 
 /** Thông tin thương hiệu dùng trong footer / chữ ký. */
 export const EMAIL_BRAND = {
@@ -33,9 +46,9 @@ export const EMAIL_BRAND = {
   contactEmail: process.env.CONTACT_EMAIL || process.env.SMTP_USER || 'admin@imfishball.id.vn',
   /** Địa chỉ vật lý (đặt qua env BRAND_ADDRESS để thay thế). */
   address: process.env.BRAND_ADDRESS || 'TP. Hồ Chí Minh, Việt Nam',
-  supportUrl: `${(process.env.APP_URL || 'https://meowlish.io.vn').replace(/\/+$/, '')}/support`,
+  supportUrl: `${APP_URL}/support`,
   // Canonical là non-www (khớp Google Search Console). www 308-redirect về non-www.
-  adminUrl: `${(process.env.APP_URL || 'https://meowlish.io.vn').replace(/\/+$/, '')}/duahau`,
+  adminUrl: `${APP_URL}/duahau`,
 } as const;
 
 export interface RenderedEmail {

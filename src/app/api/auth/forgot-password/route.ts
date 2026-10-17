@@ -6,7 +6,7 @@ import { logAccess, logEmail, logError } from '@/lib/systemLogs';
 import { maskEmail } from '@/lib/userAuth';
 import { persistCriticalWrite } from '@/lib/s3Sync';
 import logger from '@/lib/logger';
-import { passwordResetLinkTemplate, mailFrom, EMAIL_BRAND } from '@/lib/emailTemplates';
+import { passwordResetLinkTemplate, mailFrom, EMAIL_BRAND, APP_URL } from '@/lib/emailTemplates';
 import dns from 'dns';
 import crypto from 'crypto';
 
@@ -216,9 +216,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Tạo reset link
-    const baseUrl = process.env.APP_URL || 'https://meowlish.io.vn';
-    const resetLink = `${baseUrl}/reset-password?token=${rawToken}`;
+    // Tạo reset link — dùng CHUNG APP_URL với emailTemplates (đã chống cấu hình
+    // APP_URL=localhost trên Vercel; xem chú thích ở src/lib/emailTemplates.ts).
+    const resetLink = `${APP_URL}/reset-password?token=${rawToken}`;
 
     // Nội dung email với link đặt lại mật khẩu
     const resetEmail = passwordResetLinkTemplate({
