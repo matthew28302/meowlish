@@ -38,6 +38,7 @@ import MascotCompanion from '@/components/MascotCompanion';
 import confetti from '@/lib/confetti';
 import { speakText } from '@/lib/speech';
 import { getStoredUser, AuthUser, setStoredUser } from '@/lib/auth';
+import { fetchProgress } from '@/lib/progressFetch';
 import { PETS_CATALOG, getPetTitle } from '@/lib/petData';
 import { formatCoins } from '@/lib/formatNumber';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
@@ -92,7 +93,7 @@ export default function HomePage() {
       // 'user_demo_default' (getStoredUser tự tạo) ⇒ 2 GET này không đăng
       // nhập được và tự ghi log 'khách'. Giữ nguyên hành vi: đó là nguồn dữ liệu
       // demo cho widget thú cưng; chỉ ghi chú để không tưởng là đã xác thực.
-      fetch(`/api/progress?userId=${user.id}`)
+      fetchProgress(user.id)
         .then((res) => res.json())
         .then((data) => {
           if (data.user) {

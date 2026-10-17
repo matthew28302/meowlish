@@ -1360,7 +1360,7 @@ export default function AuthModal({
                 alt="Meowlish Home"
                 fill
                 sizes="(min-width: 768px) 70vw, 0px"
-                loading="lazy"
+                priority
                 className="object-cover select-none pointer-events-none"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none" />
@@ -1381,7 +1381,7 @@ export default function AuthModal({
                   alt="Meowlish Đăng Nhập"
                   fill
                   sizes="(min-width: 768px) 70vw, 0px"
-                  loading="lazy"
+                  priority
                   className="object-cover select-none pointer-events-none"
                 />
               </div>

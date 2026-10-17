@@ -6,6 +6,7 @@ import { Check, Lock, ClipboardList, CalendarDays, TriangleAlert } from 'lucide-
 import confetti from 'canvas-confetti';
 import { sound } from '@/lib/sound';
 import { getStoredUser, getCurrentUser, setStoredUser } from '@/lib/auth';
+import { fetchProgress } from '@/lib/progressFetch';
 import {
   buildStudyPlan,
   STUDY_DAY_REWARD,
@@ -36,7 +37,7 @@ export default function StudyPlanSection({ pathId }: { pathId: string }) {
   const reloadProgress = () => {
     const user = getStoredUser();
     if (!user?.id) return;
-    fetch(`/api/progress?userId=${user.id}`)
+    fetchProgress(user.id)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data.progress)) {

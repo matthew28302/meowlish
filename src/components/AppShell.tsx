@@ -36,6 +36,7 @@ import { formatCoins } from '@/lib/formatNumber';
 import { initTheme } from '@/lib/theme';
 import ThemeToggle from './ThemeToggle';
 import { AuthUser, getCurrentUser, setStoredUser, clearStoredUser, removeSavedAccount } from '@/lib/auth';
+import { fetchProgress } from '@/lib/progressFetch';
 import UserAvatar from './UserAvatar';
 import AuthModal from './AuthModal';
 import EmailVerifyModal from './EmailVerifyModal';
@@ -211,7 +212,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       if (!user || isDemoFallback) setGuestGateOpen(true);
 
       if (user?.id && !isDemoFallback) {
-        fetch(`/api/progress?userId=${user.id}`, { signal: controller.signal })
+        fetchProgress(user.id)
           .then((res) => {
             if (res.status === 403) {
               return res.json().then((data) => {
@@ -277,7 +278,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       if (Date.now() - lastChecked < 30000) return;
       lastChecked = Date.now();
       try {
-        const res = await fetch(`/api/progress?userId=${currentUser.id}`);
+        const res = await fetchProgress(currentUser.id);
         if (res.status === 403) {
           const data = await res.json().catch(() => ({}));
           if (data.status === 'disabled' || data.error?.includes('vô hiệu hóa')) {
