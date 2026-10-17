@@ -1360,7 +1360,7 @@ export default function AuthModal({
                 alt="Meowlish Home"
                 fill
                 sizes="(min-width: 768px) 70vw, 0px"
-                priority
+                loading="lazy"
                 className="object-cover select-none pointer-events-none"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none" />
@@ -1376,12 +1376,16 @@ export default function AuthModal({
                     : 'opacity-0 scale-105 blur-[3px] pointer-events-none z-0'
                 }`}
               >
+                {/* loading="lazy" (KHÔNG priority/eager) — đo 2026-10-18: `priority` làm
+                    mobile tải login.jpg 34KB ở mọi trang dù cột ảnh bị ẩn (hidden md:block);
+                    desktop thì ảnh được tải ngay khi modal mount dù lazy, LCP không đổi
+                    (LCP bị chặn bởi thời điểm modal mở sau hydration). Giữ lazy để mobile nhẹ. */}
                 <Image
                   src="/login.jpg"
                   alt="Meowlish Đăng Nhập"
                   fill
                   sizes="(min-width: 768px) 70vw, 0px"
-                  priority
+                  loading="lazy"
                   className="object-cover select-none pointer-events-none"
                 />
               </div>
