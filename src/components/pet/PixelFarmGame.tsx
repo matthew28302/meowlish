@@ -58,6 +58,7 @@ import {
 } from './PixelMapAssets';
 import { sound } from '@/lib/soundFx';
 import confetti from '@/lib/confetti';
+import { formatCoins } from '@/lib/formatNumber';
 
 export interface PixelFarmHandle {
   tossBall: () => void;
@@ -102,8 +103,6 @@ export interface PixelFarmGameProps {
   speechText?: string;
   onSpeechChange?: (text: string) => void;
   onStateChange?: (state: { isSleeping: boolean; isSpeedFast: boolean }) => void;
-  isCouple?: boolean;
-  coupleTitle?: string;
 }
 
 const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function PixelFarmGame(
@@ -124,8 +123,6 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
     speechText,
     onSpeechChange,
     onStateChange,
-    isCouple = false,
-    coupleTitle,
   },
   ref
 ) {
@@ -2047,7 +2044,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1 bg-gradient-to-b from-amber-300 to-amber-400 text-slate-950 px-2.5 sm:px-3 py-1.5 rounded-2xl border-b-2 border-amber-500 text-[11px] sm:text-xs font-black shadow-lg">
               <span>🪙</span>
-              <span>{userCoins.toLocaleString()}</span>
+              <span>{formatCoins(userCoins)}</span>
             </div>
             {onSwitchPet && (
               <button
@@ -3606,13 +3603,9 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
                 : 'none',
           }}
         >
-          {/* Couple Romantic Hearts & Title */}
-          {isCouple && (
-            <div className="absolute -top-15 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-2.5 py-0.5 rounded-full text-[9px] font-black shadow-lg animate-pulse whitespace-nowrap z-45 border border-pink-300/60 pointer-events-none">
-              <span>💍💖</span>
-              <span>{coupleTitle || 'Uyên Ương Tri Kỷ'}</span>
-            </div>
-          )}
+          {/* (H14) Badge "Uyên Ương" đã xoá cùng "Lễ Đường Kết Đôi" khỏi UI. Server
+            vẫn giữ `propose_couple`/`respond_proposal`/`break_up` và dữ liệu
+            `user_couples` cũ — chỉ gỡ phần HIỂN THỊ theo yêu cầu user. */}
 
           {/* Dynamic Speech Bubble over Pet */}
           {currentSpeech && (

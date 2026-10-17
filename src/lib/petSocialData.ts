@@ -49,7 +49,11 @@ export const WEDDING_RINGS: WeddingRing[] = [
     name: 'Nhẫn Kim Cương Vĩnh Cửu',
     price: 1200,
     emoji: '💎',
-    title: '✨ Uyên Ương Hoàng Gia',
+    // Danh hiệu của nhẫn. `WEDDING_RINGS` vẫn được server dùng cho
+    // `propose_couple`/`respond_proposal` (id/name/price) nên giữ nguyên mảng —
+    // chỉ đổi CHỮ trong `title` vì "Uyên Ương" là nhãn sót lại từ "Lễ Đường Kết
+    // Đôi" đã bị gỡ khỏi UI. Trường này hiện không code nào đọc tới.
+    title: '✨ Đôi Vĩnh Cửu Hoàng Gia',
     description: 'Viên kim cương ngũ sắc rực rỡ vĩnh cửu, mở khoá danh hiệu tình nhân danh giá nhất!',
     auraColor: 'from-pink-200 via-purple-200 to-sky-200 border-purple-400',
   },

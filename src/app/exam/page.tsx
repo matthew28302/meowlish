@@ -32,6 +32,7 @@ import { sound } from '@/lib/soundFx';
 import confetti from '@/lib/confetti';
 import { speakText } from '@/lib/speech';
 import { getStoredUser, AuthUser } from '@/lib/auth';
+import { formatCoins } from '@/lib/formatNumber';
 
 type ExamMode = 'catalog' | 'testing' | 'result';
 
@@ -287,7 +288,6 @@ export default function ExamPage() {
     sound.playError();
     calculateAndFinish();
   };
-  autoSubmitRef.current = handleAutoSubmit;
 
   // Manual submit
   const handleConfirmSubmit = () => {
@@ -421,6 +421,18 @@ export default function ExamPage() {
     }
   };
 
+  // Ghi ref trong `useEffect` chứ KHÔNG ghi trực tiếp trong thân render: bản ghi
+  // trong render là side-effect, khiến render phụ thuộc thứ tự (StrictMode gọi 2
+  // lần, render bị huỷ giữa chừng vẫn để lại ref đã đổi). Effect chạy sau commit
+  // nên ref luôn trỏ đúng hàm của render vừa commit.
+  //
+  // Đặt SAU `calculateAndFinish` và `handleAutoSubmit` (cả hai đều nằm trên):
+  // effect tham chiếu chúng nên đặt trước sẽ là TDZ — effect chụp bản hàm của
+  // render đầu thay vì bản mới nhất.
+  useEffect(() => {
+    autoSubmitRef.current = handleAutoSubmit;
+  });
+
   // Format mm:ss
   const formatTime = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -439,7 +451,7 @@ export default function ExamPage() {
   const activeQuestion: ExamQuestion | undefined = selectedSet?.questions[currentQIndex];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* ========================================================================= */}
       {/* VIEW 1: CATALOG / BỘ ĐỀ THI LỰA CHỌN */}
       {/* ========================================================================= */}
@@ -645,7 +657,7 @@ export default function ExamPage() {
                       </div>
                       <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-300">
                         <span>🪙</span>
-                        <span>+{exam.coinReward} Coins</span>
+                        <span>+{formatCoins(exam.coinReward)} Coins</span>
                       </div>
                     </div>
                   </div>
@@ -950,7 +962,7 @@ export default function ExamPage() {
                       ⭐ +{rewardsAwarded.exp} EXP
                     </span>
                     <span className="bg-amber-400 text-slate-950 px-4 py-1.5 rounded-xl font-black text-xs sm:text-sm shadow-md flex items-center gap-1.5">
-                      🪙 +{rewardsAwarded.coins} Coins
+                      🪙 +{formatCoins(rewardsAwarded.coins)} Coins
                     </span>
                     <Link
                       href="/pet"

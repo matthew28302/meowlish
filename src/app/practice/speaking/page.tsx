@@ -195,7 +195,7 @@ export default function SpeakingPracticePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 lg:pb-12 space-y-8 overflow-x-hidden">
+    <div className="max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 lg:pb-12 space-y-8 overflow-x-hidden">
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 rounded-3xl p-6 sm:p-8 text-white shadow-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -326,7 +326,7 @@ export default function SpeakingPracticePage() {
                 sound.playClick();
                 speakText(prompt.targetSentence, 0.9);
               }}
-              className="px-3.5 py-2 min-h-[40px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer border border-emerald-200 touch-manipulation dark:bg-emerald-950 hover:dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
+              className="px-3.5 py-2 min-h-[44px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer border border-emerald-200 touch-manipulation dark:bg-emerald-950 hover:dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800"
             >
               <Volume2 className="w-4 h-4" /> Nghe mẫu 1x
             </button>
@@ -335,7 +335,7 @@ export default function SpeakingPracticePage() {
                 sound.playClick();
                 speakText(prompt.targetSentence, 0.65);
               }}
-              className="px-3.5 py-2 min-h-[40px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer touch-manipulation dark:bg-slate-800 hover:dark:bg-slate-700 dark:text-slate-300"
+              className="px-3.5 py-2 min-h-[44px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer touch-manipulation dark:bg-slate-800 hover:dark:bg-slate-700 dark:text-slate-300"
             >
               <Volume2 className="w-3.5 h-3.5 text-amber-500" /> Chậm 0.65x
             </button>
@@ -368,6 +368,20 @@ export default function SpeakingPracticePage() {
           <button
             onClick={handleToggleRecord}
             disabled={!speechSupported}
+            /* UX-010: nut mic 80-96px chi co icon <svg> (lucide khong co text
+               node) => ten truy cap rong, screen reader bo qua het. Gan
+               `aria-label` de doc ten, `aria-pressed` de noi trang thai
+               bat/tat, `aria-describedby` tro sang dong huong dan ben duoi
+               (thay vi lai mot cau khac). */
+            aria-label={
+              !speechSupported
+                ? 'Nút micro: trình duyệt chưa hỗ trợ, không dùng được'
+                : isListening
+                ? 'Dừng ghi âm và chấm điểm phát âm'
+                : 'Bắt đầu ghi âm để luyện nói'
+            }
+            aria-pressed={isListening}
+            aria-describedby="mic-record-status"
             className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center shadow-xl transition-all duration-300 cursor-pointer ${
               !speechSupported
                 ? 'bg-slate-300 text-slate-500 cursor-not-allowed dark:text-slate-400'
@@ -377,9 +391,9 @@ export default function SpeakingPracticePage() {
             }`}
           >
             {isListening ? (
-              <MicOff className="w-8 h-8 sm:w-10 sm:h-10" />
+              <MicOff className="w-8 h-8 sm:w-10 sm:h-10" aria-hidden="true" />
             ) : (
-              <Mic className="w-8 h-8 sm:w-10 sm:h-10" />
+              <Mic className="w-8 h-8 sm:w-10 sm:h-10" aria-hidden="true" />
             )}
 
             {/* Pulsing ring animation when recording */}
@@ -393,7 +407,10 @@ export default function SpeakingPracticePage() {
             )}
           </button>
 
-          <span className="text-xs sm:text-sm font-bold text-slate-700 text-center max-w-md dark:text-slate-300">
+          <span
+            id="mic-record-status"
+            className="text-xs sm:text-sm font-bold text-slate-700 text-center max-w-md dark:text-slate-300"
+          >
             {!speechSupported
               ? '⚠️ Trình duyệt chưa hỗ trợ mic. Dùng Chrome hoặc Edge, hoặc nhập text bên dưới.'
               : isListening

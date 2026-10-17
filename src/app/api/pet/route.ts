@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { db, sanitizeText, claimTimedReward, rewardCooldownRemaining, REWARD_CATALOG } from '@/lib/db';
+import { db, sanitizeText } from '@/lib/db';
+import { grantGameReward, readUserCoins } from '@/lib/gameReward';
 import { PETS_CATALOG, SHOP_ITEMS } from '@/lib/petData';
 import { checkCinnamorollAccess } from '@/lib/cinnamorollAccess';
 import { CROPS_CATALOG, LIVESTOCK_CATALOG, FARM_ANIMAL_SHOP, DOG_BREEDS, CAT_BREEDS, FARM_INCUBATOR } from '@/lib/petFarmData';
@@ -9,6 +10,11 @@ import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/ra
 import { syncDbToS3Now } from '@/lib/s3Sync';
 import { logError } from '@/lib/systemLogs';
 import logger from '@/lib/logger';
+import { formatCoins } from '@/lib/formatNumber';
+import {
+  isTestCycleLeak,
+  resolveCycleSeconds as resolveFarmCycleSeconds,
+} from '@/lib/farmCycleEnv';
 
 /** Khoảng nghỉ giữa hai lần tưới cùng một luống (chống tưới lặp để làm cây chín tức thì). */
 const WATER_COOLDOWN_MS = 60 * 1000;
@@ -113,15 +119,35 @@ function formatCountdown(totalSeconds: number): string {
   return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${minutes}:${pad(seconds)}`;
 }
 
+/**
+ * Cảnh báo MỘT LẦN khi `FARM_CYCLE_TEST` xuất hiện trên production.
+ * Cố ý KHÔNG log giá trị biến (tránh đẩy cấu hình nội bộ vào log, và tránh
+ * ai đó đọc log rồi copy ngược lại). Chỉ cần biết "có mặt" là đủ để đội
+ * vận hành đi sửa gốc env của dự án.
+ */
+let farmCycleLeakWarned = false;
+function warnFarmedCycleTestLeakOnce() {
+  if (farmCycleLeakWarned) return;
+  if (!isTestCycleLeak(process.env)) return;
+  farmCycleLeakWarned = true;
+  logger.warn(
+    '[farm] FARM_CYCLE_TEST dang duoc set tren production - da BO QUA (chu ky chan nuoi giu nguyen). Hay xoa bien nay khoi env cua du an.',
+  );
+}
+
 function resolveCycleSeconds(animalType: string): number {
-  const raw = process.env.FARM_CYCLE_TEST;
-  if (raw) {
-    const seconds = Number(raw);
-    if (Number.isFinite(seconds) && seconds > 0) {
-      return Math.max(1, Math.floor(seconds));
-    }
-  }
-  return LIVESTOCK_CYCLE_SECONDS[animalType] ?? 12 * 60 * 60;
+  // Security (2026-10-15): `FARM_CYCLE_TEST` rut chu ky ve 1 giay. Truoc day
+  // doc thang `process.env` KHONG kiem tra moi truong, nen chi can bien nay
+  // lot len Vercel la ga de trung/may sua vo han => pha kinh te game. Gio
+  // quyet dinh nam o `shouldUseTestCycles` (src/lib/farmCycleEnv.ts) va tu choi
+  // tuyet doi khi NODE_ENV === 'production'.
+  warnFarmedCycleTestLeakOnce();
+  return resolveFarmCycleSeconds(
+    process.env,
+    animalType,
+    LIVESTOCK_CYCLE_SECONDS,
+    12 * 60 * 60,
+  );
 }
 
 /** Chuẩn hoá animalType từ client: chỉ nhận key có trong LIVESTOCK_CATALOG. */
@@ -1535,65 +1561,84 @@ export async function POST(request: Request) {
       });
     }
 
-    // 13. ACTION: CLAIM PVP BATTLE REWARD / THƯỞNG ĐẤU TRƯỜNG
-    if (action === 'claim_pvp_reward') {
-      const cooldown = rewardCooldownRemaining(userId, 'pvp');
-      if (cooldown > 0) {
-        return NextResponse.json(
-          { success: false, error: `Chưa đủ thời gian chờ — thử lại sau ${Math.ceil(cooldown / 60000)} phút.` },
-          { status: 429 }
-        );
-      }
-      if (!claimTimedReward(userId, 'pvp')) {
-        return NextResponse.json({ success: false, error: 'Vừa nhận thưởng này rồi, hãy thử lại sau.' }, { status: 429 });
-      }
-      const reward = REWARD_CATALOG.pvp;
-
-      db.prepare('UPDATE users SET coins = coins + ?, exp = exp + ? WHERE id = ?').run(reward.coins, reward.exp, userId);
-      db.prepare('UPDATE user_pets SET exp = exp + ? WHERE user_id = ?').run(reward.exp, userId);
-
-      const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
+    // 13. ACTION: GRANT GAME REWARD / TRAO THƯỞNG TRẬN ĐẤU (BUG-001 + BUG-002)
+    //
+    // Thay thế `claim_pvp_reward` + `claim_racing_reward` (đã xoá: code chết —
+    // client không bao giờ gọi, nên chống replay/cooldown của chúng vô tác dụng).
+    //
+    // ĐÂY LÀ NƠI DUY NHẤT được phép cộng coin thưởng trận đấu. Trước đây client
+    // tự cộng vào localStorage (`applyCoinDelta`) VÀ `finish_battle_room` lại
+    // cộng lần nữa trên server ⇒ cộng 2 lần ở 2 nguồn sự thật; đấu với bot thì
+    // không gọi API nào cả ⇒ thưởng mất sạch khi đăng nhập lại, trong khi lượt
+    // mua ở nông trại đã bị trừ thật trên server ⇒ số dư tụt đột ngột.
+    //
+    // Chống gian lận (chi tiết ở `lib/gameReward.ts`):
+    //  - `claim_key` trùng (room:<id> hoặc <kind>:bot:<battleId>) ⇒ chỉ thưởng 1
+    //    lần, chống được cả gọi lặp lẫn race giữa 2 request song song.
+    //  - Trần mỗi lần / mỗi ngày ⇒ chặn bịa `battleId` mới liên tục để farm.
+    //  - Trận THẬT (có `roomId`): server TỰ suy ra tiền thưởng từ
+    //    `pet_battle_rooms.bet_coins`, KHÔNG tin con số client gửi lên.
+    if (action === 'grant_game_reward') {
+      const kind = body.kind === 'racing' ? 'racing' : 'pvp';
+      const roomId = sanitizeText(body.roomId);
+      const battleId = sanitizeText(body.battleId);
       const freshPet = ensurePet(userId);
+
+      let coins: number;
+      let exp: number;
+
+      if (roomId) {
+        // Trận thật: chỉ người thắng được thưởng, và tiền thưởng do server tính.
+        const room = db.prepare('SELECT * FROM pet_battle_rooms WHERE id = ?').get(roomId) as any;
+        if (!room) {
+          return NextResponse.json({ success: false, error: 'Không tìm thấy phòng đấu.' }, { status: 404 });
+        }
+        if (room.host_id !== userId && room.guest_id !== userId) {
+          return NextResponse.json({ error: 'Bạn không phải thành viên của phòng đấu này.' }, { status: 403 });
+        }
+        // `winner_id` do `finish_battle_room` ghi ⇒ người thua không thể tự thưởng
+        // cho mình bằng cách gửi roomId của phòng mình tham gia.
+        if (room.winner_id !== userId) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'Chỉ người thắng mới nhận được thưởng trận này.',
+              userCoins: readUserCoins(userId),
+            },
+            { status: 403 }
+          );
+        }
+        coins = Number(room.bet_coins || 0) * 2;
+        // EXP phần thưởng cố định cho trận có cược, không nhận từ client.
+        exp = coins > 0 ? 50 : 20;
+      } else {
+        // Trận với BOT: không có phòng để server đối chiếu, nên đây là chỗ duy
+        // nhất còn phải nhận số tiền từ client — `grantGameReward` clamp theo
+        // trần `GAME_REWARD_LIMITS` và chặn farm bằng hạn mức theo ngày.
+        coins = typeof body.amount === 'number' ? body.amount : Number(body.amount) || 0;
+        exp = typeof body.exp === 'number' ? body.exp : Number(body.exp) || 0;
+      }
+
+      const result = grantGameReward({ userId, kind, requestedCoins: coins, requestedExp: exp, roomId, battleId });
       void syncDbToS3Now();
 
+      // `success: false` kèm `userCoins` vẫn là phản hồi HỢP LỆ: client cần số
+      // dư thật để đồng bộ, chỉ là không có gì được cộng thêm.
       return NextResponse.json({
-        success: true,
-        message: `Vinh quang Đấu Trường Thú Cưng! Nhận +${reward.coins} Coins & +${reward.exp} EXP!`,
-        userCoins: freshUser?.coins || 0,
+        success: result.granted,
+        duplicate: result.duplicate,
+        error: result.message || undefined,
+        grantedCoins: result.grantedCoins,
+        grantedExp: result.grantedExp,
+        message: result.granted
+          ? `Vinh quang chiến thắng! Nhận +${formatCoins(result.grantedCoins)} Coins & +${result.grantedExp} EXP!`
+          : result.message,
+        userCoins: result.userCoins,
         pet: freshPet,
       });
     }
 
-    // 14. ACTION: CLAIM RACING REWARD / THƯỞNG ĐUA THÚ CƯNG
-    if (action === 'claim_racing_reward') {
-      const cooldown = rewardCooldownRemaining(userId, 'racing');
-      if (cooldown > 0) {
-        return NextResponse.json(
-          { success: false, error: `Chưa đủ thời gian chờ — thử lại sau ${Math.ceil(cooldown / 60000)} phút.` },
-          { status: 429 }
-        );
-      }
-      if (!claimTimedReward(userId, 'racing')) {
-        return NextResponse.json({ success: false, error: 'Vừa nhận thưởng này rồi, hãy thử lại sau.' }, { status: 429 });
-      }
-      const reward = REWARD_CATALOG.racing;
-
-      db.prepare('UPDATE users SET coins = coins + ?, exp = exp + ? WHERE id = ?').run(reward.coins, reward.exp, userId);
-      db.prepare('UPDATE user_pets SET exp = exp + ? WHERE user_id = ?').run(reward.exp, userId);
-
-      const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
-      const freshPet = ensurePet(userId);
-      void syncDbToS3Now();
-
-      return NextResponse.json({
-        success: true,
-        message: `Đua Thú Cưng đại thắng! Nhận +${reward.coins} Coins & +${reward.exp} EXP!`,
-        userCoins: freshUser?.coins || 0,
-        pet: freshPet,
-      });
-    }
-
-    // 15. ACTION: SEND CHAT / TRÒ CHUYỆN CỘNG ĐỒNG
+    // 14. ACTION: SEND CHAT / TRÒ CHUYỆN CỘNG ĐỒNG
     if (action === 'send_chat') {
       // `sanitizeText` nhận `unknown` và luôn trả `string`, nên truyền thẳng
       // giá trị thô: nếu client gửi `message: 123`/`message: {}` thì `|| ''`
@@ -1621,7 +1666,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 16. ACTION: SEND FRIEND REQUEST / GỬI LỜI MỜI KẾT BẠN
+    // 15. ACTION: SEND FRIEND REQUEST / GỬI LỜI MỜI KẾT BẠN
     if (action === 'send_friend_request') {
       const targetUserId = sanitizeText(body.targetUserId ?? body.friendId);
       if (!targetUserId || targetUserId === userId) {
@@ -1654,7 +1699,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 17. ACTION: ACCEPT FRIEND REQUEST / ĐỒNG Ý KẾT BẠN
+    // 16. ACTION: ACCEPT FRIEND REQUEST / ĐỒNG Ý KẾT BẠN
     if (action === 'accept_friend_request') {
       const requestId = sanitizeText(body.requestId);
       const requesterId = sanitizeText(body.requesterId);
@@ -1688,7 +1733,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 18. ACTION: DECLINE FRIEND REQUEST / TỪ CHỐI LỜI MỜI
+    // 17. ACTION: DECLINE FRIEND REQUEST / TỪ CHỐI LỜI MỜI
     if (action === 'decline_friend_request') {
       const requestId = sanitizeText(body.requestId);
       const requesterId = sanitizeText(body.requesterId);
@@ -1716,7 +1761,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 19. ACTION: REMOVE FRIEND / HỦY KẾT BẠN
+    // 18. ACTION: REMOVE FRIEND / HỦY KẾT BẠN
     if (action === 'remove_friend') {
       const friendId = sanitizeText(body.friendId);
       if (!friendId) {
@@ -1740,7 +1785,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 20. ACTION: PROPOSE COUPLE / GỬI LỜI CẦU HÔN (CẦN ĐƯỢC ĐỒNG Ý)
+    // 19. ACTION: PROPOSE COUPLE / GỬI LỜI CẦU HÔN (CẦN ĐƯỢC ĐỒNG Ý)
     if (action === 'propose_couple') {
       const partnerId = sanitizeText(body.partnerId);
       if (!partnerId || partnerId === userId) {
@@ -1761,7 +1806,7 @@ export async function POST(request: Request) {
       // Check Coins
       const coinUpdate = db.prepare('UPDATE users SET coins = coins - ? WHERE id = ? AND coins >= ?').run(ring.price, userId, ring.price);
       if (coinUpdate.changes === 0) {
-        return NextResponse.json({ error: `Không đủ Coins để mua ${ring.name} (${ring.price.toLocaleString()} xu)!` }, { status: 400 });
+        return NextResponse.json({ error: `Không đủ Coins để mua ${ring.name} (${formatCoins(ring.price)} xu)!` }, { status: 400 });
       }
 
       // Remove any prior pending proposals between them
@@ -1787,7 +1832,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 21. ACTION: RESPOND TO PROPOSAL / PHẢN HỒI LỜI CẦU HÔN (ĐỒNG Ý HOẶC TỪ CHỐI)
+    // 20. ACTION: RESPOND TO PROPOSAL / PHẢN HỒI LỜI CẦU HÔN (ĐỒNG Ý HOẶC TỪ CHỐI)
     if (action === 'respond_proposal') {
       const proposalId = sanitizeText(body.proposalId);
       const isAccepted = body.response === 'accept';
@@ -1877,7 +1922,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // 22. ACTION: BREAK UP / HỦY KẾT ĐÔI
+    // 21. ACTION: BREAK UP / HỦY KẾT ĐÔI
     if (action === 'break_up') {
       const removed = db.prepare(`
         DELETE FROM user_couples 
@@ -1896,7 +1941,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 23. ACTION: CREATE BATTLE ROOM / TẠO PHÒNG QUYẾT ĐẤU THẬT
+    // 22. ACTION: CREATE BATTLE ROOM / TẠO PHÒNG QUYẾT ĐẤU THẬT
     if (action === 'create_battle_room') {
       const roomName = sanitizeText(body.roomName || `${user.display_name} Thách Đấu`).slice(0, 50);
       const gameType = body.gameType === 'racing' ? 'racing' : 'pvp';
@@ -1975,7 +2020,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 24. ACTION: JOIN BATTLE ROOM / VÀO PHÒNG QUYẾT ĐẤU
+    // 23. ACTION: JOIN BATTLE ROOM / VÀO PHÒNG QUYẾT ĐẤU
     if (action === 'join_battle_room') {
       const roomId = sanitizeText(body.roomId);
       const room = db.prepare("SELECT * FROM pet_battle_rooms WHERE id = ? AND status = 'waiting'").get(roomId) as any;
@@ -2025,7 +2070,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 25. ACTION: CANCEL BATTLE ROOM / HỦY PHÒNG CHỜ
+    // 24. ACTION: CANCEL BATTLE ROOM / HỦY PHÒNG CHỜ
     if (action === 'cancel_battle_room') {
       const roomId = sanitizeText(body.roomId);
       const room = db.prepare("SELECT * FROM pet_battle_rooms WHERE id = ? AND host_id = ? AND status = 'waiting'").get(roomId, userId) as any;
@@ -2077,7 +2122,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 26. ACTION: FINISH BATTLE ROOM / KẾT THÚC TRẬN ĐẤU & TRAO THƯỞNG
+    // 25. ACTION: FINISH BATTLE ROOM / KẾT THÚC TRẬN ĐẤU & TRAO THƯỞNG
     if (action === 'finish_battle_room') {
       const roomId = sanitizeText(body.roomId);
       const requestedWinner = sanitizeText(body.winnerId);
@@ -2102,18 +2147,16 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Người thắng không hợp lệ.' }, { status: 403 });
       }
 
-      // Chuyển trạng thái với điều kiện: chỉ request đầu tiên mới được trao thưởng,
-      // chống gọi lặp trả thưởng nhiều lần (race giữa 2 request song song).
+      // Chuyển trạng thái với điều kiện: chỉ request đầu tiên mới ghi nhận kết quả,
+      // chống 2 request song song (race) ghi đè lẫn nhau.
+      //
+      // BUG-001/002: KHÔNG cộng coins/EXP ở đây nữa. Trước đây action này cộng
+      // `bet × 2` cho winner trong khi client cũng tự cộng `applyCoinDelta` vào
+      // localStorage ⇒ cộng 2 lần ở 2 nguồn sự thật. Nay chỉ `grant_game_reward`
+      // cộng, với `claim_key = room:<roomId>` ⇒ 1 trận = 1 lần thưởng duy nhất.
       const claimed = db
         .prepare("UPDATE pet_battle_rooms SET status = 'finished', winner_id = ? WHERE id = ? AND status = 'in_progress'")
         .run(winnerId, roomId).changes;
-
-      if (claimed === 1) {
-        const prizeCoins = room.bet_coins * 2;
-        if (prizeCoins > 0) {
-          db.prepare('UPDATE users SET coins = coins + ?, exp = exp + 50 WHERE id = ?').run(prizeCoins, winnerId);
-        }
-      }
 
       const freshUser = db.prepare('SELECT id, coins FROM users WHERE id = ?').get(userId) as any;
       void syncDbToS3Now();
@@ -2121,7 +2164,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         message: claimed === 1
-          ? 'Trận đấu đã kết thúc và trao thưởng thành công!'
+          ? 'Trận đấu đã kết thúc!'
           : 'Trận đấu này đã được kết thúc trước đó.',
         userCoins: freshUser?.coins || 0,
       });

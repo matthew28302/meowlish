@@ -62,6 +62,11 @@ scratch/
 # scripts/build-pet-art-2d.mjs da xuat ban WebP toi uu vao public/pet-art-2d/
 # (phan duoc commit de deploy). Nguon giu nguyen tren may de build lai.
 /art-2d-pet/
+
+# Bo avatar pixel 99 linh vat (nguon ZIP 2.5MB chi ton tai local). Ban ho
+# chinh deploy da duoc copy sang public/pixel-avatars/ (png/ + gif/) va thu
+# muc do duoc commit; nguon giu nguyen tren de quy de lay lai asset.
+/pixel_avatars_v2_100/
 /click.png
 /forgot.png
 /home.png

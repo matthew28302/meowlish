@@ -6,6 +6,8 @@ import confetti from 'canvas-confetti';
 import { Sparkles, Utensils, Award, RefreshCw, Volume2, Info, ChevronRight, Check } from 'lucide-react';
 import { drawChibiChicken, drawChibiDairyCow, drawChibiSheep, drawChibiDog, drawChibiCat, drawChibiFish } from './drawFarmLivestock';
 import { LIVESTOCK_CATALOG, FARM_ANIMAL_SHOP, DOG_BREEDS, CAT_BREEDS, FARM_INCUBATOR } from '@/lib/petFarmData';
+import { formatCoins } from '@/lib/formatNumber';
+import { makeUniqueId, rollRandom, nowMs } from './PetPvPArenaCanvas';
 
 type LivestockStatus = 'idle' | 'producing' | 'ready';
 
@@ -288,8 +290,8 @@ export default function PixelFarmCanvas({
 
     const meta = catalog(type);
     const siblings = animalsRef.current.filter((a) => a.type === type);
-    const anchor = siblings[Math.floor(Math.random() * siblings.length)];
-    const x = Math.max(70, Math.min(canvasWidth - 70, (anchor?.x ?? canvasWidth / 2) + (Math.random() * 44 - 22)));
+    const anchor = siblings[Math.floor(rollRandom() * siblings.length)];
+    const x = Math.max(70, Math.min(canvasWidth - 70, (anchor?.x ?? canvasWidth / 2) + (rollRandom() * 44 - 22)));
     const y = Math.max(170, Math.min(canvasHeight - 70, (anchor?.y ?? canvasHeight / 2) + 18));
 
     producesRef.current.push({
@@ -300,7 +302,7 @@ export default function PixelFarmCanvas({
       rewardCoins: meta.rewardCoins,
       rewardExp: meta.rewardExp,
       bounceOffset: 0,
-      createdAt: Date.now(),
+      createdAt: nowMs(),
     });
     addFloatText(
       produceType === 'egg' ? '🥚 Trứng Vàng!' : produceType === 'milk' ? '🥛 Sữa Tươi!' : '🧶 Len Mềm!',
@@ -377,7 +379,7 @@ export default function PixelFarmCanvas({
   // Add floating text
   const addFloatText = (text: string, x: number, y: number, color = '#fef08a') => {
     floatTextsRef.current.push({
-      id: `ft-${Date.now()}-${Math.random()}`,
+      id: makeUniqueId('ft'),
       text,
       x,
       y,
@@ -431,7 +433,7 @@ export default function PixelFarmCanvas({
     applyCoinDelta(-cost);
     sound.playClick();
 
-    const foodId = `food-${Date.now()}-${Math.random()}`;
+    const foodId = makeUniqueId('food');
     foodsRef.current.push({
       id: foodId,
       type,
@@ -640,15 +642,20 @@ export default function PixelFarmCanvas({
     }
 
     // 2. Check if clicked on an animal directly (Petting)
-    for (const a of animalsRef.current) {
-      const dist = Math.hypot(clickX - a.x, clickY - a.y);
-      if (dist < 40) {
-        a.heartTimer = 70;
-        sound.playPop();
-        addFloatText('❤️ Moah~', a.x, a.y - 30, '#f43f5e');
-        setBannerMsg(`${a.name} được bạn vuốt ve nên vô cùng sung sướng!`);
-        return;
-      }
+    // Thay THẺ object trong mảng thay vì gán `a.heartTimer` tại chỗ: `animalsRef`
+    // được đọc trong effect vẽ rAF, nên sửa trực tiếp phần tử của nó là mutate
+    // dữ liệu đã dùng trong effect (React Compiler chặn với immutability). Tạo
+    // object mới giữ nguyên hành vi (vòng lặp đọc lại mảng mỗi frame).
+    const petIdx = animalsRef.current.findIndex((a) => Math.hypot(clickX - a.x, clickY - a.y) < 40);
+    if (petIdx !== -1) {
+      const petted = animalsRef.current[petIdx];
+      animalsRef.current = animalsRef.current.map((a, i) =>
+        i === petIdx ? { ...a, heartTimer: 70 } : a
+      );
+      sound.playPop();
+      addFloatText('❤️ Moah~', petted.x, petted.y - 30, '#f43f5e');
+      setBannerMsg(`${petted.name} được bạn vuốt ve nên vô cùng sung sướng!`);
+      return;
     }
 
     // 3. Drop food if inside paddock
@@ -1541,65 +1548,66 @@ export default function PixelFarmCanvas({
           ref={canvasRef}
           onClick={handleCanvasClick}
           onTouchEnd={handleCanvasTouchEnd}
-          className="cursor-crosshair w-full max-w-[840px] h-auto object-contain block touch-none"
-        />
+          className="cursor-crosshair w-full max-w-[840px] h-auto max-h-[60dvh] object-contain block touch-none"        />
 
-        {/* Floating Tool Bar Inside Canvas Top-Right */}
-        <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/70 backdrop-blur-md p-1.5 rounded-2xl border border-white/25 shadow-2xl">
-          <button
-            onClick={() => setActiveTool('wheat')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
-              activeTool === 'wheat'
-                ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-300'
-                : 'bg-white/10 text-white hover:bg-white/20'
-            }`}
-            title={`Rải thóc cho gà ăn (${LIVESTOCK_CATALOG.chicken.feedPrice} xu) — khóa khi đang đếm chu kỳ`}
-          >
-            <span>🌾</span>
-            <span>{`Rải Thóc (${LIVESTOCK_CATALOG.chicken.feedPrice}🪙)`}</span>
-          </button>
+      </div>
 
-          <button
-            onClick={() => setActiveTool('hay')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
-              activeTool === 'hay'
-                ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-300'
-                : 'bg-white/10 text-white hover:bg-white/20'
-            }`}
-            title={`Rải cỏ cho bò sữa & cừu ăn (${LIVESTOCK_CATALOG.cow.feedPrice} xu bò / ${LIVESTOCK_CATALOG.sheep.feedPrice} xu cừu) — rải trong đồng cỏ để cho cừu, còn lại cho bò; khóa khi đang đếm chu kỳ`}
-          >
-            <span>🌿</span>
-            <span>{`Rải Cỏ (bò/cừu)`}</span>
-          </button>
+      {/* Thanh công cụ nông trại (UX-005): gộp dưới canvas, cuộn ngang trên màn
+          hẹp, mỗi nút cao >=44px (tap-target), không che vùng chơi. */}
+      <div className="mt-2 flex items-center gap-1.5 overflow-x-auto touch-auto custom-scrollbar bg-black/70 backdrop-blur-md p-2 rounded-2xl border border-white/25 shadow-2xl">
+        <button
+          onClick={() => setActiveTool('wheat')}
+          className={`tap-target min-h-[44px] whitespace-nowrap shrink-0 px-3 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
+            activeTool === 'wheat'
+              ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-300'
+              : 'bg-white/10 text-white hover:bg-white/20'
+          }`}
+          title={`Rải thóc cho gà ăn (${LIVESTOCK_CATALOG.chicken.feedPrice} xu) — khóa khi đang đếm chu kỳ`}
+        >
+          <span>🌾</span>
+          <span>{`Rải Thóc (${LIVESTOCK_CATALOG.chicken.feedPrice} 🪙)`}</span>
+        </button>
 
-          <button
-            onClick={() => {
-              sound.playClick();
-              setShowShop(true);
-            }}
-            className="px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer bg-white/10 text-white hover:bg-white/20"
-            title="Cửa hàng nông trại: mua/bán gà, bò, cừu, cá, chó, mèo + ấp trứng"
-          >
-            <span>🏪</span>
-            <span>Cửa Hàng</span>
-          </button>
+        <button
+          onClick={() => setActiveTool('hay')}
+          className={`tap-target min-h-[44px] whitespace-nowrap shrink-0 px-3 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
+            activeTool === 'hay'
+              ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-300'
+              : 'bg-white/10 text-white hover:bg-white/20'
+          }`}
+          title={`Rải cỏ cho bò sữa & cừu ăn (${LIVESTOCK_CATALOG.cow.feedPrice} xu bò / ${LIVESTOCK_CATALOG.sheep.feedPrice} xu cừu) — rải trong đồng cỏ để cho cừu, còn lại cho bò; khóa khi đang đếm chu kỳ`}
+        >
+          <span>🌿</span>
+          <span>{`Rải Cỏ (bò/cừu)`}</span>
+        </button>
 
-          <button
-            onClick={() => {
-              sound.playClick();
-              setShowShop(true);
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
-              incubatorUi && incubatorUi.status === 'ready'
-                ? 'bg-amber-400 text-slate-950 ring-2 ring-amber-200 animate-pulse'
-                : 'bg-white/10 text-white hover:bg-white/20'
-            }`}
-            title="Lò ấp trứng: ấp nở gà mái mới (trong cửa hàng)"
-          >
-            <span>🥚</span>
-            <span>Ấp Trứng{incubatorUi && incubatorUi.status === 'ready' ? '!' : ''}</span>
-          </button>
-        </div>
+        <button
+          onClick={() => {
+            sound.playClick();
+            setShowShop(true);
+          }}
+          className="tap-target min-h-[44px] whitespace-nowrap shrink-0 px-3 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer bg-white/10 text-white hover:bg-white/20"
+          title="Cửa hàng nông trại: mua/bán gà, bò, cừu, cá, chó, mèo + ấp trứng"
+        >
+          <span>🏪</span>
+          <span>Cửa Hàng</span>
+        </button>
+
+        <button
+          onClick={() => {
+            sound.playClick();
+            setShowShop(true);
+          }}
+          className={`tap-target min-h-[44px] whitespace-nowrap shrink-0 px-3 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
+            incubatorUi && incubatorUi.status === 'ready'
+              ? 'bg-amber-400 text-slate-950 ring-2 ring-amber-200 animate-pulse'
+              : 'bg-white/10 text-white hover:bg-white/20'
+          }`}
+          title="Lò ấp trứng: ấp nở gà mái mới (trong cửa hàng)"
+        >
+          <span>🥚</span>
+          <span>Ấp Trứng{incubatorUi && incubatorUi.status === 'ready' ? '!' : ''}</span>
+        </button>
       </div>
 
       {/* ===== H18: MODAL CỬA HÀNG NÔNG TRẠI + LÒ ẤP TRỨNG ===== */}
@@ -1614,7 +1622,12 @@ export default function PixelFarmCanvas({
                 <span className="text-2xl">🏪</span>
                 <div>
                   <h3 className="text-base sm:text-lg font-black leading-tight">Cửa Hàng Nông Trại</h3>
-                  <p className="text-[12px] text-amber-100 font-medium">Mua/bán vật nuôi • Ấp trứng nở gà mái • Số dư: {userCoinsRef.current.toLocaleString()} 🪙</p>
+                  {/* Đọc số dư từ PROP `userCoins`, KHÔNG đọc `userCoinsRef.current` trong
+                    render: ref là dữ liệu ngoài render, đọc ở JSX khiến giá trị
+                    hiển thị không cập nhật đúng lúc (và React có thể bỏ qua
+                    render khi props không đổi). `userCoinsRef` vẫn giữ vai trò
+                    đồng bộ số mới nhất cho các handler bất đồng bộ bên dưới. */}
+                  <p className="text-[12px] text-amber-100 font-medium">Mua/bán vật nuôi • Ấp trứng nở gà mái • Số dư: {formatCoins(userCoins)} 🪙</p>
                 </div>
               </div>
               <button

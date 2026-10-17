@@ -718,7 +718,7 @@ export default function WritingPracticePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6 space-y-6 sm:space-y-8 pb-24 lg:pb-12 overflow-x-hidden w-full">
+    <div className="max-w-4xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6 space-y-6 sm:space-y-8 pb-24 lg:pb-12 overflow-x-hidden">
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-teal-600 via-emerald-600 to-cyan-600 rounded-3xl p-5 sm:p-8 text-white shadow-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

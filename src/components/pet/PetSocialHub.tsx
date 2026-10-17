@@ -5,6 +5,7 @@ import {
   QUICK_CHAT_PRESETS,
 } from '@/lib/petSocialData';
 import { sound } from '@/lib/soundFx';
+import { formatCoins } from '@/lib/formatNumber';
 import confetti from 'canvas-confetti';
 import {
   Users,
@@ -23,6 +24,8 @@ import {
   Home,
   AlertCircle
 } from 'lucide-react';
+import { makeUniqueId } from './PetPvPArenaCanvas';
+import UserAvatar from '../UserAvatar';
 
 export interface PetSocialHubProps {
   currentUserId?: string;
@@ -124,7 +127,7 @@ export default function PetSocialHub({
     onSendSpeech(cleanText);
 
     const tempMsg = {
-      id: `chat-${Date.now()}`,
+      id: makeUniqueId('chat'),
       user_id: currentUserId,
       username: currentUsername,
       display_name: currentDisplayName,
@@ -359,7 +362,7 @@ export default function PetSocialHub({
 
         {/* User Coin Balance */}
         <div className="flex items-center gap-1 bg-black/50 px-3 py-1.5 rounded-xl border border-amber-400/40 text-xs font-black text-amber-300 ml-auto">
-          <span>🪙 {userCoins.toLocaleString()} Coins</span>
+          <span>🪙 {formatCoins(userCoins)} Coins</span>
         </div>
       </div>
 
@@ -411,7 +414,9 @@ export default function PetSocialHub({
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-teal-500 p-0.5 shrink-0 flex items-center justify-center text-2xl shadow-inner">
-                      {f.avatar || '🐾'}
+                      {/* Avatar pixel; emoji lẻ ngoài bộ pixel (👨‍💻 🎀 ⚡ trong
+                          petSocialData) vẫn hiển thị emoji như cũ */}
+                      <UserAvatar avatar={f.avatar} size={44} alt={`Avatar của ${f.display_name}`} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <h4 className="text-xs font-black text-amber-200 truncate">{f.display_name}</h4>
@@ -492,7 +497,7 @@ export default function PetSocialHub({
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-11 h-11 rounded-xl bg-slate-700 flex items-center justify-center text-2xl shrink-0">
-                      {req.avatar || '🐾'}
+                      <UserAvatar avatar={req.avatar} size={40} alt={`Avatar của ${req.display_name}`} />
                     </div>
                     <div className="min-w-0">
                       <h4 className="text-xs font-black text-amber-300 truncate">{req.display_name}</h4>
@@ -562,7 +567,7 @@ export default function PetSocialHub({
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-11 h-11 rounded-xl bg-slate-700 flex items-center justify-center text-2xl shrink-0">
-                      {u.avatar || '🐾'}
+                      <UserAvatar avatar={u.avatar} size={40} alt={`Avatar của ${u.display_name}`} />
                     </div>
                     <div className="min-w-0">
                       <h4 className="text-xs font-black text-white truncate">{u.display_name}</h4>

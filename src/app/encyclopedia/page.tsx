@@ -348,7 +348,7 @@ export default function EncyclopediaPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 lg:pb-12 space-y-8 overflow-x-hidden">
+    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 lg:pb-12 space-y-8 overflow-x-hidden">
       {/* Toast Notification — feedback cho bookmark/save */}
       {notification && (
         <div
@@ -507,7 +507,7 @@ export default function EncyclopediaPage() {
                 setActiveCategory(cat.id);
                 setCurrentPage(1);
               }}
-              className={`tap-target px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+              className={`tap-target px-3.5 py-1.5 min-h-[44px] rounded-xl text-xs font-bold transition cursor-pointer border ${
                 activeCategory === cat.id
                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                   : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:border-white/10'
@@ -532,7 +532,7 @@ export default function EncyclopediaPage() {
                   setActiveLevel(lvl);
                   setCurrentPage(1);
                 }}
-                className={`tap-target px-2.5 py-1 rounded-lg font-bold transition cursor-pointer text-[12px] ${
+                className={`tap-target px-2.5 py-1 min-h-[44px] rounded-lg font-bold transition cursor-pointer text-[12px] ${
                   activeLevel === lvl
                     ? 'bg-slate-900 text-white shadow-xs dark:bg-white dark:text-slate-900'
                     : 'text-slate-500 hover:text-slate-900 bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:bg-white/10'

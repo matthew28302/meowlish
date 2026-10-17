@@ -114,6 +114,57 @@ export default function EmailVerifyModal({
     };
   }, []);
 
+  // Gửi hoặc gửi lại mã OTP xác thực.
+  //
+  // KHÔNG ĐỂ SAU effect "Sync state whenever modal opens": effect đó gọi hàm này,
+  // nên khai báo sau là TDZ (`const` chưa khởi tạo tại lúc effect chạy). Với
+  // `useEffect` thân chạy sau render đầu nên hiện chưa nổ, nhưng effect chụp hàm
+  // ở render đầu ⇒ thay đổi logic bên trong sau này sẽ không có tác dụng.
+  const handleRequestCode = async (e?: React.FormEvent, forcedEmail?: string) => {
+    if (e) e.preventDefault();
+    const emailToSend = (forcedEmail || user?.email || customEmail).trim();
+    if (!emailToSend || !emailToSend.includes('@') || !emailToSend.includes('.')) {
+      setError('Vui lòng nhập đúng định dạng email hợp lệ (ví dụ: ten@gmail.com).');
+      sound.playWrong();
+      return;
+    }
+
+    setResending(true);
+    setError(null);
+    setSuccess(null);
+    sound.playClick();
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'request_email_verification',
+          userId: user?.id,
+          email: emailToSend,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        sound.playSuccess();
+        setSessionId(data.sessionId);
+        setCountdown(300);
+        setOtp('');
+        setSuccess(`Đã gửi mã OTP 6 số đến ${emailToSend}! Vui lòng kiểm tra Hộp thư đến hoặc Thư rác.`);
+        setStep('otp');
+      } else {
+        setError(data.error || 'Không thể gửi mã xác thực. Vui lòng thử lại sau.');
+        sound.playWrong();
+      }
+    } catch {
+      setError('Lỗi kết nối máy chủ gửi email. Vui lòng kiểm tra kết nối mạng.');
+      sound.playWrong();
+    } finally {
+      setResending(false);
+    }
+  };
+
   // Sync state whenever modal opens: Tự động gửi mã OTP ngay nếu tài khoản đã có email
   useEffect(() => {
     if (!isOpen || !user) return;
@@ -175,52 +226,6 @@ export default function EmailVerifyModal({
   if (!isOpen || !user) return null;
 
   const targetEmail = (user.email || customEmail).trim();
-
-  // Gửi hoặc gửi lại mã OTP xác thực
-  const handleRequestCode = async (e?: React.FormEvent, forcedEmail?: string) => {
-    if (e) e.preventDefault();
-    const emailToSend = (forcedEmail || user.email || customEmail).trim();
-    if (!emailToSend || !emailToSend.includes('@') || !emailToSend.includes('.')) {
-      setError('Vui lòng nhập đúng định dạng email hợp lệ (ví dụ: ten@gmail.com).');
-      sound.playWrong();
-      return;
-    }
-
-    setResending(true);
-    setError(null);
-    setSuccess(null);
-    sound.playClick();
-
-    try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'request_email_verification',
-          userId: user.id,
-          email: emailToSend,
-        }),
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        sound.playSuccess();
-        setSessionId(data.sessionId);
-        setCountdown(300);
-        setOtp('');
-        setSuccess(`Đã gửi mã OTP 6 số đến ${emailToSend}! Vui lòng kiểm tra Hộp thư đến hoặc Thư rác.`);
-        setStep('otp');
-      } else {
-        setError(data.error || 'Không thể gửi mã xác thực. Vui lòng thử lại sau.');
-        sound.playWrong();
-      }
-    } catch {
-      setError('Lỗi kết nối máy chủ gửi email. Vui lòng kiểm tra kết nối mạng.');
-      sound.playWrong();
-    } finally {
-      setResending(false);
-    }
-  };
 
   // BƯỚC 2: Nhập mã OTP và kích hoạt tài khoản
   const handleVerify = async (e: React.FormEvent) => {

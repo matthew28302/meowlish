@@ -22,6 +22,10 @@ const FILES = {
   encyclopedia: 'src/app/encyclopedia/page.tsx',
   vocabulary: 'src/app/vocabulary/page.tsx',
   bookmarks: 'src/app/bookmarks/page.tsx',
+  // UX-010 (audit 2026-10-15): nút mic 80-96px trên /practice/speaking chỉ có
+  // icon <svg> nên axe báo `button-name` mức critical - screen reader đọc nó
+  // là "button" trần. Đưa file này vào cùng bộ quét để chặn tái phát.
+  speaking: 'src/app/practice/speaking/page.tsx',
 };
 
 const readSrc = (key: string): string =>
@@ -175,6 +179,25 @@ describe('H8: mọi nút icon-only trong 4 file có accessible name', () => {
       "aria-label={isSaved ? 'Bỏ lưu khỏi sổ tay' : 'Lưu vào sổ tay'}"
     );
     expect(src).toContain('aria-pressed={isSaved}');
+  });
+
+  /**
+   * UX-010: nút mic 80-96px trên /practice/speaking trước đây chỉ có icon
+   * <svg> ⇒ axe `button-name` critical, screen reader không đọc được nút làm
+   * gì. Ngoài accessible name còn phải nói rõ trạng thái bật/tắt và trỏ về
+   * dòng hướng dẫn để người dùng không chỉ nghe một chữ "nút".
+   */
+  it('speaking: nút mic có aria-label + aria-pressed + aria-describedby', () => {
+    const src = readSrc('speaking');
+    expect(src).toContain('aria-pressed={isListening}');
+    expect(src).toContain('aria-describedby="mic-record-status"');
+    expect(src).toContain('id="mic-record-status"');
+    expect(src).toContain('aria-label={');
+
+    // aria-describedby chỉ có tác dụng nếu id đích thực sự tồn tại trong DOM.
+    const described = /aria-describedby="([^"]+)"/.exec(src)?.[1];
+    expect(described).toBeTruthy();
+    expect(src).toContain(`id="${described}"`);
   });
 });
 

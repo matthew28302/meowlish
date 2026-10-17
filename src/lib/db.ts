@@ -578,6 +578,33 @@ function createDb(): Database.Database {
       CREATE INDEX IF NOT EXISTS idx_battle_rooms_host ON pet_battle_rooms(host_id);
     `);
 
+    // Vết lần nhận thưởng TRẬN ĐẤU (BUG-001/BUG-002) — nguồn sự thật DUY NHẤT.
+    //
+    // Vì sao cần bảng này: trước đây tiền thưởng PvP/Đua thú được cộng ở CLIENT
+    // (`applyCoinDelta` → localStorage) và lại cộng lần nữa ở `finish_battle_room`
+    // trên server ⇒ hai nguồn sự thật có thể lệch nhau; đấu với BOT thì không gọi
+    // API nào cả ⇒ thưởng nằm trong localStorage và MẤT SẠCH khi đăng nhập lại.
+    //
+    // `claim_key` là khoá chống gọi lặp: `room:<roomId>` cho trận thật (phòng có
+    // id duy nhất, không thể thưởng 2 lần), `<kind>:bot:<battleId>` cho trận với
+    // bot (battleId do client sinh 1 lần mỗi trận). PRIMARY KEY khoá theo CẶP
+    // (user_id, claim_key) chứ không phải claim_key đơn độc — tránh việc id trận
+    // của người chơi A trùng với người chơi B làm mất thưởng của B (nếu
+    // claim_key là PRIMARY KEY đơn thì INSERT của B sẽ bị DO NOTHING im lặng).
+    //
+    // `created_at` lưu epoch ms để đếm trần theo ngày (đánh index phụ).
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS game_reward_claims (
+        user_id TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        claim_key TEXT NOT NULL,
+        amount INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        PRIMARY KEY (user_id, claim_key)
+      );
+      CREATE INDEX IF NOT EXISTS idx_game_reward_daily ON game_reward_claims(user_id, created_at);
+    `);
+
     // Migration cho bảng user_couples
     try {
       const coupleCols = db.prepare("PRAGMA table_info(user_couples)").all() as { name: string }[];

@@ -10,6 +10,37 @@
   --primary-emerald-dark: #059669;
   --accent-amber: #f59e0b;
   --accent-coral: #f97316;
+
+  /* --- UX-007 (vòng 3): token màu chữ của khung điều hướng (sidebar +      */
+  /* bottom nav). Trước đây mỗi chỗ tự chọn `text-slate-400 dark:text-slate-500` */
+  /* ⇒ nhãn nhóm 2.63:1 (light) / 3.74:1 (dark), mục active trắng-trên-emerald */
+  /* 500 2.47:1 — FAIL WCAG AA trên CẢ 13/13 trang. Sửa ở TẦNG TOKEN để áp dụng  */
+  /* đồng loạt cho desktop sidebar, mobile drawer và bottom nav.               */
+  --nav-group-label: #45556c; /* slate-600 trên nền trắng = 7.58:1 */
+  --nav-item: #45556c;        /* slate-600 = 7.58:1 */
+  --nav-item-hover: #0f1726;  /* slate-700 = 17.9:1 */
+  --nav-icon: #62748e;        /* slate-500 = 4.76:1 */
+  --nav-active-bg: #007a55;   /* emerald-700: trắng trên đó = 5.36:1 */
+  --nav-active-border: #006045; /* emerald-800 = 7.6:1 so với nền active */
+  --nav-active-fg: #ffffff;
+  --nav-active-badge-bg: #006045;
+  --nav-active-badge-fg: #d1fae5; /* emerald-100 trên e800 = 6.71:1 */
+  --nav-bottom-active: #007a55; /* emerald-700 trên nền trắng = 5.36:1 */
+}
+
+/* Bản tối: nền sidebar là slate-900 #0f172b ⇒ phải đảo chiều (chữ sáng lên,
+   nền active tối xuống) chứ không dùng chung bộ màu với bản sáng. */
+:root.dark {
+  --nav-group-label: #90a1b9; /* slate-400 trên slate-900 = 6.78:1 */
+  --nav-item: #90a1b9;
+  --nav-item-hover: #cad5e2; /* slate-300 = 12.0:1 */
+  --nav-icon: #90a1b9;
+  --nav-active-bg: #007a55;
+  --nav-active-border: #00d492; /* viền dưới emerald-400 nổi trên nền tối */
+  --nav-active-fg: #ffffff;
+  --nav-active-badge-bg: #006045;
+  --nav-active-badge-fg: #d1fae5;
+  --nav-bottom-active: #6ee7b7; /* emerald-300 trên slate-900 = 11.7:1 */
 }
 
 @theme inline {
@@ -430,6 +461,56 @@ aside::-webkit-scrollbar-thumb {
 }
 aside::-webkit-scrollbar-thumb:hover {
   background: #10b981;
+}
+
+/* ========================================================================= */
+/* UX-007: LỚP MÀU CHO KHUNG ĐIỀU HƯỚNG — dùng token ở trên                  */
+/* ========================================================================= */
+/* Vì sao để ở đây chứ không sửa class Tailwind trong JSX: 13/13 trang dùng   */
+/* chung AppShell, nên sửa utility `text-slate-400 dark:text-slate-500` ở     */
+/* JSX dễ sót chỗ (đã sót 1 lần: nhóm trong drawer ≠ nhóm trong sidebar).     */
+/* Ở đây ta khai một lớp class có tên, màu lấy từ token ⇒ thêm bề mặt điều  */
+/* hướng mới cũng chỉ cần dùng lại class, không phải nhớ bảng màu.            */
+/* Unlayered (đặc hiệu 0-1-0) nên THẮNG mọi utility Tailwind trong            */
+/* `@layer utilities` — kể cả `text-white`/`text-slate-*` còn sót trong JSX.   */
+/* ========================================================================= */
+.nav-group-label {
+  color: var(--nav-group-label);
+}
+.nav-link {
+  color: var(--nav-item);
+}
+.nav-link:hover,
+.nav-link:focus-visible {
+  color: var(--nav-item-hover);
+}
+.nav-icon {
+  color: var(--nav-icon);
+}
+.nav-link:hover .nav-icon,
+.nav-link:focus-visible .nav-icon {
+  color: var(--nav-item-hover);
+}
+/* Mục đang active: nền emerald-700 + chữ trắng = 5.36:1 (trước là emerald-500
+   2.47:1 FAIL). `border-bottom-color` tách riêng vì Tailwind dùng
+   `border-emerald-600` (viền dưới) — nếu không ép lại, viền vẫn sai màu. */
+.nav-link-active,
+.nav-link-active:hover,
+.nav-link-active:focus-visible {
+  background-color: var(--nav-active-bg);
+  color: var(--nav-active-fg);
+  border-bottom-color: var(--nav-active-border);
+}
+.nav-link-active .nav-icon {
+  color: var(--nav-active-fg);
+}
+.nav-badge-active {
+  background-color: var(--nav-active-badge-bg);
+  color: var(--nav-active-badge-fg);
+}
+/* Bottom nav mobile: màu active phải đủ 4.5:1 trên nền trắng/slate-900 */
+.nav-bottom-active {
+  color: var(--nav-bottom-active);
 }
 
 /* 2D Pixel Farm Game Animations (Meowlish 16-bit retro style) */

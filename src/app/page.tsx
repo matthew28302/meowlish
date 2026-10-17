@@ -39,7 +39,9 @@ import confetti from '@/lib/confetti';
 import { speakText } from '@/lib/speech';
 import { getStoredUser, AuthUser, setStoredUser } from '@/lib/auth';
 import { PETS_CATALOG, getPetTitle } from '@/lib/petData';
+import { formatCoins } from '@/lib/formatNumber';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
+import UserAvatar from '@/components/UserAvatar';
 import { LEARNING_PATHS, LearningPath, PathNode } from '@/lib/learningPathsData';
 import StudyPlanSection from '@/components/StudyPlanSection';
 
@@ -799,8 +801,8 @@ export default function HomePage() {
           {/* User Profile Card */}
           <div className="card-arcade card-arcade-sky p-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl shadow-xs dark:bg-emerald-950 dark:text-emerald-200">
-                {currentUser?.avatar || '🦉'}
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-2xl flex items-center justify-center shadow-xs dark:bg-emerald-950 dark:text-emerald-200">
+                <UserAvatar avatar={currentUser?.avatar} size={44} />
               </div>
               <div>
                 <span className="text-xs text-slate-400 font-medium block">Tài khoản học viên</span>
@@ -841,7 +843,7 @@ export default function HomePage() {
                 onClick={() => sound.playClick()}
                 className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-200 text-xs font-black transition cursor-pointer dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800"
               >
-                <span>🪙</span> {userCoins} Coins
+                <span>🪙</span> {formatCoins(userCoins)} Coins
               </Link>
             </div>
 
@@ -862,7 +864,7 @@ export default function HomePage() {
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <h4 className="font-black text-sm text-slate-900 truncate dark:text-slate-100">
+                      <h4 className="font-black text-sm text-slate-900 line-clamp-2 dark:text-slate-100" title={userPet.name}>
                         {userPet.name}
                       </h4>
                       <span className="text-[12px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0 dark:bg-emerald-950 dark:text-emerald-200">
@@ -1097,7 +1099,7 @@ export default function HomePage() {
 
             <div className="pt-2 flex items-center justify-between gap-3 border-t border-slate-100 dark:border-white/10">
               <div className="text-xs font-black text-amber-600 dark:text-amber-300">
-                Thưởng: ⭐ +{selectedNodeModal.expReward} EXP • 🪙 +{selectedNodeModal.coinReward} Coins
+                Thưởng: ⭐ +{selectedNodeModal.expReward} EXP • 🪙 +{formatCoins(selectedNodeModal.coinReward)} Coins
               </div>
 
               {!completedNodeIds[selectedNodeModal.id] ? (

@@ -20,6 +20,7 @@ import {
 import { logAccess, logError } from '@/lib/systemLogs';
 import { syncDbToS3Now, refreshIfRemoteNewer, persistCriticalWrite } from '@/lib/s3Sync';
 import logger from '@/lib/logger';
+import { PIXEL_AVATAR_SLUGS } from '@/lib/pixelAvatars';
 
 function formatSafeUser(user: any) {
   if (!user) return null;
@@ -572,10 +573,20 @@ export async function POST(request: Request) {
         }
       }
 
-      // b) Ảnh đại diện (emoji)
+      // b) Ảnh đại diện: 1 emoji (dữ liệu cũ) HOẶC "pixel:<slug>" với slug nằm
+      // trong bộ 99 ảnh pixel (src/lib/pixelAvatars — ProfileEditModal chọn từ
+      // bộ đó). Slug lạ từ chối ngay để không lưu chuỗi garbage vào DB.
       if (avatar !== undefined && avatar !== null) {
         const cleanAvatar = String(avatar).trim();
-        if (!cleanAvatar || cleanAvatar.length > 8 || /[\s<>]/.test(cleanAvatar)) {
+        if (cleanAvatar.startsWith('pixel:')) {
+          const pixelSlug = cleanAvatar.slice('pixel:'.length);
+          if (!PIXEL_AVATAR_SLUGS.includes(pixelSlug)) {
+            return NextResponse.json(
+              { error: 'Ảnh đại diện không hợp lệ (chọn 1 emoji hoặc 1 ảnh pixel trong bộ có sẵn).' },
+              { status: 400 }
+            );
+          }
+        } else if (!cleanAvatar || cleanAvatar.length > 8 || /[\s<>]/.test(cleanAvatar)) {
           return NextResponse.json({ error: 'Ảnh đại diện không hợp lệ (chỉ chọn 1 emoji).' }, { status: 400 });
         }
         if (cleanAvatar !== dbUser.avatar) {

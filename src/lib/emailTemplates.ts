@@ -272,6 +272,28 @@ function assetUrl(file: string): string {
   return `${APP_URL}/${file}`;
 }
 
+/**
+ * CỠ HIỂN THỊ của hero GIF. PHẢI KHỚP ĐÚNG 1/2 kích thước file GIF.
+ *
+ * Vì sao ràng buộc này là bắt buộc: GIF là BITMAP, không scale vector được như
+ * SVG. Nếu khai báo 220px cho file 150×150 thì client phóng 150→220 (1.47×) bằng
+ * bilinear ⇒ mờ. Đã xảy ra đúng lỗi đó: bản 440px bị bỏ vì dẹp nền trắng, quay
+ * về 150×150 nhưng template vẫn còn `width="220"` ⇒ người dùng phản ánh "chất
+ * lượng GIF vẫn kém" dù file đã "được sửa". Chiều ngược lại (hiển thị nhỏ hơn
+ * cỡ file) thì an toàn: chỉ bị thu nhỏ, không vỡ nét.
+ *
+ * KHI ĐỔI KÍCH THƯỚC ẢNH, làm đúng thứ tự sau (đừng sửa tay con số này trước):
+ *   1. node scripts/render-lottie-gifs.mjs 440   → render đúng 2× cỡ hiển thị,
+ *      từ Lottie vector 512² trong scripts/assets/lottie (không tải mạng).
+ *      Script giữ NỀN TRONG SUỐT — TUYỆT ĐỐI KHÔNG flatten nền trắng: email
+ *      client ở dark mode tự đảo màu ảnh nền sáng thành nền tối, mèo cũng bị
+ *      đảo màu nên gần như biến mất (đã xảy ra một lần rồi).
+ *   2. node scripts/verify-email-gifs.mjs         → phải in ✔ cho cả 2 file,
+ *      kiểm tra cả kích thước lẫn cờ trong suốt của từng khung.
+ *   3. Sửa hằng số dưới cho khớp cỡ file mới.
+ */
+const EMAIL_HERO_GIF_DISPLAY_PX = 220;
+
 /** Khung email "meow": logo, hero GIF, tiêu đề, nội dung, footer hồng. */
 function meowLayout({
   preheader,
@@ -329,7 +351,7 @@ function meowLayout({
             </tr>
             <tr>
               <td align="center" style="padding:12px 32px 0 32px; background-color:#FFFFFF;">
-                <img src="${escapeHtml(assetUrl(gifFile))}" alt="${escapeHtml(gifAlt)}" width="220" style="display:block; width:220px; max-width:60%; height:auto;" />
+                <img src="${escapeHtml(assetUrl(gifFile))}" alt="${escapeHtml(gifAlt)}" width="${EMAIL_HERO_GIF_DISPLAY_PX}" style="display:block; width:${EMAIL_HERO_GIF_DISPLAY_PX}px; max-width:60%; height:auto;" />
               </td>
             </tr>
 ${sections}

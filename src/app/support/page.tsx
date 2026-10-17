@@ -62,6 +62,16 @@ interface ChatMessage {
   timestamp: string;
 }
 
+/**
+ * Sinh id cho bản ghi chat. Đặt ở MODULE SCOPE vì `Date.now()` là hàm impure:
+ * gọi trực tiếp trong thân component khiến giá trị id nhảy mỗi lần render
+ * (React Compiler chặn `react-hooks/purity`). Ở đây giữ nguyên hành vi
+ * "id duy nhất theo thời điểm gửi" mà không để render gọi hàm impure.
+ */
+function makeChatMessageId(prefix: string): string {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+}
+
 /** Các field của form tạo phiếu hỗ trợ cần validate phía client */
 type TicketFieldKey = 'category' | 'name' | 'email' | 'subject' | 'message';
 type TicketFieldErrors = Partial<Record<TicketFieldKey, string>>;
@@ -171,20 +181,6 @@ export default function SupportPage() {
   const [historySearchQuery, setHistorySearchQuery] = useState<string>('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const user = getCurrentUser();
-    if (user) {
-      setCurrentUser(user);
-      if (user.display_name) setName(user.display_name);
-      if (user.email) setEmail(user.email);
-      // Tự động tải lịch sử ticket nếu đã đăng nhập
-      fetchTicketHistory(user.id, user.email);
-    }
-    return () => {
-      confetti.reset();
-    };
-  }, []);
-
   // Sau mount mới đóng dấu giờ cho tin chào — server đã render chuỗi rỗng.
   useEffect(() => {
     const stamp = new Date().toLocaleTimeString('vi-VN', {
@@ -235,6 +231,27 @@ export default function SupportPage() {
       setIsLoadingHistory(false);
     }
   };
+
+  // Khôi phục phiên khách + tự tải lịch sử ticket.
+  //
+  // Đặt SAU khai báo `fetchTicketHistory`: trước đây effect nằm ở trên và gọi
+  // hàm đó trước khi nó được khai báo (`const` ⇒ TDZ). Thân `useEffect` chạy sau
+  // lần render đầu nên chưa nổ, nhưng effect chụp hàm ở render đầu ⇒ các thay
+  // đổi logic sau này trong `fetchTicketHistory` sẽ không được áp dụng.
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      if (user.display_name) setName(user.display_name);
+      if (user.email) setEmail(user.email);
+      // Tự động tải lịch sử ticket nếu đã đăng nhập
+      fetchTicketHistory(user.id, user.email);
+    }
+    return () => {
+      confetti.reset();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chạy 1 lần khi mount.
+  }, []);
 
   // ==========================================
   // KNOWLEDGE BASE DATA
@@ -462,7 +479,7 @@ export default function SupportPage() {
     sound.playClick();
 
     const userMsg: ChatMessage = {
-      id: `user_${Date.now()}`,
+      id: makeChatMessageId('user'),
       role: 'user',
       content: textToSend,
       timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
@@ -492,7 +509,7 @@ export default function SupportPage() {
       if (res.ok && data.answer) {
         sound.playSuccess();
         const assistantMsg: ChatMessage = {
-          id: `ai_${Date.now()}`,
+          id: makeChatMessageId('ai'),
           role: 'assistant',
           content: data.answer,
           provider: data.provider,
@@ -502,7 +519,7 @@ export default function SupportPage() {
       } else {
         sound.playError();
         const errorMsg: ChatMessage = {
-          id: `ai_err_${Date.now()}`,
+          id: makeChatMessageId('ai_err'),
           role: 'assistant',
           content: 'Meow! 🐱 Hệ thống đang xử lý nhiều yêu cầu cùng lúc. Bạn có thể tham khảo mục Cẩm Nang hoặc gửi Ticket ở tab bên cạnh để BQT hỗ trợ nhé!',
           provider: 'error_fallback',
@@ -513,7 +530,7 @@ export default function SupportPage() {
     } catch {
       sound.playError();
       const errorMsg: ChatMessage = {
-        id: `ai_net_err_${Date.now()}`,
+        id: makeChatMessageId('ai_net_err'),
         role: 'assistant',
         content: 'Meow! 🐱 Lỗi kết nối mạng rồi. Vui lòng kiểm tra lại đường truyền internet của bạn nhé!',
         provider: 'error_fallback',

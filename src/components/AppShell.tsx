@@ -32,13 +32,16 @@ import {
   Pencil,
 } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
+import { formatCoins } from '@/lib/formatNumber';
 import { initTheme } from '@/lib/theme';
 import ThemeToggle from './ThemeToggle';
 import { AuthUser, getCurrentUser, setStoredUser, clearStoredUser, removeSavedAccount } from '@/lib/auth';
+import UserAvatar from './UserAvatar';
 import AuthModal from './AuthModal';
 import EmailVerifyModal from './EmailVerifyModal';
 import ProfileEditModal from './ProfileEditModal';
 import FloatingAiChat from './FloatingAiChat';
+import ToastProvider from './Toast';
 
 interface NavItem {
   href: string;
@@ -324,8 +327,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   if (!isAuthChecked) {
     return (
       <div className="fixed inset-0 z-50 bg-[#0f172a] flex flex-col items-center justify-center p-4 select-none">
-        <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center text-3xl animate-bounce mb-3 shadow-xl shadow-emerald-500/10">
-          🐱
+        <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center animate-bounce mb-3 shadow-xl shadow-emerald-500/10">
+          {/* Linh vật brand: GIF pixel của khách (avatar trống → mèo mặc định) */}
+          <UserAvatar avatar={null} format="gif" size={48} alt="Linh vật Meowlish" />
         </div>
         <div className="text-white font-black text-lg tracking-wide flex items-center gap-2">
           <span>Meowlish</span>
@@ -345,7 +349,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // overlay đè lên thay vì THAY THẾ children — không phải cloaking: nội dung
   // vẫn hiện cho user thật (đóng modal bằng nút X là thấy nội dung đằng sau,
   // và có thể bấm "Đăng nhập" từ header để mở lại). Điều kiện gate GIỮ NGUYÊN.
-  const isGuestOnProtectedRoute = !currentUser && pathname !== '/encyclopedia';
+  // /reset-password phải NỘI NGOẠI: người quên mật khẩu chắc chắn ĐANG đăng
+  // xuất — bấm link trong email mà bị modal login đè kín form đặt lại mật
+  // khẩu thì mất lối (rà UI 2026-10-17).
+  const isGuestOnProtectedRoute =
+    !currentUser &&
+    pathname !== '/encyclopedia' &&
+    pathname !== '/reset-password';
   const showGuestGate = isGuestOnProtectedRoute && guestGateOpen;
 
   const navGroups: NavGroup[] = [
@@ -422,6 +432,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     'flex-1 min-h-0 flex flex-col w-full overflow-y-auto overscroll-y-contain custom-scrollbar lg:pb-0 scroll-pb-32 [&>div.overflow-x-hidden:not(.flex-1)]:shrink-0';
 
   return (
+    // UX-008: ToastProvider bọc ở đây (một lần cho MỌI trang) nên mọi `alert()`
+    // cũ đã chuyển sang `useToast()` đều hoạt động mà không cần page nào tự
+    // mount provider. Các early-return phía trên (/duahau + splash) không cần
+    // toast nên cố ý không bọc — chúng không render component dùng toast.
+    <ToastProvider>
     <div className="h-dvh w-full bg-[#f8fafc] dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex overflow-hidden relative">
       {/* Thông báo bảo mật khi tài khoản bị vô hiệu hóa */}
       {disabledNotice && (
@@ -442,25 +457,34 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* 1. DESKTOP FIXED SIDEBAR (Standard Duolingo/Notion App Layout) */}
       <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 z-40 bg-white dark:bg-slate-900 border-r-2 border-slate-100 dark:border-white/10 shadow-xs select-none">
-        {/* Logo Brand — chỉ còn icon (bỏ wordmark "Meowlish" theo yêu cầu) */}
+        {/* Logo Brand — khung GIF pixel + wordmark "Meowlish" (trở lại theo yêu
+            cầu: trước đây chỉ icon; khung gradient giữ nguyên, GIF trong suốt nổi trên nền). */}
         <div className="p-5 border-b border-slate-100 dark:border-white/10">
           <Link
             href="/"
             onClick={() => sound.playClick()}
             title="Về trang chủ Meowlish"
-            className="flex items-center gap-3 group"
+            className="flex items-center gap-2.5 group"
           >
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform text-2xl">
-              🐱
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform shrink-0">
+              {/* GIF TƯƠNG ỨNG avatar user đã chọn (kèm chữ Meowlish bên cạnh).
+                  Guest — chưa có avatar — hiện Linh Vật mặc định (cat). */}
+              <UserAvatar avatar={currentUser?.avatar} format="gif" size={32} alt="Linh vật Meowlish" />
             </div>
+            <span className="text-base font-black text-slate-900 dark:text-slate-100 tracking-tight">
+              Meowlish
+            </span>
           </Link>
         </div>
 
         {/* Scrollable Navigation Groups */}
-        <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6">
+        <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6" tabIndex={0}>
           {navGroups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-1.5">
-              <div className="px-3 text-[12px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              {/* UX-007: `nav-group-label` lấy màu từ token (xem globals.css).
+                  Đừng thêm lại `text-slate-400 dark:text-slate-500` — đó là
+                  nguyên nhân 2.63:1 / 3.74:1 FAIL trên cả 13 trang. */}
+              <div className="nav-group-label px-3 text-[12px] font-black uppercase tracking-wider">
                 {group.title}
               </div>
               <div className="space-y-1">
@@ -483,19 +507,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                           sound.playClick();
                         }
                       }}
-                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+                      className={`flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer border-b-2 border-transparent ${
                         isActive
-                          ? 'bg-emerald-500 text-white font-black shadow-md shadow-emerald-500/25 border-b-4 border-emerald-600'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-white/5 border-b-2 border-transparent'
+                          ? 'nav-link-active font-black shadow-md shadow-emerald-500/25 border-b-4'
+                          : 'nav-link hover:bg-slate-50 dark:hover:bg-white/5'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700'}`} />
+                        <Icon className={`w-4 h-4 nav-icon ${isActive ? 'text-white' : ''}`} />
                         <span>{item.label}</span>
                       </div>
                       {item.badge && (
                         <span className={`text-[12px] font-black px-2 py-0.5 rounded-full ${
-                          isActive ? 'bg-emerald-700 text-emerald-100' : item.badgeColor
+                          isActive ? 'nav-badge-active' : item.badgeColor
                         }`}>
                           {item.badge}
                         </span>
@@ -521,20 +545,21 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-lg shrink-0">
-                {currentUser?.avatar || '🐱'}
+                <UserAvatar avatar={currentUser?.avatar} size={36} />
               </div>
               <div className="min-w-0">
                 <div className="text-xs font-black text-slate-900 dark:text-slate-100 truncate">
                   {currentUser?.display_name || 'Học Viên'}
                 </div>
-                <div className="text-[12px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                {/* UX-007: footer card cũng nằm trong sidebar — cùng token contrast. */}
+                <div className="text-[12px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
                   <span>Level {currentUser?.level || 1}</span>
                   <span>•</span>
-                  <span className="text-amber-600 dark:text-amber-300">{currentUser?.exp || 0} EXP</span>
+                  <span className="text-amber-700 dark:text-amber-300">{currentUser?.exp || 0} EXP</span>
                 </div>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+            <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
           </button>
         </div>
       </aside>
@@ -571,8 +596,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 </button>
 
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <div className="lg:hidden w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white text-base shrink-0">
-                    🐱
+                  <div className="lg:hidden w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0">
+                    {/* GIF tương ứng avatar user — khớp logo sidebar desktop, guest hiện cat */}
+                    <UserAvatar avatar={currentUser?.avatar} format="gif" size={24} alt="Linh vật Meowlish" />
                   </div>
                   {/* `xs:` không phải breakpoint của Tailwind ⇒ class chết, đã gỡ.
                       Tiêu đề tự co nhờ `flex-1 min-w-0` bên trên. */}
@@ -623,12 +649,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   <Link
                     href="/pet"
                     onClick={() => sound.playClick()}
-                    title={`Số dư: ${currentUser.coins || 0} Coins. Bấm để ghé thăm Khu Vườn Thú Cưng!`}
+                    title={`Số dư: ${formatCoins(currentUser.coins)} Coins. Bấm để ghé thăm Khu Vườn Thú Cưng!`}
                     className="tap-target flex items-center gap-1 sm:gap-1.5 bg-amber-100/70 dark:bg-amber-950 hover:bg-amber-100 dark:hover:bg-amber-900 border border-amber-300 dark:border-amber-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full cursor-pointer transition select-none hover:scale-105 active:scale-95 shadow-xs"
                   >
                     <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 dark:text-amber-300 fill-amber-400 transition-transform hover:scale-110" />
                     <span className="text-[12px] sm:text-xs font-black text-amber-900 dark:text-amber-200">
-                      {currentUser.coins || 0}
+                      {formatCoins(currentUser.coins)}
                     </span>
                     <span className="hidden sm:inline text-[12px] font-extrabold text-amber-700 dark:text-amber-400 uppercase">
                       Coins
@@ -661,14 +687,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       sound.playClick();
                       if (currentUser) {
                         const rect = avatarBtnRef.current?.getBoundingClientRect();
-                        if (rect) setAvatarMenuPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+                        if (rect) setAvatarMenuPos({ top: rect.bottom + 12, right: window.innerWidth - rect.right });
                         setShowAvatarMenu((v) => !v);
                       } else setShowAuth(true);
                     }}
                     className="tap-target flex items-center gap-1.5 bg-slate-50 dark:bg-white/10 hover:bg-slate-100 dark:hover:bg-white/15 text-slate-800 dark:text-slate-100 p-1 sm:px-2.5 sm:py-1.5 rounded-2xl text-xs font-bold transition border border-slate-200 dark:border-white/10 cursor-pointer shadow-xs"
                   >
-                    <span className="text-sm">{currentUser?.avatar || '🐱'}</span>
-                    <span className="hidden sm:inline max-w-[90px] truncate">
+                    <UserAvatar avatar={currentUser?.avatar} size={22} className="text-sm" />
+                    <span className="hidden sm:inline max-w-[140px] truncate">
                       {currentUser?.display_name || 'Đăng Nhập'}
                     </span>
                   </button>
@@ -762,9 +788,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             .flex-1 excluded: pet page root is intentionally a full-height
             internal scroller. */}
         {pathname === '/support' ? (
-          <div className={stageScrollerClassName}>{children}</div>
+          <div className={stageScrollerClassName} tabIndex={0}>{children}</div>
         ) : (
-          <main className={stageScrollerClassName}>{children}</main>
+          <main className={stageScrollerClassName} tabIndex={0}>{children}</main>
         )}
 
       {/* 3. MOBILE BOTTOM NAVIGATION — inside the flex-col container so it takes
@@ -792,8 +818,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               }}
               className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[12px] font-extrabold transition cursor-pointer touch-manipulation ${
                 isActive
-                  ? 'text-emerald-600 dark:text-emerald-400 scale-105'
-                  : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
+                  ? 'nav-bottom-active scale-105'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
               }`}
             >
               <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : ''}`} />
@@ -839,12 +865,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           />
 
           {/* Drawer Content */}
-          <div className="relative w-4/5 max-w-xs bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col justify-between p-5 overflow-y-auto z-10 animate-drawer-slide pointer-events-auto">
+          <div className="relative w-4/5 max-w-xs bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col justify-between p-5 overflow-y-auto z-10 animate-drawer-slide pointer-events-auto" tabIndex={0}>
             <div className="space-y-6">
               {/* Drawer Header */}
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/10">
                 <div className="flex items-center gap-2.5 font-black text-lg text-slate-900 dark:text-slate-100">
-                  <span className="text-2xl">🐱</span>
+                  {/* Brand khớp logo sidebar: GIF TƯƠNG ỨNG avatar user đã chọn,
+                      guest — chưa có avatar — hiện Linh Vật mặc định (cat). */}
+                  <UserAvatar avatar={currentUser?.avatar} format="gif" size={32} alt="Linh vật Meowlish" />
                   <span>Meow<span className="text-emerald-600 dark:text-emerald-400">lish</span></span>
                 </div>
                 <button
@@ -865,7 +893,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <div className="space-y-5">
                 {navGroups.map((group, gIdx) => (
                   <div key={gIdx} className="space-y-1">
-                    <div className="text-[12px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2">
+                    {/* UX-007: drawer dùng CHUNG token với sidebar — trước đây
+                        nó tự chọn `text-slate-400 dark:text-slate-500` nên sửa
+                        sidebar xong thì drawer vẫn FAIL. */}
+                    <div className="nav-group-label text-[12px] font-black uppercase tracking-wider px-2">
                       {group.title}
                     </div>
                     <div className="space-y-1">
@@ -895,17 +926,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                             }}
                             className={`flex items-center justify-between p-3 rounded-xl text-xs font-bold transition touch-manipulation ${
                               isActive
-                                ? 'bg-emerald-500 text-white font-black shadow-xs'
-                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'
+                                ? 'nav-link-active font-black shadow-xs'
+                                : 'nav-link hover:bg-slate-50 dark:hover:bg-white/5'
                             }`}
                           >
                             <div className="flex items-center gap-2.5">
-                              <Icon className="w-4 h-4" />
+                              <Icon className={`w-4 h-4 nav-icon ${isActive ? 'text-white' : ''}`} />
                               <span>{item.label}</span>
                             </div>
                             {item.badge && (
                               <span className={`text-[12px] font-black px-2 py-0.5 rounded-full ${
-                                isActive ? 'bg-emerald-700 text-emerald-100' : item.badgeColor
+                                isActive ? 'nav-badge-active' : item.badgeColor
                               }`}>
                                 {item.badge}
                               </span>
@@ -931,7 +962,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   }}
                   className="flex-1 btn-3d btn-3d-white p-3 text-xs font-black text-slate-800 touch-manipulation"
                 >
-                  <span>{currentUser?.avatar || '🐱'}</span>
+                  <UserAvatar avatar={currentUser?.avatar} size={28} />
                   <span>{currentUser ? currentUser.display_name : 'Đăng Nhập Tài Khoản'}</span>
                 </button>
                 <ThemeToggle />
@@ -966,8 +997,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl text-center relative z-10 space-y-5">
-            <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center text-4xl shadow-xl">
-              🐱
+            <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center shadow-xl">
+              {/* Linh vật brand pixel — khớp style với splash/guest gate */}
+              <UserAvatar avatar={null} size={56} alt="Linh vật Meowlish" />
             </div>
             <div>
               <h1 className="text-2xl font-black text-white tracking-tight">Meowlish English</h1>
@@ -1044,5 +1076,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         }}
       />
     </div>
+    </ToastProvider>
   );
 }

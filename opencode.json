@@ -1,10 +1,9 @@
 {
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "servers": {
-      "tinyfish": {
-        "type": "remote",
-        "url": "https://agent.tinyfish.ai/mcp"
-      }
+    "tinyfish": {
+      "type": "remote",
+      "url": "https://agent.tinyfish.ai/mcp"
     }
   }
-}
+ }

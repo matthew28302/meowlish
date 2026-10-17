@@ -36,6 +36,38 @@ import {
   removeSavedAccount,
 } from '@/lib/auth';
 import { validateRegistrationPassword } from '@/lib/passwordPolicy';
+import UserAvatar from './UserAvatar';
+
+/**
+ * Mèo trỏ bút hiện bên trái ô nhập đang active/hover.
+ *
+ * KHÔNG được định nghĩa bên trong thân `AuthModal` (BUG-010): khai báo ở đây
+ * tạo ra MỘT type component mới ở mỗi lần render, nên React thấy "component
+ * khác" và REMOUNT toàn bộ cây con của modal mỗi lần người dùng gõ một ký tự
+ * ⇒ mất focus nhấp nháy, ảnh mèo nháy lại, hiệu năng tệ. Ở module scope thì type
+ * ổn định suốt vòng đời module và React chỉ reconcile bình thường.
+ */
+function CatPointer({ isVisible }: { isVisible: boolean }) {
+  return (
+    <div
+      className={`absolute -left-11 sm:-left-12 top-1/2 -translate-y-1/2 pointer-events-none transition-all duration-300 ease-out z-30 ${
+        isVisible
+          ? 'opacity-100 translate-x-0 scale-100 rotate-0'
+          : 'opacity-0 -translate-x-3 scale-75 -rotate-6'
+      }`}
+    >
+      <Image
+        src="/meo.png"
+        alt="Mèo trỏ bút"
+        width={176}
+        height={144}
+        sizes="44px"
+        className="w-9 sm:w-11 h-auto drop-shadow-md select-none pointer-events-none"
+      />
+    </div>
+  );
+}
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -58,20 +90,6 @@ export default function AuthModal({
   // Tài khoản đang chờ nhập mật khẩu để chuyển phiên (xem handleSwitchToAccount).
   const [switchTarget, setSwitchTarget] = useState<AuthUser | null>(null);
   const [switchPassword, setSwitchPassword] = useState('');
-
-  // Sync saved accounts on modal open
-  useEffect(() => {
-    if (isOpen) {
-      if (currentUser) {
-        saveAccountToDevice(currentUser);
-      }
-      setSavedAccounts(getSavedAccounts());
-      setIsAddingAccount(false);
-      // M4: đóng form xác nhận 2FA cũ khi mở lại modal
-      setTwoFaConfirmOpen(false);
-      setTwoFaPassword('');
-    }
-  }, [isOpen, currentUser]);
 
   // Form states
   const [username, setUsername] = useState('');
@@ -98,6 +116,26 @@ export default function AuthModal({
   const [twoFaConfirmOpen, setTwoFaConfirmOpen] = useState(false);
   const [twoFaPassword, setTwoFaPassword] = useState('');
   const [isConfirming2fa, setIsConfirming2fa] = useState(false);
+
+  // Sync saved accounts on modal open.
+  //
+  // Đặt SAU các khai báo state 2FA (trước đây effect nằm ở trên, gọi
+  // `setTwoFaConfirmOpen`/`setTwoFaPassword` trước khai báo chúng): đó là TDZ
+  // thật — effect chụp 2 setter ở lần render đầu nên nếu sau này 2 state đó
+  // được đổi nguồn, effect vẫn giữ setter cũ. Với `useState` setter luôn ổn định
+  // nên hành vi hiện tại vẫn đúng, nhưng thứ tự khai báo sai là latent bug.
+  useEffect(() => {
+    if (isOpen) {
+      if (currentUser) {
+        saveAccountToDevice(currentUser);
+      }
+      setSavedAccounts(getSavedAccounts());
+      setIsAddingAccount(false);
+      // M4: đóng form xác nhận 2FA cũ khi mở lại modal
+      setTwoFaConfirmOpen(false);
+      setTwoFaPassword('');
+    }
+  }, [isOpen, currentUser]);
 
   // H8 (audit 2026-10-08): focus-trap + Esc + trả focus về trigger khi đóng.
   // - Mở modal: nhớ element đang focus (nút trigger), đưa focus vào control đầu
@@ -178,26 +216,6 @@ export default function AuthModal({
   }, [isOpen]);
 
   if (!isOpen) return null;
-
-  // Cat mascot pointer that appears to the left of the active/hovered input box
-  const CatPointer = ({ isVisible }: { isVisible: boolean }) => (
-    <div
-      className={`absolute -left-11 sm:-left-12 top-1/2 -translate-y-1/2 pointer-events-none transition-all duration-300 ease-out z-30 ${
-        isVisible
-          ? 'opacity-100 translate-x-0 scale-100 rotate-0'
-          : 'opacity-0 -translate-x-3 scale-75 -rotate-6'
-      }`}
-    >
-      <Image
-        src="/meo.png"
-        alt="Mèo trỏ bút"
-        width={176}
-        height={144}
-        sizes="44px"
-        className="w-9 sm:w-11 h-auto drop-shadow-md select-none pointer-events-none"
-      />
-    </div>
-  );
 
   // Switch between Login, Register, Forgot tabs smoothly
   const handleTabClick = (newMode: 'login' | 'register' | 'forgot') => {
@@ -585,8 +603,9 @@ export default function AuthModal({
           <div>
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-xl shadow-xs">
-                  🐱
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center shadow-xs">
+                  {/* Linh vật brand pixel khớp logo sidebar */}
+                  <UserAvatar avatar={null} format="gif" size={28} alt="Linh vật Meowlish" />
                 </div>
                 <div>
                   <h1
@@ -608,7 +627,7 @@ export default function AuthModal({
                 <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-4 shadow-sm">
                   <div className="flex items-center gap-3.5">
                     <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center text-3xl shadow-sm border border-emerald-200 dark:border-emerald-700">
-                      {currentUser.avatar || '👨‍💻'}
+                      <UserAvatar avatar={currentUser.avatar} size={56} />
                     </div>
                     <div>
                       <div className="font-black text-base text-slate-900 dark:text-white">
@@ -808,7 +827,9 @@ export default function AuthModal({
                             className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-700 transition cursor-pointer group"
                           >
                             <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                              <span className="text-2xl shrink-0">{acc.avatar || '🐱'}</span>
+                              <span className="text-2xl shrink-0 flex items-center justify-center">
+                                <UserAvatar avatar={acc.avatar} size={26} />
+                              </span>
                               <div className="min-w-0">
                                 <div className="text-xs font-black text-slate-800 dark:text-slate-100 truncate group-hover:text-emerald-600 transition">
                                   {acc.display_name}

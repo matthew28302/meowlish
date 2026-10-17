@@ -19,6 +19,50 @@ export function ResetPasswordClient({ initialToken }: ResetPasswordClientProps) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  // Form "Yêu cầu link mới" (đề phòng link cũ hết hạn / đã dùng)
+  const [showResend, setShowResend] = useState(false);
+  const [resendInput, setResendInput] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMsg, setResendMsg] = useState('');
+  const [resendError, setResendError] = useState('');
+
+  const handleResend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResendError('');
+    setResendMsg('');
+
+    if (!resendInput.trim()) {
+      setResendError('Vui lòng nhập email hoặc tên đăng nhập.');
+      sound.playWrong();
+      return;
+    }
+
+    setResendLoading(true);
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resendInput.trim() }),
+      });
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setResendError(data?.error || 'Không gửi được email. Vui lòng thử lại.');
+        sound.playWrong();
+        return;
+      }
+
+      // Thông điệp chung để chống đoán xem tài khoản có tồn tại hay không.
+      setResendMsg(data.message || 'Nếu thông tin hợp lệ, hướng dẫn đặt lại mật khẩu đã được gửi đến email của bạn.');
+      sound.playSuccess();
+      setResendInput('');
+    } catch {
+      setResendError('Lỗi kết nối máy chủ. Vui lòng thử lại.');
+      sound.playWrong();
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   const validatePassword = (pwd: string) => {
     if (pwd.length < 8) return 'Mật khẩu phải có ít nhất 8 ký tự.';
@@ -225,11 +269,63 @@ export function ResetPasswordClient({ initialToken }: ResetPasswordClientProps) 
               </Link>
             </p>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-              Hoặc{' '}
-              <Link href="/api/auth/forgot-password" className="font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
+              Link không còn hiệu lực?{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setShowResend((v) => !v);
+                }}
+                className="font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+              >
                 Yêu cầu link mới
-              </Link>
+              </button>
             </p>
+            {/* Form gửi lại link đặt lại mật khẩu — POST /api/auth/forgot-password.
+                Trước đây là <Link href="/api/auth/forgot-password">: GET tới route
+                POST-only ⇒ trình duyệt mở trang lỗi HTTP 405 (báo cáo user
+                2026-10-17). Form inline giữ người dùng tại chỗ và gọi đúng method. */}
+            {showResend && (
+              <form
+                onSubmit={handleResend}
+                className="mt-4 space-y-2.5 text-left"
+              >
+                <label htmlFor="resend-email" className="block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  Email hoặc tên đăng nhập
+                </label>
+                <input
+                  id="resend-email"
+                  type="text"
+                  value={resendInput}
+                  onChange={(e) => setResendInput(e.target.value)}
+                  placeholder="you@example.com"
+                  autoComplete="username"
+                  disabled={resendLoading}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition text-sm"
+                  required
+                />
+                {resendMsg && (
+                  <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{resendMsg}</p>
+                )}
+                {resendError && (
+                  <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">{resendError}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={resendLoading}
+                  className="w-full py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-black rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm flex items-center justify-center gap-2"
+                >
+                  {resendLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Đang gửi...</span>
+                    </>
+                  ) : (
+                    'Gửi link mới'
+                  )}
+                </button>
+              </form>
+            )}
           </div>
         </div>
 

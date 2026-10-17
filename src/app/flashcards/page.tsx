@@ -177,7 +177,7 @@ export default function FlashcardsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-8">
+    <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-8">
       {/* Header */}
       <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-rose-700 rounded-3xl p-6 sm:p-8 text-white shadow-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -263,7 +263,6 @@ export default function FlashcardsPage() {
                 handleFlip();
               }
             }}
-            role="button"
             tabIndex={0}
             aria-label={
               isFlipped

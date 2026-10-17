@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1138.0",
+    "@razroo/opencode-model-fallback": "^0.3.2",
     "@types/three": "^0.186.0",
     "better-sqlite3": "^13.0.3",
     "canvas-confetti": "^1.9.4",

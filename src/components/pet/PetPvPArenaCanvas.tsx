@@ -3,12 +3,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generatePvPQuestion, QuizQuestion } from '@/lib/petQuizData';
 import { sound } from '@/lib/soundFx';
+import { formatCoins } from '@/lib/formatNumber';
 import confetti from 'canvas-confetti';
 import { 
   Swords, Shield, Heart, Zap, Sparkles, Trophy, RotateCcw, 
   Flame, CheckCircle, XCircle, Plus, Users, Clock, AlertCircle, RefreshCw, X
 } from 'lucide-react';
 import { drawChibiPet } from './drawChibiPet';
+// UX-008: thay `alert()` gốc (chặn toàn bộ UI, screen reader đọc khó) bằng
+// toast dùng chung mount trong AppShell.
+import { useToast } from '../Toast';
 
 export interface OpponentData {
   id: string;
@@ -21,6 +25,33 @@ export interface OpponentData {
   pet_level?: number;
 }
 
+/**
+ * Sinh id duy nhất cho chỉ báo chạm / trận đấu.
+ *
+ * Đặt ở MODULE SCOPE, không phải trong thân component: `Math.random()`/`Date.now()`
+ * là hàm impure, gọi trong render sẽ cho kết quả khác nhau mỗi lần React render
+ * lại (React Compiler chặn với `react-hooks/purity`, và đúng là lỗi thật: id
+ * nhảy mỗi lần gõ/phát sự kiện). Bọc ở đây giữ hành vi "sinh khi cần" mà không
+ * để component render gọi hàm impure.
+ */
+export function makeUniqueId(prefix: string): string {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/**
+ * Quay số ngẫu nhiên [0, 1) — cùng lý do như `makeUniqueId`: `Math.random()` impure,
+ * không được gọi trực tiếp trong thân component (kết quả nhảy mỗi lần render).
+ * Đây là RNG của gameplay (ra bão kích/choáng/hồi máu/trúng độc).
+ */
+export function rollRandom(): number {
+  return Math.random();
+}
+
+/** Mốc thời gian hiện tại (epoch ms) — bọc `Date.now()` impure, xem `makeUniqueId`. */
+export function nowMs(): number {
+  return Date.now();
+}
+
 export interface PetPvPArenaCanvasProps {
   playerSpecies: string;
   playerPetName: string;
@@ -28,6 +59,11 @@ export interface PetPvPArenaCanvasProps {
   userCoins: number;
   /** Nhận DELTA (dương = cộng, âm = trừ) chứ không nhận số dư tuyệt đối. */
   onUpdateCoinsDelta: (delta: number) => void;
+  /**
+   * KHÔNG còn dùng cho phần thưởng trận đấu (BUG-001/002): EXP giờ do
+   * `grant_game_reward` cộng trên server rồi `onRefreshData` vẽ lại. Giữ lại
+   * trong interface để không phá vỡ call site cũ.
+   */
   onUpdatePetExp?: (addedExp: number) => void;
   userId?: string;
   userDisplayName?: string;
@@ -52,13 +88,13 @@ export default function PetPvPArenaCanvas({
   playerLevel = 1,
   userCoins,
   onUpdateCoinsDelta,
-  onUpdatePetExp,
   userId,
   userDisplayName = 'Bạn',
   activeRooms = [],
   acceptedFriends = [],
   onRefreshData,
 }: PetPvPArenaCanvasProps) {
+  const toast = useToast();
   // Battle State: 'lobby' | 'waiting_guest' | 'battle' | 'victory' | 'defeat'
   const [gameState, setGameState] = useState<'lobby' | 'waiting_guest' | 'battle' | 'victory' | 'defeat'>('lobby');
   const [roundNumber, setRoundNumber] = useState<number>(1);
@@ -73,6 +109,14 @@ export default function PetPvPArenaCanvas({
   const [newRoomBet, setNewRoomBet] = useState<number>(100);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  /**
+   * Trạng thái nhận thưởng ở màn hình chiến thắng (BUG-001/002).
+   * 'idle' = chưa xong, chỉ hiện "đang ghi nhận" — KHÔNG hiện "+N Coins" sớm vì
+   * nếu API lỗi thì người chơi tưởng đã nhận rồi mà thực tế chưa có gì được cộng.
+   */
+  const [rewardResult, setRewardResult] = useState<'idle' | 'ok' | 'error'>('idle');
+  const [grantedCoins, setGrantedCoins] = useState<number>(0);
+  const [grantedExp, setGrantedExp] = useState<number>(0);
 
   // Health & Mana (Calculated based on level)
   const playerMaxHp = 1000 + playerLevel * 100;
@@ -119,11 +163,11 @@ export default function PetPvPArenaCanvas({
     userCoinsRef.current = userCoins;
   });
 
-  /** Cộng/trừ delta và cập nhật ref ngay — giữ ref khớp parent giữa 2 render. */
-  const applyCoinDelta = (delta: number) => {
-    userCoinsRef.current += delta;
-    onUpdateCoinsDelta(delta);
-  };
+  /**
+   * Khoá định danh trận đấu hiện tại, dùng làm `claim_key` khi xin thưởng.
+   * Xem `startBattleWithOpponent` để biết vì sao phải sinh ở đầu trận.
+   */
+  const battleIdRef = useRef<string>('');
 
   /** Server trả số dư TUYỆT ĐỐI → đổi thành delta so với số dư đang giữ. */
   const syncCoinsFromServer = (serverCoins: number) => {
@@ -132,11 +176,90 @@ export default function PetPvPArenaCanvas({
     onUpdateCoinsDelta(delta);
   };
 
+  /**
+   * BUG-001/002: KHÔNG cộng coin thưởng ở client nữa.
+   *
+   * Mọi lần thắng (kể cả đấu BOT) đều phải hỏi server qua `grant_game_reward` rồi
+   * đặt lại `userCoins` theo giá trị server trả về. Cộng tay ở đây nghĩa là
+   * thưởng chỉ nằm trong localStorage ⇒ mất sạch khi đăng xuất/đăng nhập lại, còn
+   * lượt mua ở nông trại đã bị trừ thật trên server ⇒ số dư tụt đột ngột.
+   */
+  const requestVictoryReward = async () => {
+    if (!userId) {
+      setActionError('Chưa đăng nhập nên không thể nhận thưởng trận đấu.');
+      setRewardResult('error');
+      return;
+    }
+    setRewardResult('idle');
+    setGrantedCoins(0);
+    setGrantedExp(0);
+    const isRealRoom = Boolean(currentRoom?.id);
+    try {
+      if (isRealRoom) {
+        // Kết thúc phòng TRƯỚC rồi mới xin thưởng: `grant_game_reward` kiểm tra
+        // `room.winner_id` để chỉ người thắng nhận được, mà `winner_id` do
+        // `finish_battle_room` ghi. Gọi sai thứ tự sẽ bị từ chối 403.
+        const finishRes = await fetch('/api/pet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            action: 'finish_battle_room',
+            roomId: currentRoom.id,
+            winnerId: userId,
+          }),
+        });
+        if (!finishRes.ok) {
+          const finishErr = await finishRes.json().catch(() => null);
+          throw new Error(finishErr?.error || 'Không thể kết thúc phòng đấu.');
+        }
+      }
+
+      const res = await fetch('/api/pet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          action: 'grant_game_reward',
+          kind: 'pvp',
+          roomId: isRealRoom ? currentRoom.id : null,
+          battleId: isRealRoom ? null : battleIdRef.current,
+          // Trận thật: server tự tính `bet × 2` từ phòng nên 2 số này bị bỏ qua.
+          // Trận bot: đây là giá trị gợi ý, server clamp theo GAME_REWARD_LIMITS.
+          amount: isRealRoom ? 0 : 150 + playerLevel * 30,
+          exp: 50 + playerLevel * 10,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      // Luôn đồng bộ số dư thật, kể cả khi không được thưởng: server là nguồn
+      // sự thật, giữ số cũ trong state là hiển thị sai.
+      if (typeof data?.userCoins === 'number') syncCoinsFromServer(data.userCoins);
+
+      if (!res.ok) throw new Error(data?.error || 'Không thể nhận thưởng trận đấu.');
+      if (!data?.success) {
+        // Server trả 200 + `success: false` khi trùng khoá / chạm trần: KHÔNG
+        // được báo "đã nhận thưởng" vì thực tế không có gì được cộng.
+        setActionError(data?.message || 'Không nhận được thưởng cho trận này.');
+        setRewardResult('error');
+      } else {
+        setActionError(null);
+        setGrantedCoins(Number(data.grantedCoins) || 0);
+        setGrantedExp(Number(data.grantedExp) || 0);
+        setRewardResult('ok');
+      }
+    } catch (err: any) {
+      setActionError(err?.message || 'Không thể nhận thưởng trận đấu. Vui lòng thử lại.');
+      setRewardResult('error');
+    }
+    if (onRefreshData) onRefreshData();
+  };
+
   // (H14) Effect nạp sẵn sprite art2d đã xoá — chỉ còn vector chibi.
 
   const addCombatText = (text: string, x: number, y: number, color = '#facc15', size = 18) => {
     floatingTextsRef.current.push({
-      id: `ct-${Date.now()}-${Math.random()}`,
+      id: makeUniqueId('ct'),
       text,
       x,
       y,
@@ -160,45 +283,16 @@ export default function PetPvPArenaCanvas({
   // Filter PVP rooms
   const pvpRooms = activeRooms.filter((r) => r.game_type === 'pvp' && r.status === 'waiting');
 
-  // Lắng nghe / Polling phòng khi đang ở trạng thái 'waiting_guest'
-  useEffect(() => {
-    if (gameState !== 'waiting_guest' || !currentRoom?.id || !userId) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/pet?userId=${userId}&roomId=${currentRoom.id}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.roomDetail) {
-            if (data.roomDetail.status === 'in_progress' && data.roomDetail.guest_id) {
-              // Real guest has joined! Start match immediately!
-              const guestOpponent: OpponentData = {
-                id: data.roomDetail.guest_id,
-                username: data.roomDetail.guest_name,
-                display_name: data.roomDetail.guest_name,
-                pet_type: data.roomDetail.guest_pet_type || 'cat',
-                pet_name: data.roomDetail.guest_pet_type === 'owl' ? 'Lexi' : data.roomDetail.guest_pet_type === 'cat' ? 'Meowlish' : 'Linh Vật',
-                pet_level: data.roomDetail.guest_pet_level || 1,
-              };
-              setCurrentRoom(data.roomDetail);
-              startBattleWithOpponent(guestOpponent, data.roomDetail);
-            }
-          }
-        }
-      } catch {}
-    }, 2500);
-
-    return () => clearInterval(interval);
-  }, [gameState, currentRoom, userId]);
+  // (Effect polling phòng đã chuyển xuống SAU `startBattleWithOpponent` — xem bên dưới.)
 
   // Handle Create Battle Room
   const handleCreateRoom = async () => {
     if (!userId) {
-      alert('Vui lòng đăng nhập để tạo phòng quyết đấu!');
+      toast.info('Vui lòng đăng nhập để tạo phòng quyết đấu!');
       return;
     }
     if (userCoins < newRoomBet) {
-      alert(`Bạn không đủ Coins (${userCoins} xu) để tạo phòng cược ${newRoomBet} xu!`);
+      toast.error(`Bạn không đủ Coins (${userCoins} xu) để tạo phòng cược ${newRoomBet} xu!`);
       return;
     }
 
@@ -237,11 +331,11 @@ export default function PetPvPArenaCanvas({
   // Handle Join Battle Room
   const handleJoinRoom = async (room: any) => {
     if (!userId) {
-      alert('Vui lòng đăng nhập để vào phòng quyết đấu!');
+      toast.info('Vui lòng đăng nhập để vào phòng quyết đấu!');
       return;
     }
     if (userCoins < room.bet_coins) {
-      alert(`Bạn không đủ Coins (${userCoins} xu) để vào phòng cược ${room.bet_coins} xu!`);
+      toast.error(`Bạn không đủ Coins (${userCoins} xu) để vào phòng cược ${room.bet_coins} xu!`);
       return;
     }
 
@@ -316,7 +410,7 @@ export default function PetPvPArenaCanvas({
     if (!userId) return;
     const friendBet = 100;
     if (userCoins < friendBet) {
-      alert(`Bạn cần ít nhất ${friendBet} xu để thách đấu bạn bè!`);
+      toast.error(`Bạn cần ít nhất ${friendBet} xu để thách đấu bạn bè!`);
       return;
     }
 
@@ -354,7 +448,7 @@ export default function PetPvPArenaCanvas({
       startBattleWithOpponent(friendOpponent, data.room);
       if (onRefreshData) onRefreshData();
     } catch (err: any) {
-      alert(err.message || 'Không thể tạo trận thách đấu');
+      toast.error(err.message || 'Không thể tạo trận thách đấu');
     } finally {
       setIsProcessing(false);
     }
@@ -364,6 +458,11 @@ export default function PetPvPArenaCanvas({
   const startBattleWithOpponent = (opponent: OpponentData, room?: any) => {
     setSelectedOpponent(opponent);
     if (room) setCurrentRoom(room);
+    // Mỗi trận sinh 1 `battleId` dùng làm `claim_key` khi xin thưởng. Bắt buộc
+    // sinh Ở ĐẦU TRẬN chứ không lúc thắng: nếu sinh lúc thắng, mỗi lần bấm lại
+    // (retry, remount, 2 tab) sẽ ra battleId khác ⇒ server coi là 2 trận khác
+    // nhau và thưởng 2 lần. Đặt sẵn 1 lần ⇒ gọi lại vẫn trùng khoá.
+    battleIdRef.current = makeUniqueId('pvp');
     sound.playClick();
     setPlayerHp(playerMaxHp);
     setRivalHp(1000 + (opponent.pet_level || 1) * 100);
@@ -388,6 +487,43 @@ export default function PetPvPArenaCanvas({
       setUnscramblePool([...q.scrambledTokens]);
     }
   };
+
+  // Lắng nghe / Polling phòng khi đang ở trạng thái 'waiting_guest'.
+  //
+  // Đặt SAU `startBattleWithOpponent` (và `loadNextQuestion`): effect gọi hàm đó,
+  // nếu khai báo trước thì là TDZ — effect sẽ chụp hàm của render đầu thay vì
+  // bản mới nhất sau mỗi render.
+  useEffect(() => {
+    if (gameState !== 'waiting_guest' || !currentRoom?.id || !userId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/pet?userId=${userId}&roomId=${currentRoom.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.roomDetail) {
+            if (data.roomDetail.status === 'in_progress' && data.roomDetail.guest_id) {
+              // Real guest has joined! Start match immediately!
+              const guestOpponent: OpponentData = {
+                id: data.roomDetail.guest_id,
+                username: data.roomDetail.guest_name,
+                display_name: data.roomDetail.guest_name,
+                pet_type: data.roomDetail.guest_pet_type || 'cat',
+                pet_name: data.roomDetail.guest_pet_type === 'owl' ? 'Lexi' : data.roomDetail.guest_pet_type === 'cat' ? 'Meowlish' : 'Linh Vật',
+                pet_level: data.roomDetail.guest_pet_level || 1,
+              };
+              setCurrentRoom(data.roomDetail);
+              startBattleWithOpponent(guestOpponent, data.roomDetail);
+            }
+          }
+        }
+      } catch {}
+    }, 2500);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `startBattleWithOpponent`
+    // khai báo trên effect này nên không thể đưa vào deps.
+  }, [gameState, currentRoom, userId]);
 
   // Handle Answer Submission
   const handleAnswerSubmit = (chosenAnswer?: string) => {
@@ -434,7 +570,7 @@ export default function PetPvPArenaCanvas({
       // 2. Choáng (20% chance)
       // 3. Hồi phục 10% hoặc 20% máu (20% chance)
       // 4. Trúng độc: 5% mỗi hiệp duy trì 3 hiệp có thể cộng dồn (25% chance)
-      const roll = Math.random();
+      const roll = rollRandom();
 
       if (roll < 0.25) {
         damage *= 2;
@@ -447,7 +583,7 @@ export default function PetPvPArenaCanvas({
         triggerScreenShake(8);
         addCombatText(`CHOÁNG! -${damage} HP`, 560, 200, '#38bdf8', 20);
       } else if (roll < 0.65) {
-        const healPercent = Math.random() > 0.5 ? 0.2 : 0.1;
+        const healPercent = rollRandom() > 0.5 ? 0.2 : 0.1;
         const healAmount = Math.round(playerMaxHp * healPercent);
         setPlayerHp((prev) => Math.min(playerMaxHp, prev + healAmount));
         procText = `💚 HỒI PHỤC! Hồi +${Math.round(healPercent * 100)}% Máu (+${healAmount} HP)!`;
@@ -560,27 +696,11 @@ export default function PetPvPArenaCanvas({
     sound.playCelebration();
     confetti({ particleCount: 75, spread: 80 });
 
-    const prizeCoins = currentRoom ? (currentRoom.bet_coins || 100) * 2 : 150 + playerLevel * 30;
-    const rewardExp = 50 + playerLevel * 10;
-    // Delta: handleVictory chạy trong setTimeout sau khi thắng, `userCoins` trong
-    // closure là ảnh chụp cũ → ghi đè sẽ nuốt số xu kiếm được trong trận.
-    applyCoinDelta(prizeCoins);
-    if (onUpdatePetExp) onUpdatePetExp(rewardExp);
-
-    if (currentRoom?.id && userId) {
-      fetch('/api/pet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          action: 'finish_battle_room',
-          roomId: currentRoom.id,
-          winnerId: userId,
-        }),
-      }).then(() => {
-        if (onRefreshData) onRefreshData();
-      }).catch(() => {});
-    }
+    // BUG-001/002: xoá `applyCoinDelta(prizeCoins)` và `onUpdatePetExp(rewardExp)`
+    // ở đây. Cả hai chỉ là con số trên localStorage (mất khi đăng nhập lại),
+    // còn `finish_battle_room` lại cộng thêm lần nữa trên server ⇒ cộng 2 lần
+    // ở 2 nguồn sự thật. Nay server cộng 1 lần và trả về số dư thật.
+    void requestVictoryReward();
   };
 
   // DEFEAT HANDLER
@@ -905,12 +1025,12 @@ export default function PetPvPArenaCanvas({
       <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-800 bg-slate-950 flex justify-center items-center select-none">
         <canvas
           ref={canvasRef}
-          className="w-full max-w-[800px] h-auto object-contain block touch-none"
+          className="w-full max-w-[800px] h-auto max-h-[60dvh] object-contain block touch-none"
         />
 
         {/* LOBBY OVERLAY: ROOM LIST & FRIEND DUEL */}
         {gameState === 'lobby' && (
-          <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col p-4 text-white overflow-y-auto">
+          <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col p-4 text-white overflow-y-auto custom-scrollbar overscroll-contain">
             <div className="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-amber-400" />
@@ -926,7 +1046,7 @@ export default function PetPvPArenaCanvas({
             {/* Room list grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mb-4">
               {pvpRooms.length === 0 ? (
-                <div className="col-span-full py-8 px-4 bg-slate-900/60 border border-dashed border-slate-700 rounded-2xl flex flex-col items-center justify-center text-center">
+                <div className="col-span-full min-h-[240px] py-6 px-4 bg-slate-900/60 border border-dashed border-slate-700 rounded-2xl flex flex-col items-center justify-center text-center overflow-y-auto custom-scrollbar">
                   <div className="text-3xl mb-2">🏟️</div>
                   <h4 className="text-sm font-bold text-slate-200 mb-1">Chưa có người chơi nào mở phòng đấu</h4>
                   <p className="text-xs text-slate-400 max-w-sm mb-3">
@@ -934,7 +1054,7 @@ export default function PetPvPArenaCanvas({
                   </p>
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-lg hover:scale-105 active:scale-95 transition cursor-pointer"
+                    className="px-4 py-2 min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-lg hover:scale-105 active:scale-95 transition cursor-pointer"
                   >
                     + Tạo Phòng Đấu Ngay
                   </button>
@@ -1057,15 +1177,28 @@ export default function PetPvPArenaCanvas({
             <p className="text-xs text-slate-200 mb-3">
               Thú cưng {playerPetName} đã xuất sắc hạ gục đối thủ bằng trí tuệ Anh ngữ sắc bén!
             </p>
-            <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl mb-4 text-xs font-bold text-amber-300 border border-amber-400/30">
-              <span>+{currentRoom ? currentRoom.bet_coins * 2 : 150} Coins 🪙</span>
-              <span>+{50 + playerLevel * 10} EXP ⭐</span>
-            </div>
+            {rewardResult === 'ok' ? (
+              <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl mb-4 text-xs font-bold text-amber-300 border border-amber-400/30">
+                <span>+{formatCoins(grantedCoins)} Coins 🪙</span>
+                <span>+{grantedExp} EXP ⭐</span>
+              </div>
+            ) : rewardResult === 'error' ? (
+              // KHÔNG hiện "+N Coins" khi chưa chắc đã nhận được: nói thẳng là
+              // lỗi để người chơi không tưởng đã có tiền rồi mất.
+              <div className="max-w-sm px-4 py-2 rounded-xl mb-4 text-xs font-bold text-red-200 bg-red-500/20 border border-red-500/50">
+                {actionError || 'Chưa nhận được thưởng. Vui lòng kiểm tra lại số dư Coins.'}
+              </div>
+            ) : (
+              <div className="bg-white/10 px-4 py-2 rounded-xl mb-4 text-xs font-bold text-slate-200">
+                Đang ghi nhận thưởng…
+              </div>
+            )}
             <button
               onClick={() => {
                 setGameState('lobby');
                 setCurrentRoom(null);
                 setSelectedOpponent(null);
+                setRewardResult('idle');
               }}
               className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition cursor-pointer"
             >

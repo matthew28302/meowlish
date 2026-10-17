@@ -36,11 +36,13 @@ import confetti from '@/lib/confetti';
 import PixelFarmGame, { PixelFarmHandle } from '@/components/pet/PixelFarmGame';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
 import PixelFarmCanvas from '@/components/pet/PixelFarmCanvas';
-import PetPvPArenaCanvas from '@/components/pet/PetPvPArenaCanvas';
+import PetPvPArenaCanvas, { rollRandom } from '@/components/pet/PetPvPArenaCanvas';
 import PetRacingCanvas from '@/components/pet/PetRacingCanvas';
 import PetSocialHub from '@/components/pet/PetSocialHub';
 import { SocialFriend } from '@/lib/petSocialData';
 import { useEscapeToClose } from '@/lib/useEscapeToClose';
+import { formatCoins } from '@/lib/formatNumber';
+import { useToast } from '@/components/Toast';
 
 /** Số thú cưng chibi của 7 section hardcode bên dưới (3+3+3+3+3+6+6).
  * (H14 2026-10-12: đã bỏ toàn bộ "Nhân Vật 2D" art2d_* theo yêu cầu — catalog,
@@ -184,6 +186,7 @@ export default function PetPage() {
   const [inventory, setInventory] = useState<any[]>([]);
   const [gardenDecor, setGardenDecor] = useState<any[]>([]);
   const [userCoins, setUserCoins] = useState<number>(0);
+  const toast = useToast();
   // Bản sao đồng bộ của `userCoins` để callback delta (onUpdateCoinsDelta) tính
   // được số mới mà KHÔNG phải gọi setStoredUser/dispatchEvent BÊN TRONG updater
   // của setState — updater phải thuần khiết, React StrictMode gọi 2 lần nên
@@ -195,6 +198,14 @@ export default function PetPage() {
   // `onUpdateCoins(userCoins + prize)` với `userCoins` là prop chụp lúc effect
   // được tạo ⇒ coin kiếm được trong lúc chờ bị nuốt (PetRacingCanvas chạy trong
   // setTimeout lệch 1s so với rAF). Delta không bao giờ lùi.
+  //
+  // BUG-001/002: hàm này KHÔNG còn được dùng để "phát" coin thưởng trận đấu.
+  // Trước đây `PetPvPArenaCanvas`/`PetRacingCanvas` tự tính tiền thưởng rồi gọi
+  // ở đây ⇒ chỉ ghi localStorage, mất sạch khi đăng nhập lại, trong khi server
+  // lại cộng thêm lần nữa ở `finish_battle_room` ⇒ cộng 2 lần ở 2 nguồn sự thật.
+  // Nay mọi lần thắng gọi `grant_game_reward` và đặt lại số dư theo giá trị
+  // server trả về; ở đây chỉ còn vai trò đồng bộ delta đó + các giao dịch mua/ăn
+  // đã được server xác nhận.
   const applyCoinDelta = (delta: number) => {
     const next = Math.max(0, userCoinsRef.current + delta);
     userCoinsRef.current = next;
@@ -213,8 +224,10 @@ export default function PetPage() {
   const [incomingFriendRequests, setIncomingFriendRequests] = useState<any[]>([]);
   const [outgoingFriendIds, setOutgoingFriendIds] = useState<string[]>([]);
   const [communityUsers, setCommunityUsers] = useState<any[]>([]);
-  const [coupleData, setCoupleData] = useState<any>(null);
-  // (H13) state incomingProposal đã xoá cùng Lễ Đường Kết Đôi.
+  // (H13) state `incomingProposal` và `coupleData` đã xoá cùng "Lễ Đường Kết
+  // Đôi": badge "Uyên Ương" là nhãn DUY NHẤT còn sót của tính năng đó. Server vẫn
+  // trả `data.couple` trong GET và giữ nguyên API propose/respond/break_up +
+  // dữ liệu `user_couples` cũ — chỉ gỡ phần hiển thị trên UI.
   const [activeRooms, setActiveRooms] = useState<any[]>([]);
   const [recentChat, setRecentChat] = useState<any[]>([]);
 
@@ -394,8 +407,8 @@ export default function PetPage() {
         if (data.incomingFriendRequests) setIncomingFriendRequests(data.incomingFriendRequests);
         if (data.outgoingFriendIds) setOutgoingFriendIds(data.outgoingFriendIds);
         if (data.communityUsers) setCommunityUsers(data.communityUsers);
-        if (data.couple) setCoupleData(data.couple);
-        // (H13) incomingProposal không còn UI hiển thị — bỏ lưu, đã xoá Lễ Đường Kết Đôi.
+        // (H13) `data.couple` + `incomingProposal` không còn UI hiển thị — bỏ lưu,
+        // đã gỡ "Lễ Đường Kết Đôi". Server vẫn gửi để dữ liệu cũ còn nguyên.
         if (data.activeRooms) setActiveRooms(data.activeRooms);
         if (data.recentChat) setRecentChat(data.recentChat);
         if (data.cinnamorollAccess) {
@@ -528,7 +541,7 @@ export default function PetPage() {
     if (!isOwned && userCoins < foodItem.price) {
       sound.playWrong();
       const needed = foodItem.price - userCoins;
-      alert(`🪙 Bạn đang có ${userCoins.toLocaleString()} Coins, cần thêm ${needed.toLocaleString()} Coins để mua món ăn "${foodItem.name}".\nHãy hoàn thành các bài học và bài kiểm tra để tích lũy thêm Coins nhé!`);
+      toast.error(`🪙 Bạn đang có ${formatCoins(userCoins)} Coins, cần thêm ${formatCoins(needed)} Coins để mua món ăn "${foodItem.name}".\nHãy hoàn thành các bài học và bài kiểm tra để tích lũy thêm Coins nhé!`);
       return;
     }
 
@@ -571,7 +584,7 @@ export default function PetPage() {
         });
 
         const eatSounds = petData?.meta?.eatSounds || ['Măm măm ngon quá! 😋'];
-        setPetSpeech(eatSounds[Math.floor(Math.random() * eatSounds.length)]);
+        setPetSpeech(eatSounds[Math.floor(rollRandom() * eatSounds.length)]);
 
         confetti({
           particleCount: 40,
@@ -581,7 +594,7 @@ export default function PetPage() {
       } else {
         const errData = await res.json();
         sound.playError();
-        alert(errData.error || 'Không thể cho ăn lúc này!');
+        toast.error(errData.error || 'Không thể cho ăn lúc này!');
       }
     } catch {}
   };
@@ -625,7 +638,7 @@ export default function PetPage() {
       } else {
         const errData = await res.json().catch(() => null);
         sound.playWrong();
-        alert(errData?.error || 'Không thể tháo đồ lúc này!');
+        toast.error(errData?.error || 'Không thể tháo đồ lúc này!');
         await loadPetData();
       }
     } catch {
@@ -690,7 +703,7 @@ export default function PetPage() {
         // lại từ server để hủy trạng thái optimistic sai lệch.
         const errData = await res.json().catch(() => null);
         sound.playWrong();
-        alert(errData?.error || 'Không thể thay đồ cho thú cưng lúc này!');
+        toast.error(errData?.error || 'Không thể thay đồ cho thú cưng lúc này!');
         await loadPetData();
       }
     } catch {
@@ -798,7 +811,11 @@ export default function PetPage() {
   };
   // Luôn giữ bản handleSwitchPet mới nhất cho listener Auth chạy đúng state
   // tươi (H12) — tránh stale closure từ render đầu tiên.
-  handleSwitchPetRef.current = handleSwitchPet;
+  // Ghi trong `useEffect` chứ không ghi trong thân render: bản ghi trong render là
+  // side-effect (StrictMode gọi 2 lần; render bị huỷ giữa chừng vẫn để lại ref đổi).
+  useEffect(() => {
+    handleSwitchPetRef.current = handleSwitchPet;
+  });
 
   // Action: Change Habitat
   const handleChangeHabitat = async (habitatId: string) => {
@@ -858,7 +875,7 @@ export default function PetPage() {
     if (userCoins < item.price) {
       sound.playWrong();
       const needed = item.price - userCoins;
-      alert(`🪙 Bạn đang có ${userCoins.toLocaleString()} Coins, cần thêm ${needed.toLocaleString()} Coins để sở hữu "${item.name}".\nHãy hoàn thành các bài học và thử thách tiếng Anh để tích lũy thêm Coins nhé!`);
+      toast.error(`🪙 Bạn đang có ${formatCoins(userCoins)} Coins, cần thêm ${formatCoins(needed)} Coins để sở hữu "${item.name}".\nHãy hoàn thành các bài học và thử thách tiếng Anh để tích lũy thêm Coins nhé!`);
       return;
     }
 
@@ -902,11 +919,11 @@ export default function PetPage() {
       } else {
         const errData = await res.json();
         sound.playError();
-        alert(errData.error || 'Mua vật phẩm thất bại');
+        toast.error(errData.error || 'Mua vật phẩm thất bại');
       }
     } catch {
       sound.playError();
-      alert('Không thể kết nối máy chủ để mua vật phẩm. Vui lòng thử lại!');
+      toast.error('Không thể kết nối máy chủ để mua vật phẩm. Vui lòng thử lại!');
     }
   };
 
@@ -1102,7 +1119,7 @@ export default function PetPage() {
               sound.playClick();
               setGameTab('farm');
             }}
-            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 min-h-[44px] rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
               gameTab === 'farm'
                 ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
@@ -1117,7 +1134,7 @@ export default function PetPage() {
               sound.playClick();
               setGameTab('pvp');
             }}
-            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 min-h-[44px] rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
               gameTab === 'pvp'
                 ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
@@ -1132,7 +1149,7 @@ export default function PetPage() {
               sound.playClick();
               setGameTab('racing');
             }}
-            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 min-h-[44px] rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
               gameTab === 'racing'
                 ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
@@ -1147,7 +1164,7 @@ export default function PetPage() {
               sound.playClick();
               setGameTab('sanctuary');
             }}
-            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 min-h-[44px] rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
               gameTab === 'sanctuary'
                 ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
@@ -1162,14 +1179,17 @@ export default function PetPage() {
               sound.playClick();
               setGameTab('social');
             }}
-            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+            className={`tap-target px-3 py-1.5 sm:px-3.5 sm:py-2 min-h-[44px] rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
               gameTab === 'social'
                 ? 'bg-amber-400 text-slate-950 shadow-md ring-2 ring-amber-300'
                 : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-100 border border-emerald-500/30'
             }`}
           >
             <span>👥</span>
-            <span>Phố Xã Hội & Kết Đôi</span>
+            {/* Bỏ "& Kết Đôi": sau khi gỡ "Lễ Đường Kết Đôi", tab này chỉ còn
+                bạn bè + cộng đồng, giữ chữ "Kết Đôi" là hứa hẹn tính năng
+                không còn (dead-end trong UI). */}
+            <span>Phố Xã Hội</span>
           </button>
         </div>
 
@@ -1177,7 +1197,7 @@ export default function PetPage() {
         <div className="flex items-center gap-1.5 shrink-0 ml-auto">
           <div className="flex items-center gap-1 bg-black/40 px-2.5 py-1 rounded-full border border-amber-400/40 text-xs font-black text-amber-300">
             <Coins className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-            <span>{userCoins.toLocaleString()}</span>
+            <span>{formatCoins(userCoins)}</span>
           </div>
         </div>
       </div>
@@ -1216,14 +1236,6 @@ export default function PetPage() {
                 speechText={petSpeech}
                 onSpeechChange={(text) => setPetSpeech(text)}
                 onStateChange={(state) => setFarmState(state)}
-                isCouple={Boolean(coupleData)}
-                coupleTitle={
-                  coupleData?.ring_type === 'ring_diamond'
-                    ? '✨ Uyên Ương Hoàng Gia'
-                    : coupleData?.ring_type === 'ring_gold'
-                    ? '🌹 Cặp Đôi Ngọt Ngào'
-                    : '❤️ Cặp Đôi Tri Kỷ'
-                }
               />
             )}
           </div>
@@ -1372,7 +1384,7 @@ export default function PetPage() {
 
       {/* ================= TAB 2: FARM & LIVESTOCK (CANVAS 2D) ================= */}
       {gameTab === 'farm' && (
-        <div className="w-full flex-1 min-h-0">
+        <div className="w-full flex-1 min-h-[40dvh] flex items-center justify-center">
           <PixelFarmCanvas
             userCoins={userCoins}
             onUpdateCoinsDelta={(d) => applyCoinDelta(d)}
@@ -1396,7 +1408,7 @@ export default function PetPage() {
 
       {/* ================= TAB 3: PVP COMBAT ARENA (CANVAS 2D) ================= */}
       {gameTab === 'pvp' && (
-        <div className="w-full flex-1 min-h-0">
+        <div className="w-full flex-1 min-h-[40dvh] flex items-center justify-center">
           <PetPvPArenaCanvas
             playerSpecies={petData?.pet_type || 'owl'}
             playerPetName={petData?.pet_name || currentPetMeta.name}
@@ -1425,7 +1437,7 @@ export default function PetPage() {
 
       {/* ================= TAB 4: PET RACING DERBY (CANVAS 2D) ================= */}
       {gameTab === 'racing' && (
-        <div className="w-full flex-1 min-h-0">
+        <div className="w-full flex-1 min-h-[40dvh] flex items-center justify-center">
           <PetRacingCanvas
             playerSpecies={petData?.pet_type || 'owl'}
             playerPetName={petData?.pet_name || currentPetMeta.name}
@@ -1455,7 +1467,7 @@ export default function PetPage() {
 
       {/* ================= TAB 5: SOCIAL HUB (H13: đã bỏ Lễ Đường Kết Đôi) ================= */}
       {gameTab === 'social' && (
-        <div className="w-full flex-1 min-h-0">
+        <div className="w-full flex-1 min-h-[40dvh] flex items-center justify-center">
           <PetSocialHub
             currentUserId={currentUser?.id}
             currentUsername={currentUser?.username}
@@ -1513,7 +1525,7 @@ export default function PetPage() {
               <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <div className="flex items-center gap-1 sm:gap-1.5 bg-black/25 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-white/20 text-xs font-black text-amber-300">
                   <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 fill-amber-300" />
-                  <span>{userCoins.toLocaleString()}</span>
+                  <span>{formatCoins(userCoins)}</span>
                   <span className="hidden sm:inline">Coins</span>
                 </div>
                 <button

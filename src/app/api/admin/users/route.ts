@@ -5,6 +5,7 @@ import { verifyAdminToken } from '@/lib/adminAuth';
 import { getClientIp } from '@/lib/rateLimit';
 import { logAccess, logError } from '@/lib/systemLogs';
 import logger from '@/lib/logger';
+import { formatCoins } from '@/lib/formatNumber';
 
 // Helper: Verify admin access from authorization header, request body, or HttpOnly cookie
 function verifyAdmin(request: Request, authHeader?: string | null, adminSecret?: string | null): boolean {
@@ -242,7 +243,7 @@ export async function POST(request: Request) {
         ip: clientIp,
         user_agent: userAgent,
         status: result.persisted ? 'success' : 'failed',
-        details: `Cập nhật số xu của @${targetUser.username} (${targetUserId}) thành ${parsedCoins.toLocaleString()} Coins` + (result.persisted ? '' : ` — KHONG ghi duoc len kho trung tam`),
+        details: `Cập nhật số xu của @${targetUser.username} (${targetUserId}) thành ${formatCoins(parsedCoins)} Coins` + (result.persisted ? '' : ` — KHONG ghi duoc len kho trung tam`),
       });
 
       if (!result.persisted) {
@@ -254,7 +255,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
-        message: `Đã cập nhật số xu cho tài khoản ${targetUser.username} thành ${parsedCoins.toLocaleString()} Coins! 🪙`,
+        message: `Đã cập nhật số xu cho tài khoản ${targetUser.username} thành ${formatCoins(parsedCoins)} Coins! 🪙`,
         coins: parsedCoins,
       });
     }

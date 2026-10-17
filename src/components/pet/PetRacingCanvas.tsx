@@ -3,12 +3,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateRacingQuestion, QuizQuestion } from '@/lib/petQuizData';
 import { sound } from '@/lib/soundFx';
+import { formatCoins } from '@/lib/formatNumber';
 import confetti from 'canvas-confetti';
 import { 
   Trophy, Zap, Flag, RefreshCw, CheckCircle, XCircle, Award, 
   Plus, Users, X, Clock, Play, Flame
 } from 'lucide-react';
 import { drawChibiPet } from './drawChibiPet';
+import { makeUniqueId } from './PetPvPArenaCanvas';
+import { useToast } from '../Toast';
 
 export interface PetRacingCanvasProps {
   playerSpecies: string;
@@ -17,6 +20,11 @@ export interface PetRacingCanvasProps {
   userCoins: number;
   /** Nhận DELTA (dương = cộng, âm = trừ) chứ không nhận số dư tuyệt đối. */
   onUpdateCoinsDelta: (delta: number) => void;
+  /**
+   * KHÔNG còn dùng cho phần thưởng cuộc đua (BUG-001/002): EXP giờ do
+   * `grant_game_reward` cộng trên server rồi `onRefreshData` vẽ lại. Giữ lại
+   * trong interface để không phá vỡ call site cũ.
+   */
   onUpdatePetExp?: (addedExp: number) => void;
   userId?: string;
   userDisplayName?: string;
@@ -47,7 +55,6 @@ export default function PetRacingCanvas({
   playerLevel = 1,
   userCoins,
   onUpdateCoinsDelta,
-  onUpdatePetExp,
   userId,
   userDisplayName = 'Bạn',
   activeRooms = [],
@@ -61,6 +68,8 @@ export default function PetRacingCanvas({
   const [currentRank, setCurrentRank] = useState<number>(1);
   const [finalRankings, setFinalRankings] = useState<Racer[]>([]);
 
+  const toast = useToast();
+
   // Room state
   const [currentRoom, setCurrentRoom] = useState<any>(null);
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -68,6 +77,14 @@ export default function PetRacingCanvas({
   const [betCoins, setBetCoins] = useState<number>(100);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  /**
+   * Trạng thái nhận thưởng ở bảng kết quả (BUG-001/002).
+   * 'idle' = chưa xong, chỉ hiện "đang ghi nhận" — KHÔNG hiện "+N Coins" sớm vì
+   * nếu API lỗi thì người chơi tưởng đã nhận rồi mà thực tế chưa có gì được cộng.
+   */
+  const [rewardResult, setRewardResult] = useState<'idle' | 'ok' | 'error'>('idle');
+  const [grantedCoins, setGrantedCoins] = useState<number>(0);
+  const [grantedExp, setGrantedExp] = useState<number>(0);
 
   // Rapid English Quiz State
   const [currentQuestion, setCurrentQuestion] = useState<QuizQuestion | null>(null);
@@ -101,12 +118,6 @@ export default function PetRacingCanvas({
     userCoinsRef.current = userCoins;
   });
 
-  /** Cộng/trừ delta và cập nhật ref ngay — giữ ref khớp parent giữa 2 render. */
-  const applyCoinDelta = (delta: number) => {
-    userCoinsRef.current += delta;
-    onUpdateCoinsDelta(delta);
-  };
-
   /** Server trả số dư TUYỆT ĐỐI → đổi thành delta so với số dư đang giữ. */
   const syncCoinsFromServer = (serverCoins: number) => {
     const delta = serverCoins - userCoinsRef.current;
@@ -114,39 +125,99 @@ export default function PetRacingCanvas({
     onUpdateCoinsDelta(delta);
   };
 
+  /**
+   * Khoá định danh cuộc đua hiện tại, dùng làm `claim_key` khi xin thưởng.
+   * Xem `startRaceWithOpponents` để biết vì sao phải sinh ở đầu cuộc đua.
+   */
+  const battleIdRef = useRef<string>('');
+
+  /**
+   * BUG-001/002: KHÔNG cộng coin thưởng ở client nữa.
+   *
+   * Mọi lần về nhất (kể cả đua với BOT) đều phải hỏi server qua
+   * `grant_game_reward` rồi đặt lại `userCoins` theo giá trị server trả về.
+   * Cộng tay ở đây nghĩa là thưởng chỉ nằm trong localStorage ⇒ mất sạch khi
+   * đăng xuất/đăng nhập lại, trong khi lượt mua ở nông trại đã bị trừ thật trên
+   * server ⇒ người dùng thấy số dư tụt đột ngột.
+   */
+  const requestFinishReward = async () => {
+    if (!userId) {
+      setActionError('Chưa đăng nhập nên không thể nhận thưởng cuộc đua.');
+      setRewardResult('error');
+      return;
+    }
+    setRewardResult('idle');
+    setGrantedCoins(0);
+    setGrantedExp(0);
+    const isRealRoom = Boolean(currentRoom?.id);
+    const rewardExp = 80;
+    try {
+      if (isRealRoom) {
+        // Kết thúc phòng TRƯỚC rồi mới xin thưởng: `grant_game_reward` kiểm tra
+        // `room.winner_id` để chỉ người thắng nhận được, mà `winner_id` do
+        // `finish_battle_room` ghi. Gọi sai thứ tự sẽ bị từ chối 403.
+        const finishRes = await fetch('/api/pet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            action: 'finish_battle_room',
+            roomId: currentRoom.id,
+            winnerId: userId,
+          }),
+        });
+        if (!finishRes.ok) {
+          const finishErr = await finishRes.json().catch(() => null);
+          throw new Error(finishErr?.error || 'Không thể kết thúc phòng đấu.');
+        }
+      }
+
+      const res = await fetch('/api/pet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          action: 'grant_game_reward',
+          kind: 'racing',
+          roomId: isRealRoom ? currentRoom.id : null,
+          battleId: isRealRoom ? null : battleIdRef.current,
+          // Trận thật: server tự tính `bet × 2` từ phòng nên 2 số này bị bỏ qua.
+          // Đua bot: đây là giá trị gợi ý, server clamp theo GAME_REWARD_LIMITS.
+          amount: isRealRoom ? 0 : Math.round(betCoins * 2.5),
+          exp: rewardExp,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      // Luôn đồng bộ số dư thật, kể cả khi không được thưởng: server là nguồn
+      // sự thật, giữ số cũ trong state là hiển thị sai.
+      if (typeof data?.userCoins === 'number') syncCoinsFromServer(data.userCoins);
+
+      if (!res.ok) throw new Error(data?.error || 'Không thể nhận thưởng cuộc đua.');
+      if (!data?.success) {
+        // Server trả 200 + `success: false` khi trùng khoá / chạm trần: KHÔNG
+        // được báo "đã nhận thưởng" vì thực tế không có gì được cộng.
+        setActionError(data?.message || 'Không nhận được thưởng cho cuộc đua này.');
+        setRewardResult('error');
+      } else {
+        setActionError(null);
+        setGrantedCoins(Number(data.grantedCoins) || 0);
+        setGrantedExp(Number(data.grantedExp) || 0);
+        setRewardResult('ok');
+      }
+    } catch (err: any) {
+      setActionError(err?.message || 'Không thể nhận thưởng cuộc đua. Vui lòng thử lại.');
+      setRewardResult('error');
+    }
+    if (onRefreshData) onRefreshData();
+  };
+
   // (H14) Effect nạp sẵn sprite art2d đã xoá — chỉ còn vector chibi.
 
   // Filter racing rooms
   const racingRooms = activeRooms.filter((r) => r.game_type === 'racing' && r.status === 'waiting');
 
-  // Polling when waiting for competitors
-  useEffect(() => {
-    if (raceState !== 'waiting_competitors' || !currentRoom?.id || !userId) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/pet?userId=${userId}&roomId=${currentRoom.id}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.roomDetail && data.roomDetail.status === 'in_progress' && data.roomDetail.guest_id) {
-            // Competitor joined! Start countdown!
-            setCurrentRoom(data.roomDetail);
-            startRaceWithOpponents([
-              {
-                id: data.roomDetail.guest_id,
-                name: data.roomDetail.guest_pet_type === 'owl' ? 'Lexi' : 'Thú Cưng',
-                species: data.roomDetail.guest_pet_type || 'cat',
-                ownerName: data.roomDetail.guest_name,
-                level: data.roomDetail.guest_pet_level || 1,
-              },
-            ]);
-          }
-        }
-      } catch {}
-    }, 2500);
-
-    return () => clearInterval(interval);
-  }, [raceState, currentRoom, userId]);
+  // (Effect polling đã chuyển xuống SAU `startRaceWithOpponents` — xem bên dưới.)
 
   // Initialize Racers with REAL Competitors (No fake bots)
   const initRacersWithPool = (competitors: any[]) => {
@@ -233,10 +304,28 @@ export default function PetRacingCanvas({
     cameraXRef.current = 0;
   };
 
+  // Sinh câu hỏi tiếp theo.
+  //
+  // Đặt TRƯỚC `startRaceWithOpponents` vì hàm đó gọi nó trong callback đếm
+  // ngược: khai báo sau là TDZ, callback sẽ chụp bản `loadNextQuestion` của
+  // render đầu thay vì bản mới nhất.
+  const loadNextQuestion = () => {
+    const q = generateRacingQuestion();
+    setCurrentQuestion(q);
+    setSelectedOption(null);
+    setIsFeedbackShowing(false);
+    setIsAnswerCorrect(null);
+  };
+
   // Start Race with Opponents
   const startRaceWithOpponents = (competitors: any[] = []) => {
     initRacersWithPool(competitors);
     setFinalRankings([]);
+    // Mỗi cuộc đua sinh 1 `battleId` dùng làm `claim_key` khi xin thưởng. Bắt
+    // buộc sinh Ở ĐẦU CUỘC ĐUA chứ không lúc về nhất: nếu sinh lúc về nhất,
+    // mỗi lần bấm lại (retry, remount, 2 tab) sẽ ra battleId khác ⇒ server coi
+    // là 2 cuộc đua khác nhau và thưởng 2 lần. Đặt sẵn 1 lần ⇒ gọi lại trùng khoá.
+    battleIdRef.current = makeUniqueId('racing');
     setRaceState('countdown');
     setCountdown(3);
     sound.playClick();
@@ -264,6 +353,40 @@ export default function PetRacingCanvas({
     }, 1000);
   };
 
+  // Polling when waiting for competitors.
+  //
+  // Đặt SAU `startRaceWithOpponents`: effect gọi hàm đó, nếu khai báo trước thì
+  // là TDZ — effect chụp hàm của render đầu thay vì bản mới nhất mỗi render.
+  useEffect(() => {
+    if (raceState !== 'waiting_competitors' || !currentRoom?.id || !userId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/pet?userId=${userId}&roomId=${currentRoom.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.roomDetail && data.roomDetail.status === 'in_progress' && data.roomDetail.guest_id) {
+            // Competitor joined! Start countdown!
+            setCurrentRoom(data.roomDetail);
+            startRaceWithOpponents([
+              {
+                id: data.roomDetail.guest_id,
+                name: data.roomDetail.guest_pet_type === 'owl' ? 'Lexi' : 'Thú Cưng',
+                species: data.roomDetail.guest_pet_type || 'cat',
+                ownerName: data.roomDetail.guest_name,
+                level: data.roomDetail.guest_pet_level || 1,
+              },
+            ]);
+          }
+        }
+      } catch {}
+    }, 2500);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `startRaceWithOpponents`
+    // khai báo trên effect này nên không thể đưa vào deps.
+  }, [raceState, currentRoom, userId]);
+
   // Sở hữu vòng đếm ngược: rời 'countdown' (đổi gameTab, huỷ phòng) hoặc unmount
   // → dừng interval, tránh setState trên component đã chết.
   useEffect(() => {
@@ -279,11 +402,11 @@ export default function PetRacingCanvas({
   // Handle Create Racing Room
   const handleCreateRoom = async () => {
     if (!userId) {
-      alert('Vui lòng đăng nhập để mở đường đua!');
+      toast.info('Vui lòng đăng nhập để mở đường đua!');
       return;
     }
     if (userCoins < betCoins) {
-      alert(`Bạn không đủ Coins (${userCoins} xu) để tạo phòng cược ${betCoins} xu!`);
+      toast.error(`Bạn không đủ Coins (${userCoins} xu) để tạo phòng cược ${betCoins} xu!`);
       return;
     }
 
@@ -322,11 +445,11 @@ export default function PetRacingCanvas({
   // Handle Join Racing Room
   const handleJoinRoom = async (room: any) => {
     if (!userId) {
-      alert('Vui lòng đăng nhập để tham gia đường đua!');
+      toast.info('Vui lòng đăng nhập để tham gia đường đua!');
       return;
     }
     if (userCoins < room.bet_coins) {
-      alert(`Bạn không đủ Coins (${userCoins} xu) để tham gia phòng này!`);
+      toast.error(`Bạn không đủ Coins (${userCoins} xu) để tham gia phòng này!`);
       return;
     }
 
@@ -361,7 +484,7 @@ export default function PetRacingCanvas({
       ]);
       if (onRefreshData) onRefreshData();
     } catch (err: any) {
-      alert(err.message || 'Không thể tham gia phòng đua');
+      toast.error(err.message || 'Không thể tham gia phòng đua');
       sound.playWrong();
     } finally {
       setIsProcessing(false);
@@ -414,14 +537,6 @@ export default function PetRacingCanvas({
         level: friend.pet_level || friend.level || 1,
       },
     ]);
-  };
-
-  const loadNextQuestion = () => {
-    const q = generateRacingQuestion();
-    setCurrentQuestion(q);
-    setSelectedOption(null);
-    setIsFeedbackShowing(false);
-    setIsAnswerCorrect(null);
   };
 
   // Handle Question Answer: Cứ 1 câu đúng đi thêm 1 khúc!
@@ -519,28 +634,12 @@ export default function PetRacingCanvas({
                 confetti({ particleCount: 80, spread: 90 });
 
                 if (racer.finishRank === 1) {
-                  const rewardCoins = currentRoom ? currentRoom.bet_coins * 2 : Math.round(betCoins * 2.5);
-                  const rewardExp = 80;
-                  // Delta, KHÔNG phải `userCoins + thưởng`: setTimeout 1s này được
-                  // hẹn từ rAF loop trước đó, `userCoins` trong closure là ảnh chụp
-                  // cũ → xu kiếm được trong cuộc đua bị nuốt mất.
-                  applyCoinDelta(rewardCoins);
-                  if (onUpdatePetExp) onUpdatePetExp(rewardExp);
-
-                  if (currentRoom?.id && userId) {
-                    fetch('/api/pet', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        userId,
-                        action: 'finish_battle_room',
-                        roomId: currentRoom.id,
-                        winnerId: userId,
-                      }),
-                    }).then(() => {
-                      if (onRefreshData) onRefreshData();
-                    }).catch(() => {});
-                  }
+                  // BUG-001/002: xoá `applyCoinDelta(rewardCoins)` và
+                  // `onUpdatePetExp(rewardExp)` ở đây. Cả hai chỉ là con số trên
+                  // localStorage (mất khi đăng nhập lại), còn `finish_battle_room`
+                  // lại cộng thêm lần nữa trên server ⇒ cộng 2 lần ở 2 nguồn sự
+                  // thật. Nay server cộng 1 lần và trả về số dư thật.
+                  void requestFinishReward();
                 }
               }, 1000);
             }
@@ -785,7 +884,7 @@ export default function PetRacingCanvas({
       <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-800 bg-slate-950 flex justify-center items-center select-none">
         <canvas
           ref={canvasRef}
-          className="w-full max-w-[840px] h-auto object-contain block touch-none"
+          className="w-full max-w-[840px] h-auto max-h-[60dvh] object-contain block touch-none"
         />
 
         {/* LOBBY OVERLAY: ROOM LIST & FRIEND RACE */}
@@ -957,17 +1056,29 @@ export default function PetRacingCanvas({
                 : 'Bạn đã hoàn thành chặng đua xuất sắc! Hãy rèn luyện thêm để giành cúp vàng!'}
             </p>
 
-            {currentRank === 1 && (
-              <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl mb-4 text-xs font-bold text-amber-300 border border-amber-400/30">
-                <span>+{currentRoom ? currentRoom.bet_coins * 2 : Math.round(betCoins * 2.5)} Coins 🪙</span>
-                <span>+80 EXP ⭐</span>
-              </div>
-            )}
+            {currentRank === 1 &&
+              (rewardResult === 'ok' ? (
+                <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl mb-4 text-xs font-bold text-amber-300 border border-amber-400/30">
+                  <span>+{formatCoins(grantedCoins)} Coins 🪙</span>
+                  <span>+{grantedExp} EXP ⭐</span>
+                </div>
+              ) : rewardResult === 'error' ? (
+                // KHÔNG hiện "+N Coins" khi chưa chắc đã nhận được: nói thẳng là
+                // lỗi để người chơi không tưởng đã có tiền rồi mất.
+                <div className="max-w-sm px-4 py-2 rounded-xl mb-4 text-xs font-bold text-red-200 bg-red-500/20 border border-red-500/50">
+                  {actionError || 'Chưa nhận được thưởng. Vui lòng kiểm tra lại số dư Coins.'}
+                </div>
+              ) : (
+                <div className="bg-white/10 px-4 py-2 rounded-xl mb-4 text-xs font-bold text-slate-200">
+                  Đang ghi nhận thưởng…
+                </div>
+              ))}
 
             <button
               onClick={() => {
                 setRaceState('lobby');
                 setCurrentRoom(null);
+                setRewardResult('idle');
               }}
               className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition cursor-pointer"
             >

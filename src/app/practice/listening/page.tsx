@@ -101,7 +101,7 @@ export default function ListeningPracticePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 lg:pb-12 space-y-8 overflow-x-hidden">
+    <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 lg:pb-12 space-y-8 overflow-x-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-sky-600 via-teal-600 to-emerald-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -206,13 +206,13 @@ export default function ListeningPracticePage() {
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => handlePlayAudio(0.95)}
-              className="px-4 py-2.5 min-h-[40px] bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition cursor-pointer touch-manipulation"
+              className="px-4 py-2.5 min-h-[44px] bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition cursor-pointer touch-manipulation"
             >
               <Volume2 className="w-4 h-4" /> Nghe Tốc Độ Chuẩn (1x)
             </button>
             <button
               onClick={() => handlePlayAudio(0.75)}
-              className="px-3.5 py-2.5 min-h-[40px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer touch-manipulation"
+              className="px-3.5 py-2.5 min-h-[44px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer touch-manipulation"
             >
               <Volume2 className="w-3.5 h-3.5 text-amber-500" /> Nghe Chậm (0.75x)
             </button>

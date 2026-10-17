@@ -16,6 +16,7 @@ import {
   todayStr,
   type StudyItemKind,
 } from '@/lib/studyPlanData';
+import { useToast } from './Toast';
 
 /**
  * StudyPlanSection — Kế hoạch học 28 ngày theo lộ trình (H17 — 2026-10-12).
@@ -30,6 +31,7 @@ export default function StudyPlanSection({ pathId }: { pathId: string }) {
   const plan = useMemo(() => buildStudyPlan(pathId), [pathId]);
   const [doneKeys, setDoneKeys] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
 
   const reloadProgress = () => {
     const user = getStoredUser();
@@ -61,7 +63,7 @@ export default function StudyPlanSection({ pathId }: { pathId: string }) {
     const user = getCurrentUser();
     if (!user?.id) {
       sound.playWrong();
-      alert('Vui lòng đăng nhập để lưu tiến độ kế hoạch học!');
+      toast.error('Vui lòng đăng nhập để lưu tiến độ kế hoạch học!');
       return null;
     }
     setBusy(true);
@@ -113,6 +115,7 @@ export default function StudyPlanSection({ pathId }: { pathId: string }) {
     if (data && (data.success || data.alreadyCompleted)) {
       setDoneKeys((prev) => new Set(prev).add(`study_day_item:${studyDayItemId(pathId, day, kind, idx)}`));
       sound.playSuccess();
+      toast.success('Đã hoàn thành mục này! +5 EXP +3 Coins');
     }
   };
 
@@ -146,6 +149,7 @@ export default function StudyPlanSection({ pathId }: { pathId: string }) {
     });
     if (data && (data.success || data.alreadyCompleted)) {
       setDoneKeys((prev) => new Set(prev).add(`study_day:${studyDayId(pathId, day)}`));
+      toast.success(`Hoàn thành ngày ${day}! +${reward.exp} EXP +${reward.coins} Coins`);
     }
   };
 

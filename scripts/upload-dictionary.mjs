@@ -19,6 +19,7 @@
 import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import Database from 'better-sqlite3';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -58,14 +59,23 @@ if (!fs.existsSync(dictPath)) {
   process.exit(1);
 }
 
-// --- 2. Checkpoint WAL: mọi ghi cache phải nằm trong file chính trước khi stream ---
+// --- 2. Checkpoint WAL + verify CHỈ trên bản COPY (không được ghi lên file gốc). ---
+// BẢN GỐC PHẢI NGUYÊN VẸN KHI TẢI LÊN --- Walmart-style safety guard.
+const __dictTmp = path.join(
+  fs.mkdtempSync(path.join(os.tmpdir(), 'dict-verify-')),
+  'dictionary.db'
+);
+fs.copyFileSync(dictPath, __dictTmp);
+// checkpoint cũng làm trên bản copy (idempotent, không ảnh hướng bản gốc)
+let __dbHandle = null;
 try {
-  const db = new Database(dictPath);
-  const res = db.pragma('wal_checkpoint(TRUNCATE)');
-  console.log('WAL checkpoint:', JSON.stringify(res));
-  db.close();
+  __dbHandle = new Database(__dictTmp);
+  const __cp = __dbHandle.pragma('wal_checkpoint(TRUNCATE)');
+  console.log('WAL checkpoint:', JSON.stringify(__cp));
 } catch (e) {
   console.warn('WAL checkpoint thất bại (tiếp tục):', e.message);
+} finally {
+  try { __dbHandle && __dbHandle.close(); } catch {}
 }
 
 const stats = fs.statSync(dictPath);
@@ -74,7 +84,9 @@ console.log(`Local: ${dictPath} = ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
 // --- 3. Verify SQL-level TRƯỚC KHI đẩy (không đẩy bản rách) ---
 let entries = 0;
 try {
-  const db = new Database(dictPath, { readonly: true });
+  // mở r/w trên bản copy để chạy FTS integrity-check (đây là thao tác ghi);
+  // KHÔNG ĐƯỢC mở r/w trên bản gốc.
+  const db = new Database(__dictTmp);
   try {
     const check = db.pragma('quick_check');
     if (!Array.isArray(check) || check.length !== 1 || check[0].quick_check !== 'ok') {
@@ -88,8 +100,15 @@ try {
     console.log(`Verify: quick_check ok, ${entries} mục từ, FTS integrity-check ok.`);
   } finally {
     db.close();
+    try { fs.unlinkSync(__dictTmp); } catch {}
+    try { fs.unlinkSync(__dictTmp + '-wal'); } catch {}
+    try { fs.unlinkSync(__dictTmp + '-shm'); } catch {}
   }
 } catch (e) {
+  // dọn file tạm nếu verify fail
+  try { fs.unlinkSync(__dictTmp); } catch {}
+  try { fs.unlinkSync(__dictTmp + '-wal'); } catch {}
+  try { fs.unlinkSync(__dictTmp + '-shm'); } catch {}
   console.error('ERROR: dictionary.db chưa hợp lệ —', e.message);
   process.exit(1);
 }

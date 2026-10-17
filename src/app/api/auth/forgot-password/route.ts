@@ -185,11 +185,36 @@ export async function POST(request: Request) {
     const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
     const expiresAt = Date.now() + 60 * 60 * 1000; // 60 phút
 
-    // Lưu token hash vào DB
-    db.prepare(`
-      INSERT INTO password_reset_tokens (token_hash, user_id, expires_at)
-      VALUES (?, ?, ?)
-    `).run(tokenHash, user.id, expiresAt);
+    // Lưu token hash vào DB — BẮT BUỘC qua persistCriticalWrite:
+    // nếu chỉ `db.prepare(...).run()` thì token chỉ nằm trong SQLite cục bộ của
+    // instance này (Vercel mỗi instance 1 bản /tmp riêng). Người dùng bấm link
+    // email vài chục giây sau thường rơi vào instance KHÁC, DB của instance đó
+    // được khôi phục từ Filebase mà KHÔNG có token ⇒ POST /reset-password trả
+    // "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn" dù link vừa gửi.
+    // (Báo cáo user 2026-10-17: reset xong báo link không hợp lệ.)
+    const persistToken = await persistCriticalWrite(
+      `tạo token đặt lại mật khẩu cho user ${user.id}`,
+      () => {
+        db.prepare(`
+          INSERT INTO password_reset_tokens (token_hash, user_id, expires_at)
+          VALUES (?, ?, ?)
+        `).run(tokenHash, user.id, expiresAt);
+      },
+      () => {
+        const row = db.prepare(
+          'SELECT token_hash FROM password_reset_tokens WHERE token_hash = ?'
+        ).get(tokenHash);
+        return Boolean(row);
+      }
+    );
+
+    if (!persistToken.persisted) {
+      logger.error(`[ForgotPassword] Token cho user ${user.id} không persist được lên Filebase sau ${persistToken.attempts} lần.`);
+      return NextResponse.json(
+        { error: 'Hệ thống bận, chưa tạo được link đặt lại mật khẩu. Vui lòng thử lại sau ít phút!' },
+        { status: 503 }
+      );
+    }
 
     // Tạo reset link
     const baseUrl = process.env.APP_URL || 'https://meowlish.io.vn';

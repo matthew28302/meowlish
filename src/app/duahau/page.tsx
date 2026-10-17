@@ -46,6 +46,8 @@ import {
 } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
 import { maskEmail } from '@/lib/auth';
+import { formatCoins } from '@/lib/formatNumber';
+import UserAvatar from '@/components/UserAvatar';
 
 interface AdminUser {
   id: string;
@@ -207,46 +209,6 @@ export default function DuaHauAdminPage() {
     return () => {
       if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
     };
-  }, []);
-
-  // Check saved session on mount
-  useEffect(() => {
-    // Đảm bảo không bao giờ tồn tại tài khoản admin trong localStorage của người dùng
-    try {
-      const rawUser = localStorage.getItem('english_for_me_user');
-      if (rawUser && rawUser.includes('"username":"admin"')) {
-        localStorage.removeItem('english_for_me_user');
-      }
-    } catch {}
-
-    const checkSavedSession = async () => {
-      const savedToken = sessionStorage.getItem('duahau_admin_token');
-      if (!savedToken) return;
-
-      try {
-        const res = await fetch('/api/admin/auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'verify_session', token: savedToken }),
-        });
-        const data = await res.json();
-        if (res.ok && data.valid) {
-          setAdminToken(savedToken);
-          setIsAuthenticated(true);
-          fetchAdminData(savedToken);
-          fetchSummary(savedToken);
-          fetchSupport(savedToken);
-        } else {
-          sessionStorage.removeItem('duahau_admin_token');
-          setIsAuthenticated(false);
-        }
-      } catch {
-        sessionStorage.removeItem('duahau_admin_token');
-        setIsAuthenticated(false);
-      }
-    };
-
-    checkSavedSession();
   }, []);
 
   // Fetch admin stats & user list (Secured with AES-256 Bearer Token)
@@ -568,6 +530,55 @@ export default function DuaHauAdminPage() {
       setIsLoadingSupport(false);
     }
   };
+
+  // Check saved session on mount.
+  //
+  // Đặt SAU khai báo `fetchAdminData`/`fetchSummary`/`fetchSupport`: trước đây
+  // effect này nằm ở trên và gọi 3 hàm đó trước khi chúng được khai báo ⇒ TDZ
+  // (biến `const` chưa khởi tạo tại thời điểm effect chạy). Với `useEffect([])`
+  // thân chạy SAU lần render đầu nên không nổ ngay, nhưng đây là latent bug:
+  // effect chụp 3 hàm ở lần render đầu, các lần render sau đổi logic bên trong
+  // sẽ không được phản ánh.
+  useEffect(() => {
+    // Đảm bảo không bao giờ tồn tại tài khoản admin trong localStorage của người dùng
+    try {
+      const rawUser = localStorage.getItem('english_for_me_user');
+      if (rawUser && rawUser.includes('"username":"admin"')) {
+        localStorage.removeItem('english_for_me_user');
+      }
+    } catch {}
+
+    const checkSavedSession = async () => {
+      const savedToken = sessionStorage.getItem('duahau_admin_token');
+      if (!savedToken) return;
+
+      try {
+        const res = await fetch('/api/admin/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'verify_session', token: savedToken }),
+        });
+        const data = await res.json();
+        if (res.ok && data.valid) {
+          setAdminToken(savedToken);
+          setIsAuthenticated(true);
+          fetchAdminData(savedToken);
+          fetchSummary(savedToken);
+          fetchSupport(savedToken);
+        } else {
+          sessionStorage.removeItem('duahau_admin_token');
+          setIsAuthenticated(false);
+        }
+      } catch {
+        sessionStorage.removeItem('duahau_admin_token');
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkSavedSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chạy 1 lần khi mount,
+    // các hàm gọi bên trên được khai báo sau effect nên không thể đưa vào deps.
+  }, []);
 
   // Clear Logs
   const handleClearLogs = async (type: string) => {
@@ -1056,7 +1067,7 @@ export default function DuaHauAdminPage() {
               <Coins className="w-4 h-4 text-amber-400" />
             </div>
             <div className="text-2xl font-black text-amber-400">
-              {stats?.totalCoins?.toLocaleString() || 0}
+              {formatCoins(stats?.totalCoins ?? 0)}
             </div>
             <div className="text-[11px] text-slate-400 font-medium">Số dư xu của mọi thành viên</div>
           </div>
@@ -1279,8 +1290,14 @@ export default function DuaHauAdminPage() {
                         {/* 1. User Info */}
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
-                            <span className="text-2xl p-1.5 rounded-xl bg-slate-800 border border-slate-700">
-                              {user.avatar || '🦉'}
+                            <span className="text-2xl p-1.5 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center">
+                              {/* Avatar pixel (hoặc emoji legacy đã lưu) của user;
+                                  không lưu avatar thì giữ fallback 🦉 của admin console như cũ */}
+                              {user.avatar ? (
+                                <UserAvatar avatar={user.avatar} size={32} alt={`Avatar của ${user.display_name}`} />
+                              ) : (
+                                <span role="img" aria-label="Avatar của quản trị viên">🦉</span>
+                              )}
                             </span>
                             <div>
                               <div className="font-black text-white flex items-center gap-1.5">
@@ -1328,7 +1345,7 @@ export default function DuaHauAdminPage() {
                         <td className="py-3.5 px-4">
                           <div className="font-black text-amber-400 flex items-center gap-1">
                             <Coins className="w-3.5 h-3.5" />
-                            <span>{(user.coins || 0).toLocaleString()}</span>
+                            <span>{formatCoins(user.coins)}</span>
                           </div>
                         </td>
 

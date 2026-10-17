@@ -127,7 +127,7 @@ export default function VocabularyPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 lg:pb-12 space-y-8 overflow-x-hidden">
+    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 lg:pb-12 space-y-8 overflow-x-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-600 via-emerald-600 to-amber-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -176,7 +176,7 @@ export default function VocabularyPage() {
                 sound.playClick();
                 setActiveCategory(cat.id);
               }}
-              className={`tap-target px-4 py-2 sm:py-2.5 min-h-[42px] rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer border-2 touch-manipulation flex items-center ${
+              className={`tap-target px-4 py-2 sm:py-2.5 min-h-[44px] rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer border-2 touch-manipulation flex items-center ${
                 activeCategory === cat.id
                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                   : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-emerald-400'
@@ -305,7 +305,7 @@ export default function VocabularyPage() {
                 <Link
                   href={`/practice/speaking`}
                   onClick={() => sound.playClick()}
-                  className="text-xs text-slate-600 dark:text-slate-300 hover:text-emerald-600 flex items-center gap-1 font-semibold"
+                  className="tap-target min-h-[44px] text-xs text-slate-600 dark:text-slate-300 hover:text-emerald-600 flex items-center gap-1 font-semibold px-3 py-2 rounded-xl touch-manipulation"
                 >
                   <Mic className="w-3.5 h-3.5 text-emerald-500" /> Luyện Nói
                 </Link>
@@ -314,7 +314,7 @@ export default function VocabularyPage() {
                   type="button"
                   onClick={() => handleSaveBookmark(item)}
                   disabled={isSaved}
-                  className={`tap-target px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer touch-manipulation ${
+                  className={`tap-target px-3.5 py-2 min-h-[44px] rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer touch-manipulation ${
                     isSaved
                       ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
                       : 'bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200'

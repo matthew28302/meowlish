@@ -5,6 +5,8 @@ import { X, AlertCircle, CheckCircle2, Pencil, KeyRound, Save } from 'lucide-rea
 import { sound } from '@/lib/soundFx';
 import { AuthUser, saveAccountToDevice } from '@/lib/auth';
 import { useEscapeToClose } from '@/lib/useEscapeToClose';
+import { PIXEL_AVATAR_SLUGS, parsePixelAvatar, pixelPngSrc, prettyAvatarName } from '@/lib/pixelAvatars';
+import UserAvatar from './UserAvatar';
 
 interface ProfileEditModalProps {
   isOpen: boolean;
@@ -13,19 +15,12 @@ interface ProfileEditModalProps {
   onUpdated: (user: AuthUser) => void;
 }
 
-/** Bộ emoji ảnh đại diện (cùng phong cách avatar emoji toàn app). */
-const EMOJI_AVATARS = [
-  '🐱', '🐶', '🦊', '🐻', '🐼', '🐨', '🦁', '🐯',
-  '🐰', '🐸', '🐵', '🦄', '🐮', '🐷', '🐧', '🐦',
-  '🦋', '🐢', '🐙', '🦖', '🐳', '🌸', '⭐', '🔥',
-];
-
 const INPUT_CLS =
   'w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-400 dark:focus:border-emerald-500 outline-none text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 transition';
 
 export default function ProfileEditModal({ isOpen, onClose, user, onUpdated }: ProfileEditModalProps) {
   const [displayName, setDisplayName] = useState('');
-  const [avatar, setAvatar] = useState('🐱');
+  const [avatar, setAvatar] = useState('pixel:cat');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -38,7 +33,9 @@ export default function ProfileEditModal({ isOpen, onClose, user, onUpdated }: P
   useEffect(() => {
     if (isOpen && user) {
       setDisplayName(user.display_name || '');
-      setAvatar(user.avatar || '🐱');
+      // Avatar mặc định là mèo pixel (bộ mới); avatar lưu dưới dạng emoji cũ
+      // giữ nguyên chuỗi — preview và logic "đã thay đổi" so với DB vẫn đúng.
+      setAvatar(user.avatar || 'pixel:cat');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -256,37 +253,49 @@ export default function ProfileEditModal({ isOpen, onClose, user, onUpdated }: P
         </div>
 
         <div className="space-y-5">
-          {/* Ảnh đại diện */}
+          {/* Ảnh đại diện (bộ pixel) */}
           <div>
             <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-2">
-              Ảnh đại diện (emoji)
+              Ảnh đại diện (pixel)
             </label>
             <div className="flex items-center gap-3 mb-3">
               <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-900/60 border-2 border-emerald-200 dark:border-emerald-700 flex items-center justify-center text-3xl shadow-sm shrink-0">
-                {avatar}
+                {/* Preview luôn ảnh tĩnh PNG (không GIF) — nhanh và đủ nét ở 56px */}
+                <UserAvatar avatar={avatar} size={56} format="png" />
               </div>
               <span className="text-[11px] text-slate-400 font-semibold leading-relaxed">
-                Chọn 1 emoji làm ảnh đại diện của bạn.
+                Chọn 1 ảnh đại diện pixel.
               </span>
             </div>
             <div className="grid grid-cols-8 gap-1.5 p-2 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/70">
-              {EMOJI_AVATARS.map((e) => (
-                <button
-                  key={e}
-                  type="button"
-                  onClick={() => {
-                    sound.playClick();
-                    setAvatar(e);
-                  }}
-                  className={`aspect-square flex items-center justify-center text-xl rounded-xl transition cursor-pointer active:scale-90 ${
-                    avatar === e
-                      ? 'bg-emerald-500 shadow-sm scale-105'
-                      : 'hover:bg-white dark:hover:bg-slate-700 bg-transparent'
-                  }`}
-                >
-                  {e}
-                </button>
-              ))}
+              {PIXEL_AVATAR_SLUGS.map((slug) => {
+                const selectedAvatar = `pixel:${slug}`;
+                const isSelected = parsePixelAvatar(avatar) === slug;
+                return (
+                  <button
+                    key={slug}
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      setAvatar(selectedAvatar);
+                    }}
+                    className={`aspect-square flex items-center justify-center rounded-xl transition cursor-pointer active:scale-90 ${
+                      isSelected
+                        ? 'bg-emerald-500 shadow-sm scale-105'
+                        : 'hover:bg-white dark:hover:bg-slate-700 bg-transparent'
+                    }`}
+                  >
+                    {/* Ảnh tĩnh 100px hiển thị ~40px — vẫn sắc nét theo bộ pixel */}
+                    <img
+                      src={pixelPngSrc(slug)}
+                      width={40}
+                      height={40}
+                      alt={prettyAvatarName(slug)}
+                      className="w-full h-full object-contain"
+                    />
+                  </button>
+                );
+              })}
             </div>
           </div>
 

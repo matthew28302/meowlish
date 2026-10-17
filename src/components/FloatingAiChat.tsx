@@ -186,12 +186,22 @@ const FloatingAiChat: React.FC = () => {
         aria-label={isOpen ? 'Đóng khung chat Trợ Lý Mèo AI' : 'Mở chat với Trợ Lý Mèo AI 24/7'}
         aria-expanded={isOpen}
         data-testid="floating-ai-chat-button"
-        className={`fixed right-4 sm:right-6 bottom-20 lg:bottom-6 z-[9000] w-14 h-14 rounded-full
+        className={`fixed right-4 sm:right-6 bottom-44 sm:bottom-20 lg:bottom-6 z-[9000] w-14 h-14 rounded-full
           bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-xl shadow-emerald-500/40
           border-4 border-white dark:border-slate-900 cursor-pointer
           flex items-center justify-center text-3xl select-none
           hover:scale-110 active:scale-95 transition-transform
-          ${isOpen ? 'rotate-90' : 'animate-[float-soft_3s_ease-in-out_infinite]'}`}
+          /* UX-004: muc tieu cham 56px phai DUNG YEN khi nguoi dung
+             dang nham. Animation float-soft chay VO HAN (~6px/3s) lam
+             nut lien tuc dich chuyen => kho canh ban trung, va chan toan bo
+             kiem thu tu dong (Playwright bao "element is not stable"; dac biet
+             la ban tham hover() CUNG cho doi, nen pause tren :hover la
+             khong du - con soc moi bay toi nua).
+             Giai phap: chi chay MOT DAI chuong "cham chuong" ngan (2 vong,
+             ~4.8s roi dung vinh vien), dung khi hover/focus.
+             Nguoi dung van thay nut, con muc tieu o lai tinh cho san. */
+          hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]
+          ${isOpen ? 'rotate-90' : 'animate-[float-soft_2.4s_ease-in-out_2]'}`}
       >
         {isOpen ? <X className="w-6 h-6" /> : '🐱'}
         {!isOpen && (
