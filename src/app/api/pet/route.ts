@@ -831,7 +831,13 @@ export async function POST(request: Request) {
       }
 
       // Check ownership
-      const owned = db.prepare('SELECT * FROM pet_inventory WHERE user_id = ? AND item_id = ?').get(userId, itemId);
+      let owned = db.prepare('SELECT * FROM pet_inventory WHERE user_id = ? AND item_id = ?').get(userId, itemId);
+      if (!owned) {
+        // Đa instance: buy vừa ghi có thể chưa sync về instance này. Chờ ngắn
+        // rồi kiểm lại một lần trước khi báo "chưa sở hữu".
+        await new Promise((r) => setTimeout(r, 500));
+        owned = db.prepare('SELECT * FROM pet_inventory WHERE user_id = ? AND item_id = ?').get(userId, itemId);
+      }
       if (!owned) {
         return NextResponse.json({ error: 'Bạn chưa sở hữu vật phẩm này!' }, { status: 400 });
       }

@@ -168,7 +168,10 @@ export async function POST(request: Request) {
       VALUES (?, ?, ?, ?, ?)
     `).run(txId, userId, -item.price, newCoins, `Mua vật phẩm: ${item.name}`);
 
-    syncDbToS3Now().catch(() => {});
+    // Chờ đồng bộ xong trước khi trả response, để các instance khác (Vercel
+    // multi-instance) đọc được inventory mới ngay — tránh "Bạn chưa sở hữu"
+    // khi equip chạy ngay sau buy.
+    try { await syncDbToS3Now(); } catch {}
 
     return NextResponse.json({
       success: true,
