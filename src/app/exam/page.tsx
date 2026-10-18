@@ -37,6 +37,37 @@ import { formatCoins } from '@/lib/formatNumber';
 
 type ExamMode = 'catalog' | 'testing' | 'result';
 
+// ===== Chấm điểm dùng chung (trắc nghiệm + điền từ) =====
+// Chuẩn hóa câu trả lời điền từ: bỏ khoảng trắng thừa, không phân biệt hoa/thường.
+const normalizeAnswer = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+
+/** So khớp đáp án cho câu 'fill' với danh sách đáp án chấp nhận. */
+const isFillCorrect = (q: ExamQuestion, textAnswers: Record<string, string>) => {
+  const given = normalizeAnswer(textAnswers[q.id] || '');
+  if (!given) return false;
+  return (q.acceptedAnswers || []).some((a) => normalizeAnswer(a) === given);
+};
+
+/** Một câu được tính điểm tự động khi là mcq hoặc fill. */
+const isScoredQuestion = (q: ExamQuestion) => !q.taskType || q.taskType === 'mcq' || q.taskType === 'fill';
+
+/** Câu đã được trả lời: mcq chọn đáp án; fill/writing/speaking có nội dung văn bản. */
+const isQuestionAnswered = (
+  q: ExamQuestion,
+  answers: Record<string, number>,
+  textAnswers: Record<string, string>
+) =>
+  q.taskType === 'fill' || q.taskType === 'writing' || q.taskType === 'speaking'
+    ? (textAnswers[q.id] || '').trim() !== ''
+    : answers[q.id] !== undefined;
+
+/** Đếm số câu đã trả lời trong toàn bộ đề. */
+const countAnsweredQuestions = (
+  questions: ExamQuestion[],
+  answers: Record<string, number>,
+  textAnswers: Record<string, string>
+) => questions.filter((q) => isQuestionAnswered(q, answers, textAnswers)).length;
+
 export default function ExamPage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [mode, setMode] = useState<ExamMode>('catalog');
@@ -189,12 +220,13 @@ export default function ExamPage() {
           selectedSetId: selectedSet.id,
           currentQIndex,
           userAnswers,
+          userTextAnswers,
           flaggedQuestions,
           secondsRemaining: secondsRef.current,
         })
       );
     } catch {}
-  }, [mode, selectedSet, currentQIndex, userAnswers, flaggedQuestions]);
+  }, [mode, selectedSet, currentQIndex, userAnswers, userTextAnswers, flaggedQuestions]);
 
   // Nhánh đồng hồ: chỉ ghi lại khi hết mốc 5s (đo 2026-10-09: đề dài 60 câu
   // ~45 phút = 2700 lần setItem nếu ghi mỗi giây).
@@ -208,6 +240,7 @@ export default function ExamPage() {
           selectedSetId: selectedSet.id,
           currentQIndex,
           userAnswers,
+          userTextAnswers,
           flaggedQuestions,
           secondsRemaining: secondsRef.current,
         })
@@ -222,6 +255,7 @@ export default function ExamPage() {
       setSelectedSet(targetSet);
       setCurrentQIndex(savedSessionData.currentQIndex || 0);
       setUserAnswers(savedSessionData.userAnswers || {});
+      setUserTextAnswers(savedSessionData.userTextAnswers || {});
       setFlaggedQuestions(savedSessionData.flaggedQuestions || {});
       // applySeconds giữ ref đồng bộ với state (interval đọc ref).
       applySeconds(savedSessionData.secondsRemaining ?? targetSet.durationMinutes * 60);
@@ -335,18 +369,17 @@ export default function ExamPage() {
     setShowConfirmModal(false);
     setShowExitModal(false);
 
-    const isMcq = (q: ExamQuestion) => !q.taskType || q.taskType === 'mcq';
+    // Câu tính điểm = trắc nghiệm (mcq) + điền từ (fill). Writing/speaking không
+    // chấm tự động — bộ đề chỉ có task thì bấm nộp bài nghĩa là hoàn thành: 100%.
     let correctCount = 0;
     let mcqTotal = 0;
     selectedSet.questions.forEach((q) => {
-      if (!isMcq(q)) return;
+      if (!isScoredQuestion(q)) return;
       mcqTotal += 1;
-      if (userAnswers[q.id] === q.correctIndex) {
+      if (q.taskType === 'fill' ? isFillCorrect(q, userTextAnswers) : userAnswers[q.id] === q.correctIndex) {
         correctCount += 1;
       }
     });
-    // Bộ đề chỉ có task writing/speaking (không có câu trắc nghiệm) không thể
-    // chấm tự động — học viên bấm nộp bài nghĩa là đã hoàn thành: tính 100%.
     const percentage = mcqTotal > 0 ? Math.round((correctCount / mcqTotal) * 100) : 100;
     const passed = percentage >= selectedSet.passingScore;
 
@@ -735,7 +768,7 @@ export default function ExamPage() {
           <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200 flex items-center justify-between gap-2 overflow-x-auto dark:bg-slate-900 dark:border-white/10">
             <div className="flex items-center gap-1.5">
               {selectedSet.questions.map((q, idx) => {
-                const isAnswered = userAnswers[q.id] !== undefined;
+                const isAnswered = isQuestionAnswered(q, userAnswers, userTextAnswers);
                 const isFlagged = flaggedQuestions[q.id];
                 const isCurrent = idx === currentQIndex;
 
@@ -767,7 +800,7 @@ export default function ExamPage() {
 
             <div className="hidden sm:flex items-center gap-3 text-[11px] font-bold text-slate-500 shrink-0 dark:text-slate-400">
               <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> Đã trả lời ({Object.keys(userAnswers).length}/{selectedSet.questions.length})
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> Đã trả lời ({countAnsweredQuestions(selectedSet.questions, userAnswers, userTextAnswers)}/{selectedSet.questions.length})
               </span>
               <span className="flex items-center gap-1">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Cần xem lại
@@ -912,6 +945,24 @@ export default function ExamPage() {
             </div>
             )}
 
+            {/* Fill in the blank (điền từ) */}
+            {activeQuestion.taskType === 'fill' && (
+              <div className="space-y-3 pt-2">
+                <input
+                  type="text"
+                  value={userTextAnswers[activeQuestion.id] || ''}
+                  onChange={(e) => setUserTextAnswers((prev) => ({ ...prev, [activeQuestion.id]: e.target.value }))}
+                  placeholder="Nhập từ / cụm từ còn thiếu..."
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="w-full p-4 rounded-2xl border-2 border-slate-200 bg-white text-sm text-slate-800 focus:border-emerald-500 outline-none dark:bg-slate-900 dark:border-white/10 dark:text-slate-200"
+                />
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Điền 1-3 từ vào chỗ trống. Không phân biệt chữ hoa/chữ thường khi chấm điểm.
+                </div>
+              </div>
+            )}
+
             {/* Writing Task */}
             {activeQuestion.taskType === 'writing' && (
               <div className="space-y-3 pt-2">
@@ -1050,7 +1101,7 @@ export default function ExamPage() {
                   {testPercentage}%
                 </span>
                 <span className="text-xs font-bold text-white/90 mt-1">
-                  Đúng {testScore} / {selectedSet.questions.filter((q) => !q.taskType || q.taskType === 'mcq').length} câu trắc nghiệm
+                  Đúng {testScore} / {selectedSet.questions.filter(isScoredQuestion).length} câu tính điểm
                 </span>
                 <span
                   className={`mt-3 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider ${
@@ -1100,7 +1151,14 @@ export default function ExamPage() {
             <div className="space-y-6">
               {selectedSet.questions.map((q, idx) => {
                 const userAns = userAnswers[q.id];
-                const isCorrect = userAns === q.correctIndex;
+                const isFillQ = q.taskType === 'fill';
+                const isTaskItem = q.taskType === 'writing' || q.taskType === 'speaking';
+                const userText = (userTextAnswers[q.id] || '').trim();
+                const isCorrect = isTaskItem
+                  ? true
+                  : isFillQ
+                    ? isFillCorrect(q, userTextAnswers)
+                    : userAns === q.correctIndex;
 
                 return (
                   <div
@@ -1122,7 +1180,11 @@ export default function ExamPage() {
                         <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
                           {q.sectionName}
                         </span>
-                        {isCorrect ? (
+                        {isTaskItem ? (
+                          <span className="text-xs font-black text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full flex items-center gap-1 dark:text-slate-200 dark:bg-slate-800">
+                            📝 Tự luận — không chấm điểm
+                          </span>
+                        ) : isCorrect ? (
                           <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1 dark:text-emerald-300 dark:bg-emerald-950">
                             <CheckCircle2 className="w-3.5 h-3.5" /> Chính xác
                           </span>
@@ -1193,6 +1255,42 @@ export default function ExamPage() {
                       })}
                     </div>
 
+                    {/* Fill: câu trả lời của bạn + đáp án đúng */}
+                    {isFillQ && (
+                      <div
+                        className={`p-3.5 rounded-2xl border-2 text-xs space-y-1.5 ${
+                          isCorrect
+                            ? 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-800 dark:bg-emerald-950'
+                            : 'border-rose-200 bg-rose-50/60 dark:border-rose-800 dark:bg-rose-950'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="font-black text-slate-900 dark:text-slate-100">✏️ Câu trả lời của bạn:</span>
+                          <span
+                            className={`font-bold ${
+                              isCorrect ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300'
+                            }`}
+                          >
+                            {userText || '(bỏ trống)'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="font-black text-slate-900 dark:text-slate-100">✅ Đáp án đúng:</span>
+                          <span className="font-bold text-emerald-700 dark:text-emerald-300">
+                            {(q.acceptedAnswers && q.acceptedAnswers[0]) || ''}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Writing/Speaking: bài mẫu / gợi ý trả lời */}
+                    {isTaskItem && q.modelAnswer && (
+                      <div className="p-3.5 rounded-2xl bg-sky-50/70 border border-sky-200 text-xs text-slate-700 space-y-1 dark:bg-sky-950 dark:border-sky-800 dark:text-slate-300">
+                        <span className="font-black text-sky-800 block dark:text-sky-300">✍️ Bài mẫu / Gợi ý trả lời:</span>
+                        <p className="leading-relaxed font-medium whitespace-pre-line">{q.modelAnswer}</p>
+                      </div>
+                    )}
+
                     {/* Detailed Explanation & Pedagogical Tip */}
                     <div className="pt-2 space-y-2.5">
                       <div className="p-3.5 rounded-2xl bg-white border border-slate-200 text-xs text-slate-700 space-y-1 dark:bg-slate-900 dark:border-white/10 dark:text-slate-300">
@@ -1241,13 +1339,13 @@ export default function ExamPage() {
               <div className="flex items-center justify-between">
                 <span>Số câu đã trả lời:</span>
                 <span className="font-black text-emerald-700 dark:text-emerald-300">
-                  {Object.keys(userAnswers).length} / {selectedSet.questions.length}
+                  {countAnsweredQuestions(selectedSet.questions, userAnswers, userTextAnswers)} / {selectedSet.questions.length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Số câu còn bỏ trống:</span>
                 <span className="font-black text-rose-600 dark:text-rose-300">
-                  {selectedSet.questions.length - Object.keys(userAnswers).length} câu
+                  {selectedSet.questions.length - countAnsweredQuestions(selectedSet.questions, userAnswers, userTextAnswers)} câu
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -1258,7 +1356,7 @@ export default function ExamPage() {
               </div>
             </div>
 
-            {selectedSet.questions.length - Object.keys(userAnswers).length > 0 && (
+            {selectedSet.questions.length - countAnsweredQuestions(selectedSet.questions, userAnswers, userTextAnswers) > 0 && (
               <p className="text-[11px] font-bold text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200 dark:text-amber-300 dark:bg-amber-950 dark:border-amber-800">
                 ⚠️ Bạn vẫn còn câu hỏi chưa chọn đáp án. Các câu chưa trả lời sẽ được tính là 0 điểm.
               </p>

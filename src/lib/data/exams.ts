@@ -1,14 +1,15 @@
 import { TOEIC_ETS_SETS } from './exams-ets';
 import { TOEFL_ETS_SETS } from './exams-toefl';
 import { VSTEP_SAMPLE_SETS } from './exams-vstep';
+import { IELTS_ACADEMIC_SETS } from './exams-ielts';
 
 export interface ExamQuestion {
   id: string;
   section: 'listening' | 'reading' | 'vocabulary' | 'grammar' | 'pragmatics' | 'error_correction' | 'writing' | 'speaking';
   sectionName: string;
   question: string;
-  /** Loại nhiệm vụ: 'mcq' (trắc nghiệm), 'writing' (viết), 'speaking' (nói). Mặc định 'mcq'. */
-  taskType?: 'mcq' | 'writing' | 'speaking';
+  /** Loại nhiệm vụ: 'mcq' (trắc nghiệm), 'fill' (điền từ), 'writing' (viết), 'speaking' (nói). Mặc định 'mcq'. */
+  taskType?: 'mcq' | 'fill' | 'writing' | 'speaking';
   audioScript?: string;
   speakerRole?: string;
   contextSentence?: string;
@@ -20,6 +21,8 @@ export interface ExamQuestion {
   speakingPrompt?: string;
   /** Số từ tối thiểu (writing). */
   minWords?: number;
+  /** Đáp án chấp nhận cho câu 'fill' (phần tử đầu tiên là đáp án chuẩn hiển thị). */
+  acceptedAnswers?: string[];
   /** Thời gian chuẩn bị (speaking, giây). */
   prepTimeSeconds?: number;
   options: string[];
@@ -2411,4 +2414,6 @@ export const EXAM_SETS: ExamSet[] = [
   ...TOEFL_ETS_SETS,
   // Bộ đề VSTEP.3-5 mẫu chính thức (Đọc hiểu 40 câu + Viết + Nói)
   ...VSTEP_SAMPLE_SETS,
+  // Bộ đề IELTS Academic mẫu chính thức (Listening + Reading + Writing + Speaking)
+  ...IELTS_ACADEMIC_SETS,
 ];
