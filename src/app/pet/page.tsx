@@ -699,12 +699,47 @@ export default function PetPage() {
         });
         window.dispatchEvent(new Event('auth-state-changed'));
       } else {
-        // Server từ chối (chưa sở hữu / phiên hết hạn...): báo lỗi + đồng bộ
-        // lại từ server để hủy trạng thái optimistic sai lệch.
+        // Server từ chối (chưa sở hữu / phiên hết hạn...): thử lại 1 lần sau
+        // thời gian ngắn để chờ đồng bộ đa instance (buy vừa ghi, instance khác
+        // có thể chưa thấy). Nếu vẫn thất bại, KHÔNG loadPetData() (sẽ revert về
+        // trạng thái cũ/stale và làm mất vật phẩm vừa mua) — giữ trạng thái
+        // optimistic và báo nhẹ, để người dùng thử lại thao tác mặc sau.
         const errData = await res.json().catch(() => null);
+        const isNotOwned = errData?.error?.includes('chưa sở hữu') || errData?.error?.includes('chưa mở khóa');
+        if (isNotOwned) {
+          await new Promise((r) => setTimeout(r, 700));
+          try {
+            const retryRes = await fetch('/api/pet', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: currentUser?.id,
+                action: 'equip',
+                itemId: nextVal,
+                itemType: item.type,
+              }),
+            });
+            if (retryRes.ok) {
+              const retryData = await retryRes.json();
+              reconcilePetWithLocal(retryData.pet);
+              setPetData((prev: any) => {
+                const updated = { ...prev, ...retryData.pet };
+                try {
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('meowlish_pet_cache', JSON.stringify(updated));
+                  }
+                } catch {}
+                return updated;
+              });
+              window.dispatchEvent(new Event('auth-state-changed'));
+              return;
+            }
+          } catch {}
+        }
         sound.playWrong();
-        toast.error(errData?.error || 'Không thể thay đồ cho thú cưng lúc này!');
-        await loadPetData();
+        toast.error(errData?.error || 'Không thể thay đồ cho thú cưng lúc này! Vật phẩm đã được thêm vào tủ đồ, bạn có thể mặc lại sau ít giây.');
+        // Không gọi loadPetData() ở đây: sẽ revert về trạng thái stale của server
+        // (đa instance) và làm "mất" vật phẩm vừa mua. Giữ trạng thái optimistic.
       }
     } catch {
       sound.playWrong();
