@@ -11,6 +11,8 @@ export interface ExamQuestion {
   /** Loại nhiệm vụ: 'mcq' (trắc nghiệm), 'fill' (điền từ), 'writing' (viết), 'speaking' (nói). Mặc định 'mcq'. */
   taskType?: 'mcq' | 'fill' | 'writing' | 'speaking';
   audioScript?: string;
+  /** Đường dẫn file audio thật (MP3) — dùng khi đề có audio chính thức, ví dụ '/audio/vstep-sample-listening.mp3'. */
+  audioUrl?: string;
   speakerRole?: string;
   contextSentence?: string;
   /** Đoạn văn đọc hiểu (dùng cho section 'reading'). */

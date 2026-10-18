@@ -840,6 +840,29 @@ export default function ExamPage() {
               </button>
             </div>
 
+            {/* Official Audio Player (real MP3 file) */}
+            {activeQuestion.audioUrl && (
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-sky-50 via-indigo-50 to-emerald-50 border-2 border-sky-200 space-y-3 dark:border-sky-800 dark:from-sky-950 dark:via-indigo-950 dark:to-emerald-950">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-xs font-black text-sky-800 uppercase tracking-wide flex items-center gap-1.5 dark:text-sky-200">
+                    <Headphones className="w-4 h-4 text-sky-600 dark:text-sky-300" /> Audio chính thức — phần Nghe (toàn bài ~40 phút):
+                  </span>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    Nghe 1 lần như thi thật · tua lại để nghe kiểm tra
+                  </span>
+                </div>
+                <audio
+                  controls
+                  preload="none"
+                  src={activeQuestion.audioUrl}
+                  className="w-full"
+                />
+                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  Audio chứa cả 3 phần: Part 1 (8 thông báo) → Part 2 (3 hội thoại) → Part 3 (3 bài giảng). Bấm play rồi làm lần lượt từng câu.
+                </div>
+              </div>
+            )}
+
             {/* Listening Audio Player Box if available */}
             {activeQuestion.audioScript && (
               <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-2 border-emerald-200 space-y-3 dark:border-emerald-800 dark:from-emerald-950 dark:via-teal-950 dark:to-sky-950">
@@ -1254,6 +1277,14 @@ export default function ExamPage() {
                         );
                       })}
                     </div>
+
+                    {/* Official audio: nghe lại sau khi chấm */}
+                    {q.audioUrl && (
+                      <div className="p-3.5 rounded-2xl bg-sky-50/70 border border-sky-200 dark:bg-sky-950 dark:border-sky-800">
+                        <div className="text-[11px] font-black text-sky-800 uppercase tracking-wide mb-2 dark:text-sky-300">🎧 Nghe lại audio chính thức:</div>
+                        <audio controls preload="none" src={q.audioUrl} className="w-full" />
+                      </div>
+                    )}
 
                     {/* Fill: câu trả lời của bạn + đáp án đúng */}
                     {isFillQ && (

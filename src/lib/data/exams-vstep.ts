@@ -65,19 +65,618 @@ const PASSAGE_4 = `1. Most people consider the landscape to be unchanging, but E
 
 export const VSTEP_SAMPLE_SET: ExamSet = {
   id: 'exam-vstep-sample-official',
-  title: 'VSTEP.3-5 Sample Test (Reading, Writing, Speaking)',
-  vietnameseTitle: 'Đề Thi 21: VSTEP.3-5 - Đề Thi Mẫu Chính Thức (Đọc・Viết・Nói)',
+  title: 'VSTEP.3-5 Sample Test (Listening, Reading, Writing, Speaking)',
+  vietnameseTitle: 'Đề Thi 21: VSTEP.3-5 - Đề Thi Mẫu Chính Thức (Nghe・Đọc・Viết・Nói)',
   category: 'vstep',
   categoryLabel: '🇻🇳 VSTEP Chuẩn BGD',
   level: 'B1 - B2',
-  durationMinutes: 130,
+  durationMinutes: 170,
   passingScore: 60,
-  expReward: 900,
-  coinReward: 1100,
+  expReward: 1400,
+  coinReward: 1700,
   badgeIcon: '🇻🇳',
   summary:
-    'Đề thi mẫu VSTEP.3-5 chính thức: Đọc hiểu 4 bài đọc × 10 câu (40 câu trắc nghiệm có đáp án chuẩn, chấm điểm) + Viết 2 bài (email ≥120 từ và luận ≥250 từ) + Nói 3 phần (tương tác, thảo luận giải pháp, phát triển chủ đề). Luyện đúng định dạng thi thật.',
+    'Đề thi mẫu VSTEP.3-5 chính thức, đủ 4 kỹ năng: Nghe 35 câu với audio chính thức (~40 phút, 3 phần: thông báo ngắn, hội thoại, bài giảng) + Đọc hiểu 40 câu + Viết 2 bài (email ≥120 từ và luận ≥250 từ) + Nói 3 phần. Luyện đúng định dạng thi thật.',
   questions: [
+    // ===== LISTENING - PART ONE (Câu 1-8): 8 short announcements =====
+    {
+      id: 'q21-l1',
+      section: 'listening',
+      sectionName: 'Listening - Part 1: Short Announcements (Câu 1-8)',
+      question: 'Where is the flight travelling?',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: ['From Spain to Ireland', 'From Iceland to Spain', 'From Spain to Iceland', 'From Ireland to Spain'],
+      correctIndex: 0,
+      explanation:
+        'Đáp án chuẩn (key chính thức): A — from Spain to Ireland. Đáp án nhiễu tráo chỗ các địa danh và thêm “Iceland” gần âm với “Ireland”.',
+      pedagogicalTip:
+        'Khi nghe thông báo sân bay, ghi ngay sơ đồ “FROM → TO” theo đúng thứ tự nghe được để không bị lẫn hướng bay.',
+    },
+    {
+      id: 'q21-l2',
+      section: 'listening',
+      sectionName: 'Listening - Part 1: Short Announcements (Câu 1-8)',
+      question: 'What does the teacher want the students to do?',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'Take everything out of their desks',
+        'Put the painting supplies in plastic bags',
+        'Bring paints with them to school on Monday',
+        'Put covers on their desks to keep the paint off',
+      ],
+      correctIndex: 3,
+      explanation:
+        'Đáp án chuẩn (key chính thức): D — phủ giấy lên bàn để sơn không dính bàn. Ba đáp án còn lại nhắc đến đồ dùng/thời hạn nhưng sai HÀNH ĐỘNG được yêu cầu.',
+      pedagogicalTip:
+        'Bẫy “trùng từ khóa”: đáp án nhiễu thường lặp lại danh từ vừa nghe (paints, plastic bags) — phải nghe trọn VỊ NGỮ của yêu cầu, không chọn theo một từ đơn lẻ.',
+    },
+    {
+      id: 'q21-l3',
+      section: 'listening',
+      sectionName: 'Listening - Part 1: Short Announcements (Câu 1-8)',
+      question: 'What does the teacher want the students to do?',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'Introduce themselves to the new student',
+        'Welcome the new student',
+        'Introduce the new student to the teaching staff',
+        'Tell the new student what to learn',
+      ],
+      correctIndex: 1,
+      explanation:
+        'Đáp án chuẩn (key chính thức): B — chào đón học sinh mới. Các đáp án khác đều chứa “new student” nên rất dễ chọn nhầm; khác biệt nằm ở ĐỘNG TỪ chính (introduce / welcome / tell).',
+      pedagogicalTip:
+        'Dạng câu hỏi “what does the teacher want”: so sánh động từ chính giữa các đáp án trước khi nghe — đó chính là điểm phân biệt.',
+    },
+    {
+      id: 'q21-l4',
+      section: 'listening',
+      sectionName: 'Listening - Part 1: Short Announcements (Câu 1-8)',
+      question: 'What will the weather be like at the weekend?',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: ['Hot and sunny', 'Cool and cloudy', 'Cool and rainy', 'Cold and snowy'],
+      correctIndex: 1,
+      explanation:
+        'Đáp án chuẩn (key chính thức): B — mát và nhiều mây. Bản tin thời tiết thường nói thời tiết các ngày khác trước khi đến cuối tuần — phải bám đúng MỐC THỜI GIAN trong câu hỏi.',
+      pedagogicalTip:
+        'Weather forecast: gạch chân mốc thời gian (at the weekend) trong đầu rồi chỉ “bật tai” ở đoạn tương ứng — thông tin nghe trước đó là của mốc khác.',
+    },
+    {
+      id: 'q21-l5',
+      section: 'listening',
+      sectionName: 'Listening - Part 1: Short Announcements (Câu 1-8)',
+      question: 'What can be known about the woman?',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: ['She’s been on television', 'She’s divorced', 'She’s just had a holiday', 'She’s having a baby'],
+      correctIndex: 0,
+      explanation:
+        'Đáp án chuẩn (key chính thức): A — cô ấy từng lên truyền hình. B/C/D là các thông tin bị bác bỏ hoặc không được xác nhận trong đoạn nói — phải nghe hết câu chuyện mới kết luận được.',
+      pedagogicalTip:
+        'Với câu “What can be known about…”, đừng vội chọn khi mới nghe nửa đầu — thông tin đúng thường xuất hiện sau các câu dẫn/nghi vấn.',
+    },
+    {
+      id: 'q21-l6',
+      section: 'listening',
+      sectionName: 'Listening - Part 1: Short Announcements (Câu 1-8)',
+      question: 'What is the woman talking about?',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'Investing in the Stock Exchange',
+        'Starting up her own new company',
+        'Having problems with her bank',
+        'Expecting a promotion',
+      ],
+      correctIndex: 0,
+      explanation:
+        'Đáp án chuẩn (key chính thức): A — đầu tư trên sàn chứng khoán. Ba đáp án còn lại là các chủ đề “họ hàng” (banking / company / career) rất dễ nhầm nếu chỉ nghe từ khóa.',
+      pedagogicalTip:
+        'Câu hỏi chủ đề (talking about): nghe động từ chuyên ngành — “invest, shares, stock” → chứng khoán; “start up, company” → khởi nghiệp.',
+    },
+    {
+      id: 'q21-l7',
+      section: 'listening',
+      sectionName: 'Listening - Part 1: Short Announcements (Câu 1-8)',
+      question: 'What is done to cars that are NOT parked legally?',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: ['They are fined', 'They are towed', 'They are ticketed', 'They are reparked'],
+      correctIndex: 1,
+      explanation:
+        'Đáp án chuẩn (key chính thức): B — bị cẩu xe đi (towed). Phân biệt fined (phạt tiền), ticketed (dán vé phạt) và towed (kéo xe) — ba đáp án rất sát nghĩa nên phải nghe chính xác động từ.',
+      pedagogicalTip:
+        'Nhóm từ hiểm: fine / ticket / tow / repark đều liên quan đến phạt bãi xe — học chính xác nghĩa động từ thay vì chỉ nắm chủ đề.',
+    },
+    {
+      id: 'q21-l8',
+      section: 'listening',
+      sectionName: 'Listening - Part 1: Short Announcements (Câu 1-8)',
+      question: 'On which day is the museum closed?',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: ['Sunday', 'Monday', 'Thursday', 'Friday'],
+      correctIndex: 1,
+      explanation:
+        'Đáp án chuẩn (key chính thức): B — thứ Hai. Thông báo cài nhiều ngày khác nhau cho các hoạt động khác nhau; phải nghe đúng ngữ cảnh “closed on …”.',
+      pedagogicalTip:
+        'Câu hỏi ngày tháng: ghi nhanh từng ngày kèm hoạt động đi kèm (open / closed / event) — đừng chọn theo tên thứ vừa nghe được.',
+    },
+
+    // ===== LISTENING - PART TWO (Câu 9-20): 3 conversations =====
+    {
+      id: 'q21-l9',
+      section: 'listening',
+      sectionName: 'Listening - Part 2: Radio Interview - Summer Course (Câu 9-12)',
+      question: 'This year, the course will run for',
+      contextSentence: 'You will hear a radio interview with the manager of a summer activity course. Choose the correct answer A, B, C or D for each question.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: ['six weeks.', 'seven weeks.', 'eight weeks.', 'nine weeks.'],
+      correctIndex: 0,
+      explanation:
+        'Đáp án chuẩn (key chính thức): A — sáu tuần. Bẫy số liệu: người nói thường nhắc một số tuần khác cho năm ngoái/dự kiến trước khi chốt con số năm nay.',
+      pedagogicalTip:
+        'Câu hỏi số liệu: ghi nhanh TẤT CẢ con số nghe được kèm mốc thời gian (this year / last year), chốt đáp án sau khi nghe hết đoạn.',
+    },
+    {
+      id: 'q21-l10',
+      section: 'listening',
+      sectionName: 'Listening - Part 2: Radio Interview - Summer Course (Câu 9-12)',
+      question: 'This year, for the first time, children will',
+      contextSentence: 'You will hear a radio interview with the manager of a summer activity course. Choose the correct answer A, B, C or D for each question.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: ['do creative activities.', 'do new outdoor sports.', 'organise events.', 'go rock climbing.'],
+      correctIndex: 0,
+      explanation:
+        'Đáp án chuẩn (key chính thức): A — hoạt động sáng tạo. Cụm “for the first time” báo hiệu thông tin MỚI so với trước — đây là điểm nghe quyết định.',
+      pedagogicalTip:
+        'Khi nghe “for the first time / this year / from now on”, đó gần như luôn là câu chứa đáp án cho câu hỏi về thay đổi mới.',
+    },
+    {
+      id: 'q21-l11',
+      section: 'listening',
+      sectionName: 'Listening - Part 2: Radio Interview - Summer Course (Câu 9-12)',
+      question: 'The course isn’t open to teenagers because Molly thinks that',
+      contextSentence: 'You will hear a radio interview with the manager of a summer activity course. Choose the correct answer A, B, C or D for each question.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'they aren’t interested in the activities which are available.',
+        'they should spend time with young people of a similar age.',
+        'teenagers are difficult to please.',
+        'they should do something more creative.',
+      ],
+      correctIndex: 1,
+      explanation:
+        'Đáp án chuẩn (key chính thức): B — các em nên ở cùng nhóm bạn đồng trang lứa. Ba đáp án còn lại là “định kiến về tuổi teen” được cài làm phương án nhiễu.',
+      pedagogicalTip:
+        'Câu hỏi “because Molly thinks”: chú ý tên người trong câu hỏi — lời của người khác trong hội thoại có thể là đáp án nhiễu.',
+    },
+    {
+      id: 'q21-l12',
+      section: 'listening',
+      sectionName: 'Listening - Part 2: Radio Interview - Summer Course (Câu 9-12)',
+      question: 'It’s important that parents of children attending the course',
+      contextSentence: 'You will hear a radio interview with the manager of a summer activity course. Choose the correct answer A, B, C or D for each question.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'pay the full amount immediately.',
+        'get the application form from the office.',
+        'choose the activities the child wants to do when they apply.',
+        'inform Molly about any food the child cannot eat.',
+      ],
+      correctIndex: 3,
+      explanation:
+        'Đáp án chuẩn (key chính thức): D — báo trước về món ăn trẻ không ăn được (dị ứng/kiêng khem). A/B/C là các bước hành chính nhưng không phải “điều quan trọng” được nhấn mạnh.',
+      pedagogicalTip:
+        'Câu hỏi về điều “quan trọng/cần thiết”: nghe kỹ các câu nhấn mạnh “it’s important that / make sure / don’t forget”.',
+    },
+    {
+      id: 'q21-l13',
+      section: 'listening',
+      sectionName: 'Listening - Part 2: Student & Campus Patrolman (Câu 13-16)',
+      question: 'What initiated this conversation?',
+      contextSentence: 'Listen to a conversation between a student and a campus patrolman. Choose the correct answer for each question.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: ['A request for directions', 'A parking infraction', 'A punctured tire', 'A search for a dealer'],
+      correctIndex: 1,
+      explanation:
+        'Đáp án chuẩn (key chính thức): B — vi phạm đỗ xe. Đoạn mở đầu hội thoại quyết định câu này; C/D là các chi tiết phụ có thể được nhắc về sau.',
+      pedagogicalTip:
+        'Câu hỏi mở đầu (what initiated): tập trung vào những giây đầu tiên — lý do cuộc nói chuyện bắt đầu.',
+    },
+    {
+      id: 'q21-l14',
+      section: 'listening',
+      sectionName: 'Listening - Part 2: Student & Campus Patrolman (Câu 13-16)',
+      question: 'What did the young woman do during her last holiday?',
+      contextSentence: 'Listen to a conversation between a student and a campus patrolman. Choose the correct answer for each question.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: ['Apply for a scholarship', 'Work part-time to earn money', 'Explore the campus', 'Take a long trip'],
+      correctIndex: 3,
+      explanation:
+        'Đáp án chuẩn (key chính thức): D — đi một chuyến dài ngày. (Bản gốc in nhầm “his” — bản số hoá sửa thành “her” cho đúng nhân vật.)',
+      pedagogicalTip:
+        'Nghe câu hỏi kèm mốc thời gian (during her last holiday) — thông tin phải khớp CẢ hành động lẫn thời điểm.',
+    },
+    {
+      id: 'q21-l15',
+      section: 'listening',
+      sectionName: 'Listening - Part 2: Student & Campus Patrolman (Câu 13-16)',
+      question: 'What does she need to get a sticker?',
+      contextSentence: 'Listen to a conversation between a student and a campus patrolman. Choose the correct answer for each question.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'Her student identification card',
+        'Her driver’s license',
+        'Permission from the Student Union',
+        'A class in a main building',
+      ],
+      correctIndex: 0,
+      explanation:
+        'Đáp án chuẩn (key chính thức): A — thẻ sinh viên. B/C/D là các loại giấy tờ/sự cho phép được nhắc tới nhưng không dùng để lấy sticker.',
+      pedagogicalTip:
+        'Câu hỏi “what does she need”: ghi nhanh danh sách giấy tờ nghe được kèm mục đích của từng loại.',
+    },
+    {
+      id: 'q21-l16',
+      section: 'listening',
+      sectionName: 'Listening - Part 2: Student & Campus Patrolman (Câu 13-16)',
+      question: 'Where will the young woman go next?',
+      contextSentence: 'Listen to a conversation between a student and a campus patrolman. Choose the correct answer for each question.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: ['The Campus Affairs Office', 'Cross-country', 'Wheels Within Wheels', 'The Student Union'],
+      correctIndex: 0,
+      explanation:
+        'Đáp án chuẩn (key chính thức): A — Campus Affairs Office. Địa điểm đúng là nơi được nhắc CUỐI CÙNG; các đáp án khác là nơi cô đã đến hoặc được gợi ý nhưng không phải điểm tiếp theo.',
+      pedagogicalTip:
+        'Câu hỏi “go next”: bám từ nối cuối đoạn (so / then / now) — điểm đến tiếp theo luôn xuất hiện sát cuối hội thoại.',
+    },
+    {
+      id: 'q21-l17',
+      section: 'listening',
+      sectionName: 'Listening - Part 2: Father & Daughter - Driving (Câu 17-20)',
+      question: 'Why is the girl excited at the beginning of the conversation?',
+      contextSentence: 'Listen to the conversation between a father and his daughter. Choose the correct answer for each question.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'She has just started driver’s education classes at school.',
+        'She is taking her driver’s license road test today.',
+        'She has her license and wants to drive now.',
+        'She has just passed her driving test.',
+      ],
+      correctIndex: 2,
+      explanation:
+        'Đáp án chuẩn (key chính thức): C. Bẫy: “just passed the test” (D) nghe hợp lý nhưng cô đã có bằng từ trước và háo hức muốn LÁI ngay.',
+      pedagogicalTip:
+        'Câu hỏi cảm xúc (why excited): phân biệt sự việc đã xảy ra TRƯỚC ĐÓ với lý do của cảm xúc ở hiện tại.',
+    },
+    {
+      id: 'q21-l18',
+      section: 'listening',
+      sectionName: 'Listening - Part 2: Father & Daughter - Driving (Câu 17-20)',
+      question: 'Which statement is an example of why the father created rule number 1?',
+      contextSentence: 'Listen to the conversation between a father and his daughter. Choose the correct answer for each question.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'Young drivers sometimes drink and drive.',
+        'Teenagers often drive at high speeds.',
+        'Some kids drive before obtaining a license.',
+        'Teenagers usually enjoy driving overnight.',
+      ],
+      correctIndex: 1,
+      explanation:
+        'Đáp án chuẩn (key chính thức): B — lái quá tốc độ. Câu hỏi yêu cầu chọn VÍ DỤ minh hoạ cho lý do của quy tắc số 1 — phải nghe cả quy tắc lẫn lời giải thích của bố.',
+      pedagogicalTip:
+        'Câu hỏi “which statement is an example of”: ghép quy tắc (rule number 1) với lý do được bố nói ngay sau đó.',
+    },
+    {
+      id: 'q21-l19',
+      section: 'listening',
+      sectionName: 'Listening - Part 2: Father & Daughter - Driving (Câu 17-20)',
+      question: 'Why does the father ask the daughter not to drive at night?',
+      contextSentence: 'Listen to the conversation between a father and his daughter. Choose the correct answer for each question.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'The roads tend to become icy and slippery.',
+        'It is more difficult to see obstacles in the road.',
+        'She might be attacked by bullies.',
+        'She might fall asleep at the wheel.',
+      ],
+      correctIndex: 3,
+      explanation:
+        'Đáp án chuẩn (key chính thức): D — có thể ngủ gật khi lái. A/B/C là các nguy cơ hợp lý ngoài đời nhưng không phải lý do người bố nêu trong hội thoại.',
+      pedagogicalTip:
+        'Cẩn thận “đáp án đúng ngoài đời”: nhiều phương án nghe rất hợp lý nhưng chỉ phương án được NÓI RA mới tính điểm.',
+    },
+    {
+      id: 'q21-l20',
+      section: 'listening',
+      sectionName: 'Listening - Part 2: Father & Daughter - Driving (Câu 17-20)',
+      question: 'How does the conversation end?',
+      contextSentence: 'Listen to the conversation between a father and his daughter. Choose the correct answer for each question.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'The father and daughter get in a big argument.',
+        'The father agrees to let his daughter drive the car.',
+        'The mother decides to drive the daughter to school.',
+        'The girl has to fill up the car with gas before going out.',
+      ],
+      correctIndex: 1,
+      explanation:
+        'Đáp án chuẩn (key chính thức): B — bố đồng ý để con gái lái xe. Câu hỏi về kết thúc hội thoại: thường có “bước ngoặt” ở cuối (sau khi bố nêu các quy tắc, ông nhượng bộ).',
+      pedagogicalTip:
+        'Câu hỏi “how does it end”: luôn nghe đến hết — đừng chọn theo cao trào ở giữa (cuộc tranh luận về các quy tắc).',
+    },
+
+    // ===== LISTENING - PART THREE (Câu 21-35): 3 lectures =====
+    {
+      id: 'q21-l21',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Pulp Fiction (Câu 21-25)',
+      question: 'What does the lecture mainly focus on?',
+      contextSentence: 'Part 3 — Bài giảng 1/3: lịch sử tạp chí pulp fiction “The Black Mask”. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'a magazine called The Black Mask',
+        'the history of pulp fiction in America',
+        'the writers Carroll John Daly and Dashiell Hammett',
+        'great American detectives',
+      ],
+      correctIndex: 2,
+      explanation:
+        'Đáp án chuẩn (key chính thức): C — hai nhà văn Daly và Hammett. A quá hẹp (chỉ là bối cảnh), B quá rộng so với nội dung bài; D không được nhấn mạnh.',
+      pedagogicalTip:
+        'Câu hỏi main idea: loại đáp án chỉ là CHI TIẾT phụ (A) và đáp án quá KHÁI QUÁT so với bài (B) — chọn đáp án bao đúng phạm vi bài giảng.',
+    },
+    {
+      id: 'q21-l22',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Pulp Fiction (Câu 21-25)',
+      question: 'What is not mentioned about The Black Mask?',
+      contextSentence: 'Part 3 — Bài giảng 1/3: lịch sử tạp chí pulp fiction “The Black Mask”. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: ['It was 128-pages long.', 'It started to sell in 1920.', 'It published formula writing.', 'It had no illustrations.'],
+      correctIndex: 3,
+      explanation:
+        'Đáp án chuẩn (key chính thức): D. Câu hỏi NOT mentioned yêu cầu đối chiếu TẤT CẢ thông tin — ba đáp án A/B/C đều được nhắc trong bài, riêng D không xuất hiện.',
+      pedagogicalTip:
+        'Dạng NOT mentioned: ghi nhanh các số liệu/đặc điểm vừa nghe — đáp án “không được nhắc” là cái KHÔNG có trong danh sách của bạn.',
+    },
+    {
+      id: 'q21-l23',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Pulp Fiction (Câu 21-25)',
+      question: 'According to the lecture, what was Peter Collinson’s real name?',
+      contextSentence: 'Part 3 — Bài giảng 1/3: lịch sử tạp chí pulp fiction “The Black Mask”. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: ['Carroll John Daly', 'Dashiell Daly', 'Peter Hammett', 'Dashiell Hammett'],
+      correctIndex: 3,
+      explanation:
+        'Đáp án chuẩn (key chính thức): D — Dashiell Hammett. “Peter Collinson” là bút danh (pseudonym) của Hammett; đề tráo tên hai nhà văn nên phải nghe chính xác câu nói về bút danh.',
+      pedagogicalTip:
+        'Khi nghe “real name / pseudonym / pen name” — đó chính là câu hỏi; chú ý ngay để ghi đúng tên người.',
+    },
+    {
+      id: 'q21-l24',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Pulp Fiction (Câu 21-25)',
+      question:
+        'Why does the professor say this: “By 1923, Hammett had been around the block and then some, whereas Daly never left his house.”?',
+      contextSentence: 'Part 3 — Bài giảng 1/3: lịch sử tạp chí pulp fiction “The Black Mask”. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'to identify each writer’s influences',
+        'to illustrate that Hammett had more life experience than Daly',
+        'to illustrate that Hammett lived a block from Daly’s house',
+        'to describe what Hammett and Daly were doing in 1923',
+      ],
+      correctIndex: 1,
+      explanation:
+        'Đáp án chuẩn (key chính thức): B — Hammett từng trải hơn Daly. Thành ngữ “have been around the block” = đã trải đời; C hiểu sai thành “cách nhà một dãy” (bẫy thành ngữ).',
+      pedagogicalTip:
+        'Câu hỏi “why does the professor say this”: học thành ngữ là chìa khoá — “around the block” = từng trải, không phải địa chỉ nhà.',
+    },
+    {
+      id: 'q21-l25',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Pulp Fiction (Câu 21-25)',
+      question: 'When were Three Gun Terry and Arson Plus published in The Black Mask?',
+      contextSentence: 'Part 3 — Bài giảng 1/3: lịch sử tạp chí pulp fiction “The Black Mask”. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: ['In 1989.', 'In 1894.', 'In 1915.', 'In 1923.'],
+      correctIndex: 3,
+      explanation:
+        'Đáp án chuẩn (key chính thức): D — năm 1923. Bốn mốc thời gian đều có thể được nhắc ở các sự kiện khác nhau trong bài; phải gắn đúng mốc với hai tác phẩm được hỏi.',
+      pedagogicalTip:
+        'Câu hỏi năm: vừa nghe tên tác phẩm vừa ghi năm đi kèm ngay — các năm khác trong đáp án là mốc của sự kiện khác.',
+    },
+    {
+      id: 'q21-l26',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Supreme Court & Elections (Câu 26-30)',
+      question: 'What is the lecture mainly about?',
+      contextSentence: 'Part 3 — Bài giảng 2/3: phán quyết của Tòa án Tối cao Hoa Kỳ và bộ phim tài liệu chính trị. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'a movie maker named Michael Moore',
+        'a politician named David Bossie',
+        'a U.S. Supreme Court ruling',
+        'a decision by the Elections Commission',
+      ],
+      correctIndex: 2,
+      explanation:
+        'Đáp án chuẩn (key chính thức): C — phán quyết của Tòa án Tối cao. A/B là các nhân vật/vai trò phụ; D không phải trọng tâm.',
+      pedagogicalTip:
+        'Main idea: đáp án đúng thường là sự kiện trung tâm được nhắc lại nhiều lần trong bài, không phải tên người xuất hiện ở một câu.',
+    },
+    {
+      id: 'q21-l27',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Supreme Court & Elections (Câu 26-30)',
+      question: 'What does the professor say about Hillary: The Movie?',
+      contextSentence: 'Part 3 — Bài giảng 2/3: phán quyết của Tòa án Tối cao Hoa Kỳ và bộ phim tài liệu chính trị. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'It won an Oscar for best documentary.',
+        'It is a 90-minute political attack ad.',
+        'It helped raise millions for Mrs. Clinton.',
+        'It was made by Michael Moore.',
+      ],
+      correctIndex: 1,
+      explanation:
+        'Đáp án chuẩn (key chính thức): B — quảng cáo chính trị công kích dài 90 phút. A/D sai về giải thưởng và tác giả; C đảo ngược mục đích của phim.',
+      pedagogicalTip:
+        'Câu hỏi chi tiết (what does the professor say about X): ưu tiên nghe phần mô tả trực tiếp X — các chi tiết khác trong đoạn dễ gây nhiễu.',
+    },
+    {
+      id: 'q21-l28',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Supreme Court & Elections (Câu 26-30)',
+      question: 'Why does the professor say this: “… and smoke is already on the horizon”?',
+      contextSentence: 'Part 3 — Bài giảng 2/3: phán quyết của Tòa án Tối cao Hoa Kỳ và bộ phim tài liệu chính trị. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'to indicate that something is wrong in the U.S. Supreme Court',
+        'to indicate how the Supreme Court’s ruling has angered Hillary Clinton',
+        'to draw attention to how money can buy Supreme Court decisions',
+        'to illustrate how the Court’s ruling is already creating controversy',
+      ],
+      correctIndex: 3,
+      explanation:
+        'Đáp án chuẩn (key chính thức): D — phán quyết đã gây tranh cãi ngay từ đầu. “Smoke on the horizon” là ẩn dụ: điềm báo vấn đề sắp nổi lên; A/C diễn giải quá xa.',
+      pedagogicalTip:
+        'Ẩn dụ thường được hỏi trong “why say this”: dịch nghĩa bóng trước (smoke = dấu hiệu rắc rối), tránh hiểu theo nghĩa đen.',
+    },
+    {
+      id: 'q21-l29',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Supreme Court & Elections (Câu 26-30)',
+      question: 'The professor mentions Ford. Why?',
+      contextSentence: 'Part 3 — Bài giảng 2/3: phán quyết của Tòa án Tối cao Hoa Kỳ và bộ phim tài liệu chính trị. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'as an example of a corporation that could influence an election',
+        'as an example of a famous company',
+        'as an example of a supporter of a political candidate',
+        'as a reason why the Supreme Court made the right decision',
+      ],
+      correctIndex: 0,
+      explanation:
+        'Đáp án chuẩn (key chính thức): A — ví dụ về một tập đoàn có thể gây ảnh hưởng bầu cử. Ford được nêu làm minh hoạ cho luận điểm về sức mạnh tài chính của doanh nghiệp.',
+      pedagogicalTip:
+        'Câu hỏi “why does the professor mention X”: tìm LUẬN ĐIỂM ngay trước ví dụ đó — ví dụ tồn tại để chống đỡ ý vừa nêu.',
+    },
+    {
+      id: 'q21-l30',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Supreme Court & Elections (Câu 26-30)',
+      question:
+        'Which is NOT mentioned by the professor about how the Supreme Court’s decision has changed the political landscape?',
+      contextSentence: 'Part 3 — Bài giảng 2/3: phán quyết của Tòa án Tối cao Hoa Kỳ và bộ phim tài liệu chính trị. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'Corporations can now buy and sell political candidates.',
+        'Candidate funding can come from foreign companies in the U.S.',
+        'Corporations can now influence voting through candidate funding.',
+        'A U.S. corporation is considered an individual with voting rights.',
+      ],
+      correctIndex: 0,
+      explanation:
+        'Đáp án chuẩn (key chính thức): A. “Buy and sell political candidates” là cách nói cường điệu không xuất hiện trong bài; B/C/D đều là các hệ quả được giảng viên nêu.',
+      pedagogicalTip:
+        'Câu hỏi NOT mentioned: đáp án sai thường nghe “hợp lý về logic” nhưng là phiên bản cường điệu của ý thật — phải nhớ mức độ chính xác của từng câu đã nghe.',
+    },
+    {
+      id: 'q21-l31',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Handedness in Sport (Câu 31-35)',
+      question: 'Anita first felt the Matthews article was of value when she realised',
+      contextSentence: 'Part 3 — Bài giảng 3/3: nghiên cứu về thuận tay (handedness) trong thể thao. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'how it would help her difficulties with left-handedness.',
+        'the relevance of connections he made with music.',
+        'how his research is interesting.',
+        'the impressive size of his research project.',
+      ],
+      correctIndex: 2,
+      explanation:
+        'Đáp án chuẩn (key chính thức): C. Bẫy từ gần nghĩa: “of value” ở đây gắn với cảm nhận hứng thú của Anita về nghiên cứu — không phải công dụng (A), liên hệ âm nhạc (B) hay quy mô dự án (D).',
+      pedagogicalTip:
+        'Câu hỏi thời điểm “first felt…”: nghe các trạng ngữ chỉ lần đầu (at first / initially) để bám đúng sự kiện.',
+    },
+    {
+      id: 'q21-l32',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Handedness in Sport (Câu 31-35)',
+      question: 'Anita feels that the findings on handedness will be of value in',
+      contextSentence: 'Part 3 — Bài giảng 3/3: nghiên cứu về thuận tay (handedness) trong thể thao. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'helping sportspeople identify their weaknesses.',
+        'aiding sportspeople as they plan tactics for each game.',
+        'developing suitable training programmes for sportspeople.',
+        'making sportspeople more confident.',
+      ],
+      correctIndex: 1,
+      explanation:
+        'Đáp án chuẩn (key chính thức): B — hỗ trợ VĐV hoạch định chiến thuật từng trận. A/C/D đều nghe hợp lý nhưng không phải ứng dụng Anita nêu.',
+      pedagogicalTip:
+        'Khi nhiều đáp án đều “hợp lý về chuyên môn”, phải chọn đúng từ được nói ra (tactics, each game) — nghe theo TỪ KHÓA CỤ THỂ, không theo suy luận.',
+    },
+    {
+      id: 'q21-l33',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Handedness in Sport (Câu 31-35)',
+      question: 'Anita feels that most sports coaches',
+      contextSentence: 'Part 3 — Bài giảng 3/3: nghiên cứu về thuận tay (handedness) trong thể thao. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'know nothing about the influence of handedness.',
+        'expect more from right-handed sportspeople.',
+        'focus on the wrong aspects of performance.',
+        'underestimate what science has to offer sport.',
+      ],
+      correctIndex: 2,
+      explanation:
+        'Đáp án chuẩn (key chính thức): C — các HLV đang tập trung sai khía cạnh của thành tích. A/D là các ý mạnh hơn thực tế (know nothing / underestimate) nên sai mức độ.',
+      pedagogicalTip:
+        'Bẫy mức độ: các đáp án dùng từ tuyệt đối (know nothing) thường sai khi bài chỉ nói một khía cạnh nào đó.',
+    },
+    {
+      id: 'q21-l34',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Handedness in Sport (Câu 31-35)',
+      question: 'A German study showed there was greater “mixed handedness” in musicians who',
+      contextSentence: 'Part 3 — Bài giảng 3/3: nghiên cứu về thuận tay (handedness) trong thể thao. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'started playing instruments in early youth.',
+        'play a string instrument such as the violin.',
+        'practice a great deal on their instrument.',
+        'play musical instruments frequently.',
+      ],
+      correctIndex: 0,
+      explanation:
+        'Đáp án chuẩn (key chính thức): A — bắt đầu chơi nhạc cụ từ sớm. Nghiên cứu liên hệ TUỔI BẮT ĐẦU học nhạc với mức độ “mixed handedness”; B/C/D là các yếu tố khác không được nêu.',
+      pedagogicalTip:
+        'Câu hỏi nghiên cứu: phân biệt ĐỐI TƯỢNG (who) và BIẾN SỐ được đo (tuổi bắt đầu, tần suất…) — đáp án phải khớp biến số được nói.',
+    },
+    {
+      id: 'q21-l35',
+      section: 'listening',
+      sectionName: 'Listening - Part 3: Lecture - Handedness in Sport (Câu 31-35)',
+      question: 'Studies on ape behavior show that',
+      contextSentence: 'Part 3 — Bài giảng 3/3: nghiên cứu về thuận tay (handedness) trong thể thao. Chọn đáp án đúng A, B, C hoặc D.',
+      audioUrl: '/audio/vstep-sample-listening.mp3',
+      options: [
+        'apes which always use the same hand to get food are most successful.',
+        'apes have the same proportion of left-handers as humans.',
+        'more apes are left-handed than right-handed.',
+      ],
+      correctIndex: 0,
+      explanation:
+        'Đáp án chuẩn (key chính thức): A. Lưu ý: bản in chính thức có lựa chọn D bị lỗi in ấn (cụt chữ) nên bản số hoá giữ 3 lựa chọn A/B/C nguyên bản — đáp án đúng không thay đổi.',
+      pedagogicalTip:
+        'Câu hỏi so sánh số liệu (same proportion / more…than): ghi nhanh tỉ lệ nghe được rồi so với phát biểu trong đáp án.',
+    },
+
     // ===== READING - PASSAGE 1 (Câu 1-10) =====
     {
       id: 'q21-r1',
