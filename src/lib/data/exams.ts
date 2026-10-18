@@ -1635,5 +1635,491 @@ export const EXAM_SETS: ExamSet[] = [
         pedagogicalTip: 'Ghi chú các từ nối định nghĩa như "is defined as", "refers to", "is the process of".'
       }
     ]
+  },
+  // =========================================================================
+  // BỘ ĐỀ 13: TOEIC PART 5 - GRAMMAR & VOCABULARY (B1 - B2)
+  // =========================================================================
+  {
+    id: 'exam-toeic-part5',
+    title: 'TOEIC Part 5: Incomplete Sentences (Grammar & Vocabulary)',
+    vietnameseTitle: 'Đề Thi 13: TOEIC Part 5 - Điền Từ Vào Chỗ Trống (Ngữ Pháp & Từ Vựng)',
+    category: 'toeic',
+    categoryLabel: '🎯 TOEIC ETS Quốc Tế',
+    level: 'B1 - B2',
+    durationMinutes: 20,
+    passingScore: 70,
+    expReward: 200,
+    coinReward: 250,
+    badgeIcon: '🎯',
+    summary: 'Luyện tập dạng bài TOEIC Part 5: chọn từ/cụm từ phù hợp để điền vào chỗ trống trong câu. Bao gồm các chủ điểm: thì, giới từ, liên từ, từ loại, collocation.',
+    questions: [
+      {
+        id: 'q13-1',
+        section: 'grammar',
+        sectionName: 'TOEIC Part 5 - Ngữ Pháp',
+        question: 'The new software update will be released _______ next Monday.',
+        options: ['in', 'on', 'at', 'by'],
+        correctIndex: 1,
+        explanation: 'Dùng "on" trước thứ trong tuần (on Monday). "in" dùng cho tháng/năm, "at" cho giờ chính xác, "by" cho hạn chót.',
+        pedagogicalTip: 'Công thức: on + day of week; in + month/year; at + time. Ghi nhớ bằng ví dụ: on Friday, in July, at 3 PM.'
+      },
+      {
+        id: 'q13-2',
+        section: 'vocabulary',
+        sectionName: 'TOEIC Part 5 - Từ Vựng',
+        question: 'The manager asked all employees to submit their expense reports _______ by Friday.',
+        options: ['prompt', 'promptly', 'promptness', 'prompting'],
+        correctIndex: 1,
+        explanation: '"Promptly" (một cách nhanh chóng/kịp thời) là trạng từ bổ nghĩa cho động từ "submit". Các lựa chọn khác là tính từ/danh từ/động từ không phù hợp ngữ pháp.',
+        pedagogicalTip: 'Nhận biết vị trí từ loại: sau động từ (submit ___) cần trạng từ (-ly). Sau danh từ (___ report) cần tính từ.'
+      },
+      {
+        id: 'q13-3',
+        section: 'grammar',
+        sectionName: 'TOEIC Part 5 - Ngữ Pháp',
+        question: 'Neither the director nor the team members _______ aware of the schedule change.',
+        options: ['was', 'were', 'has been', 'is'],
+        correctIndex: 1,
+        explanation: 'Với cấu trúc "Neither A nor B", động từ hòa hợp với chủ ngữ gần nhất (B = "team members" số nhiều) → "were".',
+        pedagogicalTip: 'Quy tắc: Neither A nor B / Either A or B / Not only A but also B → động từ theo B (chủ ngữ gần nhất).'
+      },
+      {
+        id: 'q13-4',
+        section: 'vocabulary',
+        sectionName: 'TOEIC Part 5 - Từ Vựng',
+        question: 'The company\'s quarterly revenue exceeded expectations, _______ a 15% increase from last year.',
+        options: ['representing', 'represented', 'to represent', 'represents'],
+        correctIndex: 0,
+        explanation: '"Representing" (phân từ hiện tại) làm mệnh đề phân từ bổ nghĩa cho mệnh đề chính, diễn tả kết quả. Các dạng khác không phù hợp ngữ pháp.',
+        pedagogicalTip: 'Phân từ hiện tại (V-ing) thường dùng để nối hai ý: "X happened, resulting in Y" / "X happened, representing Y".'
+      },
+      {
+        id: 'q13-5',
+        section: 'grammar',
+        sectionName: 'TOEIC Part 5 - Ngữ Pháp',
+        question: 'Please review the attached document _______ you have any questions about the new policy.',
+        options: ['in case', 'unless', 'although', 'because'],
+        correctIndex: 0,
+        explanation: '"In case" (phòng khi/trong trường hợp) diễn tả sự chuẩn bị cho tình huống có thể xảy ra. "Unless" (trừ khi), "although" (mặc dù), "because" (vì) không phù hợp ngữ cảnh.',
+        pedagogicalTip: 'Phân biệt: "in case" (phòng khi) vs "if" (nếu). "In case" nhấn mạnh sự chuẩn bị, "if" nhấn mạnh điều kiện.'
+      },
+      {
+        id: 'q13-6',
+        section: 'vocabulary',
+        sectionName: 'TOEIC Part 5 - Từ Vựng',
+        question: 'The client requested a detailed _______ of all project milestones before signing the contract.',
+        options: ['breakdown', 'breakthrough', 'breakout', 'breakup'],
+        correctIndex: 0,
+        explanation: '"Breakdown" (bản phân tích chi tiết) là danh từ phù hợp. "Breakthrough" (đột phá), "breakout" (vượt ra), "breakup" (chia tay) không phù hợp ngữ cảnh.',
+        pedagogicalTip: 'Collocation: "detailed breakdown" (bản phân tích chi tiết), "major breakthrough" (đột phá lớn). Học theo cụm từ, không học từ đơn lẻ.'
+      },
+      {
+        id: 'q13-7',
+        section: 'grammar',
+        sectionName: 'TOEIC Part 5 - Ngữ Pháp',
+        question: 'Had the team _______ the deadline, we would have lost the client.',
+        options: ['missed', 'miss', 'missing', 'been missed'],
+        correctIndex: 0,
+        explanation: 'Câu điều kiện loại 3: "Had + S + V3/ed, S + would have + V3/ed". "Had the team missed" là dạng đảo ngữ của "If the team had missed".',
+        pedagogicalTip: 'Đảo ngữ điều kiện loại 3: Had + S + V3, S + would have + V3. Dùng để nhấn mạnh, trang trọng hơn "If".'
+      },
+      {
+        id: 'q13-8',
+        section: 'vocabulary',
+        sectionName: 'TOEIC Part 5 - Từ Vựng',
+        question: 'The new policy aims to _______ transparency and accountability in all departments.',
+        options: ['enhance', 'enhancement', 'enhancing', 'enhanced'],
+        correctIndex: 0,
+        explanation: '"Enhance" (nâng cao, cải thiện) là động từ phù hợp sau "to". Các lựa chọn khác là danh từ/phân từ/tính từ không phù hợp.',
+        pedagogicalTip: 'Cấu trúc "aims to + V (nguyên mẫu)": aims to improve, aims to reduce, aims to enhance.'
+      },
+      {
+        id: 'q13-9',
+        section: 'grammar',
+        sectionName: 'TOEIC Part 5 - Ngữ Pháp',
+        question: 'The report must be submitted _______ 5:00 PM today.',
+        options: ['by', 'until', 'to', 'at'],
+        correctIndex: 0,
+        explanation: '"By" (trước hạn/chậm nhất) diễn tả hạn chót. "Until" (cho đến khi) dùng cho khoảng thời gian kéo dài, "at" cho thời điểm chính xác, "to" không phù hợp.',
+        pedagogicalTip: 'Phân biệt: by (chậm nhất vào lúc đó), until (kéo dài đến lúc đó), at (đúng lúc đó). "Submit by 5 PM" = nộp chậm nhất 5 giờ.'
+      },
+      {
+        id: 'q13-10',
+        section: 'vocabulary',
+        sectionName: 'TOEIC Part 5 - Từ Vựng',
+        question: 'Due to the _______ weather conditions, the flight was delayed for three hours.',
+        options: ['adverse', 'adversity', 'adversely', 'adversarial'],
+        correctIndex: 0,
+        explanation: '"Adverse" (bất lợi, xấu) là tính từ bổ nghĩa cho "weather conditions". Các lựa chọn khác là danh từ/trạng từ/tính từ mang nghĩa khác.',
+        pedagogicalTip: 'Collocation: "adverse weather/conditions/effect" (thời tiết/điều kiện/tác động bất lợi). Học theo cụm từ.'
+      },
+      {
+        id: 'q13-11',
+        section: 'grammar',
+        sectionName: 'TOEIC Part 5 - Ngữ Pháp',
+        question: 'The project, _______ was completed ahead of schedule, received positive feedback from the client.',
+        options: ['which', 'who', 'whom', 'whose'],
+        correctIndex: 0,
+        explanation: '"Which" (mệnh đề quan hệ không xác định) thay thế cho "the project" (vật). "Who/whom" cho người, "whose" cho sở hữu.',
+        pedagogicalTip: 'Mệnh đề quan hệ: which (vật), who (người chủ ngữ), whom (người tân ngữ), whose (sở hữu). Dấu phẩy trước which/who → mệnh đề không xác định (non-restrictive).'
+      },
+      {
+        id: 'q13-12',
+        section: 'vocabulary',
+        sectionName: 'TOEIC Part 5 - Từ Vựng',
+        question: 'The HR department is responsible for _______ new employees and managing benefits.',
+        options: ['recruiting', 'recruitment', 'recruiter', 'recruited'],
+        correctIndex: 0,
+        explanation: '"Recruiting" (tuyển dụng) là động từ trong cấu trúc "responsible for + V-ing" (chịu trách nhiệm làm gì). Các lựa chọn khác không phù hợp.',
+        pedagogicalTip: 'Cấu trúc "be responsible for + V-ing": responsible for managing, responsible for recruiting, responsible for ensuring.'
+      }
+    ]
+  },
+  // =========================================================================
+  // BỘ ĐỀ 14: VSTEP B1 - B2 (MIXED SKILLS)
+  // =========================================================================
+  {
+    id: 'exam-vstep-b1b2',
+    title: 'VSTEP B1-B2: Mixed Skills Practice',
+    vietnameseTitle: 'Đề Thi 14: VSTEP B1 - B2 - Tổng Hợp 4 Kỹ Năng',
+    category: 'vstep',
+    categoryLabel: '🇻🇳 VSTEP Chuẩn BGD',
+    level: 'B1 - B2',
+    durationMinutes: 25,
+    passingScore: 70,
+    expReward: 180,
+    coinReward: 220,
+    badgeIcon: '🇻🇳',
+    summary: 'Đề thi tổng hợp theo chuẩn VSTEP B1-B2: từ vựng, ngữ pháp, đọc hiểu và phản xạ tình huống. Phù hợp ôn luyện chứng chỉ VSTEP.',
+    questions: [
+      {
+        id: 'q14-1',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng & Ngữ Pháp',
+        question: 'Choose the word that best completes the sentence: "The new policy will _______ a significant impact on employee productivity."',
+        options: ['make', 'do', 'have', 'take'],
+        correctIndex: 2,
+        explanation: 'Collocation: "have an impact on" (có tác động đến). "Make/do/take an impact" không phải collocation chuẩn.',
+        pedagogicalTip: 'Học collocation: have an impact on, make a decision, do research, take a break. Không dịch từng từ.'
+      },
+      {
+        id: 'q14-2',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'If I _______ more time, I would have finished the project yesterday.',
+        options: ['had', 'have', 'would have', 'had had'],
+        correctIndex: 3,
+        explanation: 'Câu điều kiện loại 3 (quá khứ): "If + S + had + V3/ed, S + would have + V3/ed". "Had had" = had + had (V3 của have).',
+        pedagogicalTip: 'Điều kiện loại 3 dùng cho sự việc đã qua không thể thay đổi: If I had known, I would have acted differently.'
+      },
+      {
+        id: 'q14-3',
+        section: 'pragmatics',
+        sectionName: 'Phản Xạ Tình Huống',
+        question: 'Your colleague says: "I\'m really struggling with this report." The most appropriate response is:',
+        options: [
+          'That\'s your problem, not mine.',
+          'Would you like me to help you with it?',
+          'I don\'t care about your report.',
+          'You should have started earlier.'
+        ],
+        correctIndex: 1,
+        explanation: '"Would you like me to help you with it?" (Bạn muốn tôi giúp bạn với nó không?) là câu trả lời lịch sự, thể hiện sự hỗ trợ đồng nghiệp.',
+        pedagogicalTip: 'Trong giao tiếp công sở, ưu tiên câu hỏi đề nghị giúp đỡ (Would you like...? / Can I help...?) thay vì phán xét.'
+      },
+      {
+        id: 'q14-4',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng',
+        question: 'The company decided to _______ the old system with a more efficient one.',
+        options: ['replace', 'substitute', 'exchange', 'All of the above'],
+        correctIndex: 3,
+        explanation: 'Cả "replace", "substitute", "exchange" đều có thể dùng với nghĩa "thay thế" trong ngữ cảnh này (replace X with Y / substitute X for Y / exchange X for Y).',
+        pedagogicalTip: 'Phân biệt: replace A with B (thay A bằng B), substitute A for B (thay A cho B), exchange A for B (đổi A lấy B).'
+      },
+      {
+        id: 'q14-5',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'The number of students who _______ for the exam has increased this year.',
+        options: ['register', 'registers', 'registered', 'have registered'],
+        correctIndex: 3,
+        explanation: '"Have registered" (thì hiện tại hoàn thành) phù hợp vì hành động đăng ký đã xảy ra và có kết quả hiện tại (số lượng tăng). Chủ ngữ "students" số nhiều → "have".',
+        pedagogicalTip: 'Hiện tại hoàn thành: have/has + V3/ed. Dùng cho hành động đã xảy ra với kết quả hiện tại. "The number of" + danh từ số nhiều → động từ theo danh từ (students → have).'
+      },
+      {
+        id: 'q14-6',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng',
+        question: 'She is very _______ in her work; she never gives up easily.',
+        options: ['determine', 'determined', 'determination', 'determining'],
+        correctIndex: 1,
+        explanation: '"Determined" (kiên quyết, có quyết tâm) là tính từ bổ nghĩa cho "she" sau động từ liên kết "is". Các lựa chọn khác không phù hợp ngữ pháp.',
+        pedagogicalTip: 'Tính từ đuôi -ed (determined, interested, excited) mô tả trạng thái cảm xúc/cá tính. Phân biệt với -ing (determining = đang quyết định).'
+      },
+      {
+        id: 'q14-7',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'The proposal was rejected _______ it lacked sufficient data to support the claims.',
+        options: ['because', 'although', 'unless', 'despite'],
+        correctIndex: 0,
+        explanation: '"Because" (vì) diễn tả nguyên nhân. "Although" (mặc dù) cần mệnh đề tương phản, "unless" (trừ khi) cần điều kiện, "despite" (mặc dù) đi với danh từ/cụm từ.',
+        pedagogicalTip: 'Phân biệt: because + mệnh đề (vì), despite + danh từ (mặc dù), although + mệnh đề (mặc dù), unless + mệnh đề (trừ khi).'
+      },
+      {
+        id: 'q14-8',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng',
+        question: 'The CEO\'s speech was so _______ that everyone in the room was moved to tears.',
+        options: ['inspire', 'inspiring', 'inspiration', 'inspired'],
+        correctIndex: 1,
+        explanation: '"Inspiring" (truyền cảm hứng, gây xúc động) là tính từ mô tả đặc điểm của bài phát biểu. "Inspired" (được truyền cảm hứng) mô tả cảm xúc của người nghe.',
+        pedagogicalTip: 'Phân biệt tính từ -ing (gây ra cảm xúc: inspiring speech) và -ed (cảm nhận cảm xúc: inspired audience).'
+      },
+      {
+        id: 'q14-9',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'By the time we arrived, the meeting _______.',
+        options: ['had started', 'started', 'has started', 'was starting'],
+        correctIndex: 0,
+        explanation: '"Had started" (thì quá khứ hoàn thành) diễn tả hành động xảy ra trước một thời điểm trong quá khứ ("by the time we arrived").',
+        pedagogicalTip: 'Cấu trúc "By the time + quá khứ, quá khứ hoàn thành": By the time I got there, the train had left.'
+      },
+      {
+        id: 'q14-10',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng',
+        question: 'The new software is _______ compatible with all major operating systems.',
+        options: ['full', 'fully', 'fulfill', 'fulfilled'],
+        correctIndex: 1,
+        explanation: '"Fully" (hoàn toàn) là trạng từ bổ nghĩa cho tính từ "compatible". Các lựa chọn khác không phù hợp ngữ pháp.',
+        pedagogicalTip: 'Trạng từ thường có đuôi -ly và đứng trước tính từ: fully compatible, highly recommended, deeply concerned.'
+      },
+      {
+        id: 'q14-11',
+        section: 'pragmatics',
+        sectionName: 'Phản Xạ Tình Huống',
+        question: 'At a job interview, the interviewer asks: "Why do you want to work here?" The best response is:',
+        options: [
+          'Because I need money.',
+          'I am interested in your company\'s innovative projects and growth opportunities.',
+          'I don\'t know, my friend applied here.',
+          'Your office is close to my home.'
+        ],
+        correctIndex: 1,
+        explanation: 'Câu trả lời nên thể hiện sự quan tâm đến công ty và cơ hội phát triển, không nên trả lời qua loa hoặc vì lý do cá nhân.',
+        pedagogicalTip: 'Trong phỏng vấn, luôn trả lời với lý do chuyên nghiệp: quan tâm đến sản phẩm/dịch vụ, cơ hội học hỏi, văn hóa công ty.'
+      },
+      {
+        id: 'q14-12',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'The more you practice, _______ you will become.',
+        options: ['the better', 'better', 'the best', 'best'],
+        correctIndex: 0,
+        explanation: 'Cấu trúc so sánh kép: "The + comparative, the + comparative" (Càng... càng...). "The more you practice, the better you will become."',
+        pedagogicalTip: 'So sánh kép: The + adj-er/comparative, the + adj-er/comparative. VD: The harder you work, the more you achieve.'
+      }
+    ]
+  },
+  // =========================================================================
+  // BỘ ĐỀ 15: IELTS ACADEMIC READING & VOCABULARY (B2 - C1)
+  // =========================================================================
+  {
+    id: 'exam-ielts-academic',
+    title: 'IELTS Academic: Reading & Vocabulary',
+    vietnameseTitle: 'Đề Thi 15: IELTS Academic - Đọc Hiểu & Từ Vựng',
+    category: 'ielts',
+    categoryLabel: '🇬🇧 IELTS Academic',
+    level: 'B2 - C1',
+    durationMinutes: 25,
+    passingScore: 70,
+    expReward: 220,
+    coinReward: 280,
+    badgeIcon: '🇬🇧',
+    summary: 'Luyện tập dạng bài IELTS Academic: đọc hiểu đoạn văn, từ vựng theo ngữ cảnh, và suy luận. Phù hợp ôn luyện IELTS Band 6.0-7.5.',
+    questions: [
+      {
+        id: 'q15-1',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng Theo Ngữ Cảnh',
+        question: 'The scientist\'s findings were _______ by subsequent research, confirming the original hypothesis.',
+        options: ['corroborated', 'contradicted', 'complicated', 'eliminated'],
+        correctIndex: 0,
+        explanation: '"Corroborated" (xác nhận, củng cố) nghĩa là được hỗ trợ/xác minh bởi bằng chứng khác. "Contradicted" (mâu thuẫn), "complicated" (phức tạp hóa), "eliminated" (loại bỏ) không phù hợp ngữ cảnh.',
+        pedagogicalTip: 'Từ vựng IELTS: corroborate (xác nhận), contradict (mâu thuẫn), substantiate (chứng minh), validate (xác thực).'
+      },
+      {
+        id: 'q15-2',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'Not only _______ the deadline, but she also exceeded the quality expectations.',
+        options: ['she met', 'did she meet', 'she had met', 'had she met'],
+        correctIndex: 1,
+        explanation: 'Đảo ngữ với "Not only": Not only + trợ động từ + chủ ngữ + động từ. "Did she meet" (did + she + meet). Nếu dùng "had she met" thì mệnh đề sau phải là "would have exceeded" (điều kiện).',
+        pedagogicalTip: 'Đảo ngữ: Not only did she..., but she also... / Not only was it..., but it also... / Seldom do we... / Rarely have I...'
+      },
+      {
+        id: 'q15-3',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng',
+        question: 'The new urban development project has been met with considerable _______ from local residents.',
+        options: ['opposition', 'support', 'indifference', 'enthusiasm'],
+        correctIndex: 0,
+        explanation: '"Opposition" (sự phản đối) phù hợp với "met with considerable" trong ngữ cảnh tranh cãi về dự án phát triển. "Support" và "enthusiasm" mang nghĩa tích cực (mâu thuẫn với "met with" thường đi với phản đối). "Indifference" ( thờ ơ) không hợp lý.',
+        pedagogicalTip: 'Collocation: "met with opposition/resistance/criticism" (gặp phải sự phản đối/kháng cự/chỉ trích). "Met with approval/support" (được chấp thuận/hỗ trợ).'
+      },
+      {
+        id: 'q15-4',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'The phenomenon, _______ extensively in recent literature, remains poorly understood.',
+        options: ['having been studied', 'studied', 'being studied', 'to have been studied'],
+        correctIndex: 0,
+        explanation: '"Having been studied" (phân từ hoàn thành bị động) diễn tả hành động xảy ra trước và có liên quan đến hiện tại. "Studied" (phân từ quá khứ) cũng đúng ngữ pháp nhưng "having been studied" nhấn mạnh trình tự thời gian rõ hơn.',
+        pedagogicalTip: 'Phân từ hoàn thành bị động: Having been + V3/ed. Dùng khi hành động xảy ra trước và có kết quả liên quan: "Having been warned, he left."'
+      },
+      {
+        id: 'q15-5',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng',
+        question: 'The government\'s decision to cut funding for the arts has been widely _______ by critics.',
+        options: ['condemned', 'commended', 'condoned', 'conferred'],
+        correctIndex: 0,
+        explanation: '"Condemned" (lên án, chỉ trích gay gắt) phù hợp với ngữ cảnh cắt giảm ngân sách bị chỉ trích. "Commended" (khen ngợi) ngược nghĩa, "condoned" (tha thứ/bỏ qua), "conferred" (trao tặng) không phù hợp.',
+        pedagogicalTip: 'Từ vựng IELTS: condemn (lên án), criticize (chỉ trích), denounce (tố cáo), censure (khiển trách). Phân biệt với commend (khen), condone (tha thứ).'
+      },
+      {
+        id: 'q15-6',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'It is imperative that every student _______ the safety regulations before entering the laboratory.',
+        options: ['follows', 'follow', 'followed', 'has followed'],
+        correctIndex: 1,
+        explanation: 'Cấu trúc "It is imperative/essential/necessary that + S + V (nguyên mẫu)" dùng động từ nguyên mẫu (subjunctive mood). "Follow" là đúng, không thêm -s.',
+        pedagogicalTip: 'Subjunctive mood: It is essential/important/necessary that S + V (nguyên mẫu). VD: It is vital that he be present. It is recommended that she attend.'
+      },
+      {
+        id: 'q15-7',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng',
+        question: 'The rapid _______ of urban areas has led to significant environmental challenges.',
+        options: ['urbanization', 'urbanize', 'urban', 'urbane'],
+        correctIndex: 0,
+        explanation: '"Urbanization" (đô thị hóa) là danh từ chỉ quá trình, phù hợp sau "rapid" và trước "of". "Urbanize" (động từ), "urban" (tính từ), "urbane" (thanh lịch) không phù hợp.',
+        pedagogicalTip: 'Từ vựng IELTS chủ đề môi trường: urbanization (đô thị hóa), deforestation (phá rừng), pollution (ô nhiễm), sustainability (bền vững).'
+      },
+      {
+        id: 'q15-8',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'The committee has _______ the proposal for further review before making a final decision.',
+        options: ['deferred', 'deferring', 'deferral', 'defer'],
+        correctIndex: 0,
+        explanation: '"Deferred" (hoãn lại) là động từ quá khứ phân từ trong thì hiện tại hoàn thành (has + V3/ed). "Defer" (nguyên mẫu) không phù hợp sau "has".',
+        pedagogicalTip: 'Hiện tại hoàn thành: has/have + V3/ed. "Defer" → "deferred" (hoãn), "approve" → "approved" (phê duyệt), "reject" → "rejected" (từ chối).'
+      }
+    ]
+  },
+  // =========================================================================
+  // BỘ ĐỀ 16: TOEFL iBT - ACADEMIC & CAMPUS (B2 - C1)
+  // =========================================================================
+  {
+    id: 'exam-toefl-ibt',
+    title: 'TOEFL iBT: Academic & Campus Discussion',
+    vietnameseTitle: 'Đề Thi 16: TOEFL iBT - Học Thuật & Thảo Luận Campus',
+    category: 'toefl',
+    categoryLabel: '🇺🇸 TOEFL iBT Mỹ',
+    level: 'B2 - C1',
+    durationMinutes: 25,
+    passingScore: 70,
+    expReward: 220,
+    coinReward: 280,
+    badgeIcon: '🇺🇸',
+    summary: 'Luyện tập dạng bài TOEFL iBT: đọc hiểu bài giảng đại học, từ vựng học thuật, và suy luận. Phù hợp ôn luyện TOEFL iBT 90-110.',
+    questions: [
+      {
+        id: 'q16-1',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng Học Thuật',
+        question: 'The professor emphasized the _______ between correlation and causation in research methodology.',
+        options: ['distinction', 'similarity', 'equivalence', 'connection'],
+        correctIndex: 0,
+        explanation: '"Distinction" (sự phân biệt) phù hợp với "emphasized the ___ between" (nhấn mạnh sự phân biệt giữa). "Similarity" (tương đồng), "equivalence" (tương đương), "connection" (kết nối) không phù hợp ngữ cảnh.',
+        pedagogicalTip: 'Từ vựng TOEFL: distinction (phân biệt), correlation (tương quan), causation (quan hệ nhân quả), methodology (phương pháp luận).'
+      },
+      {
+        id: 'q16-2',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'The data collected from the experiment, _______ over a period of six months, revealed unexpected patterns.',
+        options: ['having been gathered', 'gathered', 'gathering', 'to gather'],
+        correctIndex: 1,
+        explanation: '"Gathered" (phân từ quá khứ) làm mệnh đề phân từ bị động, diễn tả dữ liệu đã được thu thập. "Having been gathered" cũng đúng nhưng "gathered" ngắn gọn và tự nhiên hơn.',
+        pedagogicalTip: 'Phân từ quá khứ (V3/ed) thường dùng để rút gọn mệnh đề bị động: "The data, gathered over six months, revealed..." = "The data, which was gathered over six months, revealed..."'
+      },
+      {
+        id: 'q16-3',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng',
+        question: 'The researcher\'s hypothesis was _______ by the experimental results, leading to a revised theory.',
+        options: ['undermined', 'reinforced', 'ignored', 'simplified'],
+        correctIndex: 0,
+        explanation: '"Undermined" (làm suy yếu, bác bỏ) phù hợp với "leading to a revised theory" (dẫn đến lý thuyết sửa đổi). Nếu kết quả củng cố giả thuyết thì không cần sửa lý thuyết.',
+        pedagogicalTip: 'Từ vựng TOEFL: undermine (suy yếu), reinforce (củng cố), validate (xác thực), refute (bác bỏ). Phân biệt dựa vào ngữ cảnh.'
+      },
+      {
+        id: 'q16-4',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'It is essential that the laboratory equipment _______ calibrated before each experiment.',
+        options: ['is', 'be', 'was', 'has been'],
+        correctIndex: 1,
+        explanation: 'Cấu trúc "It is essential/necessary that + S + V (nguyên mẫu)" dùng subjunctive mood. "Be" là đúng, không thêm -s.',
+        pedagogicalTip: 'Subjunctive mood trong tiếng Anh học thuật: It is essential/vital/crucial that S + V (nguyên mẫu). VD: It is essential that the data be analyzed carefully.'
+      },
+      {
+        id: 'q16-5',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng',
+        question: 'The study revealed a _______ relationship between sleep deprivation and cognitive performance.',
+        options: ['significant', 'significance', 'significantly', 'signify'],
+        correctIndex: 0,
+        explanation: '"Significant" (đáng kể, có ý nghĩa thống kê) là tính từ bổ nghĩa cho "relationship". Các lựa chọn khác không phù hợp ngữ pháp.',
+        pedagogicalTip: 'Từ vựng TOEFL: significant (đáng kể), substantial (đáng kể), considerable (đáng kể), negligible (không đáng kể). Phân biệt significance (danh từ) và significantly (trạng từ).'
+      },
+      {
+        id: 'q16-6',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'The professor, along with her research assistants, _______ conducting a series of experiments this semester.',
+        options: ['is', 'are', 'was', 'were'],
+        correctIndex: 0,
+        explanation: 'Chủ ngữ chính là "The professor" (số ít). "Along with her research assistants" là cụm bổ sung không thay đổi số của chủ ngữ. Động từ chia theo "professor" (số ít) → "is".',
+        pedagogicalTip: 'Cấu trúc "A, along with B, / A, as well as B, / A, together with B" → động từ theo A (chủ ngữ chính). Phân biệt với "A and B" → số nhiều.'
+      },
+      {
+        id: 'q16-7',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng',
+        question: 'The findings of the study have profound _______ for future research in this field.',
+        options: ['implications', 'complications', 'applications', 'replications'],
+        correctIndex: 0,
+        explanation: '"Implications" (hàm ý, ý nghĩa) phù hợp với "profound ___ for future research". "Complications" (biến chứng), "applications" (ứng dụng), "replications" (sự lặp lại) không phù hợp ngữ cảnh.',
+        pedagogicalTip: 'Từ vựng TOEFL: implications (hàm ý), ramifications (hệ quả), consequences (hậu quả). "Profound implications" là collocation phổ biến trong văn phong học thuật.'
+      },
+      {
+        id: 'q16-8',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'The experiment was designed to determine _______ the new compound would be effective against the virus.',
+        options: ['whether', 'that', 'what', 'which'],
+        correctIndex: 0,
+        explanation: '"Whether" (liệu có... không) diễn tả sự không chắc chắn. "That" (rằng) dùng cho sự thật chắc chắn, "what" (cái gì), "which" (cái nào) không phù hợp.',
+        pedagogicalTip: 'Phân biệt: whether (liệu có...không, dùng khi không chắc chắn), that (rằng, dùng khi chắc chắn). "Determine whether X would Y" = xác định liệu X có Y không.'
+      }
+    ]
   }
 ];
