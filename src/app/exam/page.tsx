@@ -54,6 +54,7 @@ export default function ExamPage() {
   const [completedExams, setCompletedExams] = useState<Record<string, { score: number; percentage: number; passed: boolean }>>({});
   const [currentQIndex, setCurrentQIndex] = useState<number>(0);
   const [userAnswers, setUserAnswers] = useState<Record<string, number>>({});
+  const [userTextAnswers, setUserTextAnswers] = useState<Record<string, string>>({});
   const [flaggedQuestions, setFlaggedQuestions] = useState<Record<string, boolean>>({});
   const [secondsRemaining, setSecondsRemaining] = useState<number>(0);
   const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
@@ -242,6 +243,7 @@ export default function ExamPage() {
     setSelectedSet(examSet);
     setCurrentQIndex(0);
     setUserAnswers({});
+    setUserTextAnswers({});
     setFlaggedQuestions({});
     applySeconds(examSet.durationMinutes * 60);
     setRewardsAwarded(null);
@@ -333,14 +335,18 @@ export default function ExamPage() {
     setShowConfirmModal(false);
     setShowExitModal(false);
 
+    const isMcq = (q: ExamQuestion) => !q.taskType || q.taskType === 'mcq';
     let correctCount = 0;
+    let mcqTotal = 0;
     selectedSet.questions.forEach((q) => {
+      if (!isMcq(q)) return;
+      mcqTotal += 1;
       if (userAnswers[q.id] === q.correctIndex) {
         correctCount += 1;
       }
     });
-
-    const percentage = Math.round((correctCount / selectedSet.questions.length) * 100);
+    const totalForScore = mcqTotal > 0 ? mcqTotal : selectedSet.questions.length;
+    const percentage = Math.round((correctCount / totalForScore) * 100);
     const passed = percentage >= selectedSet.passingScore;
 
     // Clear saved session on exam completion
@@ -845,6 +851,18 @@ export default function ExamPage() {
                 </div>
               </div>
             )}
+            
+            {/* Reading Passage Box */}
+            {activeQuestion.readingPassage && (
+              <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-3 dark:bg-slate-900 dark:border-white/10 max-h-[300px] overflow-y-auto custom-scrollbar">
+                <div className="text-xs font-black text-slate-700 uppercase tracking-wide dark:text-slate-300">
+                  📖 Đoạn văn đọc hiểu:
+                </div>
+                <div className="text-sm text-slate-800 leading-relaxed dark:text-slate-200 whitespace-pre-line">
+                  {activeQuestion.readingPassage}
+                </div>
+              </div>
+            )}
 
             {/* Context Sentence */}
             {activeQuestion.contextSentence && (
@@ -858,7 +876,8 @@ export default function ExamPage() {
               {activeQuestion.question}
             </div>
 
-            {/* Options List */}
+            {/* Options List (MCQ) */}
+            {(!activeQuestion.taskType || activeQuestion.taskType === 'mcq') && activeQuestion.options.length > 0 && (
             <div className="space-y-3 pt-2">
               {activeQuestion.options.map((option, optIdx) => {
                 const isSelected = userAnswers[activeQuestion.id] === optIdx;
@@ -890,6 +909,54 @@ export default function ExamPage() {
                 );
               })}
             </div>
+            )}
+
+            {/* Writing Task */}
+            {activeQuestion.taskType === 'writing' && (
+              <div className="space-y-3 pt-2">
+                {activeQuestion.writingPrompt && (
+                  <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-slate-800 dark:bg-amber-950 dark:border-amber-800 dark:text-slate-200">
+                    <div className="text-xs font-black text-amber-700 uppercase tracking-wide mb-1 dark:text-amber-300">Đề bài viết:</div>
+                    <div className="whitespace-pre-line">{activeQuestion.writingPrompt}</div>
+                    {activeQuestion.minWords && (
+                      <div className="text-[11px] text-amber-600 mt-2 dark:text-amber-400">Tối thiểu {activeQuestion.minWords} từ.</div>
+                    )}
+                  </div>
+                )}
+                <textarea
+                  value={userTextAnswers[activeQuestion.id] || ''}
+                  onChange={(e) => setUserTextAnswers((prev) => ({ ...prev, [activeQuestion.id]: e.target.value }))}
+                  placeholder="Nhập bài viết của bạn tại đây..."
+                  className="w-full min-h-[180px] p-4 rounded-2xl border-2 border-slate-200 bg-white text-sm text-slate-800 focus:border-emerald-500 outline-none dark:bg-slate-900 dark:border-white/10 dark:text-slate-200"
+                />
+                {activeQuestion.minWords && (
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Số từ: {(userTextAnswers[activeQuestion.id] || '').trim().split(/\s+/).filter(Boolean).length} / {activeQuestion.minWords}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Speaking Task */}
+            {activeQuestion.taskType === 'speaking' && (
+              <div className="space-y-3 pt-2">
+                {activeQuestion.speakingPrompt && (
+                  <div className="p-4 rounded-2xl bg-sky-50 border border-sky-200 text-sm text-slate-800 dark:bg-sky-950 dark:border-sky-800 dark:text-slate-200">
+                    <div className="text-xs font-black text-sky-700 uppercase tracking-wide mb-1 dark:text-sky-300">Đề bài nói:</div>
+                    <div className="whitespace-pre-line">{activeQuestion.speakingPrompt}</div>
+                    {activeQuestion.prepTimeSeconds && (
+                      <div className="text-[11px] text-sky-600 mt-2 dark:text-sky-400">Thời gian chuẩn bị: {activeQuestion.prepTimeSeconds}s.</div>
+                    )}
+                  </div>
+                )}
+                <textarea
+                  value={userTextAnswers[activeQuestion.id] || ''}
+                  onChange={(e) => setUserTextAnswers((prev) => ({ ...prev, [activeQuestion.id]: e.target.value }))}
+                  placeholder="Ghi chú / bản nháp câu trả lời của bạn tại đây..."
+                  className="w-full min-h-[150px] p-4 rounded-2xl border-2 border-slate-200 bg-white text-sm text-slate-800 focus:border-emerald-500 outline-none dark:bg-slate-900 dark:border-white/10 dark:text-slate-200"
+                />
+              </div>
+            )}
 
             {/* Bottom Actions Navigation */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/10">
@@ -982,7 +1049,7 @@ export default function ExamPage() {
                   {testPercentage}%
                 </span>
                 <span className="text-xs font-bold text-white/90 mt-1">
-                  Đúng {testScore} / {selectedSet.questions.length} câu
+                  Đúng {testScore} / {selectedSet.questions.filter((q) => !q.taskType || q.taskType === 'mcq').length} câu trắc nghiệm
                 </span>
                 <span
                   className={`mt-3 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider ${

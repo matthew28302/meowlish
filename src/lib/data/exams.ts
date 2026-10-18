@@ -1,15 +1,29 @@
 export interface ExamQuestion {
   id: string;
-  section: 'listening' | 'vocabulary' | 'grammar' | 'pragmatics' | 'error_correction';
+  section: 'listening' | 'reading' | 'vocabulary' | 'grammar' | 'pragmatics' | 'error_correction' | 'writing' | 'speaking';
   sectionName: string;
   question: string;
+  /** Loại nhiệm vụ: 'mcq' (trắc nghiệm), 'writing' (viết), 'speaking' (nói). Mặc định 'mcq'. */
+  taskType?: 'mcq' | 'writing' | 'speaking';
   audioScript?: string;
   speakerRole?: string;
   contextSentence?: string;
+  /** Đoạn văn đọc hiểu (dùng cho section 'reading'). */
+  readingPassage?: string;
+  /** Đề bài viết (dùng cho section 'writing'). */
+  writingPrompt?: string;
+  /** Đề bài nói (dùng cho section 'speaking'). */
+  speakingPrompt?: string;
+  /** Số từ tối thiểu (writing). */
+  minWords?: number;
+  /** Thời gian chuẩn bị (speaking, giây). */
+  prepTimeSeconds?: number;
   options: string[];
   correctIndex: number;
   explanation: string;
   pedagogicalTip: string;
+  /** Đáp án mẫu (writing/speaking). */
+  modelAnswer?: string;
 }
 
 export interface ExamSet {
@@ -2119,6 +2133,271 @@ export const EXAM_SETS: ExamSet[] = [
         correctIndex: 0,
         explanation: '"Whether" (liệu có... không) diễn tả sự không chắc chắn. "That" (rằng) dùng cho sự thật chắc chắn, "what" (cái gì), "which" (cái nào) không phù hợp.',
         pedagogicalTip: 'Phân biệt: whether (liệu có...không, dùng khi không chắc chắn), that (rằng, dùng khi chắc chắn). "Determine whether X would Y" = xác định liệu X có Y không.'
+      }
+    ]
+  },
+  // =========================================================================
+  // BỘ ĐỀ 17: VSTEP B2 - ĐỀ THI ĐẦY ĐỦ 4 KỸ NĂNG (LISTENING/READING/WRITING/SPEAKING)
+  // =========================================================================
+  {
+    id: 'exam-vstep-full-b2',
+    title: 'VSTEP B2: Full Exam (Listening, Reading, Writing, Speaking)',
+    vietnameseTitle: 'Đề Thi 17: VSTEP B2 - Đề Thi Đầy Đủ 4 Kỹ Năng',
+    category: 'vstep',
+    categoryLabel: '🇻🇳 VSTEP Chuẩn BGD',
+    level: 'B2 - C1',
+    durationMinutes: 60,
+    passingScore: 70,
+    expReward: 300,
+    coinReward: 400,
+    badgeIcon: '🇻🇳',
+    summary: 'Đề thi VSTEP B2 đầy đủ 4 kỹ năng: Nghe (Listening), Đọc (Reading), Viết (Writing Task 1+2), Nói (Speaking Part 1-3). Luyện tập theo chuẩn Bộ GD&ĐT.',
+    questions: [
+      // ===== LISTENING =====
+      {
+        id: 'q17-l1',
+        section: 'listening',
+        sectionName: 'Listening - Part 1: Short Conversations',
+        question: 'Nghe đoạn hội thoại và chọn câu trả lời đúng: Người phụ nữ đang phàn nàn về điều gì?',
+        audioScript: 'A: I ordered this laptop two weeks ago and it still hasn\'t arrived. B: I apologize for the delay. Let me check the tracking. It seems the shipment was delayed due to customs. A: This is unacceptable. I need it for a presentation tomorrow.',
+        speakerRole: 'Customer & Customer Service',
+        options: [
+          'Laptop bị hỏng',
+          'Giao hàng bị trễ',
+          'Giá cả quá cao',
+          'Sai màu sắc'
+        ],
+        correctIndex: 1,
+        explanation: 'Người phụ nữ nói "I ordered this laptop two weeks ago and it still hasn\'t arrived" và "This is unacceptable. I need it for a presentation tomorrow." → phàn nàn về giao hàng bị trễ.',
+        pedagogicalTip: 'Ghi chú các từ khóa: "hasn\'t arrived", "delayed", "unacceptable" → đều liên quan đến giao hàng chậm.'
+      },
+      {
+        id: 'q17-l2',
+        section: 'listening',
+        sectionName: 'Listening - Part 2: Note Taking',
+        question: 'Nghe bài giảng ngắn và điền thông tin: Theo giáo sư, yếu tố quan trọng nhất trong quản lý thời gian là gì?',
+        audioScript: 'Professor: Today we\'ll discuss time management. The most critical factor is prioritization - knowing which tasks are urgent and important. Many students waste time on low-priority activities. Remember: not everything urgent is important, and not everything important is urgent.',
+        speakerRole: 'University Professor',
+        options: [
+          'Làm việc chăm chỉ hơn',
+          'Ưu tiên hóa (prioritization)',
+          'Sử dụng công cụ quản lý',
+          'Giảm thời gian nghỉ ngơi'
+        ],
+        correctIndex: 1,
+        explanation: 'Giáo sư nói rõ: "The most critical factor is prioritization - knowing which tasks are urgent and important."',
+        pedagogicalTip: 'Ghi chú các từ nối định nghĩa: "The most critical factor is...", "The key is...", "What matters most is...".'
+      },
+      {
+        id: 'q17-l3',
+        section: 'listening',
+        sectionName: 'Listening - Part 3: Short Talks',
+        question: 'Nghe thông báo tại sân bay. Hành khách cần làm gì?',
+        audioScript: 'Attention passengers on flight VN234 to Tokyo. Due to weather conditions, the departure has been delayed by 45 minutes. Please proceed to Gate 12 for further information. We apologize for the inconvenience.',
+        speakerRole: 'Airport Announcer',
+        options: [
+          'Đi đến Gate 12 để biết thêm thông tin',
+          'Hủy vé và về nhà',
+          'Chờ ở quầy check-in',
+          'Đi đến Gate 5'
+        ],
+        correctIndex: 0,
+        explanation: 'Thông báo: "Please proceed to Gate 12 for further information." → hành khách cần đi đến Gate 12.',
+        pedagogicalTip: 'Ghi chú các từ chỉ địa điểm: Gate, Terminal, Counter. Và các từ chỉ hành động: proceed, wait, contact.'
+      },
+      {
+        id: 'q17-l4',
+        section: 'listening',
+        sectionName: 'Listening - Part 4: Extended Conversation',
+        question: 'Nghe đoạn hội thoại giữa hai đồng nghiệp. Họ đang thảo luận về điều gì?',
+        audioScript: 'A: Did you finish the quarterly report? B: Almost. I need to add the financial projections. A: The client wants it by Thursday. B: I know, but the data from the accounting team is still pending. A: Can you follow up with them? B: Sure, I\'ll send an email right now.',
+        speakerRole: 'Colleagues at Office',
+        options: [
+          'Kế hoạch nghỉ lễ',
+          'Báo cáo quý và dữ liệu tài chính',
+          'Tuyển dụng nhân viên mới',
+          'Chương trình đào tạo'
+        ],
+        correctIndex: 1,
+        explanation: 'Hội thoại xoay quanh "quarterly report" (báo cáo quý), "financial projections" (dự báo tài chính), "data from the accounting team" (dữ liệu từ phòng kế toán).',
+        pedagogicalTip: 'Ghi chú chủ đề chính xuất hiện lặp lại: quarterly report, financial, accounting → đều liên quan đến báo cáo tài chính.'
+      },
+      {
+        id: 'q17-l5',
+        section: 'listening',
+        sectionName: 'Listening - Part 5: Note Completion',
+        question: 'Nghe thông báo và chọn từ điền vào chỗ trống: "The workshop will be held on _______ at Conference Room B."',
+        audioScript: 'Good morning everyone. This is a reminder about the upcoming workshop on data analytics. The workshop will be held on Thursday at Conference Room B, starting at 2 PM. Please bring your laptops and the pre-reading materials.',
+        speakerRole: 'Workshop Coordinator',
+        options: [
+          'Monday',
+          'Tuesday',
+          'Thursday',
+          'Friday'
+        ],
+        correctIndex: 2,
+        explanation: 'Thông báo: "The workshop will be held on Thursday at Conference Room B." → thứ Năm.',
+        pedagogicalTip: 'Ghi chú các từ chỉ thời gian: on + thứ (Monday, Tuesday...), at + giờ (2 PM), in + tháng (March).'
+      },
+      // ===== READING =====
+      {
+        id: 'q17-r1',
+        section: 'reading',
+        sectionName: 'Reading - Part 1: Reading Comprehension',
+        question: 'According to the passage, what is the main benefit of remote work for employees?',
+        readingPassage: 'Remote work has become increasingly popular in recent years, especially after the global pandemic. Studies show that employees who work from home report higher job satisfaction and better work-life balance. However, remote work also presents challenges such as isolation and difficulty in collaboration. Companies are now adopting hybrid models to combine the benefits of both remote and in-office work. A recent survey found that 74% of employees prefer a hybrid approach, working from home 2-3 days per week. This trend is expected to continue as technology improves and workplace culture evolves.',
+        options: [
+          'Higher salary',
+          'Higher job satisfaction and better work-life balance',
+          'More vacation days',
+          'Shorter working hours'
+        ],
+        correctIndex: 1,
+        explanation: 'Đoạn văn: "employees who work from home report higher job satisfaction and better work-life balance." → lợi ích chính là sự hài lòng công việc cao hơn và cân bằng công việc-cuộc sống tốt hơn.',
+        pedagogicalTip: 'Câu hỏi "main benefit" thường nằm ở câu đầu hoặc câu tóm tắt. Tìm từ khóa: "report", "benefit", "advantage".'
+      },
+      {
+        id: 'q17-r2',
+        section: 'reading',
+        sectionName: 'Reading - Part 2: Vocabulary in Context',
+        question: 'In the passage, the word "hybrid" in "hybrid models" most likely means:',
+        readingPassage: 'Remote work has become increasingly popular in recent years, especially after the global pandemic. Studies show that employees who work from home report higher job satisfaction and better work-life balance. However, remote work also presents challenges such as isolation and difficulty in collaboration. Companies are now adopting hybrid models to combine the benefits of both remote and in-office work. A recent survey found that 74% of employees prefer a hybrid approach, working from home 2-3 days per week. This trend is expected to continue as technology improves and workplace culture evolves.',
+        options: [
+          'Fully remote',
+          'Fully in-office',
+          'Combination of remote and in-office',
+          'Temporary'
+        ],
+        correctIndex: 2,
+        explanation: 'Đoạn văn giải thích: "hybrid models to combine the benefits of both remote and in-office work" → kết hợp remote và in-office.',
+        pedagogicalTip: 'Tìm từ định nghĩa ngay sau từ cần giải thích: "hybrid models to combine..." → "combine" = kết hợp.'
+      },
+      {
+        id: 'q17-r3',
+        section: 'reading',
+        sectionName: 'Reading - Part 3: Inference',
+        question: 'What can be inferred from the passage about the future of remote work?',
+        readingPassage: 'Remote work has become increasingly popular in recent years, especially after the global pandemic. Studies show that employees who work from home report higher job satisfaction and better work-life balance. However, remote work also presents challenges such as isolation and difficulty in collaboration. Companies are now adopting hybrid models to combine the benefits of both remote and in-office work. A recent survey found that 74% of employees prefer a hybrid approach, working from home 2-3 days per week. This trend is expected to continue as technology improves and workplace culture evolves.',
+        options: [
+          'Remote work will completely replace office work',
+          'Hybrid work will likely become the dominant model',
+          'Employees will return to full-time office work',
+          'Technology will make remote work unnecessary'
+        ],
+        correctIndex: 1,
+        explanation: 'Đoạn văn: "This trend is expected to continue" và "74% of employees prefer a hybrid approach" → hybrid work sẽ trở thành mô hình chủ đạo.',
+        pedagogicalTip: 'Câu hỏi suy luận (inference): tìm các từ như "expected to continue", "trend", "prefer" → dự đoán xu hướng tương lai.'
+      },
+      {
+        id: 'q17-r4',
+        section: 'reading',
+        sectionName: 'Reading - Part 4: Detail Questions',
+        question: 'According to the passage, what percentage of employees prefer a hybrid work approach?',
+        readingPassage: 'Remote work has become increasingly popular in recent years, especially after the global pandemic. Studies show that employees who work from home report higher job satisfaction and better work-life balance. However, remote work also presents challenges such as isolation and difficulty in collaboration. Companies are now adopting hybrid models to combine the benefits of both remote and in-office work. A recent survey found that 74% of employees prefer a hybrid approach, working from home 2-3 days per week. This trend is expected to continue as technology improves and workplace culture evolves.',
+        options: [
+          '64%',
+          '74%',
+          '84%',
+          '94%'
+        ],
+        correctIndex: 1,
+        explanation: 'Đoạn văn: "A recent survey found that 74% of employees prefer a hybrid approach."',
+        pedagogicalTip: 'Câu hỏi chi tiết (detail): tìm số liệu cụ thể trong đoạn văn. Chú ý các con số gần nhau (64, 74, 84, 94) để không bị đánh lừa.'
+      },
+      // ===== GRAMMAR & VOCABULARY =====
+      {
+        id: 'q17-g1',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'The report, together with the supporting documents, _______ submitted to the board yesterday.',
+        options: ['was', 'were', 'has been', 'have been'],
+        correctIndex: 0,
+        explanation: 'Chủ ngữ chính là "The report" (số ít). "Together with the supporting documents" là cụm bổ sung không thay đổi số. Động từ chia theo "report" (số ít) → "was".',
+        pedagogicalTip: 'Cấu trúc "A, together with/as well as/along with B" → động từ theo A (chủ ngữ chính). Phân biệt với "A and B" → số nhiều.'
+      },
+      {
+        id: 'q17-g2',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng',
+        question: 'The new training program is designed to _______ employee skills and improve overall performance.',
+        options: ['enhance', 'enhancement', 'enhancing', 'enhanced'],
+        correctIndex: 0,
+        explanation: '"Enhance" (nâng cao) là động từ trong cấu trúc "designed to + V (nguyên mẫu)". Các lựa chọn khác không phù hợp.',
+        pedagogicalTip: 'Cấu trúc "designed to + V": designed to improve, designed to enhance, designed to reduce. Học theo cụm.'
+      },
+      {
+        id: 'q17-g3',
+        section: 'grammar',
+        sectionName: 'Ngữ Pháp',
+        question: 'She suggested that he _______ a doctor immediately.',
+        options: ['see', 'sees', 'saw', 'has seen'],
+        correctIndex: 0,
+        explanation: 'Cấu trúc "suggest that + S + V (nguyên mẫu)" dùng subjunctive mood. "See" là đúng, không thêm -s.',
+        pedagogicalTip: 'Subjunctive mood sau suggest/recommend/insist/demand: S + V (nguyên mẫu). VD: I suggest that he be present. She insisted that he leave.'
+      },
+      {
+        id: 'q17-g4',
+        section: 'vocabulary',
+        sectionName: 'Từ Vựng',
+        question: 'The company has achieved a _______ reduction in operating costs this quarter.',
+        options: ['substantial', 'substance', 'substantially', 'substantiate'],
+        correctIndex: 0,
+        explanation: '"Substantial" (đáng kể) là tính từ bổ nghĩa cho "reduction". Các lựa chọn khác là danh từ/trạng từ/động từ không phù hợp.',
+        pedagogicalTip: 'Từ vựng IELTS/TOEFL: substantial (đáng kể), significant (có ý nghĩa), considerable (đáng kể), negligible (không đáng kể).'
+      },
+      // ===== WRITING =====
+      {
+        id: 'q17-w1',
+        section: 'writing',
+        sectionName: 'Writing - Task 1: Email/Letter',
+        taskType: 'writing',
+        question: 'Writing Task 1: Viết email khoảng 80-120 từ.',
+        writingPrompt: 'Bạn là Nguyễn Văn A, nhân viên phòng IT. Viết email cho quản lý (Mr. Johnson) để:\n1. Báo cáo rằng bạn đã hoàn thành dự án website mới.\n2. Đề xuất thời gian họp để trình bày kết quả.\n3. Nhắc rằng cần phê duyệt ngân sách cho giai đoạn tiếp theo.\n\nSử dụng ngôn ngữ chuyên nghiệp, lịch sự.',
+        minWords: 80,
+        options: [],
+        correctIndex: -1,
+        explanation: 'Bài viết nên bao gồm: lời chào trang trọng, báo cáo hoàn thành dự án, đề xuất thời gian họp, nhắc ngân sách, lời kết. Sử dụng các cụm từ: "I am writing to inform you...", "I would like to propose...", "Could you please approve...".',
+        pedagogicalTip: 'Cấu trúc email chuyên nghiệp: Subject line rõ ràng → Opening (Dear Mr. Johnson) → Body (báo cáo + đề xuất) → Closing (Best regards). Tránh dùng ngôn ngữ quá thân mật.'
+      },
+      {
+        id: 'q17-w2',
+        section: 'writing',
+        sectionName: 'Writing - Task 2: Essay',
+        taskType: 'writing',
+        question: 'Writing Task 2: Viết bài luận khoảng 150-200 từ.',
+        writingPrompt: 'Some people believe that working from home is more productive than working in an office. Others think that office work is more effective.\n\nDiscuss both views and give your own opinion.\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience.',
+        minWords: 150,
+        options: [],
+        correctIndex: -1,
+        explanation: 'Bài viết nên: (1) Giới thiệu vấn đề, (2) Phân tích quan điểm 1 (làm việc từ xa hiệu quả hơn), (3) Phân tích quan điểm 2 (làm việc tại văn phòng hiệu quả hơn), (4) Ý kiến cá nhân, (5) Kết luận. Sử dụng linking words: However, On the other hand, In my opinion, Furthermore.',
+        pedagogicalTip: 'Cấu trúc bài luận IELTS/VSTEP: Introduction (paraphrase đề + thesis) → Body 1 (View A) → Body 2 (View B) → Conclusion (tóm tắt + ý kiến). Mỗi đoạn 3-5 câu.'
+      },
+      // ===== SPEAKING =====
+      {
+        id: 'q17-s1',
+        section: 'speaking',
+        sectionName: 'Speaking - Part 1: Introduction & Interview',
+        taskType: 'speaking',
+        question: 'Speaking Part 1: Trả lời các câu hỏi sau (30-45 giây mỗi câu).',
+        speakingPrompt: '1. What is your name and what do you do?\n2. Where are you from and what do you like about your hometown?\n3. Do you prefer working in an office or working from home? Why?\n4. What skills do you think are most important for success in your field?',
+        prepTimeSeconds: 0,
+        options: [],
+        correctIndex: -1,
+        explanation: 'Trả lời tự nhiên, đầy đủ, sử dụng từ vựng chuyên ngành. Tránh trả lời quá ngắn (1-2 từ) hoặc quá dài (lan man). Dùng các cụm từ: "I am currently...", "What I enjoy most about...", "In my opinion...", "I believe that...".',
+        pedagogicalTip: 'Part 1: trả lời 2-4 câu cho mỗi câu hỏi, bao gồm lý do và ví dụ. Không học thuộc lòng — giám khảo đánh giá sự tự nhiên và trôi chảy.'
+      },
+      {
+        id: 'q17-s2',
+        section: 'speaking',
+        sectionName: 'Speaking - Part 2: Long Turn',
+        taskType: 'speaking',
+        question: 'Speaking Part 2: Nói trong 1.5-2 phút về chủ đề sau.',
+        speakingPrompt: 'Describe a time when you had to solve a difficult problem at work or school.\n\nYou should say:\n- What the problem was\n- How you approached it\n- What the outcome was\n- How you felt about it\n\nYou have 1 minute to prepare and 2 minutes to speak.',
+        prepTimeSeconds: 60,
+        options: [],
+        correctIndex: -1,
+        explanation: 'Cấu trúc bài nói: (1) Giới thiệu vấn đề, (2) Mô tả cách tiếp cận (các bước đã làm), (3) Kết quả, (4) Cảm xúc/ bài học. Sử dụng thì quá khứ cho sự việc đã xảy ra. Dùng linking words: First, Then, After that, Finally, As a result.',
+        pedagogicalTip: 'Part 2: Nói liên tục 1.5-2 phút, không dừng giữa chừng. Nếu hết ý, mở rộng bằng cách thêm chi tiết hoặc ví dụ. Giám khảo đánh giá: fluency, vocabulary, grammar, pronunciation.'
       }
     ]
   }
