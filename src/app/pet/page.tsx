@@ -398,7 +398,14 @@ export default function PetPage() {
           } catch {}
           setPetData(data.pet);
         }
-        setInventory(data.inventory || []);
+        setInventory((prev) => {
+          const server = data.inventory || [];
+          const serverIds = new Set(server.map((i: any) => i.item_id));
+          // Giữ các vật phẩm vừa mua ở client nhưng server (đa instance) chưa thấy
+          // — tránh "Mua lại → Bạn đã sở hữu" + mất trạng thái sở hữu khi reload.
+          const keep = (prev || []).filter((p: any) => !serverIds.has(p.item_id));
+          return [...server, ...keep];
+        });
         setGardenDecor(data.gardenDecor || []);
         if (data.farmPlots) setFarmPlots(data.farmPlots);
         if (data.livestock) setLivestock(data.livestock);
@@ -707,38 +714,47 @@ export default function PetPage() {
         const errData = await res.json().catch(() => null);
         const isNotOwned = errData?.error?.includes('chưa sở hữu') || errData?.error?.includes('chưa mở khóa');
         if (isNotOwned) {
-          await new Promise((r) => setTimeout(r, 700));
-          try {
-            const retryRes = await fetch('/api/pet', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                userId: currentUser?.id,
-                action: 'equip',
-                itemId: nextVal,
-                itemType: item.type,
-              }),
-            });
-            if (retryRes.ok) {
-              const retryData = await retryRes.json();
-              reconcilePetWithLocal(retryData.pet);
-              setPetData((prev: any) => {
-                const updated = { ...prev, ...retryData.pet };
-                try {
-                  if (typeof window !== 'undefined') {
-                    localStorage.setItem('meowlish_pet_cache', JSON.stringify(updated));
-                  }
-                } catch {}
-                return updated;
+          const delays = [800, 1500, 2500];
+          for (const d of delays) {
+            await new Promise((r) => setTimeout(r, d));
+            try {
+              const retryRes = await fetch('/api/pet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  userId: currentUser?.id,
+                  action: 'equip',
+                  itemId: nextVal,
+                  itemType: item.type,
+                }),
               });
-              window.dispatchEvent(new Event('auth-state-changed'));
-              return;
-            }
-          } catch {}
+              if (retryRes.ok) {
+                const retryData = await retryRes.json();
+                reconcilePetWithLocal(retryData.pet);
+                setPetData((prev: any) => {
+                  const updated = { ...prev, ...retryData.pet };
+                  try {
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('meowlish_pet_cache', JSON.stringify(updated));
+                    }
+                  } catch {}
+                  return updated;
+                });
+                window.dispatchEvent(new Event('auth-state-changed'));
+                return;
+              }
+              const retryErr = await retryRes.json().catch(() => null);
+              if (!(retryErr?.error?.includes('chưa sở hữu') || retryErr?.error?.includes('chưa mở khóa'))) {
+                sound.playWrong();
+                toast.error(retryErr?.error || 'Không thể thay đồ cho thú cưng lúc này!');
+                return;
+              }
+            } catch {}
+          }
         }
         sound.playWrong();
         toast.error(errData?.error || 'Không thể thay đồ cho thú cưng lúc này! Vật phẩm đã được thêm vào tủ đồ, bạn có thể mặc lại sau ít giây.');
-        // Không gọi loadPetData() ở đây: sẽ revert về trạng thái stale của server
+// Không gọi loadPetData() ở đây: sẽ revert về trạng thái stale của server
         // (đa instance) và làm "mất" vật phẩm vừa mua. Giữ trạng thái optimistic.
       }
     } catch {
@@ -928,8 +944,13 @@ export default function PetPage() {
         sound.playCelebration();
         const data = await res.json();
         setUserCoins(data.remainingCoins);
-        setInventory((prev) => [...prev, { item_id: item.id, item_type: item.type, quantity: 1 }]);
-        
+        // Thêm vào inventory, tránh trùng lặp nếu đã có (đa instance).
+        setInventory((prev) => {
+          const exists = (prev || []).some((p: any) => p.item_id === item.id);
+          if (exists) return prev;
+          return [...(prev || []), { item_id: item.id, item_type: item.type, quantity: 1 }];
+        });
+
         // Cập nhật lại UI header coins
         const stored = getStoredUser();
         if (stored) {
@@ -943,18 +964,36 @@ export default function PetPage() {
           origin: { y: 0.5 },
         });
 
-        // Automatically equip purchased wearable
+        // Tự động mặc vật phẩm vừa mua (với độ trễ nhỏ để server kịp commit)
         if (['hat', 'outfit', 'accessory'].includes(item.type)) {
-          handleEquip(item);
+          setTimeout(() => handleEquip(item), 800);
         } else if (item.type === 'habitat') {
           handleChangeHabitat(item.id);
         }
 
         window.dispatchEvent(new Event('auth-state-changed'));
       } else {
-        const errData = await res.json();
+        const errData = await res.json().catch(() => ({}));
+        const errMsg = String(errData?.error || '');
+        // Nếu server báo "đã sở hữu" (thường do đa instance stale), coi như thành
+        // công: thêm vào inventory local và mặc luôn, không báo lỗi đỏ.
+        if (errMsg.includes('sở hữu') || errMsg.includes('đã sở hữu')) {
+          sound.playCelebration();
+          setInventory((prev) => {
+            const exists = (prev || []).some((p: any) => p.item_id === item.id);
+            if (exists) return prev;
+            return [...(prev || []), { item_id: item.id, item_type: item.type, quantity: 1 }];
+          });
+          if (['hat', 'outfit', 'accessory'].includes(item.type)) {
+            setTimeout(() => handleEquip(item), 800);
+          } else if (item.type === 'habitat') {
+            handleChangeHabitat(item.id);
+          }
+          window.dispatchEvent(new Event('auth-state-changed'));
+          return;
+        }
         sound.playError();
-        toast.error(errData.error || 'Mua vật phẩm thất bại');
+        toast.error(errMsg || 'Mua vật phẩm thất bại');
       }
     } catch {
       sound.playError();
