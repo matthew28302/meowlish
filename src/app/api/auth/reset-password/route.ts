@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db, hashPassword, verifyPassword } from '@/lib/db';
+import { db, hashPasswordAsync, verifyPassword } from '@/lib/db';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
 import { logAccess, logError } from '@/lib/systemLogs';
 import { persistCriticalWrite } from '@/lib/s3Sync';
@@ -29,8 +29,15 @@ export async function POST(request: Request) {
       return rateLimitExceededResponse('Quá nhiều lần thử đặt lại mật khẩu. Vui lòng thử lại sau ít phút.', rateCheck.resetInSeconds);
     }
 
-    const body = await request.json();
-    const { token, newPassword } = body;
+    // Body hỏng là lỗi CLIENT (400) — không để JSON.parse thô của V8 rơi vào
+    // catch-all 500 kèm chi tiết nội bộ (cùng lỗi đã đo được ở forgot-password).
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
+    const { token, newPassword } = body ?? {};
 
     if (!token || !newPassword) {
       return NextResponse.json(
@@ -111,7 +118,9 @@ export async function POST(request: Request) {
     }
 
     // Cập nhật mật khẩu + đánh dấu token đã dùng + cập nhật password_changed_at
-    const newHash = hashPassword(newPassword);
+    // (đường NÓNG → bản async; verifyChanges bên dưới vẫn dùng bản sync vì là
+    //  callback đồng bộ của persistCriticalWrite).
+    const newHash = await hashPasswordAsync(newPassword);
 
     const applyChanges = () => {
       const tx = db.transaction(() => {
@@ -174,6 +183,8 @@ export async function POST(request: Request) {
       severity: 'error',
     });
     const message = err instanceof Error ? err.message : 'Lỗi hệ thống';
-    return NextResponse.json({ error: message }, { status: 500 });
+    logger.warn(`Chi tiết lỗi reset-password (không trả cho client): ${message}`);
+    // KHÔNG trả err.message thô ra ngoài (tên bảng/cột SQLite, chi tiết nội bộ).
+    return NextResponse.json({ error: 'Không thể đặt lại mật khẩu lúc này. Vui lòng thử lại sau ít phút!' }, { status: 500 });
   }
 }

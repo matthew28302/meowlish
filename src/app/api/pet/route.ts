@@ -370,6 +370,20 @@ export const maxDuration = 60;
 
 export async function GET(request: Request) {
   try {
+    const clientIp = getClientIp(request);
+    // GET /api/pet đọc ~15 bảng (pet, inventory, farm, bạn bè, chat...) và KHÔNG
+    // xác thực cũng vào được tài khoản demo ⇒ trước đây không có hạn mức: một
+    // vòng lặp vô hạn từ một IP đủ để đốt CPU/DB mà không tốn gì. 120 lượt/phút
+    // là dư cho người dùng thật (trang chỉ gọi khi tải/cần đồng bộ lại).
+    const petReadRate = checkRateLimit({
+      key: `pet_read:${clientIp}`,
+      maxAttempts: 120,
+      windowMs: 60 * 1000,
+    });
+    if (!petReadRate.allowed) {
+      return rateLimitExceededResponse('Bạn tải dữ liệu thú cưng quá nhanh. Vui lòng thử lại sau giây lát!', petReadRate.resetInSeconds);
+    }
+
     const { searchParams } = new URL(request.url);
     const requestedUserId = searchParams.get('userId');
 

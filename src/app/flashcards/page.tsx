@@ -20,6 +20,7 @@ import {
   Bookmark,
 } from 'lucide-react';
 import MascotCompanion from '@/components/MascotCompanion';
+import FlagIcon from '@/components/FlagIcon';
 
 interface FlashcardItem {
   id: string;
@@ -203,7 +204,7 @@ export default function FlashcardsPage() {
                 setIsFlipped(false);
                 setIsCompleted(false);
               }}
-              className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+              className={`px-3 py-1.5 min-h-[44px] inline-flex items-center rounded-xl transition cursor-pointer ${
                 activeTab === 'all' ? 'bg-white text-orange-700 shadow-sm dark:bg-slate-900 dark:text-orange-300' : 'text-white'
               }`}
             >
@@ -217,7 +218,7 @@ export default function FlashcardsPage() {
                 setIsFlipped(false);
                 setIsCompleted(false);
               }}
-              className={`px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1.5 min-h-[44px] inline-flex items-center rounded-xl transition cursor-pointer flex items-center gap-1 ${
                 activeTab === 'bookmarks'
                   ? 'bg-white text-orange-700 shadow-sm dark:bg-slate-900 dark:text-orange-300'
                   : 'text-white'
@@ -318,7 +319,7 @@ export default function FlashcardsPage() {
 
                 <div className="space-y-4 max-w-lg">
                   <h3 className="text-xl sm:text-2xl font-black text-amber-300 drop-shadow-sm">
-                    🇻🇳 {card.translation}
+                    <FlagIcon code="VN" size={13} /> {card.translation}
                   </h3>
 
                   {card.exampleSentence && (

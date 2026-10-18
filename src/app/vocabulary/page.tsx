@@ -17,6 +17,7 @@ import {
   Tag,
   Lightbulb,
 } from 'lucide-react';
+import FlagIcon from '@/components/FlagIcon';
 import Link from 'next/link';
 
 export default function VocabularyPage() {
@@ -261,7 +262,7 @@ export default function VocabularyPage() {
                 {/* Meaning */}
                 <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
                   <div className="text-xs font-bold text-slate-900 dark:text-white">
-                    🇻🇳 {item.meaningVi}
+                    <FlagIcon code="VN" size={13} /> {item.meaningVi}
                   </div>
                   <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                     {item.definitionEn}

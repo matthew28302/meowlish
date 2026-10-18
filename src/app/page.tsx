@@ -43,6 +43,11 @@ import { PETS_CATALOG, getPetTitle } from '@/lib/petData';
 import { formatCoins } from '@/lib/formatNumber';
 import PixelPetSprite from '@/components/pet/PixelPetSprite';
 import UserAvatar from '@/components/UserAvatar';
+// QA3 (2026-10-18): trước đây chỉ import default export dưới tên `FlagText` nên
+// (a) `<FlagIcon code="VN" />` ở dưới bị ReferenceError "FlagIcon is not defined"
+// (b) `<FlagText text={...} />` gọi nhầm component FlagIcon (thiếu prop `code`)
+//     ⇒ các icon lộ trình render ra pill rỗng. Import đúng cả default + named.
+import FlagIcon, { FlagText } from '@/components/FlagIcon';
 import { LEARNING_PATHS, LearningPath, PathNode } from '@/lib/learningPathsData';
 import StudyPlanSection from '@/components/StudyPlanSection';
 
@@ -364,7 +369,7 @@ export default function HomePage() {
                       : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700'
                   }`}
                 >
-                  <span className="text-lg">{path.icon}</span>
+                  <span className="text-lg"><FlagText text={path.icon} size={20} /></span>
                   <span className="whitespace-nowrap">{path.shortLabel}</span>
                   {isSelected && (
                     <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
@@ -378,7 +383,7 @@ export default function HomePage() {
           <div className={`p-5 rounded-2xl bg-gradient-to-r ${currentPath.color} text-white shadow-md relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4`}>
             <div className="space-y-1 z-10 max-w-2xl">
               <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/20 text-white text-xs font-black border border-white/30 uppercase tracking-wide">
-                <span>{currentPath.icon}</span> ĐANG CHỌN MỤC TIÊU: {currentPath.badge}
+                <FlagText text={currentPath.icon} size={14} /> ĐANG CHỌN MỤC TIÊU: {currentPath.badge}
               </div>
               <h3 className="text-lg sm:text-xl font-black">{currentPath.title}</h3>
               <p className="text-xs text-white/90 font-medium leading-relaxed">
@@ -1000,7 +1005,7 @@ export default function HomePage() {
                 /kəˈlæb.ə.reɪt/ • <i>verb</i>
               </div>
               <p className="text-xs text-slate-700 font-medium pt-1 dark:text-slate-300">
-                🇻🇳 <b>Hợp tác, cộng tác</b> cùng nhau làm việc trong dự án công nghệ.
+                <FlagIcon code="VN" size={14} /> <b>Hợp tác, cộng tác</b> cùng nhau làm việc trong dự án công nghệ.
               </p>
             </div>
 
@@ -1082,7 +1087,7 @@ export default function HomePage() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition dark:bg-slate-900 dark:border-white/10">
-                      {lesson.icon}
+                      <FlagText text={lesson.icon} size={22} />
                     </div>
                     <div>
                       <h5 className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-emerald-700 transition dark:text-slate-100 group-hover:dark:text-emerald-300">

@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
+import { promisify } from 'util';
 import { execFileSync } from 'child_process';
 
 const isVercel = process.env.VERCEL === '1';
@@ -99,6 +100,9 @@ export function verifyPassword(password: string, storedHash: string | null | und
     if (!nRaw || !rRaw || !pRaw || !saltB64 || !hashB64) return { ok: false, needsRehash: false, scheme: 'unknown' };
     try {
       const expected = Buffer.from(hashB64, 'base64');
+      // hashB64 rỗng/không decode được ⇒ keylen 0 ⇒ scrypt trả buffer rỗng và
+      // timingSafeEqual(empty, empty) = true ⇒ MỌI mật khẩu đều "khớp". Chặn trước.
+      if (expected.length === 0) return { ok: false, needsRehash: false, scheme: 'unknown' };
       const actual = crypto.scryptSync(password, Buffer.from(saltB64, 'base64'), expected.length, {
         N: Number(nRaw),
         r: Number(rRaw),
@@ -123,6 +127,77 @@ export function verifyPassword(password: string, storedHash: string | null | und
   }
 
   return { ok: false, needsRehash: false, scheme: 'unknown' };
+}
+
+// ---------------------------------------------------------------------------
+// BẢN BẤT ĐỒNG BỘ (async) — dành cho ĐƯỜNG NÓNG: login/register/reset.
+//
+// Vì sao tồn tại (đo thật 2026-10-18, localhost): 30 VU login đồng thời cho
+// p50 ≈ 2.1s / p99 ≈ 2.3s. Nguyên nhân: scryptSync chặn thẳng event loop, mọi
+// request phải xếp hàng sau từng lần băm (~100ms/lần ⇒ trần ~10 login/s).
+// `crypto.scrypt` (callback) chạy trên libuv threadpool (mặc định 4 luồng) nên
+// các lần băm chạy song song, event loop rảnh để phục vụ request khác.
+//
+// QUY ƯỚC:
+//   - GIỮ NGUYÊN `hashPassword`/`verifyPassword` bản sync cho đường LẠNH
+//     (seed admin/demo trong chính file này, scripts, admin tools) — không đổi
+//     hành vi ở những nơi đó.
+//   - Bản async dùng CÙNG format hash (`scrypt$N$r$p$salt$hash`) ⇒ hash tạo bởi
+//     bên này verify được bởi bên kia, hash cũ (scrypt/SHA-256 legacy) không vỡ.
+// ---------------------------------------------------------------------------
+const scryptAsync = promisify(crypto.scrypt) as (
+  password: string | Buffer,
+  salt: string | Buffer,
+  keylen: number,
+  options: crypto.ScryptOptions
+) => Promise<Buffer>;
+
+/** Bản async của hashPassword — cùng format hash, không chặn event loop. */
+export async function hashPasswordAsync(password: string): Promise<string> {
+  const salt = crypto.randomBytes(16);
+  const derived = await scryptAsync(password, salt, SCRYPT_KEYLEN, {
+    N: SCRYPT_N,
+    r: SCRYPT_R,
+    p: SCRYPT_P,
+  });
+  return `${PASSWORD_SCHEME}$${SCRYPT_N}$${SCRYPT_R}$${SCRYPT_P}$${salt.toString('base64')}$${derived.toString('base64')}`;
+}
+
+/**
+ * Bản async của verifyPassword — CÙNG logic, chỉ thay scryptSync bằng scrypt.
+ *
+ * Nhánh legacy (SHA-256) ủy thác hẳn cho bản sync: SHA-256 nhanh (µs) nên
+ * không đáng bất đồng bộ, và như vậy hai bản không bao giờ lệch hành vi
+ * (salt hiện hành + salt fallback, cờ needsRehash...).
+ */
+export async function verifyPasswordAsync(
+  password: string,
+  storedHash: string | null | undefined
+): Promise<PasswordCheck> {
+  if (!storedHash || typeof storedHash !== 'string') return { ok: false, needsRehash: false, scheme: 'unknown' };
+
+  if (!storedHash.startsWith(`${PASSWORD_SCHEME}$`)) {
+    // Không phải scrypt: scheme cũ/không rõ — dùng nguyên bản sync.
+    return verifyPassword(password, storedHash);
+  }
+
+  const parts = storedHash.split('$');
+  const [, nRaw, rRaw, pRaw, saltB64, hashB64] = parts;
+  if (!nRaw || !rRaw || !pRaw || !saltB64 || !hashB64) return { ok: false, needsRehash: false, scheme: 'unknown' };
+  try {
+    const expected = Buffer.from(hashB64, 'base64');
+    // Cùng lý do như bản sync: hash rỗng decode ra keylen 0 ⇒ mọi mật khẩu khớp.
+    if (expected.length === 0) return { ok: false, needsRehash: false, scheme: 'unknown' };
+    const actual = await scryptAsync(password, Buffer.from(saltB64, 'base64'), expected.length, {
+      N: Number(nRaw),
+      r: Number(rRaw),
+      p: Number(pRaw),
+    });
+    const ok = actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
+    return { ok, needsRehash: false, scheme: 'scrypt' };
+  } catch {
+    return { ok: false, needsRehash: false, scheme: 'unknown' };
+  }
 }
 
 /**

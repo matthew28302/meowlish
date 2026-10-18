@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test';
 test('login demo succeeds via UI', async ({ page }) => {
   await page.goto('/');
   await expect(
-    page.getByRole('heading', { name: /meowlish english/i }),
+    page.getByRole('heading', { name: /tự tin nói tiếng anh/i }),
   ).toBeVisible();
 
   const demoButton = page.getByRole('button', {

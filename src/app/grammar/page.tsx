@@ -30,6 +30,7 @@ import {
   ChevronLeft,
   ExternalLink,
 } from 'lucide-react';
+import FlagIcon from '@/components/FlagIcon';
 import confetti from '@/lib/confetti';
 import { getStoredUser } from '@/lib/auth';
 
@@ -540,7 +541,7 @@ export default function GrammarPage() {
 
               {/* Translation bar */}
               <div className="pt-2 text-xs text-slate-600 dark:text-slate-300 italic flex items-center gap-1.5">
-                <span>🇻🇳 Ý nghĩa:</span> &quot;{selectedLesson.legoExample.translation}&quot;
+                <span><FlagIcon code="VN" size={13} /> Ý nghĩa:</span> &quot;{selectedLesson.legoExample.translation}&quot;
               </div>
             </div>
 
@@ -592,7 +593,7 @@ export default function GrammarPage() {
                       &quot;{selectedLesson.tenseVariants[activeTenseIdx].sentence}&quot;
                     </div>
                     <div className="text-xs text-slate-600 dark:text-slate-400">
-                      🇻🇳 {selectedLesson.tenseVariants[activeTenseIdx].translation}
+                      <FlagIcon code="VN" size={13} /> {selectedLesson.tenseVariants[activeTenseIdx].translation}
                     </div>
                     <div className="text-[12px] text-emerald-800 dark:text-emerald-300 italic pt-1 border-t border-emerald-200/60 dark:border-emerald-800/40">
                       💡 Khi nào dùng: {selectedLesson.tenseVariants[activeTenseIdx].usageContext}
@@ -750,7 +751,7 @@ export default function GrammarPage() {
                       &quot;{item.text}&quot;
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      🇻🇳 {item.translation}
+                      <FlagIcon code="VN" size={13} /> {item.translation}
                     </p>
                   </div>
                 </div>

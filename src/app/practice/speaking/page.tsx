@@ -27,6 +27,7 @@ import {
   Filter,
 } from 'lucide-react';
 import MascotCompanion from '@/components/MascotCompanion';
+import FlagIcon from '@/components/FlagIcon';
 import { getStoredUser } from '@/lib/auth';
 
 export default function SpeakingPracticePage() {
@@ -279,7 +280,7 @@ export default function SpeakingPracticePage() {
             <button
               key={cat}
               onClick={() => { sound.playClick(); setCategoryFilter(cat); setCurrentIdx(0); setResult(null); setRecognizedText(''); }}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`px-3 py-1 min-h-[44px] inline-flex items-center rounded-xl text-xs font-bold transition cursor-pointer ${
                 categoryFilter === cat ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-400 hover:dark:bg-slate-800'
               }`}
             >
@@ -293,7 +294,7 @@ export default function SpeakingPracticePage() {
             <button
               key={diff}
               onClick={() => { sound.playClick(); setDifficultyFilter(diff); setCurrentIdx(0); setResult(null); setRecognizedText(''); }}
-              className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+              className={`px-2.5 py-1 min-h-[44px] inline-flex items-center rounded-lg text-xs font-extrabold transition cursor-pointer ${
                 difficultyFilter === diff ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 hover:dark:bg-slate-700'
               }`}
             >
@@ -354,7 +355,7 @@ export default function SpeakingPracticePage() {
             {prompt.phonetic}
           </div>
           <div className="text-xs text-slate-500 italic dark:text-slate-400">
-            🇻🇳 {prompt.translation}
+            <FlagIcon code="VN" size={13} /> {prompt.translation}
           </div>
           {prompt.tips && (
             <div className="text-xs text-amber-800 bg-amber-50 p-2.5 rounded-xl border border-amber-200 inline-block dark:text-amber-200 dark:bg-amber-950 dark:border-amber-800">

@@ -46,6 +46,15 @@ function warnTlsVerifyOff(scope: string): void {
   );
 }
 
+/**
+ * Phản hồi DUY NHẤT cho mọi yêu cầu không thể xử lý (không tồn tại, không có
+ * email, tài khoản bị vô hiệu hóa). Nếu thông điệp hoặc mã trạng thái khác nhau,
+ * endpoint này trở thành "máy dò tài khoản": gửi email/username bất kỳ rồi đọc
+ * phản hồi để biết tài khoản có thật và có đang bị khóa hay không.
+ */
+const GENERIC_RESET_MESSAGE =
+  'Nếu thông tin hợp lệ và có email đã đăng ký, hướng dẫn đặt lại mật khẩu đã được gửi đến email của bạn.';
+
 export async function POST(request: Request) {
   const clientIp = getClientIp(request);
   const userAgent = request.headers.get('user-agent') || '';
@@ -69,10 +78,20 @@ export async function POST(request: Request) {
       return rateLimitExceededResponse('Bạn đã yêu cầu đặt lại mật khẩu quá số lần cho phép. Vui lòng thử lại sau ít phút để bảo vệ an toàn!', rateCheck.resetInSeconds);
     }
 
-    const body = await request.json();
-    const { email } = body;
+    // Body hỏng là lỗi CLIENT (400), không phải 500 — và không được để lỗi
+    // JSON.parse thô của V8 lọt ra ngoài. ĐO TRÊN PRODUCTION 2026-10-18:
+    // POST body không hợp lệ → 500 {"error":"Expected property name or '}' in
+    // JSON at position 1 (line 1 column 2)"} (lộ chi tiết nội bộ + sai mã lỗi).
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên không hợp lệ.' }, { status: 400 });
+    }
 
-    const query = (email || '').trim().toLowerCase().slice(0, 100);
+    // `email` là dữ liệu KHÔNG tin cậy (number/object sẽ ném TypeError ở
+    // `.trim()`) ⇒ ép String tại biên trước khi xử lý.
+    const query = String(body?.email ?? '').trim().toLowerCase().slice(0, 100);
 
     if (!query) {
       logger.warn('Forgot password attempt failed: missing input');
@@ -116,10 +135,10 @@ export async function POST(request: Request) {
         status: 'blocked',
         details: 'Tài khoản đã bị vô hiệu hóa yêu cầu đặt lại mật khẩu',
       });
-      return NextResponse.json(
-        { error: 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ Quản trị viên.' },
-        { status: 403 }
-      );
+      // Trả về ĐÚNG phản hồi chung như tài khoản không tồn tại: thông báo riêng
+      // "tài khoản bị vô hiệu hóa" xác nhận với người ngoài rằng tài khoản này
+      // CÓ THẬT (account enumeration). Chủ tài khoản vẫn thấy lý do khi đăng nhập.
+      return NextResponse.json({ success: true, message: GENERIC_RESET_MESSAGE });
     }
 
     // Chống Account Enumeration: Luôn trả về phản hồi chung nếu tài khoản không tồn tại hoặc không có email
@@ -127,7 +146,7 @@ export async function POST(request: Request) {
       logger.info(`Forgot password request for non-existent or no-email account: ${query}`);
       return NextResponse.json({
         success: true,
-        message: 'Nếu thông tin hợp lệ và có email đã đăng ký, hướng dẫn đặt lại mật khẩu đã được gửi đến email của bạn.',
+        message: GENERIC_RESET_MESSAGE,
       });
     }
 
@@ -298,6 +317,9 @@ export async function POST(request: Request) {
       severity: 'error',
     });
     const message = err instanceof Error ? err.message : 'Lỗi hệ thống';
-    return NextResponse.json({ error: message }, { status: 500 });
+    logger.warn(`Chi tiết lỗi forgot-password (không trả cho client): ${message}`);
+    // KHÔNG trả err.message thô: lỗi better-sqlite3/nodemailer lộ tên bảng, cột,
+    // host SMTP... Chi tiết đã nằm trong log nội bộ phía trên.
+    return NextResponse.json({ error: 'Không thể xử lý yêu cầu lúc này. Vui lòng thử lại sau ít phút!' }, { status: 500 });
   }
 }

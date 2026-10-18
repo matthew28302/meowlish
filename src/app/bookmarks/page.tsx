@@ -19,6 +19,7 @@ import {
   Download,
   Plus,
 } from 'lucide-react';
+import FlagIcon from '@/components/FlagIcon';
 
 interface BookmarkItem {
   id: string;
@@ -316,7 +317,7 @@ export default function BookmarksPage() {
                   </div>
 
                   <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                    🇻🇳 {b.translation}
+                    <FlagIcon code="VN" size={13} /> {b.translation}
                   </div>
 
                   {b.context_sentence && (

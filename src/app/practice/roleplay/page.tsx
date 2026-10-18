@@ -20,6 +20,7 @@ import {
   Users,
 } from 'lucide-react';
 import MascotCompanion from '@/components/MascotCompanion';
+import FlagIcon from '@/components/FlagIcon';
 import { getStoredUser } from '@/lib/auth';
 
 type RoleplayMode = 'select' | 'playing';
@@ -358,7 +359,7 @@ export default function RoleplayPage() {
                             &quot;{resp.text}&quot;
                           </div>
                           <div className="text-slate-500 text-xs mt-1 dark:text-slate-400">
-                            🇻🇳 {resp.translation}
+                            <FlagIcon code="VN" size={13} /> {resp.translation}
                           </div>
                         </div>
                         <button

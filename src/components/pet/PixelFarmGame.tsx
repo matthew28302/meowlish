@@ -891,7 +891,7 @@ const PixelFarmGame = forwardRef<PixelFarmHandle, PixelFarmGameProps>(function P
       sound.playClick();
       const demoLines = [
         '> npm run dev ... ✅ server 3000',
-        'const hello = "Xin chào!" 🇻🇳',
+        'const hello = "Xin chào!"',
         'function hocTiengAnh() { return "fun"; }',
         'git add . && git commit "fix bug" 🐛',
         '✅ All tests passed! +5 EXP',

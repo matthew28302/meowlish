@@ -4,9 +4,11 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import { usePathname } from 'next/navigation';
 import { Volume2, Bookmark, Check, X, Sparkles, MessageSquare, Zap, Loader2, Brain, BookOpen } from 'lucide-react';
 import { lookupWord, DictionaryEntry } from '@/lib/data/dictionary';
+import FlagIcon from './FlagIcon';
 import { speakText } from '@/lib/speech';
 import { sound } from '@/lib/soundFx';
 import { getStoredUser } from '@/lib/auth';
+import { fetchWithRetry } from '@/lib/dictionaryFetch';
 
 interface AIResultState {
   translation: string;
@@ -71,7 +73,10 @@ export default function HighlightTooltip() {
 
     setIsAiLoading(true);
     try {
-      const res = await fetch('/api/translate', {
+      // Tra từ: dùng fetchWithRetry — instance đang cold-start (khôi phục
+      // dictionary.db 64MB) có thể trả 502/503/504; thử lại 2 lần (1s/3s) thay
+      // vì bỏ luôn kết quả. AbortError (bôi từ khác) KHÔNG thử lại.
+      const res = await fetchWithRetry('/api/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, context }),
@@ -444,7 +449,7 @@ export default function HighlightTooltip() {
             transform: 'translateX(-50%)',
             zIndex: 9998,
           }}
-          className="animate-in fade-in slide-in-from-bottom-3 duration-200"
+          className="fx-enter"
         >
           <button
             type="button"
@@ -453,7 +458,7 @@ export default function HighlightTooltip() {
               sound.playClick();
               executeTranslation(mobileTranslateBtn.text, mobileTranslateBtn.sentence, undefined, true);
             }}
-            className="px-4 py-2.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white font-black text-xs shadow-2xl border-2 border-emerald-300 flex items-center gap-2 active:scale-95 cursor-pointer ring-4 ring-emerald-500/25 select-none dark:border-emerald-800"
+            className="px-4 py-2.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white font-black text-xs shadow-2xl border-2 border-emerald-300 flex items-center gap-2 active:scale-95 cursor-pointer ring-4 ring-emerald-500/25 select-none dark:border-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
           >
             <span className="text-sm animate-pulse">✨</span>
             <span className="max-w-[160px] truncate">
@@ -492,7 +497,7 @@ export default function HighlightTooltip() {
                   minWidth: 'min(280px, calc(100vw - 24px))',
                 }
           }
-          className="animate-in fade-in zoom-in-95 duration-150 filter drop-shadow-2xl"
+          className="fx-enter-pop filter drop-shadow-2xl"
         >
           <div className="bg-slate-900/98 text-white backdrop-blur-md border border-emerald-500/60 rounded-3xl p-4 shadow-2xl w-full text-sm space-y-3 max-h-[82vh] overflow-y-auto custom-scrollbar">
         {/* Header bar */}
@@ -593,12 +598,12 @@ export default function HighlightTooltip() {
                       </span>
                       {(aiResult?.ipaUS || effectivePhonetic) && (
                         <span className="text-xs text-emerald-300 font-ipa font-semibold bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded tracking-wide">
-                          🇺🇸 {aiResult?.ipaUS || effectivePhonetic}
+                          <FlagIcon code="US" size={13} /> {aiResult?.ipaUS || effectivePhonetic}
                         </span>
                       )}
                       {aiResult?.ipaUK && aiResult.ipaUK !== (aiResult.ipaUS || effectivePhonetic) && (
                         <span className="text-xs text-sky-300 font-ipa font-semibold bg-sky-950/60 border border-sky-800/60 px-2 py-0.5 rounded tracking-wide">
-                          🇬🇧 {aiResult.ipaUK}
+                          <FlagIcon code="GB" size={13} /> {aiResult.ipaUK}
                         </span>
                       )}
                     </div>
@@ -744,7 +749,7 @@ export default function HighlightTooltip() {
                     {pedagogicalResult.similarExamples.map((eg, idx) => (
                       <div key={idx} className="text-[11px] space-y-0.5">
                         <div className="font-mono text-sky-200">&bull; {eg.en}</div>
-                        <div className="text-slate-400 italic text-[10px]">🇻🇳 {eg.vi}</div>
+                        <div className="text-slate-400 italic text-[10px]"><FlagIcon code="VN" size={11} /> {eg.vi}</div>
                       </div>
                     ))}
                   </div>
@@ -760,7 +765,7 @@ export default function HighlightTooltip() {
 
         {/* Note input box */}
         {showNoteInput && (
-          <div className="animate-in fade-in duration-150">
+          <div className="fx-enter">
             <div className="flex items-center gap-1 text-[11px] text-slate-300 mb-1">
               <MessageSquare className="w-3 h-3 text-amber-400" /> Ghi chú riêng của bạn:
             </div>

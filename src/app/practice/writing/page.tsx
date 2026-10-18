@@ -27,6 +27,7 @@ import {
   History
 } from 'lucide-react';
 import MascotCompanion from '@/components/MascotCompanion';
+import FlagIcon from '@/components/FlagIcon';
 import { getStoredUser } from '@/lib/auth';
 
 /**
@@ -736,7 +737,7 @@ export default function WritingPracticePage() {
           <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-2 w-full sm:w-auto shrink-0">
           <button
             onClick={() => setShowAiModal(true)}
-            className="btn-3d btn-3d-amber w-full sm:w-auto px-4 py-2.5 text-xs font-black text-slate-950 shadow-md cursor-pointer flex items-center justify-center gap-1.5 shrink-0 dark:text-slate-200"
+            className="btn-3d btn-3d-amber w-full sm:w-auto px-4 py-2.5 min-h-[44px] text-xs font-black text-slate-950 shadow-md cursor-pointer flex items-center justify-center gap-1.5 shrink-0 dark:text-slate-200"
           >
             <Zap className="w-4 h-4" />
             <span>✨ Tạo Đề AI Tự Do</span>
@@ -747,7 +748,7 @@ export default function WritingPracticePage() {
               setExamHistory(loadExamHistory());
               setShowHistoryModal(true);
             }}
-            className="btn-3d btn-3d-white w-full sm:w-auto px-4 py-2.5 text-xs font-black text-slate-800 shadow-md cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+            className="btn-3d btn-3d-white w-full sm:w-auto px-4 py-2.5 min-h-[44px] text-xs font-black text-slate-800 shadow-md cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
             title="Xem lại các bộ đề đã tạo và làm tiếp"
           >
             <History className="w-4 h-4 text-emerald-600" />
@@ -806,7 +807,7 @@ export default function WritingPracticePage() {
                 setCategoryFilter(cat.id);
                 setCurrentIdx(0);
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`px-3 py-1.5 min-h-[44px] inline-flex items-center rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap shrink-0 ${
                 categoryFilter === cat.id
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 hover:dark:bg-slate-700'
@@ -835,7 +836,7 @@ export default function WritingPracticePage() {
                 sound.playClick();
                 setUseFreeType(!useFreeType);
               }}
-              className="text-xs text-slate-600 hover:text-emerald-700 underline font-extrabold cursor-pointer self-start sm:self-auto dark:text-slate-400 hover:dark:text-emerald-300"
+              className="text-xs text-slate-600 hover:text-emerald-700 underline font-extrabold cursor-pointer self-start sm:self-auto dark:text-slate-400 hover:dark:text-emerald-300 min-h-[44px] inline-flex items-center"
             >
               {useFreeType ? '🧱 Chuyển sang xếp khối từ Lego' : '⌨️ Chuyển sang gõ bàn phím tự do'}
             </button>
@@ -844,7 +845,7 @@ export default function WritingPracticePage() {
             {prompt.situation}
           </p>
           <div className="text-xs sm:text-sm font-bold text-emerald-800 bg-emerald-50 p-2.5 sm:p-3 rounded-xl border border-emerald-200 break-words dark:text-emerald-200 dark:bg-emerald-950 dark:border-emerald-800">
-            🇻🇳 Hãy dịch sang tiếng Anh: &quot;{prompt.vietnamesePrompt}&quot;
+            <FlagIcon code="VN" size={13} /> Hãy dịch sang tiếng Anh: &quot;{prompt.vietnamesePrompt}&quot;
           </div>
         </div>
 

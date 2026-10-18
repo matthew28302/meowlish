@@ -1329,6 +1329,31 @@ textarea,
 }
 
 /* ========================================================================= */
+/* FX 2026-10-18 (UX agent 4): hiệu ứng VÀO cho popup / pill / bong bóng chat */
+/* Vì sao dùng `translate`/`scale` (thuộc tính độc lập) chứ không `transform`:*/
+/* popup mobile của HighlightTooltip định vị bằng inline `transform:         */
+/* translateX(-50%)` — animation `transform` sẽ ĐÈ inline đó, làm popup lệch  */
+/* tâm trong suốt thời gian chạy. `translate`/`scale` cộng dồn với `transform`*/
+/* nên an toàn. Không dùng fill-mode "both" để sau khi chạy xong các utility  */
+/* `hover:scale-*`/`active:scale-*` vẫn hoạt động bình thường.               */
+/* ========================================================================= */
+@keyframes fx-enter-rise {
+  from { opacity: 0; translate: 0 8px; scale: 0.97; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+.fx-enter {
+  animation: fx-enter-rise 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fx-enter-pop {
+  from { opacity: 0; scale: 0.95; }
+  to { opacity: 1; scale: 1; }
+}
+.fx-enter-pop {
+  animation: fx-enter-pop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ========================================================================= */
 /* GARDEN OBJECT AFFORDANCE — vật thể tương tác phải "rõ" TRƯỚC khi click   */
 /* Desktop hover: scale 1.03 + glow trắng + cursor pointer.                 */
 /* Touch (hover:none): vòng pulse rất mờ định kỳ gợi ý "bấm được".          */

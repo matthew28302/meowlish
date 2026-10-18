@@ -1017,6 +1017,32 @@ export async function downloadDbFromS3(): Promise<boolean> {
   }
 }
 
+/**
+ * GetObject có retry GIỚI HẠN — chỉ dùng cho thao tác ĐỌC (không bao giờ cho
+ * upload/ghi). Lý do: cold start tải file DB ~3.5MB (hoặc từ điển 64MB qua
+ * script riêng) từ Filebase; một lần mạng chập chờn làm cả quá trình restore
+ * fail và người dùng phải chờ cold start kế tiếp. Retry 2 lần với backoff
+ * 500ms/1000ms là đủ cho lỗi tạm thời mà không kéo dài vô hạn.
+ */
+async function getObjectWithRetry(s3: S3Client, bucket: string, key: string, attempts = 3) {
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+    } catch (err) {
+      lastError = err;
+      if (attempt === attempts) break;
+      const delayMs = 500 * 2 ** (attempt - 1);
+      logger.warn(
+        `[S3 Sync] GetObject ${key} thất bại lần ${attempt}/${attempts} — thử lại sau ${delayMs}ms:`,
+        { error: err instanceof Error ? err.message : String(err) }
+      );
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  throw lastError;
+}
+
 /** Phần lõi của download — CHỈ gọi khi đã giữ lock state.isSyncing. */
 async function doDownloadLocked(s3: S3Client, bucket: string, knownHead?: RemoteInfo | null): Promise<boolean> {
   let head: RemoteInfo | null;
@@ -1094,7 +1120,7 @@ async function doDownloadLocked(s3: S3Client, bucket: string, knownHead?: Remote
   // --- Tải về và thay thế (atomic) ---
   logger.info('[S3 Sync] Downloading database from Filebase...', { remote: head.version });
   try {
-    const response = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: DB_FILENAME }));
+    const response = await getObjectWithRetry(s3, bucket, DB_FILENAME);
     if (!response.Body) throw new Error('S3 GetObject returned empty body');
     const buffer = Buffer.from(await response.Body.transformToByteArray());
     // Dùng ETag của CHÍNH file vừa tải (không dùng ETag của HEAD trước đó) —

@@ -349,6 +349,8 @@ export async function POST(request: Request) {
       severity: 'error',
     });
     const message = err instanceof Error ? err.message : 'Server error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    logger.warn(`Chi tiết lỗi POST /api/admin/auth (không trả cho client): ${message}`);
+    // KHÔNG trả err.message thô ra ngoài (chi tiết nội bộ/SQLite/bcrypt).
+    return NextResponse.json({ error: 'Lỗi hệ thống. Vui lòng thử lại sau ít phút!' }, { status: 500 });
   }
 }

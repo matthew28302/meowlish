@@ -740,7 +740,7 @@ export default function SupportPage() {
                 sound.playClick();
                 setActiveTab('guide');
               }}
-              className={`px-4 sm:px-5 py-2.5 rounded-2xl font-black text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 shadow-sm ${
+              className={`px-4 sm:px-5 py-2.5 min-h-[44px] rounded-2xl font-black text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 shadow-sm ${
                 activeTab === 'guide'
                   ? 'bg-white text-emerald-900 shadow-md scale-102 dark:bg-slate-900 dark:text-emerald-200'
                   : 'bg-emerald-900/40 hover:bg-emerald-900/60 text-white'
@@ -756,7 +756,7 @@ export default function SupportPage() {
                 sound.playClick();
                 setActiveTab('ai');
               }}
-              className={`px-4 sm:px-5 py-2.5 rounded-2xl font-black text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 shadow-sm ${
+              className={`px-4 sm:px-5 py-2.5 min-h-[44px] rounded-2xl font-black text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 shadow-sm ${
                 activeTab === 'ai'
                   ? 'bg-amber-400 text-slate-950 shadow-md scale-102 ring-2 ring-amber-300'
                   : 'bg-emerald-900/40 hover:bg-emerald-900/60 text-white'
@@ -777,7 +777,7 @@ export default function SupportPage() {
                 sound.playClick();
                 setActiveTab('ticket');
               }}
-              className={`px-4 sm:px-5 py-2.5 rounded-2xl font-black text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 shadow-sm ${
+              className={`px-4 sm:px-5 py-2.5 min-h-[44px] rounded-2xl font-black text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 shadow-sm ${
                 activeTab === 'ticket'
                   ? 'bg-white text-indigo-900 shadow-md scale-102 dark:bg-slate-900 dark:text-indigo-200'
                   : 'bg-emerald-900/40 hover:bg-emerald-900/60 text-white'
@@ -816,7 +816,7 @@ export default function SupportPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Nhập từ khóa tìm kiếm (vd: kiếm coins, thú cưng đói, lego, 2fa, luyện nói, mật khẩu)..."
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-2xl pl-11 pr-24 py-3 text-xs sm:text-sm text-slate-900 outline-none transition shadow-inner dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
+                  className="w-full min-h-[44px] bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:bg-white rounded-2xl pl-11 pr-24 py-3 text-xs sm:text-sm text-slate-900 outline-none transition shadow-inner dark:bg-slate-900 dark:border-white/10 focus:dark:bg-slate-900 dark:text-slate-100"
                 />
                 {searchQuery && (
                   <button
@@ -849,7 +849,7 @@ export default function SupportPage() {
                       sound.playClick();
                       setSearchQuery(kw);
                     }}
-                    className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 font-semibold transition cursor-pointer text-[11px] dark:bg-slate-800 hover:dark:bg-emerald-950 hover:dark:text-emerald-300 dark:text-slate-400"
+                    className="px-2.5 py-1 min-h-[44px] inline-flex items-center rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 font-semibold transition cursor-pointer text-[11px] dark:bg-slate-800 hover:dark:bg-emerald-950 hover:dark:text-emerald-300 dark:text-slate-400"
                   >
                     #{kw}
                   </button>
@@ -871,7 +871,7 @@ export default function SupportPage() {
                       sound.playClick();
                       setSelectedCategory(cat.id as any);
                     }}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 min-h-[44px] inline-flex items-center rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
                       selectedCategory === cat.id
                         ? 'bg-emerald-600 text-white shadow-xs'
                         : 'bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 hover:dark:bg-slate-700 dark:text-slate-300'

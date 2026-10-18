@@ -65,6 +65,14 @@ vi.mock('@/lib/db', () => {
       needsRehash: false,
       scheme: 'scrypt' as const,
     }),
+    // Bản async của lớp băm (route login/register dùng ở đường nóng) — mock
+    // phải phản ánh đúng API module, nếu thiếu thì route gọi undefined → 500.
+    hashPasswordAsync: async (plain: string) => `unit-hash:${plain}`,
+    verifyPasswordAsync: async (plain: string, stored: string) => ({
+      ok: stored === `unit-hash:${plain}`,
+      needsRehash: false,
+      scheme: 'scrypt' as const,
+    }),
     sanitizeText: (value: unknown) => String(value),
   };
 });

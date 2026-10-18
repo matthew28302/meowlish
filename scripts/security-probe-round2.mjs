@@ -11,7 +11,11 @@ const out = [];
 const ck = (label, pass, extra = '') => out.push(`${pass ? 'PASS' : 'FAIL'} ${label}${extra ? ' — ' + extra : ''}`);
 
 let ipCounter = 0;
-const withIp = (headers = {}) => ({ ...headers, 'x-forwarded-for': `10.77.0.${(ipCounter += 1)}` });
+// Octet thứ 2 đổi ngẫu nhiên mỗi lần chạy: dãy IP cố định bị hạn mức
+// (progress_post 60 lượt/phút, auth_resend 6 lượt/10 phút...) tích luỹ qua nhiều
+// lần chạy và làm probe tự báo 429 oan.
+const runTag = Math.floor(Math.random() * 200) + 20;
+const withIp = (headers = {}) => ({ ...headers, 'x-forwarded-for': `10.77.${runTag}.${(ipCounter += 1)}` });
 
 // Dọn hạn mức/claim cũ trong DB cục bộ để probe chạy lại được nhiều lần.
 try {
@@ -37,7 +41,9 @@ const noAuth = { cookie: 'meowlish_user_session=forged-token-not-a-real-signatur
 // ---- 1. Chiếm tài khoản qua xác thực email ----
 const takeover = await fetch(BASE + '/api/auth', {
   method: 'POST',
-  headers: { ...noAuth, 'content-type': 'application/json' },
+  // IP riêng cho từng request: không có X-Forwarded-For thì mọi request rơi vào
+  // bucket '127.0.0.1' dùng chung và tự chạm hạn mức auth_resend (6/10 phút).
+  headers: withIp({ ...noAuth, 'content-type': 'application/json' }),
   body: JSON.stringify({
     action: 'request_email_verification',
     userId: VICTIM,
@@ -86,13 +92,20 @@ const petGet = await fetch(`${BASE}/api/pet?userId=user_demo_default`, { headers
 const petData = await petGet.json().catch(() => ({}));
 const rooms = petData.activeRooms || [];
 ck('GET /api/pet vẫn trả dữ liệu bình thường', petGet.ok && Array.isArray(rooms), `HTTP ${petGet.status}, ${rooms.length} phòng`);
-if (rooms.length > 0) {
+// Chỉ tấn công phòng mà demo KHÔNG phải thành viên: phòng của chính demo kết thúc
+// được là hành vi ĐÚNG (200), không phải lỗi — bản probe cũ tưởng nhầm là FAIL.
+const foreignRooms = rooms.filter(
+  (r) => r.host_id !== 'user_demo_default' && r.guest_id !== 'user_demo_default'
+);
+if (foreignRooms.length > 0) {
   const steal = await fetch(BASE + '/api/pet', {
     method: 'POST',
-    headers: { ...session, 'content-type': 'application/json' },
-    body: JSON.stringify({ userId: 'user_demo_default', action: 'finish_battle_room', roomId: rooms[0].id, winnerId: 'user_demo_default' }),
+    headers: withIp({ cookie: session.cookie, 'content-type': 'application/json' }),
+    body: JSON.stringify({ userId: 'user_demo_default', action: 'finish_battle_room', roomId: foreignRooms[0].id, winnerId: 'user_demo_default' }),
   });
   ck('finish_battle_room trên phòng không thuộc mình → chặn', steal.status === 403 || steal.status === 404, `HTTP ${steal.status}`);
+} else {
+  console.log('SKIP  finish_battle_room phòng người khác — không có phòng nào của tài khoản khác đang mở');
 }
 
 // ---- 5. Farm coins qua /api/progress ----
@@ -101,7 +114,9 @@ if (rooms.length > 0) {
 const ITEM = `probe_item_${Date.now()}`;
 const progressOnce = await fetch(BASE + '/api/progress', {
   method: 'POST',
-  headers: { ...session, 'content-type': 'application/json' },
+  // IP riêng cho TỪNG request: hạn mức progress_post chỉ 60 lượt/phút/IP, dùng
+  // chung một IP cho cả vòng lặp 40+ request sẽ tự bắn 429 vào chân mình.
+  headers: withIp({ cookie: session.cookie, 'content-type': 'application/json' }),
   body: JSON.stringify({ userId: 'user_demo_default', moduleType: 'vocab', itemId: ITEM, score: 90, expGained: 100, coinsGained: 50 }),
 });
 const p1 = await progressOnce.json().catch(() => ({}));
@@ -111,7 +126,7 @@ let duplicates = 0;
 for (let i = 0; i < 5; i++) {
   const r = await fetch(BASE + '/api/progress', {
     method: 'POST',
-    headers: { ...session, 'content-type': 'application/json' },
+    headers: withIp({ cookie: session.cookie, 'content-type': 'application/json' }),
     body: JSON.stringify({ userId: 'user_demo_default', moduleType: 'vocab', itemId: ITEM, score: 90, expGained: 100, coinsGained: 50 }),
   });
   const b = await r.json().catch(() => ({}));
@@ -127,7 +142,7 @@ let rewardedAfterCap = 0;
 for (let i = 0; i < 40; i++) {
   const r = await fetch(BASE + '/api/progress', {
     method: 'POST',
-    headers: { ...session, 'content-type': 'application/json' },
+    headers: withIp({ cookie: session.cookie, 'content-type': 'application/json' }),
     body: JSON.stringify({ userId: 'user_demo_default', moduleType: 'vocab', itemId: `probe_bi_a_${i}_${Date.now()}`, score: 90, expGained: 100, coinsGained: 50 }),
   });
   const b = await r.json().catch(() => ({}));
@@ -140,7 +155,7 @@ ck('hạn mức thưởng ngày có hiệu lực (báo budgetReached)', budgetBl
 ck('sau khi chạm trần KHÔNG còn cộng thưởng', rewardedAfterCap === 0, `${rewardedAfterCap} lần bị cộng nhầm`);
 
 // ---- 6. Mã phiếu hỗ trợ của người khác ----
-const tk = await fetch(`${BASE}/api/support?ticketId=TK-XXXX`, { headers: noAuth });
+const tk = await fetch(`${BASE}/api/support?ticketId=TK-XXXX`, { headers: withIp({ cookie: noAuth.cookie }) });
 const tkBody = await tk.text();
 ck('tra cứu phiếu không phiên không lộ nội dung',
   !/"message"|"admin_reply"|"name"|"email"/.test(tkBody), `HTTP ${tk.status}`);

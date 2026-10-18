@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db, hashPassword, verifyPassword, sanitizeText } from '@/lib/db';
+import { db, hashPasswordAsync, verifyPassword, verifyPasswordAsync, sanitizeText } from '@/lib/db';
 import { validateRegistrationPassword } from '@/lib/passwordPolicy';
 import {
   generateUserOTP,
@@ -382,29 +382,36 @@ export async function POST(request: Request) {
 
       let targetEmail = user.email;
       if ((!targetEmail || targetEmail.trim() === '') && body.email) {
-        const cleanEmail = String(body.email).trim().toLowerCase();
-        if (cleanEmail.includes('@') && cleanEmail.includes('.')) {
-          const existing = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(cleanEmail, userId);
-          if (existing) {
-            return NextResponse.json({ error: 'Email này đã được sử dụng bởi một tài khoản khác.' }, { status: 400 });
-          }
-          // Ghi log thay đổi email — thao tác nhạy cảm, cần để điều tra sau này.
-          // PHẢI reset email_verified = 0: đăng ký không email đặt cờ = 1
-          // (emailVerifiedStatus = cleanEmail ? 0 : 1 ở nhánh register), nên
-          // nếu chỉ ghi email mà giữ cờ = 1 thì cổng xác thực ở
-          // progress/route.ts (chỉ chặn khi === 0) bị bypass VĨNH VIỄN với một
-          // địa chỉ chưa từng chứng minh quyền sở hữu (đo 2026-10-09).
-          db.prepare('UPDATE users SET email = ?, email_verified = 0 WHERE id = ?').run(cleanEmail, userId);
-          logAccess({
-            user_id: userId,
-            username: user.username,
-            action: 'set_email',
-            ip: clientIp,
-            details: 'Thiết lập email lần đầu để nhận mã xác thực',
-            status: 'success',
-          });
-          targetEmail = cleanEmail;
+        // Chuẩn hoá + validate như mọi chỗ khác trong route: cắt trần độ dài và
+        // chỉ nhận MỘT địa chỉ. Trước đây chỉ kiểm tra `includes('@') &&
+        // includes('.')` nên lọt cả chuỗi chứa khoảng trắng/danh sách nhiều địa
+        // chỉ (dấu phẩy): địa chỉ lộn xộn được ghi vào users.email rồi dùng làm
+        // người nhận OTP ⇒ biến endpoint này thành máy gửi email tới địa chỉ bất
+        // kỳ (mail relay) và làm hỏng luồng forgot-password sau này.
+        const cleanEmail = String(body.email).trim().toLowerCase().slice(0, 120);
+        if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(cleanEmail)) {
+          return NextResponse.json({ error: 'Địa chỉ email không hợp lệ. Vui lòng kiểm tra lại.' }, { status: 400 });
         }
+        const existing = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(cleanEmail, userId);
+        if (existing) {
+          return NextResponse.json({ error: 'Email này đã được sử dụng bởi một tài khoản khác.' }, { status: 400 });
+        }
+        // Ghi log thay đổi email — thao tác nhạy cảm, cần để điều tra sau này.
+        // PHẢI reset email_verified = 0: đăng ký không email đặt cờ = 1
+        // (emailVerifiedStatus = cleanEmail ? 0 : 1 ở nhánh register), nên
+        // nếu chỉ ghi email mà giữ cờ = 1 thì cổng xác thực ở
+        // progress/route.ts (chỉ chặn khi === 0) bị bypass VĨNH VIỄN với một
+        // địa chỉ chưa từng chứng minh quyền sở hữu (đo 2026-10-09).
+        db.prepare('UPDATE users SET email = ?, email_verified = 0 WHERE id = ?').run(cleanEmail, userId);
+        logAccess({
+          user_id: userId,
+          username: user.username,
+          action: 'set_email',
+          ip: clientIp,
+          details: 'Thiết lập email lần đầu để nhận mã xác thực',
+          status: 'success',
+        });
+        targetEmail = cleanEmail;
       }
 
       if (!targetEmail) {
@@ -488,7 +495,7 @@ export async function POST(request: Request) {
       const pwRow = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(userId) as
         | { password_hash: string | null }
         | undefined;
-      if (!pwRow || !verifyPassword(cleanCurrent, pwRow.password_hash).ok) {
+      if (!pwRow || !(await verifyPasswordAsync(cleanCurrent, pwRow.password_hash)).ok) {
         logAccess({
           user_id: userId,
           username: user.username,
@@ -608,7 +615,7 @@ export async function POST(request: Request) {
         if (!cleanCurrent) {
           return NextResponse.json({ error: 'Vui lòng nhập mật khẩu hiện tại để đổi mật khẩu.' }, { status: 400 });
         }
-        if (!verifyPassword(cleanCurrent, dbUser.password_hash).ok) {
+        if (!(await verifyPasswordAsync(cleanCurrent, dbUser.password_hash)).ok) {
           logAccess({
             user_id: userId,
             username: dbUser.username,
@@ -621,7 +628,7 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: 'Mật khẩu hiện tại không đúng.' }, { status: 400 });
         }
         updates.push('password_hash = ?');
-        params.push(hashPassword(cleanNew));
+        params.push(await hashPasswordAsync(cleanNew));
         // Revoke tất cả session hiện tại khi đổi mật khẩu
         updates.push('password_changed_at = ?');
         params.push(Date.now());
@@ -718,7 +725,11 @@ export async function POST(request: Request) {
     }
 
     // Đăng ký: ghi bằng scheme MỚI (scrypt + salt riêng cho từng tài khoản).
-    const pwdHash = hashPassword(cleanPassword);
+    //
+    // LƯU Ý (2026-10-18): phép băm được tính BÊN TRONG nhánh register, không
+    // tính trước cho mọi request nữa. Trước đây mỗi LOGIN cũng băm lại mật khẩu
+    // vừa gửi (một lần scrypt ~100ms hoàn toàn vô ích vì kết quả chỉ dùng khi
+    // đăng ký) — đo được là nó nhân đôi tải băm trên đường nóng.
 
     // 5. ACTION: REGISTER (ĐĂNG KÝ MỚI)
     if (action === 'register') {
@@ -767,6 +778,9 @@ export async function POST(request: Request) {
       const name = sanitizeText(typeof displayName === 'string' && displayName ? displayName : cleanUsername).slice(0, 50);
       const today = new Date().toISOString().split('T')[0];
       const emailVerifiedStatus = cleanEmail ? 0 : 1; // Chưa xác thực nếu có email
+
+      // Băm mật khẩu (đường NÓNG → bản async, không chặn event loop).
+      const pwdHash = await hashPasswordAsync(cleanPassword);
 
       // Ghi tài khoản mới rồi BẢO ĐẢM nó không bị mất.
       //
@@ -962,7 +976,9 @@ export async function POST(request: Request) {
       FROM users WHERE username = ?
     `;
     let user = db.prepare(userQuery).get(cleanUsername) as any;
-    let pwdCheck = user ? verifyPassword(cleanPassword, user.password_hash) : { ok: false, needsRehash: false, scheme: 'unknown' as const };
+    // ĐƯỜNG NÓNG: dùng bản async — scrypt chạy trên threadpool thay vì chặn
+    // event loop, nhờ đó N login đồng thời không còn xếp hàng tuần tự.
+    let pwdCheck = user ? await verifyPasswordAsync(cleanPassword, user.password_hash) : { ok: false, needsRehash: false, scheme: 'unknown' as const };
 
     if (!user || !pwdCheck.ok) {
       // Instance này có thể đang giữ bản SQLite CŨ trong /tmp (user vừa đăng ký
@@ -976,7 +992,7 @@ export async function POST(request: Request) {
       });
       if (refreshed) {
         user = db.prepare(userQuery).get(cleanUsername) as any;
-        pwdCheck = user ? verifyPassword(cleanPassword, user.password_hash) : { ok: false, needsRehash: false, scheme: 'unknown' as const };
+        pwdCheck = user ? await verifyPasswordAsync(cleanPassword, user.password_hash) : { ok: false, needsRehash: false, scheme: 'unknown' as const };
       }
     }
 
@@ -1011,7 +1027,7 @@ export async function POST(request: Request) {
     // Nhờ vậy dữ liệu tự lành dần mà không cần reset mật khẩu cho người dùng.
     if (pwdCheck.needsRehash) {
       try {
-        db.prepare('UPDATE users SET password_hash = ?, password_changed_at = ? WHERE id = ?').run(hashPassword(cleanPassword), Date.now(), user.id);
+        db.prepare('UPDATE users SET password_hash = ?, password_changed_at = ? WHERE id = ?').run(await hashPasswordAsync(cleanPassword), Date.now(), user.id);
         void syncDbToS3Now();
         logger.info(`[Auth] Đã nâng cấp hash mật khẩu cho @${cleanUsername} (${pwdCheck.scheme} -> scrypt)`);
       } catch (err) {

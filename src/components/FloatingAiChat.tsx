@@ -68,6 +68,11 @@ const FloatingAiChat: React.FC = () => {
   const [inputQuestion, setInputQuestion] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [hasNewAnswer, setHasNewAnswer] = useState(false);
+  // UX-003: FAB che nút thao tác (grammar/encyclopedia/flashcards). Trong lúc
+  // người dùng đang CUỘN trang, FAB thu nhỏ & mờ đi (vẫn hiện để không giật
+  // layout), đứng yên lại ~0.7s thì trở về bình thường ⇒ lúc bấm nút vẫn thấy
+  // nhưng khi đang đọc/định vị nút thì không còn chắn tầm bấm.
+  const [isScrolling, setIsScrolling] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const msgIdRef = useRef(0);
@@ -78,6 +83,24 @@ const FloatingAiChat: React.FC = () => {
 
   const hidden = pathname === '/support' || pathname?.startsWith('/duahau');
   useEscapeToClose(isOpen, () => setIsOpen(false));
+
+  // UX-003: theo dõi cuộn toàn cục (capture để bắt cả scroll của container con —
+  // app này cuộn trong <main>, không phải <body>). Chỉ set state khi đổi cờ để
+  // không re-render mỗi frame; timeout 700ms đưa FAB về trạng thái hiện.
+  useEffect(() => {
+    if (hidden) return;
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+    const onScroll = () => {
+      setIsScrolling(true);
+      if (idleTimer) clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => setIsScrolling(false), 700);
+    };
+    window.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll, { capture: true });
+      if (idleTimer) clearTimeout(idleTimer);
+    };
+  }, [hidden]);
 
   // Auto-scroll khi có tin nhắn mới — chỉ khi panel đang mở (chỉ thao tác DOM,
   // không setState trong effect để tránh cascading renders).
@@ -186,11 +209,11 @@ const FloatingAiChat: React.FC = () => {
         aria-label={isOpen ? 'Đóng khung chat Trợ Lý Mèo AI' : 'Mở chat với Trợ Lý Mèo AI 24/7'}
         aria-expanded={isOpen}
         data-testid="floating-ai-chat-button"
-        className={`fixed right-4 sm:right-6 bottom-44 sm:bottom-20 lg:bottom-6 z-[9000] w-14 h-14 rounded-full
+        className={`fixed right-4 sm:right-6 bottom-[calc(4rem+env(safe-area-inset-bottom)+12px)] sm:bottom-20 lg:bottom-6 z-[9000] w-12 h-12 sm:w-14 sm:h-14 rounded-full
           bg-gradient-to-tr from-emerald-500 to-teal-500 text-white shadow-xl shadow-emerald-500/40
           border-4 border-white dark:border-slate-900 cursor-pointer
-          flex items-center justify-center text-3xl select-none
-          hover:scale-110 active:scale-95 transition-transform
+          flex items-center justify-center text-2xl sm:text-3xl select-none
+          hover:scale-110 active:scale-95 motion-safe:transition-[transform,opacity] motion-safe:duration-200
           /* UX-004: muc tieu cham 56px phai DUNG YEN khi nguoi dung
              dang nham. Animation float-soft chay VO HAN (~6px/3s) lam
              nut lien tuc dich chuyen => kho canh ban trung, va chan toan bo
@@ -201,6 +224,8 @@ const FloatingAiChat: React.FC = () => {
              ~4.8s roi dung vinh vien), dung khi hover/focus.
              Nguoi dung van thay nut, con muc tieu o lai tinh cho san. */
           hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]
+          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500
+          ${!isOpen && isScrolling ? 'opacity-40 scale-90' : 'opacity-100 scale-100'}
           ${isOpen ? 'rotate-90' : 'animate-[float-soft_2.4s_ease-in-out_2]'}`}
       >
         {isOpen ? <X className="w-6 h-6" /> : '🐱'}
@@ -223,7 +248,7 @@ const FloatingAiChat: React.FC = () => {
           className="fixed right-2 sm:right-6 bottom-36 lg:bottom-24 z-[9000]
             w-[calc(100vw-16px)] sm:w-[380px] h-[min(62vh,540px)]
             bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border-2 border-emerald-100 dark:border-emerald-500/30
-            flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300"
+            flex flex-col overflow-hidden fx-enter-pop"
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-3 flex items-center justify-between shrink-0">
@@ -243,7 +268,7 @@ const FloatingAiChat: React.FC = () => {
                 onClick={resetChat}
                 title="Làm mới hội thoại"
                 aria-label="Làm mới hội thoại"
-                className="p-1.5 rounded-lg hover:bg-white/20 text-white transition cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-white/20 text-white transition cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-90"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
@@ -252,7 +277,7 @@ const FloatingAiChat: React.FC = () => {
                 onClick={() => setIsOpen(false)}
                 title="Đóng"
                 aria-label="Đóng khung chat"
-                className="p-1.5 rounded-lg hover:bg-white/20 text-white transition cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-white/20 text-white transition cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-90"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -266,7 +291,7 @@ const FloatingAiChat: React.FC = () => {
             className="flex-1 overflow-y-auto overscroll-y-contain custom-scrollbar px-3 py-3 space-y-3 bg-slate-50 dark:bg-slate-950"
           >
             {chatMessages.map((msg) => (
-              <div key={msg.id} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+              <div key={msg.id} className={`flex gap-2 fx-enter ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                 <div className="w-7 h-7 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-sm shrink-0 shadow-sm">
                   {msg.role === 'user' ? '👤' : '🐱'}
                 </div>
@@ -304,7 +329,7 @@ const FloatingAiChat: React.FC = () => {
                 type="button"
                 onClick={() => handleSendAiMessage(chip)}
                 disabled={isAiLoading}
-                className="whitespace-nowrap text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition cursor-pointer disabled:opacity-50 shrink-0"
+                className="whitespace-nowrap text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 active:scale-95 transition cursor-pointer disabled:opacity-50 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
               >
                 {chip}
               </button>
@@ -334,7 +359,7 @@ const FloatingAiChat: React.FC = () => {
               disabled={isAiLoading || !inputQuestion.trim()}
               aria-label="Gửi câu hỏi"
               data-testid="floating-ai-chat-send"
-              className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25 hover:scale-105 active:scale-95 transition-transform cursor-pointer disabled:opacity-40 disabled:hover:scale-100 shrink-0"
+              className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25 hover:scale-105 active:scale-95 transition-transform cursor-pointer disabled:opacity-40 disabled:hover:scale-100 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
             >
               <Send className="w-4 h-4" />
             </button>

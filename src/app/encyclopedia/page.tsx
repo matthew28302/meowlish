@@ -32,6 +32,7 @@ import {
   Database
 } from 'lucide-react';
 import MascotCompanion from '@/components/MascotCompanion';
+import FlagIcon from '@/components/FlagIcon';
 
 interface CambridgeSense {
   enDef: string;
@@ -611,7 +612,7 @@ export default function EncyclopediaPage() {
               {/* Natural Vietnamese Translation */}
               <div className="p-4 sm:p-5 bg-white rounded-2xl border border-indigo-200 shadow-xs space-y-2 dark:bg-slate-900 dark:border-indigo-800">
                 <div className="text-xs font-black text-indigo-600 uppercase tracking-wider dark:text-indigo-300">
-                  🇻🇳 Bản dịch tiếng Việt tự nhiên:
+                  <FlagIcon code="VN" size={13} /> Bản dịch tiếng Việt tự nhiên:
                 </div>
                 <div className="text-lg sm:text-xl font-black text-slate-900 leading-snug dark:text-slate-100">
                   {aiResult.vietnameseTranslation}
@@ -727,7 +728,7 @@ export default function EncyclopediaPage() {
               {/* Primary Meaning */}
               <div className="p-4 sm:p-5 bg-white rounded-2xl border border-emerald-200 space-y-1.5 shadow-xs dark:bg-slate-900 dark:border-emerald-800">
                 <div className="text-xs font-black text-emerald-700 uppercase tracking-wider dark:text-emerald-300">
-                  🇻🇳 Nghĩa tiếng Việt chuẩn ngữ cảnh:
+                  <FlagIcon code="VN" size={12} /> Nghĩa tiếng Việt chuẩn ngữ cảnh:
                 </div>
                 <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100">
                   {aiResult.meaningVi}
@@ -877,7 +878,7 @@ export default function EncyclopediaPage() {
           {/* Primary Meaning */}
           <div className="p-4 bg-white rounded-2xl border border-emerald-200 space-y-1.5 shadow-xs dark:bg-slate-900 dark:border-emerald-800">
             <div className="text-base font-black text-emerald-800 flex items-center gap-1.5 dark:text-emerald-200">
-              <span>🇻🇳 Định nghĩa tiếng Việt:</span>
+              <span><FlagIcon code="VN" size={13} /> Định nghĩa tiếng Việt:</span>
               <span>{crawledResult.meaningVi}</span>
             </div>
             {crawledResult.detailedExplanation && (
@@ -1038,7 +1039,7 @@ export default function EncyclopediaPage() {
                   {/* Vietnamese Meaning Badge */}
                   <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-100 dark:bg-emerald-950 dark:border-emerald-800">
                     <div className="text-xs font-black text-emerald-800 dark:text-emerald-200">
-                      🇻🇳 {item.meaningVi}
+                      <FlagIcon code="VN" size={12} /> {item.meaningVi}
                     </div>
                   </div>
 
@@ -1188,7 +1189,7 @@ export default function EncyclopediaPage() {
                 Định nghĩa tiếng Việt:
               </div>
               <div className="text-lg font-black text-slate-900 dark:text-slate-100">
-                🇻🇳 {selectedEntry.meaningVi}
+                <FlagIcon code="VN" size={14} /> {selectedEntry.meaningVi}
               </div>
               <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium dark:text-slate-300">
                 {selectedEntry.detailedExplanation}

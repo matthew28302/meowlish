@@ -56,7 +56,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     }
 
-    const clientUsername = typeof body.clientUsername === 'string' ? body.clientUsername.trim() : null;
     const isAdminRoute = pathname.startsWith('/duahau');
 
     const cookieHeader = request.headers.get('cookie') || '';
@@ -94,11 +93,15 @@ export async function POST(request: Request) {
           const user = db.prepare('SELECT username FROM users WHERE id = ?').get(userId) as any;
           if (user && user.username) {
             username = user.username;
-          } else if (clientUsername) {
-            username = clientUsername;
+          } else {
+            // Phiên hợp lệ nhưng KHÔNG còn dòng users tương ứng (instance giữ bản
+            // DB cũ, hoặc tài khoản đã bị xoá): tuyệt đối không lấy tên từ body —
+            // `clientUsername` cho phép kẻ có phiên cũ ghi bất kỳ tên nào vào
+            // system_access_logs, tức bịa dữ liệu trong chính bảng audit.
+            username = 'không xác định';
           }
         } catch {
-          if (clientUsername) username = clientUsername;
+          username = 'không xác định';
         }
       }
     }

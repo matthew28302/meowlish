@@ -111,6 +111,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Word parameter is required' }, { status: 400 });
     }
 
+    // Guard chất lượng/đầu vào: từ chỉ được chứa chữ cái, số, khoảng trắng,
+    // gạch nối và nháy đơn; từ quá dài / toàn ký tự lạ → từ không hợp lệ.
+    // Chặn tra cứu rác (số thuần, chuỗi ký tự điều khiển) và prompt-injection.
+    if (!/^[\p{L}\p{N}\s'\-]{1,100}$/u.test(word)) {
+      return NextResponse.json({ error: 'Từ không hợp lệ.' }, { status: 400 });
+    }
+
     const clean = word.toLowerCase();
     const cambridgeUrl = `https://dictionary.cambridge.org/dictionary/english-vietnamese/${encodeURIComponent(clean)}`;
 

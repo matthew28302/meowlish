@@ -41,9 +41,11 @@ export async function GET(request: Request) {
       status,
     });
   } catch (error: any) {
+    // KHÔNG trả error.message thô: lỗi AWS SDK/better-sqlite3 lộ endpoint, bucket,
+    // khoá S3, tên bảng... Chi tiết chỉ nằm trong log nội bộ.
     logger.error('Error in GET /api/sync:', { error });
     return NextResponse.json(
-      { error: error.message || 'Không thể kiểm tra trạng thái đồng bộ S3' },
+      { error: 'Không thể kiểm tra trạng thái đồng bộ S3 lúc này.' },
       { status: 500 }
     );
   }
@@ -102,9 +104,10 @@ export async function POST(request: Request) {
       status,
     });
   } catch (error: any) {
+    // KHÔNG trả error.message thô (chi tiết AWS SDK/SQLite) — xem chú thích ở GET.
     logger.error('Error in POST /api/sync:', { error });
     return NextResponse.json(
-      { error: error.message || 'Đồng bộ Filebase S3 thất bại' },
+      { error: 'Đồng bộ Filebase S3 thất bại. Vui lòng xem log máy chủ để biết chi tiết.' },
       { status: 500 }
     );
   }

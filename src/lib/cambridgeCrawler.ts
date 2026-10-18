@@ -24,6 +24,38 @@ export interface CrawledDictionaryResult {
 // (schema do createDictDb() trong src/lib/db.ts đảm nhận — không tạo ở đây nữa
 // để dictDb chỉ mở khi thật sự tra từ, cold start nhẹ hơn)
 
+function hasRealMeaning(result: any): boolean {
+  // Schema B (flat): meaningVi / allViMeanings
+  if (typeof result?.meaningVi === 'string' && result.meaningVi.trim().length >= 2) return true;
+  if (Array.isArray(result?.allViMeanings) && result.allViMeanings.some((m: any) => String(m).trim().length >= 2)) return true;
+  // Schema A (senses): viTrans thật hoặc enDef thật
+  const sense = result?.senses?.[0];
+  if (sense) {
+    const vi = String(sense.viTrans || '').trim();
+    if (vi && vi !== 'Dịch thuật trực tuyến' && vi.length >= 3) return true;
+    const en = String(sense.enDef || '').trim();
+    if (en && !/^Term:/i.test(en) && en.length >= 6) return true;
+  }
+  return false;
+}
+
+/**
+ * Guard chất lượng cho kết quả tra từ (đặc biệt bản fallback `fallback_api`
+ * sinh ra `Term: "..."` và bản dịch chung chung). Kết quả "rác" không nên
+ * được trả ra UI hay được cache lại — để route trả "không tìm thấy" thay vì
+ * hiển thị định nghĩa vô nghĩa (chủ nhân báo: "từ điển nhiều nội dung rác").
+ */
+function isLowQualityResult(result: any): boolean {
+  if (!result) return true;
+  const sense = result?.senses?.[0];
+  const enDef = String(sense?.enDef || result?.enDef || '').trim();
+  if (/^Term:\s*"/i.test(enDef)) return true;          // fallback rác
+  const viTrans = String(sense?.viTrans || '').trim();
+  if (viTrans === 'Dịch thuật trực tuyến') return true; // bản dịch chung chung
+  if (!hasRealMeaning(result)) return true;             // không có nghĩa thật
+  return false;
+}
+
 export async function crawlCambridgeDictionary(rawWord: string): Promise<CrawledDictionaryResult | null> {
   const cleanWord = rawWord.trim().toLowerCase();
   if (!cleanWord) return null;
@@ -33,7 +65,16 @@ export async function crawlCambridgeDictionary(rawWord: string): Promise<Crawled
     const cached = dictDb.prepare('SELECT data_json FROM dictionary_cache WHERE word = ?').get(cleanWord) as { data_json: string } | undefined;
     if (cached) {
       const parsed = JSON.parse(cached.data_json);
-      return { ...parsed, source: 'cache' };
+      // Guard chất lượng: cache cũ chứa bản fallback rác (`Term: "..."`, viTrans
+      // chung chung, từ quá ngắn) — không trả rác ra UI; xoá row và coi như MISS
+      // để crawl lại / fallback lại (hoặc ultimately "không tìm thấy").
+      if (isLowQualityResult(parsed)) {
+        try {
+          dictDb.prepare('DELETE FROM dictionary_cache WHERE word = ?').run(cleanWord);
+        } catch {}
+      } else {
+        return { ...parsed, source: 'cache' };
+      }
     }
   } catch (err) {
     console.warn('Cache read error:', err);
@@ -188,16 +229,21 @@ export async function crawlCambridgeDictionary(rawWord: string): Promise<Crawled
         cambridgeUrl,
       };
 
-      try {
-        dictDb.prepare(`
-          INSERT OR REPLACE INTO dictionary_cache (word, data_json, created_at)
-          VALUES (?, ?, CURRENT_TIMESTAMP)
-        `).run(cleanWord, JSON.stringify(result));
-      } catch (cacheErr) {
-        console.warn('Cache write warning:', cacheErr);
+      // Guard chất lượng: không cache / không trả bản fallback rác (Term: "...")
+      // hay bản dịch chung chung. Trả null để route trả "không tìm thấy" thay
+      // vì hiển thị định nghĩa vô nghĩa.
+      if (!isLowQualityResult(result)) {
+        try {
+          dictDb.prepare(`
+            INSERT OR REPLACE INTO dictionary_cache (word, data_json, created_at)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+          `).run(cleanWord, JSON.stringify(result));
+        } catch (cacheErr) {
+          console.warn('Cache write warning:', cacheErr);
+        }
+        return result;
       }
-
-      return result;
+      return null;
     }
   } catch (apiErr) {
     console.warn('Fallback API warning:', apiErr);

@@ -70,30 +70,34 @@ for (const path of ['/api/progress', '/api/pet', '/api/bookmarks']) {
   ck(`POST ${path} nhắm userId người khác → 403`, r.status === 403 || r.status === 401, `HTTP ${r.status}`);
 }
 
-// 3. Gọi lặp nhận thưởng: chỉ được 1 lần trong khoảng chờ.
-// Xoá vết claim cũ trong DB CỤC BỘ trước, nếu không lần chạy sau sẽ gặp 429 do
-// khoảng chờ của lần trước (đó là hành vi ĐÚNG, không phải lỗi).
+// 3. Gọi lặp nhận thưởng: mỗi battleId chỉ được cộng thưởng ĐÚNG 1 lần.
+// Xoá vết claim cũ trong DB CỤC BỘ trước, nếu không lần chạy sau sẽ chạm trần
+// 20 lần/ngày của game_reward_claims và báo FAIL oan (đó là hành vi ĐÚNG).
 try {
   const { default: Database } = await import('better-sqlite3');
   const localDb = new Database('data/english_learning.db');
   localDb.prepare('DELETE FROM reward_claims').run();
+  localDb.prepare('DELETE FROM game_reward_claims').run();
   localDb.close();
 } catch {
   // Không mở được DB cục bộ thì bỏ qua, probe vẫn chạy được.
 }
 
-const reward = async (action) => {
+// Action thưởng trận đấu duy nhất hiện nay là `grant_game_reward`
+// (`claim_racing_reward`/`claim_pvp_reward` đã bị xoá vì là code chết).
+const reward = async (payload) => {
   const r = await fetch(BASE + '/api/pet', {
     method: 'POST',
     headers: { ...validCookie, 'content-type': 'application/json' },
-    body: JSON.stringify({ userId: 'user_demo_default', action, rewardCoins: 1500, rewardExp: 200 }),
+    body: JSON.stringify({ userId: 'user_demo_default', action: 'grant_game_reward', kind: 'pvp', ...payload }),
   });
   return { status: r.status, body: await r.json().catch(() => ({})) };
 };
-const first = await reward('claim_racing_reward');
-const second = await reward('claim_racing_reward');
-ck('claim_racing_reward lần 1 được thưởng', first.status === 200 && first.body.success === true, `HTTP ${first.status}`);
-ck('claim_racing_reward gọi lại bị chặn (không cộng coins lần 2)', second.status === 429 || second.body?.success === false, `HTTP ${second.status}`);
+const battleId = `probe_battle_${Date.now()}`;
+const first = await reward({ battleId, amount: 1500, exp: 200 });
+const second = await reward({ battleId, amount: 1500, exp: 200 });
+ck('grant_game_reward lần 1 được thưởng', first.status === 200 && first.body.success === true, `HTTP ${first.status}`);
+ck('grant_game_reward gọi lại cùng battleId không cộng thêm', second.status === 429 || second.body?.success === false || second.body?.duplicate === true, `HTTP ${second.status}`);
 
 // 4. Thu hoạch cây chưa chín phải bị từ chối
 const harvest = await fetch(BASE + '/api/pet', {

@@ -18,6 +18,7 @@ import {
   Flame,
   Menu,
   X,
+  ChevronLeft,
   ChevronRight,
   LogOut,
   User,
@@ -80,6 +81,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // vi cũ: guest trên route bảo vệ luôn được chào bằng gate.
   const [guestGateOpen, setGuestGateOpen] = useState(true);
 
+  // SIDEBAR ẨN/HIỆN (chủ nhân: "thanh bên trái có thể ẩn hiện để tăng không gian").
+  // Chỉ áp dụng DESKTOP (lg+): trạng thái "gọn" = icon rail 76px, hover vào mục
+  // hiện tooltip title. Mobile drawer giữ nguyên 100%.
+  // Key localStorage theo pattern mới nhất trong repo (`meowlish_theme`,
+  // xem src/lib/theme.ts). Mặc định MỞ (false) khớp hành vi cũ.
+  const [sidebarCompact, setSidebarCompact] = useState(false);
+
   // (đo 2026-10-09) userId giữ trong ref vì hai effect đăng ký listener
   // ('auth-state-changed' và 'account-disabled') dùng deps `[]` — chúng đóng
   // over handleAccountDisabled của render ĐẦU TIÊN, nơi currentUser === null.
@@ -95,6 +103,25 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     initTheme();
   }, []);
+
+  // SIDEBAR: đọc trạng thái gọn từ localStorage SAU mount (không đọc lúc render)
+  // để server-render và client-render khớp nhau — tránh hydration mismatch.
+  // Đánh đổi: nếu user đã chọn gọn, sidebar hiện bản mở ~1 frame rồi thu lại
+  // (flash nhỏ, chấp nhận — xem ghi chú trong docs/ux-content-2026-10-18.md).
+  useEffect(() => {
+    try {
+      setSidebarCompact(window.localStorage.getItem('meowlish_sidebar_collapsed') === '1');
+    } catch {}
+  }, []);
+
+  const toggleSidebarCompact = () => {
+    const next = !sidebarCompact;
+    setSidebarCompact(next);
+    try {
+      window.localStorage.setItem('meowlish_sidebar_collapsed', next ? '1' : '0');
+    } catch {}
+    sound.playClick();
+  };
 
   // Đóng menu avatar khi đổi trang
   useEffect(() => {
@@ -456,38 +483,72 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      {/* 1. DESKTOP FIXED SIDEBAR (Standard Duolingo/Notion App Layout) */}
-      <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 z-40 bg-white dark:bg-slate-900 border-r-2 border-slate-100 dark:border-white/10 shadow-xs select-none">
+      {/* 1. DESKTOP FIXED SIDEBAR (Standard Duolingo/Notion App Layout)
+          — có 2 trạng thái: MỞ (w-64) ↔ GỌN (icon rail w-[76px]). Nút chevron
+          trong khối logo toggle + lưu localStorage; main content đổi offset
+          tương ứng (lg:pl-64 ↔ lg:pl-[76px]) với transition 300ms. */}
+      <aside
+        data-testid="desktop-sidebar"
+        data-compact={sidebarCompact ? 'true' : 'false'}
+        className={`hidden lg:flex flex-col fixed inset-y-0 left-0 z-40 bg-white dark:bg-slate-900 border-r-2 border-slate-100 dark:border-white/10 shadow-xs select-none transition-[width] duration-300 ease-in-out ${
+          sidebarCompact ? 'w-[76px]' : 'w-64'
+        }`}
+      >
         {/* Logo Brand — khung GIF pixel + wordmark "Meowlish" (trở lại theo yêu
-            cầu: trước đây chỉ icon; khung gradient giữ nguyên, GIF trong suốt nổi trên nền). */}
-        <div className="p-5 border-b border-slate-100 dark:border-white/10">
-          <Link
-            href="/"
-            onClick={() => sound.playClick()}
-            title="Về trang chủ Meowlish"
-            className="flex items-center gap-2.5 group"
-          >
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform shrink-0">
-              {/* GIF TƯƠNG ỨNG avatar user đã chọn (kèm chữ Meowlish bên cạnh).
-                  Guest — chưa có avatar — hiện Linh Vật mặc định (cat). */}
-              <UserAvatar avatar={currentUser?.avatar} format="gif" size={32} alt="Linh vật Meowlish" />
-            </div>
-            <span className="text-base font-black text-slate-900 dark:text-slate-100 tracking-tight">
-              Meowlish
-            </span>
-          </Link>
+            cầu: trước đây chỉ icon; khung gradient giữ nguyên, GIF trong suốt nổi trên nền).
+            Khi GỌN: logo căn giữa, wordmark ẩn, nút toggle xuống dưới logo. */}
+        <div className={`border-b border-slate-100 dark:border-white/10 shrink-0 ${sidebarCompact ? 'px-3 py-4' : 'p-5'}`}>
+          <div className={sidebarCompact ? 'flex flex-col items-center gap-3' : 'flex items-center justify-between gap-2'}>
+            <Link
+              href="/"
+              onClick={() => sound.playClick()}
+              title="Về trang chủ Meowlish"
+              className="flex items-center gap-2.5 group min-w-0"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform shrink-0">
+                {/* GIF TƯƠNG ỨNG avatar user đã chọn (kèm chữ Meowlish bên cạnh).
+                    Guest — chưa có avatar — hiện Linh Vật mặc định (cat). */}
+                <UserAvatar avatar={currentUser?.avatar} format="gif" size={32} alt="Linh vật Meowlish" />
+              </div>
+              {!sidebarCompact && (
+                <span className="text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
+                  Meowlish
+                </span>
+              )}
+            </Link>
+
+            {/* Nút thu gọn / mở rộng sidebar — keyboard-accessible, aria-expanded,
+                icon chevron xoay 180° mượt theo trạng thái. */}
+            <button
+              type="button"
+              data-testid="sidebar-collapse-toggle"
+              onClick={toggleSidebarCompact}
+              aria-expanded={!sidebarCompact}
+              aria-controls="desktop-sidebar-nav"
+              aria-label={sidebarCompact ? 'Mở rộng thanh điều hướng' : 'Thu gọn thanh điều hướng để lấy thêm không gian'}
+              title={sidebarCompact ? 'Mở rộng thanh điều hướng' : 'Thu gọn thanh điều hướng'}
+              className="w-8 h-8 shrink-0 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:text-emerald-700 dark:hover:text-emerald-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 transition-colors active:scale-90 cursor-pointer"
+            >
+              <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${sidebarCompact ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Navigation Groups */}
-        <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6" tabIndex={0}>
+        <div id="desktop-sidebar-nav" className={`flex-1 overflow-y-auto py-4 space-y-6 ${sidebarCompact ? 'px-2' : 'px-3.5'}`} tabIndex={0}>
           {navGroups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-1.5">
               {/* UX-007: `nav-group-label` lấy màu từ token (xem globals.css).
                   Đừng thêm lại `text-slate-400 dark:text-slate-500` — đó là
-                  nguyên nhân 2.63:1 / 3.74:1 FAIL trên cả 13 trang. */}
-              <div className="nav-group-label px-3 text-[12px] font-black uppercase tracking-wider">
-                {group.title}
-              </div>
+                  nguyên nhân 2.63:1 / 3.74:1 FAIL trên cả 13 trang.
+                  Chế độ gọn: thay tiêu đề nhóm bằng dải phân cách mảnh (đỡ rối). */}
+              {sidebarCompact ? (
+                <div className="mx-2 h-px bg-slate-100 dark:bg-white/10" aria-hidden="true" />
+              ) : (
+                <div className="nav-group-label px-3 text-[12px] font-black uppercase tracking-wider">
+                  {group.title}
+                </div>
+              )}
               <div className="space-y-1">
                 {group.items.map((item) => {
                   const Icon = item.icon;
@@ -496,6 +557,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     <Link
                       key={item.href}
                       href={item.href}
+                      title={sidebarCompact ? item.label : undefined}
+                      aria-label={sidebarCompact ? item.label : undefined}
                       onClick={(e) => {
                         if (!currentUser && item.href !== '/encyclopedia' && item.href !== '/support') {
                           e.preventDefault();
@@ -508,17 +571,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                           sound.playClick();
                         }
                       }}
-                      className={`flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer border-b-2 border-transparent ${
+                      className={`flex items-center rounded-2xl text-xs font-bold transition-all cursor-pointer border-b-2 border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${
+                        sidebarCompact ? 'justify-center px-0 py-3' : 'justify-between px-3.5 py-3'
+                      } ${
                         isActive
                           ? 'nav-link-active font-black shadow-md shadow-emerald-500/25 border-b-4'
-                          : 'nav-link hover:bg-slate-50 dark:hover:bg-white/5'
+                          : 'nav-link hover:bg-slate-50 dark:hover:bg-white/5 active:scale-[0.97]'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className={`flex items-center ${sidebarCompact ? '' : 'gap-3'}`}>
                         <Icon className={`w-4 h-4 nav-icon ${isActive ? 'text-white' : ''}`} />
-                        <span>{item.label}</span>
+                        {!sidebarCompact && <span>{item.label}</span>}
                       </div>
-                      {item.badge && (
+                      {!sidebarCompact && item.badge && (
                         <span className={`text-[12px] font-black px-2 py-0.5 rounded-full ${
                           isActive ? 'nav-badge-active' : item.badgeColor
                         }`}>
@@ -534,39 +599,49 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Footer User Profile Card — M12 (audit 2026-10-08): div onClick →
-            button để keyboard-accessible (Enter/Space mặc định của button). */}
-        <div className="p-3.5 border-t border-slate-100 dark:border-white/10 bg-slate-50/70 dark:bg-white/5">
+            button để keyboard-accessible (Enter/Space mặc định của button).
+            Chế độ GỌN: chỉ còn avatar căn giữa + tooltip tên. */}
+        <div className={`border-t border-slate-100 dark:border-white/10 bg-slate-50/70 dark:bg-white/5 shrink-0 ${sidebarCompact ? 'p-2.5' : 'p-3.5'}`}>
           <button
             type="button"
             onClick={() => {
               sound.playClick();
               setShowAuth(true);
             }}
-            className="w-full text-left flex items-center justify-between p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-xs hover:border-emerald-400 cursor-pointer transition"
+            title={sidebarCompact ? `${currentUser?.display_name || 'Học Viên'} — Level ${currentUser?.level || 1}` : undefined}
+            aria-label={sidebarCompact ? 'Tài khoản học viên' : undefined}
+            className={`w-full text-left flex items-center p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-xs hover:border-emerald-400 cursor-pointer transition active:scale-[0.98] ${
+              sidebarCompact ? 'justify-center' : 'justify-between'
+            }`}
           >
-            <div className="flex items-center gap-2.5 min-w-0">
+            <div className={`flex items-center min-w-0 ${sidebarCompact ? '' : 'gap-2.5'}`}>
               <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-lg shrink-0">
                 <UserAvatar avatar={currentUser?.avatar} size={36} />
               </div>
-              <div className="min-w-0">
-                <div className="text-xs font-black text-slate-900 dark:text-slate-100 truncate">
-                  {currentUser?.display_name || 'Học Viên'}
+              {!sidebarCompact && (
+                <div className="min-w-0">
+                  <div className="text-xs font-black text-slate-900 dark:text-slate-100 truncate">
+                    {currentUser?.display_name || 'Học Viên'}
+                  </div>
+                  {/* UX-007: footer card cũng nằm trong sidebar — cùng token contrast. */}
+                  <div className="text-[12px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                    <span>Level {currentUser?.level || 1}</span>
+                    <span>•</span>
+                    <span className="text-amber-700 dark:text-amber-300">{currentUser?.exp || 0} EXP</span>
+                  </div>
                 </div>
-                {/* UX-007: footer card cũng nằm trong sidebar — cùng token contrast. */}
-                <div className="text-[12px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                  <span>Level {currentUser?.level || 1}</span>
-                  <span>•</span>
-                  <span className="text-amber-700 dark:text-amber-300">{currentUser?.exp || 0} EXP</span>
-                </div>
-              </div>
+              )}
             </div>
-            <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
+            {!sidebarCompact && <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />}
           </button>
         </div>
       </aside>
 
-      {/* 2. MAIN CONTENT STAGE (Offset on desktop for the sidebar) */}
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-64 h-dvh overflow-hidden">
+      {/* 2. MAIN CONTENT STAGE (Offset on desktop for the sidebar — đổi theo
+          trạng thái gọn/mở với cùng nhịp transition 300ms để không giật). */}
+      <div className={`flex-1 flex flex-col min-w-0 h-dvh overflow-hidden transition-[padding-left] duration-300 ease-in-out ${
+        sidebarCompact ? 'lg:pl-[76px]' : 'lg:pl-64'
+      }`}>
         {/* Top Status Header (Single Minimal Row with Zero Clutter) */}
         <header className="shrink-0 z-30 bg-white dark:bg-slate-900 lg:bg-white/90 lg:dark:bg-slate-900/90 lg:backdrop-blur-md border-b border-slate-100 dark:border-white/10 shadow-xs">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -817,7 +892,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   sound.playClick();
                 }
               }}
-              className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[12px] font-extrabold transition cursor-pointer touch-manipulation ${
+              className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[12px] font-extrabold transition cursor-pointer touch-manipulation focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-emerald-600 ${
                 isActive
                   ? 'nav-bottom-active scale-105'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
@@ -925,7 +1000,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                                 setMobileDrawerOpen(false);
                               }
                             }}
-                            className={`flex items-center justify-between p-3 rounded-xl text-xs font-bold transition touch-manipulation ${
+                            className={`flex items-center justify-between p-3 rounded-xl text-xs font-bold transition touch-manipulation focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${
                               isActive
                                 ? 'nav-link-active font-black shadow-xs'
                                 : 'nav-link hover:bg-slate-50 dark:hover:bg-white/5'

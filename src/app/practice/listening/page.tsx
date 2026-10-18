@@ -17,6 +17,7 @@ import {
   ArrowRight,
   RotateCcw,
 } from 'lucide-react';
+import FlagIcon from '@/components/FlagIcon';
 import { getStoredUser } from '@/lib/auth';
 
 export default function ListeningPracticePage() {
@@ -176,7 +177,7 @@ export default function ListeningPracticePage() {
               setSelectedOption(null);
               setIsSubmitted(false);
             }}
-            className="px-3 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-black shadow-xs cursor-pointer shrink-0"
+            className="px-3 py-1.5 min-h-[44px] inline-flex items-center bg-emerald-600 text-white rounded-xl text-xs font-black shadow-xs cursor-pointer shrink-0"
           >
             🌟 Tất cả bài nghe
           </button>
@@ -191,7 +192,7 @@ export default function ListeningPracticePage() {
             setIsSubmitted(false);
             setShowTranscript(false);
           }}
-          className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
+          className="w-full sm:w-auto px-4 py-2 min-h-[44px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
         >
           🎲 Chọn Đề Ngẫu Nhiên
         </button>
@@ -238,7 +239,7 @@ export default function ListeningPracticePage() {
           <div className="pt-2">
             <button
               onClick={() => setShowTranscript(!showTranscript)}
-              className="text-xs text-slate-500 hover:text-sky-600 font-semibold flex items-center gap-1.5 mx-auto cursor-pointer dark:text-slate-400 hover:dark:text-sky-300"
+              className="text-xs text-slate-500 hover:text-sky-600 font-semibold flex items-center gap-1.5 mx-auto cursor-pointer dark:text-slate-400 hover:dark:text-sky-300 min-h-[44px] px-2"
             >
               {showTranscript ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               {showTranscript ? 'Ẩn lời thoại văn bản' : 'Xem lời thoại văn bản (Transcript)'}
@@ -250,7 +251,7 @@ export default function ListeningPracticePage() {
                   &quot;{exercise.audioScript}&quot;
                 </p>
                 <p className="text-slate-500 italic dark:text-slate-400">
-                  🇻🇳 {exercise.transcriptVi}
+                  <FlagIcon code="VN" size={13} /> {exercise.transcriptVi}
                 </p>
               </div>
             )}

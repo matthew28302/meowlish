@@ -1526,7 +1526,7 @@ export default function PixelFarmCanvas({
           <button
             onClick={handleCollectAll}
             data-testid="harvest-all"
-            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-xl shadow-md transition cursor-pointer flex items-center gap-1 active:scale-95 border-b-[3px] border-amber-700"
+            className="px-3 py-1.5 min-h-[44px] bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-xl shadow-md transition cursor-pointer flex items-center gap-1 active:scale-95 border-b-[3px] border-amber-700"
             title="Thu hoạch tất cả trứng và sữa đã chín"
           >
             <span>🧺</span>

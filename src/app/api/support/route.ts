@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { db, sanitizeText } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/userAuth';
 import { getClientIp, checkRateLimit, rateLimitExceededResponse } from '@/lib/rateLimit';
@@ -10,7 +11,10 @@ function generateRandomTicketCode(): string {
   const chars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ';
   let code = '';
   for (let i = 0; i < 4; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    // crypto.randomInt (CSPRNG): mã phiếu là bí mật dùng để tra cứu phiếu.
+    // Math.random không phải CSPRNG — trạng thái PRNG có thể đoán được, cho
+    // phép sinh lại đúng dãy mã sắp phát hành.
+    code += chars.charAt(crypto.randomInt(chars.length));
   }
   return `TK-${code}`;
 }
@@ -80,10 +84,14 @@ export async function GET(request: Request) {
       if (isSession && ticket.user_id && ticket.user_id !== auth.userId) {
         return NextResponse.json({ success: false, error: 'Bạn không có quyền xem phiếu hỗ trợ này.' }, { status: 403 });
       }
-      // KHÁCH CHƯA ĐĂNG NHẬP chỉ nhận metadata. Mã phiếu chỉ 4 ký tự (~1,2 triệu
-      // giá trị ⇒ enum được), nên trả nguyên nội dung nghĩa là bất kỳ ai đoán
-      // trúng mã là đọc được tên, email, nội dung khiếu nại và trả lời admin.
-      if (!isSession) {
+      // CHỈ chủ phiếu (đúng tài khoản trong phiên) mới nhận đầy đủ nội dung.
+      // Mã phiếu chỉ 4 ký tự (~1,2 triệu giá trị ⇒ enum được), nên nếu phiếu do
+      // KHÁCH tạo (user_id NULL) mà vẫn trả đầy đủ thì bất kỳ tài khoản nào đoán
+      // trúng mã là đọc được tên, email, nội dung khiếu nại và trả lời admin của
+      // người khác (đo 2026-10-18). Phiếu không thuộc tài khoản nào → metadata
+      // rút gọn như khách vãng lai.
+      const ownsTicket = isSession && Boolean(ticket.user_id) && ticket.user_id === auth.userId;
+      if (!ownsTicket) {
         return NextResponse.json({
           success: true,
           tickets: [

@@ -27,6 +27,7 @@ import {
   BarChart3,
   BookmarkCheck
 } from 'lucide-react';
+import { FlagText } from '@/components/FlagIcon';
 import { EXAM_SETS, ExamSet, ExamQuestion } from '@/lib/data/exams';
 import { sound } from '@/lib/soundFx';
 import confetti from '@/lib/confetti';
@@ -561,13 +562,13 @@ export default function ExamPage() {
                     sound.playClick();
                     setCategoryFilter(c.id);
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                  className={`px-3 py-1.5 min-h-[44px] inline-flex items-center rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                     categoryFilter === c.id
                       ? 'bg-emerald-600 text-white shadow-xs'
                       : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:bg-slate-900 dark:text-slate-400 hover:dark:bg-slate-800 hover:dark:text-slate-100'
                   }`}
                 >
-                  {c.label}
+                  <FlagText text={c.label} size={12} />
                 </button>
               ))}
             </div>
@@ -582,7 +583,7 @@ export default function ExamPage() {
                     sound.playClick();
                     setLevelFilter(lvl);
                   }}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                  className={`px-2.5 py-1 min-h-[44px] inline-flex items-center rounded-lg text-xs font-extrabold transition cursor-pointer ${
                     levelFilter === lvl
                       ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 hover:dark:bg-slate-700'
@@ -606,7 +607,7 @@ export default function ExamPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-3xl p-2 bg-slate-50 rounded-2xl border border-slate-100 dark:bg-slate-900 dark:border-white/10">
-                        {exam.badgeIcon}
+                        <FlagText text={exam.badgeIcon} size={30} />
                       </span>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800">
@@ -628,7 +629,7 @@ export default function ExamPage() {
 
                     <div>
                       <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider block">
-                        {exam.categoryLabel}
+                        <FlagText text={exam.categoryLabel} size={11} />
                       </span>
                       <h3 className="text-base font-black text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug mt-0.5 dark:text-slate-100 group-hover:dark:text-emerald-300">
                         {exam.vietnameseTitle}
@@ -693,7 +694,7 @@ export default function ExamPage() {
               </button>
               <div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-wide block">
-                  {selectedSet.categoryLabel}
+                  <FlagText text={selectedSet.categoryLabel} size={10} />
                 </span>
                 <h2 className="text-sm sm:text-base font-black text-slate-900 truncate max-w-xs sm:max-w-md dark:text-slate-100">
                   {selectedSet.vietnameseTitle}
