@@ -1942,7 +1942,7 @@ export const EXAM_SETS: ExamSet[] = [
   // BỘ ĐỀ 15: IELTS ACADEMIC READING & VOCABULARY (B2 - C1)
   // =========================================================================
   {
-    id: 'exam-ielts-academic',
+    id: 'exam-ielts-practice-2',
     title: 'IELTS Academic: Reading & Vocabulary',
     vietnameseTitle: 'Đề Thi 15: IELTS Academic - Đọc Hiểu & Từ Vựng',
     category: 'ielts',
@@ -2041,7 +2041,7 @@ export const EXAM_SETS: ExamSet[] = [
   // BỘ ĐỀ 16: TOEFL iBT - ACADEMIC & CAMPUS (B2 - C1)
   // =========================================================================
   {
-    id: 'exam-toefl-ibt',
+    id: 'exam-toefl-practice-2',
     title: 'TOEFL iBT: Academic & Campus Discussion',
     vietnameseTitle: 'Đề Thi 16: TOEFL iBT - Học Thuật & Thảo Luận Campus',
     category: 'toefl',
