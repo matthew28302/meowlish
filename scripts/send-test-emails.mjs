@@ -3,7 +3,7 @@
 // cấu hình SMTP của app (resolveIpv4 + tls.rejectUnauthorized:false + SNI).
 //
 // Cách chạy:  npx tsx scripts/send-test-emails.mjs <email> [ten] [username]
-// Mặc định gửi tới vukiet28032002@gmail.com.
+// Mặc định gửi tới địa chỉ trong TEST_EMAIL (không ghi rõ trong repo).
 //
 // Ngoài gửi mail, script ghi 2 file HTML tại temp/ để mở bằng trình duyệt xem
 // trước (email client chặn nhiều style nên xem file local chính xác hơn).
