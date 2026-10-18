@@ -1,5 +1,6 @@
 import { TOEIC_ETS_SETS } from './exams-ets';
 import { TOEFL_ETS_SETS } from './exams-toefl';
+import { VSTEP_SAMPLE_SETS } from './exams-vstep';
 
 export interface ExamQuestion {
   id: string;
@@ -2408,4 +2409,6 @@ export const EXAM_SETS: ExamSet[] = [
   ...TOEIC_ETS_SETS,
   // Bộ đề TOEFL iBT chính thức từ ETS (định dạng 2026)
   ...TOEFL_ETS_SETS,
+  // Bộ đề VSTEP.3-5 mẫu chính thức (Đọc hiểu 40 câu + Viết + Nói)
+  ...VSTEP_SAMPLE_SETS,
 ];
