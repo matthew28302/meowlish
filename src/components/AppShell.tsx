@@ -398,7 +398,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       title: 'HỌC TẬP',
       items: [
         { href: '/', label: 'Lộ Trình Học', icon: Compass },
-        { href: '/encyclopedia', label: 'Bách Khoa Từ Điển', icon: Library, badge: '26.5k', badgeColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200' },
+        { href: '/encyclopedia', label: 'Bách Khoa Từ Điển', icon: Library },
         { href: '/grammar', label: 'Ngữ Pháp Lego', icon: BookOpen },
         { href: '/vocabulary', label: 'Từ Vựng Giao Tiếp', icon: Sparkles },
       ],
@@ -406,7 +406,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     {
       title: 'PHÒNG LUYỆN TẬP',
       items: [
-        { href: '/practice/speaking', label: 'Luyện Nói AI Voice', icon: Mic, badge: 'AI', badgeColor: 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200' },
+        { href: '/practice/speaking', label: 'Luyện Nói AI Voice', icon: Mic },
         { href: '/practice/writing', label: 'Luyện Viết Phản Xạ', icon: PenTool },
         { href: '/practice/listening', label: 'Luyện Nghe Tốc Độ', icon: Headphones },
         { href: '/practice/roleplay', label: 'Đóng Vai Scrum', icon: Gamepad2 },
@@ -415,7 +415,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     {
       title: 'THÚ CƯNG & KHU VƯỜN',
       items: [
-        { href: '/pet', label: 'Khu Vườn Thú Cưng', icon: Heart, badge: 'Hot', badgeColor: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200' },
+        { href: '/pet', label: 'Khu Vườn Thú Cưng', icon: Heart },
       ],
     },
     {
@@ -428,7 +428,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     {
       title: 'HỖ TRỢ & HƯỚNG DẪN',
       items: [
-        { href: '/support', label: 'Hướng Dẫn & Góp Ý', icon: HelpCircle, badge: 'Mới', badgeColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200' },
+        { href: '/support', label: 'Hướng Dẫn & Góp Ý', icon: HelpCircle },
       ],
     },
   ];

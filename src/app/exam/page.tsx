@@ -68,6 +68,48 @@ const countAnsweredQuestions = (
   textAnswers: Record<string, string>
 ) => questions.filter((q) => isQuestionAnswered(q, answers, textAnswers)).length;
 
+// ===== Nhóm phần thi: một "phần" = dãy câu liên tiếp cùng sectionName (một task/part của đề) =====
+interface ExamQuestionGroup {
+  section: ExamQuestion['section'];
+  sectionName: string;
+  start: number;
+  count: number;
+}
+
+const buildQuestionGroups = (questions: ExamQuestion[]): ExamQuestionGroup[] => {
+  const groups: ExamQuestionGroup[] = [];
+  questions.forEach((q, idx) => {
+    const last = groups[groups.length - 1];
+    if (last && last.sectionName === q.sectionName) last.count++;
+    else groups.push({ section: q.section, sectionName: q.sectionName, start: idx, count: 1 });
+  });
+  return groups;
+};
+
+/** Tên phần rút gọn: bỏ tiền tố kỹ năng, ví dụ "Listening - Part 1: ..." → "Part 1: ...". */
+const shortPartName = (sectionName: string) => {
+  const i = sectionName.indexOf(' - ');
+  return i >= 0 ? sectionName.slice(i + 3) : sectionName;
+};
+
+/** Nhãn khoảng câu của một phần: "Câu 1–8" hoặc "Câu 74" nếu phần chỉ có 1 câu. */
+const partRangeLabel = (g: { start: number; count: number }) =>
+  g.count === 1 ? `Câu ${g.start + 1}` : `Câu ${g.start + 1}–${g.start + g.count}`;
+
+/** Kỹ năng → nhãn + emoji hiển thị trên thanh điều hướng phần thi. */
+const SECTION_META: Record<string, { label: string; icon: string }> = {
+  listening: { label: 'Nghe', icon: '🎧' },
+  reading: { label: 'Đọc', icon: '📖' },
+  writing: { label: 'Viết', icon: '✍️' },
+  speaking: { label: 'Nói', icon: '🗣️' },
+  vocabulary: { label: 'Từ vựng', icon: '📚' },
+  grammar: { label: 'Ngữ pháp', icon: '🧱' },
+  pragmatics: { label: 'Giao tiếp', icon: '💬' },
+  error_correction: { label: 'Sửa lỗi', icon: '🔧' },
+};
+
+const sectionMeta = (s: string) => SECTION_META[s] || { label: s, icon: '📝' };
+
 export default function ExamPage() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [mode, setMode] = useState<ExamMode>('catalog');
@@ -491,6 +533,55 @@ export default function ExamPage() {
   // Current active question
   const activeQuestion: ExamQuestion | undefined = selectedSet?.questions[currentQIndex];
 
+  // ===== Phần thi (nhóm câu theo task): điều hướng & hiển thị rõ từng phần =====
+  const questionGroups: ExamQuestionGroup[] = selectedSet ? buildQuestionGroups(selectedSet.questions) : [];
+  const activeGroupIndex = questionGroups.findIndex(
+    (g) => currentQIndex >= g.start && currentQIndex < g.start + g.count
+  );
+  const activeGroup: ExamQuestionGroup | null = activeGroupIndex >= 0 ? questionGroups[activeGroupIndex] : null;
+  const skillGroups = activeGroup ? questionGroups.filter((g) => g.section === activeGroup.section) : [];
+  const activeGroupOrdinal = activeGroup ? skillGroups.indexOf(activeGroup) + 1 : 0;
+  const skillOrder: ExamQuestion['section'][] = [];
+  questionGroups.forEach((g) => {
+    if (!skillOrder.includes(g.section)) skillOrder.push(g.section);
+  });
+  const countAnsweredInGroup = (g: ExamQuestionGroup) => {
+    if (!selectedSet) return 0;
+    let n = 0;
+    for (let i = g.start; i < g.start + g.count; i++) {
+      if (isQuestionAnswered(selectedSet.questions[i], userAnswers, userTextAnswers)) n++;
+    }
+    return n;
+  };
+  const skillStats = skillOrder.map((s) => {
+    const groups = questionGroups.filter((g) => g.section === s);
+    return {
+      section: s,
+      count: groups.reduce((n, g) => n + g.count, 0),
+      answered: groups.reduce((n, g) => n + countAnsweredInGroup(g), 0),
+    };
+  });
+  // Khi đang ở câu cuối của một phần → nhắc người học phần tiếp theo là gì.
+  const isLastOfPart = activeGroup ? currentQIndex === activeGroup.start + activeGroup.count - 1 : false;
+  const nextGroup =
+    activeGroup && isLastOfPart && currentQIndex < (selectedSet?.questions.length ?? 0) - 1
+      ? questionGroups[activeGroupIndex + 1]
+      : null;
+  /** Tóm tắt điểm của một phần (dùng ở màn review): "Đúng 5/8 câu" hoặc "Tự luận — không chấm điểm". */
+  const groupScoreLabel = (g: ExamQuestionGroup) => {
+    if (!selectedSet) return '';
+    let scoredCount = 0;
+    let correctCount = 0;
+    for (let i = g.start; i < g.start + g.count; i++) {
+      const q = selectedSet.questions[i];
+      if (!isScoredQuestion(q)) continue;
+      scoredCount++;
+      const ok = q.taskType === 'fill' ? isFillCorrect(q, userTextAnswers) : userAnswers[q.id] === q.correctIndex;
+      if (ok) correctCount++;
+    }
+    return scoredCount === 0 ? 'Tự luận — không chấm điểm' : `Đúng ${correctCount}/${scoredCount} câu`;
+  };
+
   return (
     <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* ========================================================================= */}
@@ -764,48 +855,122 @@ export default function ExamPage() {
             </button>
           </div>
 
-          {/* Question Grid Navigation Bar */}
-          <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200 flex items-center justify-between gap-2 overflow-x-auto dark:bg-slate-900 dark:border-white/10">
-            <div className="flex items-center gap-1.5">
-              {selectedSet.questions.map((q, idx) => {
-                const isAnswered = isQuestionAnswered(q, userAnswers, userTextAnswers);
-                const isFlagged = flaggedQuestions[q.id];
-                const isCurrent = idx === currentQIndex;
-
-                let btnClass = 'bg-white text-slate-600 border-slate-200 hover:border-slate-400 dark:bg-slate-900 dark:text-slate-400 dark:border-white/10 hover:dark:border-white/10';
-                if (isAnswered) {
-                  btnClass = 'bg-emerald-600 text-white border-emerald-700 shadow-xs';
-                }
-                if (isFlagged) {
-                  btnClass = 'bg-amber-400 text-slate-950 border-amber-500';
-                }
-                if (isCurrent) {
-                  btnClass += ' ring-2 ring-emerald-500 ring-offset-2 scale-105';
-                }
-
+          {/* Part-Based Navigator: kỹ năng → phần thi → câu trong phần */}
+          <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200 space-y-2.5 dark:bg-slate-900 dark:border-white/10">
+            {/* Skill tabs */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {skillStats.map((sk) => {
+                const meta = sectionMeta(sk.section);
+                const isActiveSkill = activeGroup?.section === sk.section;
                 return (
                   <button
-                    key={q.id}
+                    key={sk.section}
                     onClick={() => {
                       sound.playClick();
-                      setCurrentQIndex(idx);
+                      const first = questionGroups.find((g) => g.section === sk.section);
+                      if (first) setCurrentQIndex(first.start);
                     }}
-                    className={`w-8 h-8 rounded-xl text-xs font-black border flex items-center justify-center transition cursor-pointer ${btnClass}`}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black border transition cursor-pointer flex items-center gap-1.5 ${
+                      isActiveSkill
+                        ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs'
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-400 dark:bg-slate-900 dark:text-slate-300 dark:border-white/10'
+                    }`}
                   >
-                    {idx + 1}
+                    <span>{meta.icon}</span>
+                    <span>{meta.label}</span>
+                    <span className={`text-[10px] font-bold ${isActiveSkill ? 'text-emerald-100' : 'text-slate-400'}`}>
+                      {sk.answered}/{sk.count}
+                    </span>
+                  </button>
+                );
+              })}
+
+              <div className="ml-auto hidden sm:flex items-center gap-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> Đã trả lời ({countAnsweredQuestions(selectedSet.questions, userAnswers, userTextAnswers)}/{selectedSet.questions.length})
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Cần xem lại
+                </span>
+              </div>
+            </div>
+
+            {/* Part chips of the active skill */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] font-black text-slate-400 uppercase tracking-wide shrink-0 dark:text-slate-500">
+                Phần:
+              </span>
+              {skillGroups.map((g, gi) => {
+                const isActivePart = activeGroup?.start === g.start;
+                const ans = countAnsweredInGroup(g);
+                const done = ans === g.count;
+                return (
+                  <button
+                    key={`${g.start}-${g.sectionName}`}
+                    onClick={() => {
+                      sound.playClick();
+                      setCurrentQIndex(g.start);
+                    }}
+                    title={g.sectionName}
+                    className={`px-2.5 py-1.5 rounded-xl text-left border transition cursor-pointer ${
+                      isActivePart
+                        ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-500/60 dark:bg-emerald-950 dark:border-emerald-700'
+                        : done
+                          ? 'bg-emerald-100/60 border-emerald-300 dark:bg-emerald-950/60 dark:border-emerald-800'
+                          : 'bg-white border-slate-200 hover:border-emerald-400 dark:bg-slate-900 dark:border-white/10'
+                    }`}
+                  >
+                    <span className={`block text-xs font-black leading-tight ${
+                      isActivePart ? 'text-emerald-800 dark:text-emerald-200' : 'text-slate-700 dark:text-slate-200'
+                    }`}>
+                      Phần {gi + 1} · {partRangeLabel(g)}
+                    </span>
+                    <span className="block text-[10px] font-bold text-slate-400 leading-tight truncate max-w-52 dark:text-slate-500">
+                      {shortPartName(g.sectionName)} · {ans}/{g.count}
+                    </span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="hidden sm:flex items-center gap-3 text-[11px] font-bold text-slate-500 shrink-0 dark:text-slate-400">
-              <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> Đã trả lời ({countAnsweredQuestions(selectedSet.questions, userAnswers, userTextAnswers)}/{selectedSet.questions.length})
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Cần xem lại
-              </span>
-            </div>
+            {/* Question chips of the active part only */}
+            {activeGroup && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] font-black text-slate-400 uppercase tracking-wide shrink-0 dark:text-slate-500">
+                  Câu:
+                </span>
+                {selectedSet.questions.slice(activeGroup.start, activeGroup.start + activeGroup.count).map((q, j) => {
+                  const idx = activeGroup.start + j;
+                  const isAnswered = isQuestionAnswered(q, userAnswers, userTextAnswers);
+                  const isFlagged = flaggedQuestions[q.id];
+                  const isCurrent = idx === currentQIndex;
+
+                  let btnClass = 'bg-white text-slate-600 border-slate-200 hover:border-slate-400 dark:bg-slate-900 dark:text-slate-400 dark:border-white/10 hover:dark:border-white/10';
+                  if (isAnswered) {
+                    btnClass = 'bg-emerald-600 text-white border-emerald-700 shadow-xs';
+                  }
+                  if (isFlagged) {
+                    btnClass = 'bg-amber-400 text-slate-950 border-amber-500';
+                  }
+                  if (isCurrent) {
+                    btnClass += ' ring-2 ring-emerald-500 ring-offset-2 scale-105';
+                  }
+
+                  return (
+                    <button
+                      key={q.id}
+                      onClick={() => {
+                        sound.playClick();
+                        setCurrentQIndex(idx);
+                      }}
+                      className={`w-8 h-8 rounded-xl text-xs font-black border flex items-center justify-center transition cursor-pointer ${btnClass}`}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Main Question Card */}
@@ -817,8 +982,14 @@ export default function ExamPage() {
                   Câu {currentQIndex + 1} / {selectedSet.questions.length}
                 </span>
                 <span className="text-xs font-black px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800">
-                  {activeQuestion.sectionName}
+                  {sectionMeta(activeQuestion.section).icon} {sectionMeta(activeQuestion.section).label}
                 </span>
+                {activeGroup && (
+                  <span className="text-xs font-black px-3 py-1 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 dark:bg-indigo-950 dark:text-indigo-200 dark:border-indigo-800">
+                    {skillGroups.length > 1 ? `Phần ${activeGroupOrdinal}/${skillGroups.length} · ` : ''}
+                    {shortPartName(activeGroup.sectionName)}
+                  </span>
+                )}
                 {activeQuestion.speakerRole && (
                   <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 border border-sky-200 dark:bg-sky-950 dark:text-sky-200 dark:border-sky-800">
                     👤 {activeQuestion.speakerRole}
@@ -1033,6 +1204,13 @@ export default function ExamPage() {
               </div>
             )}
 
+            {/* Gợi ý chuyển phần khi đang ở câu cuối của phần hiện tại */}
+            {isLastOfPart && activeGroup && nextGroup && (
+              <div className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl px-3 py-2 dark:text-indigo-300 dark:bg-indigo-950 dark:border-indigo-800">
+                📌 Đây là câu cuối của phần “{shortPartName(activeGroup.sectionName)}”. Bấm “Câu kế tiếp” để sang phần tiếp theo: {sectionMeta(nextGroup.section).icon} {shortPartName(nextGroup.sectionName)}.
+              </div>
+            )}
+
             {/* Bottom Actions Navigation */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/10">
               <button
@@ -1183,13 +1361,32 @@ export default function ExamPage() {
                     ? isFillCorrect(q, userTextAnswers)
                     : userAns === q.correctIndex;
 
+                const group = questionGroups.find((g) => idx >= g.start && idx < g.start + g.count);
+
                 return (
-                  <div
-                    key={q.id}
-                    className={`card-playful bg-white dark:bg-slate-900 rounded-3xl p-6 border-2 transition-all space-y-4 ${
-                      isCorrect ? 'border-emerald-200 bg-emerald-50/20 dark:border-emerald-800' : 'border-rose-200 bg-rose-50/20 dark:border-rose-800'
-                    }`}
-                  >
+                  <React.Fragment key={q.id}>
+                    {group && idx === group.start && (
+                      <div className="flex items-center gap-3 pt-1">
+                        <span className="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-base shrink-0 dark:bg-white dark:text-slate-900">
+                          {sectionMeta(group.section).icon}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="text-sm font-black text-slate-900 dark:text-slate-100">
+                            {sectionMeta(group.section).label} · {shortPartName(group.sectionName)}
+                          </div>
+                          <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                            {partRangeLabel(group)} · {groupScoreLabel(group)}
+                          </div>
+                        </div>
+                        <div className="flex-1 h-px bg-slate-200 dark:bg-white/10" />
+                      </div>
+                    )}
+
+                    <div
+                      className={`card-playful bg-white dark:bg-slate-900 rounded-3xl p-6 border-2 transition-all space-y-4 ${
+                        isCorrect ? 'border-emerald-200 bg-emerald-50/20 dark:border-emerald-800' : 'border-rose-200 bg-rose-50/20 dark:border-rose-800'
+                      }`}
+                    >
                     {/* Header */}
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-2">
@@ -1339,6 +1536,7 @@ export default function ExamPage() {
                       </div>
                     </div>
                   </div>
+                  </React.Fragment>
                 );
               })}
             </div>
