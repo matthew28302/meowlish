@@ -423,17 +423,7 @@ export default function GrammarPage() {
                 >
                   <ChevronLeft className="w-4 h-4" /> Quay lại danh sách bài
                 </button>
-                <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
-                  Mô Hình Khối Lego Trực Quan
-                </div>
-                {/* Công thức là nội dung chính để đối chiếu với dãy khối, nên
-                    đưa xuống dòng riêng thay vì nhét cùng hàng với nhãn: xếp cạnh
-                    nhau nó bị bóp còn ~12px và cắt mất khi công thức dài. */}
-                {selectedLesson.legoExample.formulaPattern && (
-                  <div className="mt-1.5 font-mono text-sm sm:text-[15px] font-bold leading-relaxed bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-3 py-2 rounded-lg break-words">
-                    {selectedLesson.legoExample.formulaPattern}
-                  </div>
-                )}
+                
                 <h2 className="text-xl font-black text-slate-900 dark:text-white mt-2">
                   {selectedLesson.title}
                 </h2>
@@ -475,21 +465,21 @@ export default function GrammarPage() {
                         sound.playClick();
                         setSelectedBlockIdx(isBlockSelected ? null : idx);
                       }}
-                      className={`flex-1 min-w-[130px] p-3 rounded-2xl border-2 shadow-sm transition-all cursor-pointer ${getColorClasses(
+                      className={`flex-1 min-w-[120px] max-w-full p-3 rounded-2xl border-2 shadow-sm transition-all cursor-pointer overflow-hidden ${getColorClasses(
                         block.color,
                         isBlockSelected
                       )}`}
                     >
-                      <div className="flex items-center justify-between text-[12px] uppercase font-black opacity-75 mb-1">
-                        <span>{block.label}</span>
+                      <div className="flex items-center justify-between text-[11px] uppercase font-black opacity-75 mb-1 gap-1">
+                        <span className="truncate">{block.label}</span>
                         {block.roleHint && (
-                          <span className="text-[12px] leading-tight lowercase bg-black/10 dark:bg-white/10 px-1 min-h-[24px] inline-flex items-center rounded">
+                          <span className="text-[11px] leading-tight lowercase bg-black/10 dark:bg-white/10 px-1.5 min-h-[20px] inline-flex items-center rounded truncate max-w-[60%]">
                             {block.roleHint.split(' ')[0]}
                           </span>
                         )}
                       </div>
-                      <div className="text-base font-extrabold flex items-center justify-between gap-1">
-                        <span>{block.word}</span>
+                      <div className="text-sm font-extrabold flex items-center justify-between gap-1 break-words">
+                        <span className="break-words">{block.word}</span>
                         <button
                           type="button"
                           onClick={(e) => {
@@ -497,14 +487,14 @@ export default function GrammarPage() {
                             sound.playClick();
                             speakText(block.word);
                           }}
-                          className="tap-target opacity-70 hover:opacity-100 p-0.5 rounded cursor-pointer"
+                          className="tap-target opacity-70 hover:opacity-100 p-0.5 rounded cursor-pointer shrink-0"
                           title="Nghe phát âm khối này"
                           aria-label={`Nghe phát âm khối ${block.word}`}
                         >
                           <Volume2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                      <div className="text-[12px] mt-1 opacity-85 leading-tight">
+                      <div className="text-[11px] mt-1 opacity-85 leading-snug break-words">
                         {block.explanation}
                       </div>
                     </div>
@@ -535,6 +525,19 @@ export default function GrammarPage() {
                   </div>
                   <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                     <b>Chức năng:</b> {selectedLesson.legoExample.blocks[selectedBlockIdx].explanation}
+                  </p>
+                  {selectedLesson.legoExample.blocks[selectedBlockIdx].roleHint && (
+                    <p className="text-[12px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                      <b>Dấu hiệu nhận biết:</b> {selectedLesson.legoExample.blocks[selectedBlockIdx].roleHint}
+                    </p>
+                  )}
+                  {selectedLesson.legoExample.blocks[selectedBlockIdx].detail && (
+                    <p className="text-[12px] text-emerald-800 dark:text-emerald-300 leading-relaxed bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/40 rounded-xl px-3 py-2 mt-1">
+                      <b>Phân tích chuyên sâu:</b> {selectedLesson.legoExample.blocks[selectedBlockIdx].detail}
+                    </p>
+                  )}
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 italic">
+                    Từ trong câu: &quot;{selectedLesson.legoExample.blocks[selectedBlockIdx].word}&quot; · Khối #{selectedBlockIdx + 1}/{selectedLesson.legoExample.blocks.length}
                   </p>
                 </div>
               )}

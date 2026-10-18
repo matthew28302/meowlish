@@ -5,6 +5,8 @@ export interface LegoBlock {
   explanation: string;
   roleHint?: string;
   audioHint?: string;
+  /** Giải thích chuyên sâu hiện trong panel phân tích khi bấm vào khối (nếu có). */
+  detail?: string;
 }
 
 export interface DetailedGuide {
@@ -73,11 +75,11 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
       // không phải 1 cấu trúc đơn lẻ.
       formulaPattern: '[Subject] + [Adverb of Frequency] + [Present Simple V] + [Time Signal] + [Present Continuous V-ing]',
       blocks: [
-        { label: 'Subject', word: 'I', color: 'indigo', explanation: 'Chủ thể', roleHint: 'Chủ ngữ câu' },
-        { label: 'Frequency', word: 'usually', color: 'sky', explanation: 'Trạng từ chỉ tần suất → báo hiệu Hiện tại đơn', roleHint: 'always / usually / often / every day' },
-        { label: 'Routine (V1)', word: 'code in Python,', color: 'emerald', explanation: 'Thói quen: Hiện tại đơn (S + V nguyên mẫu)', roleHint: 'Động từ chỉ thói quen' },
-        { label: 'Time Signal', word: 'but currently', color: 'amber', explanation: 'Trạng từ chuyển đổi ngữ cảnh → báo hiệu Tiếp diễn', roleHint: 'but / right now / currently / at the moment' },
-        { label: 'In Progress (V-ing)', word: 'I am debugging a Java app.', color: 'rose', explanation: 'Hành động đang làm hiện tại (S + am/is/are + V-ing)', roleHint: 'Động từ to be + V-ing' },
+        { label: 'Subject', word: 'I', color: 'indigo', explanation: 'Chủ thể', roleHint: 'Chủ ngữ câu', detail: 'Chủ ngữ "I" (ngôi thứ nhất số ít) quyết định dạng động từ to be (am) và chia động từ ở ngôi thứ nhất. Trong câu này chủ ngữ là người nói, nên mọi động từ theo sau phải hòa hợp với "I".' },
+        { label: 'Frequency', word: 'usually', color: 'sky', explanation: 'Trạng từ chỉ tần suất → báo hiệu Hiện tại đơn', roleHint: 'always / usually / often / every day', detail: 'Trạng từ tần suất "usually" là DẤU HIỆU CỐT LÕI của Hiện tại đơn: nó cho biết hành động lặp lại theo thói quen. Các từ cùng nhóm: always, often, sometimes, rarely, never, every day/week. Khi thấy nhóm từ này, ưu tiên chia động từ ở Hiện tại đơn (V nguyên mẫu / V-s-es).' },
+        { label: 'Routine (V1)', word: 'code in Python,', color: 'emerald', explanation: 'Thói quen: Hiện tại đơn (S + V nguyên mẫu)', roleHint: 'Động từ chỉ thói quen', detail: 'Động từ "code" ở dạng nguyên mẫu (V1) + chủ ngữ "I" → "I code" (không thêm s/es vì ngôi thứ nhất). Đây là hành động THÓI QUEN lặp lại, không phải đang diễn ra. Hiện tại đơn dùng cho: sự thật hiển nhiên, thói quen, lịch trình cố định.' },
+        { label: 'Time Signal', word: 'but currently', color: 'amber', explanation: 'Trạng từ chuyển đổi ngữ cảnh → báo hiệu Tiếp diễn', roleHint: 'but / right now / currently / at the moment', detail: 'Cụm "but currently" là DẤU HIỆU CHUYỂN NGỮ CẢNH: phần trước nói thói quen (Hiện tại đơn), phần sau nói hành động ĐANG LÀM (Hiện tại tiếp diễn). Các từ cùng nhóm: right now, at the moment, this week, today. Khi thấy nhóm từ này, động từ phải chia ở dạng V-ing (S + am/is/are + V-ing).' },
+        { label: 'In Progress (V-ing)', word: 'I am debugging a Java app.', color: 'rose', explanation: 'Hành động đang làm hiện tại (S + am/is/are + V-ing)', roleHint: 'Động từ to be + V-ing', detail: 'Cấu trúc "I am debugging" = S + am + V-ing: hành động ĐANG DIỄN RA tại thời điểm nói. "am" hòa hợp với chủ ngữ "I". Dạng này dùng cho: hành động đang làm ngay lúc nói, kế hoạch đã sắp xếp trong tương lai gần, hoặc trạng thái tạm thời.' },
       ],
       fullSentence: 'I usually code in Python, but currently I am debugging a Java app.',
       translation: 'Tôi thường lập trình bằng Python, nhưng hiện tại tôi đang gỡ lỗi một ứng dụng Java.',
