@@ -51,7 +51,7 @@ const git = (cmd) => {
 const md = [
   `# Snapshot email — ${stamp}`,
   '',
-  'Đúng trạng thái source đã dùng để gửi 2 email test tới vukiet28032002@gmail.com.',
+  'Đúng trạng thái source đã dùng để gửi 2 email test tới địa chỉ trong TEST_EMAIL (không ghi rõ trong repo).',
   '',
   '## Máy thời gian',
   `- UTC   : ${new Date().toISOString()}`,

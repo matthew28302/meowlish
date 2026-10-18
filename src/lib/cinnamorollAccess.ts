@@ -15,12 +15,26 @@
  * `tests/unit/no-client-pii.test.ts` chặn tái phát.
  */
 
-/** Email được cấp quyền — KHÔNG đưa vào mã phía client. */
-const CINNAMOROLL_ALLOWED_EMAILS = [
-  'xuanmai032004@gmail.com',
-  'liuyufishball@gmail.com',
-  '22520841@gm.uit.edu.vn',
-];
+/** Email được cấp quyền — KHÔNG đưa vào mã phía client.
+ *  Nguồn: env var `CINNAMOROLL_ALLOWED_EMAILS` (danh sách cách nhau bằng dấu phẩy).
+ *  Nếu thiếu ở production ⇒ throw (theo pattern adminAuth). Ở dev dùng danh sách
+ *  fallback đánh dấu `_DEV_ONLY` để không rò rỉ PII lên repo public.
+ */
+function loadAllowedEmails(): string[] {
+  const raw = process.env.CINNAMOROLL_ALLOWED_EMAILS;
+  if (raw && raw.trim()) {
+    return raw.split(',').map((e) => e.trim()).filter(Boolean);
+  }
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
+    throw new Error('Thiếu CINNAMOROLL_ALLOWED_EMAILS trên production. Vui lòng set env var (danh sách email cách nhau bằng dấu phẩy).');
+  }
+  // Dev local: không có env var ⇒ không ai unlock được (tránh rò PII lên repo).
+  // Set CINNAMOROLL_ALLOWED_EMAILS trong .env.local (gitignored) để test.
+  console.warn('[cinnamorollAccess] CINNAMOROLL_ALLOWED_EMAILS chưa set — dev mode, không ai unlock được Cinnamoroll.');
+  return [];
+}
+
+const CINNAMOROLL_ALLOWED_EMAILS = loadAllowedEmails();
 
 export interface CinnamorollUserLike {
   email?: string | null;

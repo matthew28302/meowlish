@@ -43,7 +43,7 @@ export const EMAIL_BRAND = {
   name: 'Meowlish',
   tagline: 'Học Tiếng Anh Giao Tiếp & IT Thực Chiến',
   /** Hộp thư phản hồi — fallback theo SMTP_USER. */
-  contactEmail: process.env.CONTACT_EMAIL || process.env.SMTP_USER || 'admin@imfishball.id.vn',
+  contactEmail: process.env.CONTACT_EMAIL || process.env.SMTP_USER || (process.env.NODE_ENV !== 'production' ? 'dev-contact@example.com' : ''),
   /** Địa chỉ vật lý (đặt qua env BRAND_ADDRESS để thay thế). */
   address: process.env.BRAND_ADDRESS || 'TP. Hồ Chí Minh, Việt Nam',
   supportUrl: `${APP_URL}/support`,

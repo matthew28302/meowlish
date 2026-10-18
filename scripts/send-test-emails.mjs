@@ -37,7 +37,7 @@ for (const [k, v] of Object.entries(fileEnv)) {
   if (process.env[k] === undefined) process.env[k] = v;
 }
 
-const to = process.argv[2] || 'vukiet28032002@gmail.com';
+const to = process.argv[2] || process.env.TEST_EMAIL || 'test@example.com';
 const displayName = process.argv[3] || 'Vũ Kiệt';
 const username = process.argv[4] || 'vukiet28032002';
 
