@@ -234,9 +234,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       const isDemoFallback =
         user?.isDemoFallback === true ||
         (user?.id === 'user_demo_default' && !user?.status && !user?.created_at);
-      setCurrentUser(isDemoFallback ? null : user);
-      // H5: user trở về null (đăng xuất / demo fallback) → gate hiện lại cho khách (như hành vi cũ)
-      if (!user || isDemoFallback) setGuestGateOpen(true);
+      // TỐI ƯU LOAD: hiển thị trang NGAY từ localStorage, không chờ /api/progress
+      // (chậm trên cold instance Vercel) — làm mới số coin/trạng thái ở nền sau.
+      if (user && !isDemoFallback) {
+        setCurrentUser((prev) => (prev ? prev : user));
+        setGuestGateOpen(false);
+      } else {
+        setCurrentUser(null);
+        if (!user || isDemoFallback) setGuestGateOpen(true);
+      }
+      setIsAuthChecked(true);
 
       if (user?.id && !isDemoFallback) {
         fetchProgress(user.id)
