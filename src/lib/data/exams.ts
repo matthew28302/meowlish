@@ -1,4 +1,5 @@
 import { TOEIC_ETS_SETS } from './exams-ets';
+import { TOEFL_ETS_SETS } from './exams-toefl';
 
 export interface ExamQuestion {
   id: string;
@@ -2405,4 +2406,6 @@ export const EXAM_SETS: ExamSet[] = [
   },
   // Bộ đề TOEIC chính thức từ ETS (Listening & Reading + Speaking & Writing)
   ...TOEIC_ETS_SETS,
+  // Bộ đề TOEFL iBT chính thức từ ETS (định dạng 2026)
+  ...TOEFL_ETS_SETS,
 ];
