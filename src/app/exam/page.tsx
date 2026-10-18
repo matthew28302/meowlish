@@ -345,8 +345,9 @@ export default function ExamPage() {
         correctCount += 1;
       }
     });
-    const totalForScore = mcqTotal > 0 ? mcqTotal : selectedSet.questions.length;
-    const percentage = Math.round((correctCount / totalForScore) * 100);
+    // Bộ đề chỉ có task writing/speaking (không có câu trắc nghiệm) không thể
+    // chấm tự động — học viên bấm nộp bài nghĩa là đã hoàn thành: tính 100%.
+    const percentage = mcqTotal > 0 ? Math.round((correctCount / mcqTotal) * 100) : 100;
     const passed = percentage >= selectedSet.passingScore;
 
     // Clear saved session on exam completion

@@ -1,3 +1,5 @@
+import { TOEIC_ETS_SETS } from './exams-ets';
+
 export interface ExamQuestion {
   id: string;
   section: 'listening' | 'reading' | 'vocabulary' | 'grammar' | 'pragmatics' | 'error_correction' | 'writing' | 'speaking';
@@ -2400,5 +2402,7 @@ export const EXAM_SETS: ExamSet[] = [
         pedagogicalTip: 'Part 2: Nói liên tục 1.5-2 phút, không dừng giữa chừng. Nếu hết ý, mở rộng bằng cách thêm chi tiết hoặc ví dụ. Giám khảo đánh giá: fluency, vocabulary, grammar, pronunciation.'
       }
     ]
-  }
+  },
+  // Bộ đề TOEIC chính thức từ ETS (Listening & Reading + Speaking & Writing)
+  ...TOEIC_ETS_SETS,
 ];
