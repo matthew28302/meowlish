@@ -204,10 +204,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '⚖️',
     legoExample: {
       blocks: [
-        { label: 'Subject', word: 'The development team', color: 'indigo', explanation: 'Danh từ tập hợp' },
-        { label: 'Verb', word: 'is working', color: 'emerald', explanation: 'Động từ số ít (xem team như 1 khối)' },
-        { label: 'Preposition', word: 'on', color: 'sky', explanation: 'Giới từ' },
-        { label: 'Object', word: 'a new feature', color: 'rose', explanation: 'Tân ngữ' }
+        { label: 'Subject', word: 'The development team', color: 'indigo', explanation: 'Danh từ tập hợp', roleHint: 'Chủ ngữ câu', detail: 'Danh từ tập hợp. Trong câu này, "The development team" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Verb', word: 'is working', color: 'emerald', explanation: 'Động từ số ít (xem team như 1 khối)', roleHint: 'Động từ chính', detail: 'Động từ số ít (xem team như 1 khối). Trong câu này, "is working" là khối Verb (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Preposition', word: 'on', color: 'sky', explanation: 'Giới từ', roleHint: 'Giới từ', detail: 'Giới từ. Trong câu này, "on" là khối Preposition (Giới từ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Object', word: 'a new feature', color: 'rose', explanation: 'Tân ngữ', roleHint: 'Tân ngữ', detail: 'Tân ngữ. Trong câu này, "a new feature" là khối Object (Tân ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' }
       ],
       fullSentence: 'The development team is working on a new feature.',
       translation: 'Nhóm phát triển đang làm việc trên một tính năng mới.',
@@ -313,11 +313,11 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '📝',
     legoExample: {
       blocks: [
-        { label: 'Action', word: 'I found', color: 'indigo', explanation: 'Hành động' },
-        { label: 'Article A', word: 'a bug', color: 'rose', explanation: 'Nhắc đến lần đầu' },
-        { label: 'Action', word: 'but', color: 'sky', explanation: 'Liên từ' },
-        { label: 'Article The', word: 'the bug', color: 'emerald', explanation: 'Đã xác định (bug vừa nhắc)' },
-        { label: 'Predicate', word: 'is minor', color: 'amber', explanation: 'Đặc điểm' }
+        { label: 'Action', word: 'I found', color: 'indigo', explanation: 'Hành động', roleHint: 'Hành động', detail: 'Hành động. Trong câu này, "I found" là khối Action (Hành động) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Article A', word: 'a bug', color: 'rose', explanation: 'Nhắc đến lần đầu', roleHint: 'Mạo từ', detail: 'Nhắc đến lần đầu. Trong câu này, "a bug" là khối Article A (Mạo từ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Action', word: 'but', color: 'sky', explanation: 'Liên từ', roleHint: 'Hành động', detail: 'Liên từ. Trong câu này, "but" là khối Action (Hành động) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Article The', word: 'the bug', color: 'emerald', explanation: 'Đã xác định (bug vừa nhắc)', roleHint: 'Mạo từ', detail: 'Đã xác định (bug vừa nhắc). Trong câu này, "the bug" là khối Article The (Mạo từ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Predicate', word: 'is minor', color: 'amber', explanation: 'Đặc điểm', roleHint: 'Predicate', detail: 'Đặc điểm. Trong câu này, "is minor" là khối Predicate (Predicate) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' }
       ],
       fullSentence: 'I found a bug, but the bug is minor.',
       translation: 'Tôi đã tìm thấy một lỗi, nhưng lỗi đó không nghiêm trọng.',
@@ -423,10 +423,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '❓',
     legoExample: {
       blocks: [
-        { label: 'Wh- word', word: 'Why', color: 'amber', explanation: 'Từ để hỏi' },
-        { label: 'Auxiliary', word: 'did', color: 'emerald', explanation: 'Trợ động từ' },
-        { label: 'Subject', word: 'the build', color: 'indigo', explanation: 'Chủ ngữ' },
-        { label: 'Main Verb', word: 'fail', color: 'rose', explanation: 'Động từ chính (nguyên thể)' }
+        { label: 'Wh- word', word: 'Why', color: 'amber', explanation: 'Từ để hỏi', roleHint: 'Wh- word', detail: 'Từ để hỏi. Trong câu này, "Why" là khối Wh- word (Wh- word) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Auxiliary', word: 'did', color: 'emerald', explanation: 'Trợ động từ', roleHint: 'Trợ động từ', detail: 'Trợ động từ. Trong câu này, "did" là khối Auxiliary (Trợ động từ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Subject', word: 'the build', color: 'indigo', explanation: 'Chủ ngữ', roleHint: 'Chủ ngữ câu', detail: 'Chủ ngữ. Trong câu này, "the build" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Main Verb', word: 'fail', color: 'rose', explanation: 'Động từ chính (nguyên thể)', roleHint: 'Động từ chính', detail: 'Động từ chính (nguyên thể). Trong câu này, "fail" là khối Main Verb (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' }
       ],
       fullSentence: 'Why did the build fail?',
       translation: 'Tại sao quá trình build lại thất bại?',
@@ -532,10 +532,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🤝',
     legoExample: {
       blocks: [
-        { label: 'Polite opener', word: 'Could you', color: 'indigo', explanation: 'Hỏi xin lịch sự' },
-        { label: 'Action', word: 'please review', color: 'emerald', explanation: 'Hành động cần làm' },
-        { label: 'Object', word: 'my pull request', color: 'rose', explanation: 'Đối tượng' },
-        { label: 'Condition', word: 'when you have time?', color: 'sky', explanation: 'Tạo khoảng không thoải mái cho người nghe' },
+        { label: 'Polite opener', word: 'Could you', color: 'indigo', explanation: 'Hỏi xin lịch sự', roleHint: 'Polite opener', detail: 'Hỏi xin lịch sự. Trong câu này, "Could you" là khối Polite opener (Polite opener) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Action', word: 'please review', color: 'emerald', explanation: 'Hành động cần làm', roleHint: 'Hành động', detail: 'Hành động cần làm. Trong câu này, "please review" là khối Action (Hành động) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Object', word: 'my pull request', color: 'rose', explanation: 'Đối tượng', roleHint: 'Tân ngữ', detail: 'Đối tượng. Trong câu này, "my pull request" là khối Object (Tân ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Condition', word: 'when you have time?', color: 'sky', explanation: 'Tạo khoảng không thoải mái cho người nghe', roleHint: 'Mệnh đề điều kiện', detail: 'Tạo khoảng không thoải mái cho người nghe. Trong câu này, "when you have time?" là khối Condition (Mệnh đề điều kiện) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'Could you please review my pull request when you have time?',
       translation: 'Bạn có thể vui lòng xem lại pull request của tôi khi bạn có thời gian không?',
@@ -634,10 +634,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🏆',
     legoExample: {
       blocks: [
-        { label: 'Subject', word: 'I', color: 'indigo', explanation: 'Chủ ngữ' },
-        { label: 'Auxiliary', word: 'have just', color: 'amber', explanation: 'Trợ động từ + từ chỉ thời gian' },
-        { label: 'Past Participle', word: 'deployed', color: 'emerald', explanation: 'Động từ phân từ II' },
-        { label: 'Object', word: 'the hotfix', color: 'rose', explanation: 'Tân ngữ' }
+        { label: 'Subject', word: 'I', color: 'indigo', explanation: 'Chủ ngữ', roleHint: 'Chủ ngữ câu', detail: 'Chủ ngữ. Trong câu này, "I" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Auxiliary', word: 'have just', color: 'amber', explanation: 'Trợ động từ + từ chỉ thời gian', roleHint: 'Trợ động từ', detail: 'Trợ động từ + từ chỉ thời gian. Trong câu này, "have just" là khối Auxiliary (Trợ động từ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Past Participle', word: 'deployed', color: 'emerald', explanation: 'Động từ phân từ II', roleHint: 'Phân từ', detail: 'Động từ phân từ II. Trong câu này, "deployed" là khối Past Participle (Phân từ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Object', word: 'the hotfix', color: 'rose', explanation: 'Tân ngữ', roleHint: 'Tân ngữ', detail: 'Tân ngữ. Trong câu này, "the hotfix" là khối Object (Tân ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' }
       ],
       fullSentence: 'I have just deployed the hotfix.',
       translation: 'Tôi vừa mới triển khai bản sửa lỗi khẩn cấp.',
@@ -736,10 +736,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '📊',
     legoExample: {
       blocks: [
-        { label: 'Subject 1', word: 'GraphQL', color: 'indigo', explanation: 'Đối tượng 1' },
-        { label: 'Verb', word: 'is', color: 'amber', explanation: 'Động từ to be' },
-        { label: 'Comparative', word: 'more flexible than', color: 'emerald', explanation: 'Cấu trúc so sánh hơn (tính từ dài)' },
-        { label: 'Subject 2', word: 'REST', color: 'rose', explanation: 'Đối tượng 2' }
+        { label: 'Subject 1', word: 'GraphQL', color: 'indigo', explanation: 'Đối tượng 1', roleHint: 'Chủ ngữ câu', detail: 'Đối tượng 1. Trong câu này, "GraphQL" là khối Subject 1 (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Verb', word: 'is', color: 'amber', explanation: 'Động từ to be', roleHint: 'Động từ chính', detail: 'Động từ to be. Trong câu này, "is" là khối Verb (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Comparative', word: 'more flexible than', color: 'emerald', explanation: 'Cấu trúc so sánh hơn (tính từ dài)', roleHint: 'Comparative', detail: 'Cấu trúc so sánh hơn (tính từ dài). Trong câu này, "more flexible than" là khối Comparative (Comparative) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Subject 2', word: 'REST', color: 'rose', explanation: 'Đối tượng 2', roleHint: 'Chủ ngữ câu', detail: 'Đối tượng 2. Trong câu này, "REST" là khối Subject 2 (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' }
       ],
       // Vế "for this use case" đã bị gỡ: không có khối nào mang nó, nên học sinh
       // ghép 4 khối ra câu khác hẳn câu dưới đây và tưởng dữ liệu lỗi.
@@ -847,9 +847,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🗣️',
     legoExample: {
       blocks: [
-        { label: 'Reporter', word: 'The client said', color: 'indigo', explanation: 'Người tường thuật + động từ tường thuật' },
-        { label: 'Subject', word: 'they wanted', color: 'emerald', explanation: 'Chủ ngữ mới + Động từ lùi thì (want -> wanted)' },
-        { label: 'Object', word: 'a new dashboard', color: 'rose', explanation: 'Tân ngữ' }
+        { label: 'Reporter', word: 'The client said', color: 'indigo', explanation: 'Người tường thuật + động từ tường thuật', roleHint: 'Reporter', detail: 'Người tường thuật + động từ tường thuật. Trong câu này, "The client said" là khối Reporter (Reporter) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Subject', word: 'they wanted', color: 'emerald', explanation: 'Chủ ngữ mới + Động từ lùi thì (want -> wanted)', roleHint: 'Chủ ngữ câu', detail: 'Chủ ngữ mới + Động từ lùi thì (want -> wanted). Trong câu này, "they wanted" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Object', word: 'a new dashboard', color: 'rose', explanation: 'Tân ngữ', roleHint: 'Tân ngữ', detail: 'Tân ngữ. Trong câu này, "a new dashboard" là khối Object (Tân ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' }
       ],
       fullSentence: 'The client said they wanted a new dashboard.',
       translation: 'Khách hàng nói rằng họ muốn một trang tổng quan mới.',
@@ -956,10 +956,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🔀',
     legoExample: {
       blocks: [
-        { label: 'If Clause', word: 'If the server crashes,', color: 'indigo', explanation: 'Điều kiện (If + Hiện tại đơn)' },
-        { label: 'Main Subject', word: 'the load balancer', color: 'emerald', explanation: 'Chủ ngữ mệnh đề chính' },
-        { label: 'Action', word: 'will redirect', color: 'amber', explanation: 'Kết quả (Will + V)' },
-        { label: 'Object', word: 'the traffic.', color: 'rose', explanation: 'Tân ngữ' },
+        { label: 'If Clause', word: 'If the server crashes,', color: 'indigo', explanation: 'Điều kiện (If + Hiện tại đơn)', roleHint: 'If Clause', detail: 'Điều kiện (If + Hiện tại đơn). Trong câu này, "If the server crashes" là khối If Clause (If Clause) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Main Subject', word: 'the load balancer', color: 'emerald', explanation: 'Chủ ngữ mệnh đề chính', roleHint: 'Chủ ngữ câu', detail: 'Chủ ngữ mệnh đề chính. Trong câu này, "the load balancer" là khối Main Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Action', word: 'will redirect', color: 'amber', explanation: 'Kết quả (Will + V)', roleHint: 'Hành động', detail: 'Kết quả (Will + V). Trong câu này, "will redirect" là khối Action (Hành động) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Object', word: 'the traffic.', color: 'rose', explanation: 'Tân ngữ', roleHint: 'Tân ngữ', detail: 'Tân ngữ. Trong câu này, "the traffic." là khối Object (Tân ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'If the server crashes, the load balancer will redirect the traffic.',
       translation: 'Nếu máy chủ gặp sự cố, bộ cân bằng tải sẽ chuyển hướng lưu lượng truy cập.',
@@ -1065,10 +1065,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🛡️',
     legoExample: {
       blocks: [
-        { label: 'Subject', word: 'The issue', color: 'indigo', explanation: 'Đối tượng bị tác động (Tân ngữ đảo lên)' },
-        { label: 'Be verb', word: 'was', color: 'amber', explanation: 'Động từ to be (chia theo thì)' },
-        { label: 'Past Participle', word: 'resolved', color: 'emerald', explanation: 'Động từ chính (V3/ed)' },
-        { label: 'Agent (optional)', word: 'by the ops team', color: 'sky', explanation: 'Người thực hiện (có thể bỏ qua)' },
+        { label: 'Subject', word: 'The issue', color: 'indigo', explanation: 'Đối tượng bị tác động (Tân ngữ đảo lên)', roleHint: 'Chủ ngữ câu', detail: 'Đối tượng bị tác động (Tân ngữ đảo lên). Trong câu này, "The issue" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Be verb', word: 'was', color: 'amber', explanation: 'Động từ to be (chia theo thì)', roleHint: 'Động từ chính', detail: 'Động từ to be (chia theo thì). Trong câu này, "was" là khối Be verb (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Past Participle', word: 'resolved', color: 'emerald', explanation: 'Động từ chính (V3/ed)', roleHint: 'Phân từ', detail: 'Động từ chính (V3/ed). Trong câu này, "resolved" là khối Past Participle (Phân từ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Agent (optional)', word: 'by the ops team', color: 'sky', explanation: 'Người thực hiện (có thể bỏ qua)', roleHint: 'Agent (optional)', detail: 'Người thực hiện (có thể bỏ qua). Trong câu này, "by the ops team" là khối Agent (optional) (Agent (optional)) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'The issue was resolved by the ops team.',
       translation: 'Vấn đề đã được đội vận hành giải quyết.',
@@ -1167,10 +1167,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🔗',
     legoExample: {
       blocks: [
-        { label: 'Main Clause start', word: 'The module', color: 'indigo', explanation: 'Chủ đề chính' },
-        { label: 'Relative Pronoun', word: 'which', color: 'amber', explanation: 'Đại từ quan hệ thay thế cho vật' },
-        { label: 'Relative Clause', word: 'handles authentication', color: 'sky', explanation: 'Mệnh đề giải thích' },
-        { label: 'Main Clause end', word: 'needs a refactor', color: 'rose', explanation: 'Phần còn lại của câu chính' }
+        { label: 'Main Clause start', word: 'The module', color: 'indigo', explanation: 'Chủ đề chính', roleHint: 'Main Clause start', detail: 'Chủ đề chính. Trong câu này, "The module" là khối Main Clause start (Main Clause start) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Relative Pronoun', word: 'which', color: 'amber', explanation: 'Đại từ quan hệ thay thế cho vật', roleHint: 'Đại từ', detail: 'Đại từ quan hệ thay thế cho vật. Trong câu này, "which" là khối Relative Pronoun (Đại từ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Relative Clause', word: 'handles authentication', color: 'sky', explanation: 'Mệnh đề giải thích', roleHint: 'Mệnh đề quan hệ', detail: 'Mệnh đề giải thích. Trong câu này, "handles authentication" là khối Relative Clause (Mệnh đề quan hệ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Main Clause end', word: 'needs a refactor', color: 'rose', explanation: 'Phần còn lại của câu chính', roleHint: 'Main Clause end', detail: 'Phần còn lại của câu chính. Trong câu này, "needs a refactor" là khối Main Clause end (Main Clause end) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' }
       ],
       fullSentence: 'The module which handles authentication needs a refactor.',
       translation: 'Module xử lý xác thực cần được tái cấu trúc.',
@@ -1279,10 +1279,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
         // Các khối phải ghép ĐÚNG bằng fullSentence. Bản cũ thiếu tân ngữ
         // ("the bug", "the code", "on UI") nên ghép ra câu đứt: "Yesterday I fixed
         // and have already pushed Currently I am working and will deploy tomorrow".
-        { label: 'Past', word: 'Yesterday I fixed the bug', color: 'rose', explanation: 'Quá khứ đơn (Đã làm xong)' },
-        { label: 'Present Perf.', word: 'and have already pushed the code;', color: 'amber', explanation: 'Hiện tại hoàn thành (Kết quả hiện tại)' },
-        { label: 'Present Cont.', word: 'currently I am working on UI', color: 'emerald', explanation: 'Hiện tại tiếp diễn (Đang làm)' },
-        { label: 'Future', word: 'and will deploy tomorrow.', color: 'sky', explanation: 'Tương lai đơn (Dự định)' }
+        { label: 'Past', word: 'Yesterday I fixed the bug', color: 'rose', explanation: 'Quá khứ đơn (Đã làm xong)', roleHint: 'Past', detail: 'Quá khứ đơn (Đã làm xong). Trong câu này, "Yesterday I fixed the bug" là khối Past (Past) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Present Perf.', word: 'and have already pushed the code;', color: 'amber', explanation: 'Hiện tại hoàn thành (Kết quả hiện tại)', roleHint: 'Present Perf.', detail: 'Hiện tại hoàn thành (Kết quả hiện tại). Trong câu này, "and have already pushed the code;" là khối Present Perf. (Present Perf.) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Present Cont.', word: 'currently I am working on UI', color: 'emerald', explanation: 'Hiện tại tiếp diễn (Đang làm)', roleHint: 'Present Cont.', detail: 'Hiện tại tiếp diễn (Đang làm). Trong câu này, "currently I am working on UI" là khối Present Cont. (Present Cont.) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Future', word: 'and will deploy tomorrow.', color: 'sky', explanation: 'Tương lai đơn (Dự định)', roleHint: 'Future', detail: 'Tương lai đơn (Dự định). Trong câu này, "and will deploy tomorrow." là khối Future (Future) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' }
       ],
       fullSentence: 'Yesterday I fixed the bug and have already pushed the code; currently I am working on UI and will deploy tomorrow.',
       translation: 'Hôm qua tôi đã sửa lỗi và đã đẩy mã lên; hiện tại tôi đang làm giao diện và sẽ triển khai vào ngày mai.',
@@ -1389,10 +1389,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🤝',
     legoExample: {
       blocks: [
-        { label: 'Polite Opener', word: 'Could you please tell me', color: 'indigo', explanation: 'Lời mở đầu lịch thiệp' },
-        { label: 'Question Word', word: 'where', color: 'emerald', explanation: 'Từ để hỏi' },
-        { label: 'Subject', word: 'the staging credentials', color: 'amber', explanation: 'Chủ ngữ (không đảo trợ động từ)' },
-        { label: 'Verb', word: 'are located?', color: 'rose', explanation: 'Động từ giữ nguyên trật tự khẳng định' },
+        { label: 'Polite Opener', word: 'Could you please tell me', color: 'indigo', explanation: 'Lời mở đầu lịch thiệp', roleHint: 'Polite Opener', detail: 'Lời mở đầu lịch thiệp. Trong câu này, "Could you please tell me" là khối Polite Opener (Polite Opener) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Question Word', word: 'where', color: 'emerald', explanation: 'Từ để hỏi', roleHint: 'Question Word', detail: 'Từ để hỏi. Trong câu này, "where" là khối Question Word (Question Word) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Subject', word: 'the staging credentials', color: 'amber', explanation: 'Chủ ngữ (không đảo trợ động từ)', roleHint: 'Chủ ngữ câu', detail: 'Chủ ngữ (không đảo trợ động từ). Trong câu này, "the staging credentials" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Verb', word: 'are located?', color: 'rose', explanation: 'Động từ giữ nguyên trật tự khẳng định', roleHint: 'Động từ chính', detail: 'Động từ giữ nguyên trật tự khẳng định. Trong câu này, "are located?" là khối Verb (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'Could you please tell me where the staging credentials are located?',
       translation: 'Bạn có thể vui lòng cho tôi biết thông tin đăng nhập staging được lưu ở đâu không?',
@@ -1494,10 +1494,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '⚡',
     legoExample: {
       blocks: [
-        { label: 'Interrupted Action', word: 'We were migrating', color: 'indigo', explanation: 'Hành động đang diễn ra (Past Continuous)' },
-        { label: 'Object', word: 'the user database', color: 'emerald', explanation: 'Tân ngữ' },
-        { label: 'Connecting Word', word: 'when', color: 'amber', explanation: 'Liên từ chỉ sự xen vào' },
-        { label: 'Interrupting Event', word: 'the network connection dropped.', color: 'rose', explanation: 'Sự việc đột ngột cắt ngang (Past Simple)' },
+        { label: 'Interrupted Action', word: 'We were migrating', color: 'indigo', explanation: 'Hành động đang diễn ra (Past Continuous)', roleHint: 'Hành động', detail: 'Hành động đang diễn ra (Past Continuous). Trong câu này, "We were migrating" là khối Interrupted Action (Hành động) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Object', word: 'the user database', color: 'emerald', explanation: 'Tân ngữ', roleHint: 'Tân ngữ', detail: 'Tân ngữ. Trong câu này, "the user database" là khối Object (Tân ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Connecting Word', word: 'when', color: 'amber', explanation: 'Liên từ chỉ sự xen vào', roleHint: 'Connecting Word', detail: 'Liên từ chỉ sự xen vào. Trong câu này, "when" là khối Connecting Word (Connecting Word) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Interrupting Event', word: 'the network connection dropped.', color: 'rose', explanation: 'Sự việc đột ngột cắt ngang (Past Simple)', roleHint: 'Interrupting Event', detail: 'Sự việc đột ngột cắt ngang (Past Simple). Trong câu này, "the network connection dropped." là khối Interrupting Event (Interrupting Event) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'We were migrating the user database when the network connection dropped.',
       translation: 'Chúng tôi đang chuyển đổi cơ sở dữ liệu người dùng thì kết nối mạng đột ngột bị rớt.',
@@ -1605,10 +1605,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🎯',
     legoExample: {
       blocks: [
-        { label: 'Subject + Verb', word: 'I look forward to', color: 'indigo', explanation: 'Cụm động từ cố định đi với V-ing' },
-        { label: 'Gerund (V-ing)', word: 'collaborating', color: 'emerald', explanation: 'Danh động từ' },
-        { label: 'Partner', word: 'with your team', color: 'amber', explanation: 'Đối tượng hợp tác' },
-        { label: 'Time Buffer', word: 'on this upcoming project.', color: 'rose', explanation: 'Thời gian / dự án' },
+        { label: 'Subject + Verb', word: 'I look forward to', color: 'indigo', explanation: 'Cụm động từ cố định đi với V-ing', roleHint: 'Chủ ngữ câu', detail: 'Cụm động từ cố định đi với V-ing. Trong câu này, "I look forward to" là khối Subject + Verb (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Gerund (V-ing)', word: 'collaborating', color: 'emerald', explanation: 'Danh động từ', roleHint: 'Danh động từ', detail: 'Danh động từ. Trong câu này, "collaborating" là khối Gerund (V-ing) (Danh động từ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Partner', word: 'with your team', color: 'amber', explanation: 'Đối tượng hợp tác', roleHint: 'Partner', detail: 'Đối tượng hợp tác. Trong câu này, "with your team" là khối Partner (Partner) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Time Buffer', word: 'on this upcoming project.', color: 'rose', explanation: 'Thời gian / dự án', roleHint: 'Mệnh đề thời gian', detail: 'Thời gian / dự án. Trong câu này, "on this upcoming project." là khối Time Buffer (Mệnh đề thời gian) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'I look forward to collaborating with your team on this upcoming project.',
       translation: 'Tôi rất mong đợi được hợp tác cùng đội ngũ của bạn trong dự án sắp tới.',
@@ -1719,11 +1719,11 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     legoExample: {
       formulaPattern: '[Event] + [Action] + [At + Time] + [On + Day] + [In + Room/City]',
       blocks: [
-        { label: 'Event (Subject)', word: 'The quarterly tech demo', color: 'indigo', explanation: 'Chủ thể sự kiện', roleHint: 'Chủ ngữ sự kiện' },
-        { label: 'Action (Verb)', word: 'will take place', color: 'emerald', explanation: 'Sẽ diễn ra', roleHint: 'Cụm động từ chỉ thời điểm' },
-        { label: 'Prep: AT (Time)', word: 'at 2:30 PM', color: 'amber', explanation: 'Giờ chuẩn xác dùng AT', roleHint: 'AT cho giờ phút' },
-        { label: 'Prep: ON (Day)', word: 'on Friday', color: 'rose', explanation: 'Thứ trong tuần dùng ON', roleHint: 'ON cho ngày thứ' },
-        { label: 'Prep: IN (Room)', word: 'in Room 302.', color: 'sky', explanation: 'Không gian phòng ốc dùng IN', roleHint: 'IN cho không gian khép kín' },
+        { label: 'Event (Subject)', word: 'The quarterly tech demo', color: 'indigo', explanation: 'Chủ thể sự kiện', roleHint: 'Chủ ngữ sự kiện', detail: 'Chủ thể sự kiện. Trong câu này, "The quarterly tech demo" là khối Event (Subject) (Chủ ngữ sự kiện) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Action (Verb)', word: 'will take place', color: 'emerald', explanation: 'Sẽ diễn ra', roleHint: 'Cụm động từ chỉ thời điểm', detail: 'Sẽ diễn ra. Trong câu này, "will take place" là khối Action (Verb) (Cụm động từ chỉ thời điểm) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: AT (Time)', word: 'at 2:30 PM', color: 'amber', explanation: 'Giờ chuẩn xác dùng AT', roleHint: 'AT cho giờ phút', detail: 'Giờ chuẩn xác dùng AT. Trong câu này, "at 2:30 PM" là khối Prep: AT (Time) (AT cho giờ phút) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: ON (Day)', word: 'on Friday', color: 'rose', explanation: 'Thứ trong tuần dùng ON', roleHint: 'ON cho ngày thứ', detail: 'Thứ trong tuần dùng ON. Trong câu này, "on Friday" là khối Prep: ON (Day) (ON cho ngày thứ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: IN (Room)', word: 'in Room 302.', color: 'sky', explanation: 'Không gian phòng ốc dùng IN', roleHint: 'IN cho không gian khép kín', detail: 'Không gian phòng ốc dùng IN. Trong câu này, "in Room 302." là khối Prep: IN (Room) (IN cho không gian khép kín) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'The quarterly tech demo will take place at 2:30 PM on Friday in Room 302.',
       translation: 'Buổi demo kỹ thuật quý sẽ diễn ra lúc 2:30 chiều vào thứ Sáu tại Phòng 302.',
@@ -1859,11 +1859,11 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     legoExample: {
       formulaPattern: '[Subject] + [Verb Phrase] + [In + Month/Year] + [On + Day] + [At + Exact Time]',
       blocks: [
-        { label: 'Subject', word: 'The team', color: 'indigo', explanation: 'Chủ thể thực hiện', roleHint: 'Chủ ngữ câu' },
-        { label: 'Will deploy', word: 'will release the update', color: 'emerald', explanation: 'Hành động tương lai', roleHint: 'Cụm động từ chính' },
-        { label: 'Prep: IN (Month)', word: 'in November', color: 'amber', explanation: 'Khoảng thời gian rộng (Tháng)', roleHint: 'Giới từ IN cho tháng/năm' },
-        { label: 'Prep: ON (Day)', word: 'on Monday', color: 'rose', explanation: 'Ngày cụ thể trong tuần', roleHint: 'Giới từ ON cho ngày/thứ' },
-        { label: 'Prep: AT (Time)', word: 'at 9:00 AM sharp.', color: 'sky', explanation: 'Mốc giờ chính xác', roleHint: 'Giới từ AT cho giờ giấc' },
+        { label: 'Subject', word: 'The team', color: 'indigo', explanation: 'Chủ thể thực hiện', roleHint: 'Chủ ngữ câu', detail: 'Chủ thể thực hiện. Trong câu này, "The team" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Will deploy', word: 'will release the update', color: 'emerald', explanation: 'Hành động tương lai', roleHint: 'Cụm động từ chính', detail: 'Hành động tương lai. Trong câu này, "will release the update" là khối Will deploy (Cụm động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: IN (Month)', word: 'in November', color: 'amber', explanation: 'Khoảng thời gian rộng (Tháng)', roleHint: 'Giới từ IN cho tháng/năm', detail: 'Khoảng thời gian rộng (Tháng). Trong câu này, "in November" là khối Prep: IN (Month) (Giới từ IN cho tháng/năm) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: ON (Day)', word: 'on Monday', color: 'rose', explanation: 'Ngày cụ thể trong tuần', roleHint: 'Giới từ ON cho ngày/thứ', detail: 'Ngày cụ thể trong tuần. Trong câu này, "on Monday" là khối Prep: ON (Day) (Giới từ ON cho ngày/thứ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: AT (Time)', word: 'at 9:00 AM sharp.', color: 'sky', explanation: 'Mốc giờ chính xác', roleHint: 'Giới từ AT cho giờ giấc', detail: 'Mốc giờ chính xác. Trong câu này, "at 9:00 AM sharp." là khối Prep: AT (Time) (Giới từ AT cho giờ giấc) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'The team will release the update in November on Monday at 9:00 AM sharp.',
       translation: 'Nhóm sẽ phát hành bản cập nhật vào tháng Mười Một, đúng vào thứ Hai lúc 9:00 sáng chuẩn xác.',
@@ -2021,11 +2021,11 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     legoExample: {
       formulaPattern: '[Subject] + [Verb] + [In + 3D Space/DB] + [On + Device/Surface] + [At + Venue/Point]',
       blocks: [
-        { label: 'Subject', word: 'Our senior engineer', color: 'indigo', explanation: 'Chủ thể', roleHint: 'Chủ ngữ' },
-        { label: 'Action', word: 'is debugging the queries', color: 'emerald', explanation: 'Hành động hiện tại', roleHint: 'Vị ngữ' },
-        { label: 'Prep: IN (Inside)', word: 'in the primary database', color: 'amber', explanation: 'Bên trong cơ sở dữ liệu', roleHint: 'IN cho không gian 3D/hệ thống' },
-        { label: 'Prep: ON (Surface)', word: 'on his dual-monitor setup', color: 'rose', explanation: 'Trên màn hình thiết bị', roleHint: 'ON cho bề mặt/thiết bị' },
-        { label: 'Prep: AT (Point)', word: 'at the central tech hub.', color: 'sky', explanation: 'Tại trụ sở chính', roleHint: 'AT cho địa điểm cụ thể' },
+        { label: 'Subject', word: 'Our senior engineer', color: 'indigo', explanation: 'Chủ thể', roleHint: 'Chủ ngữ', detail: 'Chủ thể. Trong câu này, "Our senior engineer" là khối Subject (Chủ ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Action', word: 'is debugging the queries', color: 'emerald', explanation: 'Hành động hiện tại', roleHint: 'Vị ngữ', detail: 'Hành động hiện tại. Trong câu này, "is debugging the queries" là khối Action (Vị ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: IN (Inside)', word: 'in the primary database', color: 'amber', explanation: 'Bên trong cơ sở dữ liệu', roleHint: 'IN cho không gian 3D/hệ thống', detail: 'Bên trong cơ sở dữ liệu. Trong câu này, "in the primary database" là khối Prep: IN (Inside) (IN cho không gian 3D/hệ thống) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: ON (Surface)', word: 'on his dual-monitor setup', color: 'rose', explanation: 'Trên màn hình thiết bị', roleHint: 'ON cho bề mặt/thiết bị', detail: 'Trên màn hình thiết bị. Trong câu này, "on his dual-monitor setup" là khối Prep: ON (Surface) (ON cho bề mặt/thiết bị) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: AT (Point)', word: 'at the central tech hub.', color: 'sky', explanation: 'Tại trụ sở chính', roleHint: 'AT cho địa điểm cụ thể', detail: 'Tại trụ sở chính. Trong câu này, "at the central tech hub." là khối Prep: AT (Point) (AT cho địa điểm cụ thể) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'Our senior engineer is debugging the queries in the primary database on his dual-monitor setup at the central tech hub.',
       translation: 'Kỹ sư cao cấp của chúng tôi đang gỡ lỗi các truy vấn trong cơ sở dữ liệu chính trên hệ thống hai màn hình tại trung tâm công nghệ.',
@@ -2182,11 +2182,11 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     legoExample: {
       formulaPattern: '[Subject] + [Action Verb] + [Object] + [Prep: Into/Onto/Through] + [Destination]',
       blocks: [
-        { label: 'Subject', word: 'The CI/CD pipeline', color: 'indigo', explanation: 'Hệ thống tự động', roleHint: 'Chủ ngữ' },
-        { label: 'Action', word: 'streams the compiled assets', color: 'emerald', explanation: 'Chuyển dữ liệu', roleHint: 'Động từ chính' },
-        { label: 'Prep: THROUGH', word: 'through the security scanner', color: 'amber', explanation: 'Xuyên qua cổng quét', roleHint: 'Through: đi xuyên qua' },
-        { label: 'Prep: INTO', word: 'into the container registry', color: 'rose', explanation: 'Vào hẳn bên trong', roleHint: 'Into: chuyển vào trong' },
-        { label: 'Prep: ONTO', word: 'onto cloud edge nodes.', color: 'sky', explanation: 'Đáp lên bề mặt các node', roleHint: 'Onto: đáp lên bề mặt' },
+        { label: 'Subject', word: 'The CI/CD pipeline', color: 'indigo', explanation: 'Hệ thống tự động', roleHint: 'Chủ ngữ', detail: 'Hệ thống tự động. Trong câu này, "The CI/CD pipeline" là khối Subject (Chủ ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Action', word: 'streams the compiled assets', color: 'emerald', explanation: 'Chuyển dữ liệu', roleHint: 'Động từ chính', detail: 'Chuyển dữ liệu. Trong câu này, "streams the compiled assets" là khối Action (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: THROUGH', word: 'through the security scanner', color: 'amber', explanation: 'Xuyên qua cổng quét', roleHint: 'Through: đi xuyên qua', detail: 'Xuyên qua cổng quét. Trong câu này, "through the security scanner" là khối Prep: THROUGH (Through: đi xuyên qua) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: INTO', word: 'into the container registry', color: 'rose', explanation: 'Vào hẳn bên trong', roleHint: 'Into: chuyển vào trong', detail: 'Vào hẳn bên trong. Trong câu này, "into the container registry" là khối Prep: INTO (Into: chuyển vào trong) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: ONTO', word: 'onto cloud edge nodes.', color: 'sky', explanation: 'Đáp lên bề mặt các node', roleHint: 'Onto: đáp lên bề mặt', detail: 'Đáp lên bề mặt các node. Trong câu này, "onto cloud edge nodes." là khối Prep: ONTO (Onto: đáp lên bề mặt) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'The CI/CD pipeline streams the compiled assets through the security scanner into the container registry onto cloud edge nodes.',
       translation: 'Đường ống CI/CD truyền các tệp biên dịch xuyên qua bộ quét bảo mật vào trong kho lưu trữ container rồi đẩy lên các nút biên đám mây.',
@@ -2342,10 +2342,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
       // thành slot [Connector] riêng.
       formulaPattern: '[Task Action] + [Prep: BY + Deadline] + [Connector + Continuous Action] + [Prep: UNTIL + End Point]',
       blocks: [
-        { label: 'Requirement', word: 'You must submit the pull request', color: 'indigo', explanation: 'Yêu cầu công việc', roleHint: 'Mệnh đề chính' },
-        { label: 'Deadline (BY)', word: 'by 5:00 PM today,', color: 'rose', explanation: 'Hạn chót cuối cùng', roleHint: 'BY: chậm nhất là' },
-        { label: 'Continuous', word: 'because the staging server will run', color: 'emerald', explanation: 'Hành động duy trì liên tục', roleHint: 'Hành động tiếp diễn' },
-        { label: 'Duration (UNTIL)', word: 'until midnight for regression tests.', color: 'sky', explanation: 'Duy trì tới tận mốc đó', roleHint: 'UNTIL: kéo dài cho tới' },
+        { label: 'Requirement', word: 'You must submit the pull request', color: 'indigo', explanation: 'Yêu cầu công việc', roleHint: 'Mệnh đề chính', detail: 'Yêu cầu công việc. Trong câu này, "You must submit the pull request" là khối Requirement (Mệnh đề chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Deadline (BY)', word: 'by 5:00 PM today,', color: 'rose', explanation: 'Hạn chót cuối cùng', roleHint: 'BY: chậm nhất là', detail: 'Hạn chót cuối cùng. Trong câu này, "by 5:00 PM today" là khối Deadline (BY) (BY: chậm nhất là) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Continuous', word: 'because the staging server will run', color: 'emerald', explanation: 'Hành động duy trì liên tục', roleHint: 'Hành động tiếp diễn', detail: 'Hành động duy trì liên tục. Trong câu này, "because the staging server will run" là khối Continuous (Hành động tiếp diễn) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Duration (UNTIL)', word: 'until midnight for regression tests.', color: 'sky', explanation: 'Duy trì tới tận mốc đó', roleHint: 'UNTIL: kéo dài cho tới', detail: 'Duy trì tới tận mốc đó. Trong câu này, "until midnight for regression tests." là khối Duration (UNTIL) (UNTIL: kéo dài cho tới) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'You must submit the pull request by 5:00 PM today, because the staging server will run until midnight for regression tests.',
       translation: 'Bạn phải nộp pull request trước hoặc chậm nhất là 5:00 chiều nay, vì máy chủ staging sẽ chạy liên tục tới nửa đêm để kiểm thử hồi quy.',
@@ -2506,11 +2506,11 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
       // Khớp 1-1 với 5 khối: "and is" nằm chung khối "Adj + Prep".
       formulaPattern: '[Subject] + [Verb + Prep] + [Object] + [Connector + Adj + Prep] + [Complement]',
       blocks: [
-        { label: 'Subject', word: 'Our microservice architecture', color: 'indigo', explanation: 'Hệ thống công nghệ', roleHint: 'Chủ ngữ' },
-        { label: 'Verb + Prep', word: 'relies heavily on', color: 'emerald', explanation: 'Phụ thuộc nhiều vào (rely on)', roleHint: 'Cụm Động từ + Giới từ cố định' },
-        { label: 'Object', word: 'Redis distributed cache', color: 'amber', explanation: 'Bộ nhớ tạm Redis', roleHint: 'Tân ngữ' },
-        { label: 'Adj + Prep', word: 'and is compatible with', color: 'rose', explanation: 'Và tương thích với (compatible with)', roleHint: 'Cụm Tính từ + Giới từ cố định' },
-        { label: 'Context', word: 'all major cloud providers.', color: 'sky', explanation: 'Các nhà cung cấp đám mây', roleHint: 'Bổ ngữ mở rộng' },
+        { label: 'Subject', word: 'Our microservice architecture', color: 'indigo', explanation: 'Hệ thống công nghệ', roleHint: 'Chủ ngữ', detail: 'Hệ thống công nghệ. Trong câu này, "Our microservice architecture" là khối Subject (Chủ ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Verb + Prep', word: 'relies heavily on', color: 'emerald', explanation: 'Phụ thuộc nhiều vào (rely on)', roleHint: 'Cụm Động từ + Giới từ cố định', detail: 'Phụ thuộc nhiều vào (rely on). Trong câu này, "relies heavily on" là khối Verb + Prep (Cụm Động từ + Giới từ cố định) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Object', word: 'Redis distributed cache', color: 'amber', explanation: 'Bộ nhớ tạm Redis', roleHint: 'Tân ngữ', detail: 'Bộ nhớ tạm Redis. Trong câu này, "Redis distributed cache" là khối Object (Tân ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Adj + Prep', word: 'and is compatible with', color: 'rose', explanation: 'Và tương thích với (compatible with)', roleHint: 'Cụm Tính từ + Giới từ cố định', detail: 'Và tương thích với (compatible with). Trong câu này, "and is compatible with" là khối Adj + Prep (Cụm Tính từ + Giới từ cố định) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Context', word: 'all major cloud providers.', color: 'sky', explanation: 'Các nhà cung cấp đám mây', roleHint: 'Bổ ngữ mở rộng', detail: 'Các nhà cung cấp đám mây. Trong câu này, "all major cloud providers." là khối Context (Bổ ngữ mở rộng) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'Our microservice architecture relies heavily on Redis distributed cache and is compatible with all major cloud providers.',
       translation: 'Kiến trúc microservice của chúng tôi phụ thuộc rất lớn vào bộ nhớ đệm phân tán Redis và tương thích hoàn toàn với tất cả nhà cung cấp đám mây lớn.',
@@ -2663,10 +2663,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     legoExample: {
       formulaPattern: '[Component A] + [Verb] + [Between + X and Y] + [Prep: Above/Below + Z]',
       blocks: [
-        { label: 'Component A', word: 'The API Gateway sits', color: 'indigo', explanation: 'Thành phần hệ thống', roleHint: 'Chủ ngữ + Động từ vị trí' },
-        { label: 'Prep: BETWEEN', word: 'between the client applications', color: 'emerald', explanation: 'Nằm giữa 2 đối tượng', roleHint: 'Between: giữa 2 đối tượng' },
-        { label: 'Connector & Obj', word: 'and the backend microservices,', color: 'amber', explanation: 'Đối tượng thứ hai', roleHint: 'Vế liên kết đối tượng' },
-        { label: 'Prep: ABOVE', word: 'directly above the data tier.', color: 'rose', explanation: 'Cao hơn một tầng', roleHint: 'Above: tầng cao hơn' },
+        { label: 'Component A', word: 'The API Gateway sits', color: 'indigo', explanation: 'Thành phần hệ thống', roleHint: 'Chủ ngữ + Động từ vị trí', detail: 'Thành phần hệ thống. Trong câu này, "The API Gateway sits" là khối Component A (Chủ ngữ + Động từ vị trí) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: BETWEEN', word: 'between the client applications', color: 'emerald', explanation: 'Nằm giữa 2 đối tượng', roleHint: 'Between: giữa 2 đối tượng', detail: 'Nằm giữa 2 đối tượng. Trong câu này, "between the client applications" là khối Prep: BETWEEN (Between: giữa 2 đối tượng) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Connector & Obj', word: 'and the backend microservices,', color: 'amber', explanation: 'Đối tượng thứ hai', roleHint: 'Vế liên kết đối tượng', detail: 'Đối tượng thứ hai. Trong câu này, "and the backend microservices" là khối Connector & Obj (Vế liên kết đối tượng) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Prep: ABOVE', word: 'directly above the data tier.', color: 'rose', explanation: 'Cao hơn một tầng', roleHint: 'Above: tầng cao hơn', detail: 'Cao hơn một tầng. Trong câu này, "directly above the data tier." là khối Prep: ABOVE (Above: tầng cao hơn) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'The API Gateway sits between the client applications and the backend microservices, directly above the data tier.',
       translation: 'Cổng API Gateway nằm ở giữa các ứng dụng phía máy khách và các dịch vụ microservice phía máy chủ, ngay phía trên tầng dữ liệu.',
@@ -2818,10 +2818,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🔗',
     legoExample: {
       blocks: [
-        { label: 'Premise', word: 'The initial test passed;', color: 'indigo', explanation: 'Vế tiền đề thứ nhất' },
-        { label: 'Transition Word', word: 'however,', color: 'emerald', explanation: 'Từ chuyển tiếp tương phản (kèm dấu phẩy)' },
-        { label: 'Contrast', word: 'under high concurrent load,', color: 'amber', explanation: 'Ngữ cảnh thử thách' },
-        { label: 'Consequence', word: 'latency increased exponentially.', color: 'rose', explanation: 'Kết quả tương phản' },
+        { label: 'Premise', word: 'The initial test passed;', color: 'indigo', explanation: 'Vế tiền đề thứ nhất', roleHint: 'Premise', detail: 'Vế tiền đề thứ nhất. Trong câu này, "The initial test passed;" là khối Premise (Premise) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Transition Word', word: 'however,', color: 'emerald', explanation: 'Từ chuyển tiếp tương phản (kèm dấu phẩy)', roleHint: 'Transition Word', detail: 'Từ chuyển tiếp tương phản (kèm dấu phẩy). Trong câu này, "however" là khối Transition Word (Transition Word) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Contrast', word: 'under high concurrent load,', color: 'amber', explanation: 'Ngữ cảnh thử thách', roleHint: 'Liên từ tương phản', detail: 'Ngữ cảnh thử thách. Trong câu này, "under high concurrent load" là khối Contrast (Liên từ tương phản) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Consequence', word: 'latency increased exponentially.', color: 'rose', explanation: 'Kết quả tương phản', roleHint: 'Consequence', detail: 'Kết quả tương phản. Trong câu này, "latency increased exponentially." là khối Consequence (Consequence) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'The initial test passed; however, under high concurrent load, latency increased exponentially.',
       translation: 'Kiểm thử ban đầu đã vượt qua; tuy nhiên, dưới tải đồng thời cao, độ trễ đã tăng theo cấp số nhân.',
@@ -2936,10 +2936,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '✨',
     legoExample: {
       blocks: [
-        { label: 'Recommendation', word: 'The security auditor recommended', color: 'indigo', explanation: 'Lời khuyến nghị từ chuyên gia' },
-        { label: 'Subjunctive Connector', word: 'that', color: 'emerald', explanation: 'Liên từ that' },
-        { label: 'Subject', word: 'all passwords', color: 'amber', explanation: 'Chủ ngữ giả định' },
-        { label: 'Base Verb', word: 'be encrypted with bcrypt.', color: 'rose', explanation: 'Động từ nguyên thể không chia (be encrypted)' },
+        { label: 'Recommendation', word: 'The security auditor recommended', color: 'indigo', explanation: 'Lời khuyến nghị từ chuyên gia', roleHint: 'Recommendation', detail: 'Lời khuyến nghị từ chuyên gia. Trong câu này, "The security auditor recommended" là khối Recommendation (Recommendation) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Subjunctive Connector', word: 'that', color: 'emerald', explanation: 'Liên từ that', roleHint: 'Subjunctive Connector', detail: 'Liên từ that. Trong câu này, "that" là khối Subjunctive Connector (Subjunctive Connector) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Subject', word: 'all passwords', color: 'amber', explanation: 'Chủ ngữ giả định', roleHint: 'Chủ ngữ câu', detail: 'Chủ ngữ giả định. Trong câu này, "all passwords" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Base Verb', word: 'be encrypted with bcrypt.', color: 'rose', explanation: 'Động từ nguyên thể không chia (be encrypted)', roleHint: 'Động từ chính', detail: 'Động từ nguyên thể không chia (be encrypted). Trong câu này, "be encrypted with bcrypt." là khối Base Verb (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'The security auditor recommended that all passwords be encrypted with bcrypt.',
       translation: 'Chuyên gia kiểm toán bảo mật đã khuyến nghị rằng tất cả mật khẩu phải được mã hóa bằng bcrypt.',
@@ -3048,9 +3048,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '⚙️',
     legoExample: {
       blocks: [
-        { label: 'Target Object', word: 'The critical security patch', color: 'indigo', explanation: 'Đối tượng được tác động' },
-        { label: 'Auxiliary Passive', word: 'was deployed', color: 'rose', explanation: 'Trợ động từ be + V3/ed (Quá khứ bị động)' },
-        { label: 'Agent / Time', word: 'to production at midnight by the DevOps team.', color: 'emerald', explanation: 'Thơi gian & Người thực hiện' },
+        { label: 'Target Object', word: 'The critical security patch', color: 'indigo', explanation: 'Đối tượng được tác động', roleHint: 'Tân ngữ', detail: 'Đối tượng được tác động. Trong câu này, "The critical security patch" là khối Target Object (Tân ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Auxiliary Passive', word: 'was deployed', color: 'rose', explanation: 'Trợ động từ be + V3/ed (Quá khứ bị động)', roleHint: 'Trợ động từ', detail: 'Trợ động từ be + V3/ed (Quá khứ bị động). Trong câu này, "was deployed" là khối Auxiliary Passive (Trợ động từ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Agent / Time', word: 'to production at midnight by the DevOps team.', color: 'emerald', explanation: 'Thơi gian & Người thực hiện', roleHint: 'Mệnh đề thời gian', detail: 'Thơi gian & Người thực hiện. Trong câu này, "to production at midnight by the DevOps team." là khối Agent / Time (Mệnh đề thời gian) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'The critical security patch was deployed to production at midnight by the DevOps team.',
       translation: 'Bản vá bảo mật quan trọng đã được triển khai lên môi trường sản xuất lúc nửa đêm bởi đội DevOps.',
@@ -3159,9 +3159,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '⚡',
     legoExample: {
       blocks: [
-        { label: 'Negative Adverb', word: 'Not only', color: 'rose', explanation: 'Trạng từ phủ định đứng đầu câu' },
-        { label: 'Auxiliary Verb', word: 'did we optimize', color: 'amber', explanation: 'Đảo trợ động từ lên trước chủ ngữ (did + S + V-bare)' },
-        { label: 'Target / Addition', word: 'the query, but we also reduced memory usage by 50%.', color: 'emerald', explanation: 'Mệnh đề bổ sung giá trị' },
+        { label: 'Negative Adverb', word: 'Not only', color: 'rose', explanation: 'Trạng từ phủ định đứng đầu câu', roleHint: 'Động từ chính', detail: 'Trạng từ phủ định đứng đầu câu. Trong câu này, "Not only" là khối Negative Adverb (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Auxiliary Verb', word: 'did we optimize', color: 'amber', explanation: 'Đảo trợ động từ lên trước chủ ngữ (did + S + V-bare)', roleHint: 'Động từ chính', detail: 'Đảo trợ động từ lên trước chủ ngữ (did + S + V-bare). Trong câu này, "did we optimize" là khối Auxiliary Verb (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Target / Addition', word: 'the query, but we also reduced memory usage by 50%.', color: 'emerald', explanation: 'Mệnh đề bổ sung giá trị', roleHint: 'Target / Addition', detail: 'Mệnh đề bổ sung giá trị. Trong câu này, "the query, but we also reduced memory usage by 50%." là khối Target / Addition (Target / Addition) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'Not only did we optimize the query, but we also reduced memory usage by 50%.',
       translation: 'Không những chúng tôi tối ưu hóa câu truy vấn, mà chúng tôi còn giảm 50% dung lượng bộ nhớ sử dụng.',
@@ -3276,10 +3276,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🚀',
     legoExample: {
       blocks: [
-        { label: 'Subject', word: 'Our team', color: 'indigo', explanation: 'Chủ ngữ' },
-        { label: 'Fixed Plan', word: 'is deploying', color: 'emerald', explanation: 'Hiện tại tiếp diễn: Lịch cố định đã chốt' },
-        { label: 'Object', word: 'the v2.0 release', color: 'rose', explanation: 'Tân ngữ' },
-        { label: 'Time marker', word: 'this Friday at 10 PM', color: 'sky', explanation: 'Mốc thời gian cụ thể trong tương lai' },
+        { label: 'Subject', word: 'Our team', color: 'indigo', explanation: 'Chủ ngữ', roleHint: 'Chủ ngữ câu', detail: 'Chủ ngữ. Trong câu này, "Our team" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Fixed Plan', word: 'is deploying', color: 'emerald', explanation: 'Hiện tại tiếp diễn: Lịch cố định đã chốt', roleHint: 'Fixed Plan', detail: 'Hiện tại tiếp diễn: Lịch cố định đã chốt. Trong câu này, "is deploying" là khối Fixed Plan (Fixed Plan) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Object', word: 'the v2.0 release', color: 'rose', explanation: 'Tân ngữ', roleHint: 'Tân ngữ', detail: 'Tân ngữ. Trong câu này, "the v2.0 release" là khối Object (Tân ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Time marker', word: 'this Friday at 10 PM', color: 'sky', explanation: 'Mốc thời gian cụ thể trong tương lai', roleHint: 'Mệnh đề thời gian', detail: 'Mốc thời gian cụ thể trong tương lai. Trong câu này, "this Friday at 10 PM" là khối Time marker (Mệnh đề thời gian) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'Our team is deploying the v2.0 release this Friday at 10 PM.',
       translation: 'Nhóm chúng tôi sẽ triển khai bản phát hành v2.0 vào thứ Sáu tuần này lúc 10 giờ tối.',
@@ -3388,10 +3388,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '⏮️',
     legoExample: {
       blocks: [
-        { label: 'Subject', word: 'We', color: 'indigo', explanation: 'Chủ ngữ' },
-        { label: 'Auxiliary', word: 'have already', color: 'emerald', explanation: 'Trợ động từ + Trạng từ hoàn tất' },
-        { label: 'Past Participle', word: 'resolved', color: 'rose', explanation: 'Động từ V3/ed' },
-        { label: 'Result Object', word: 'the critical memory leak', color: 'sky', explanation: 'Kết quả hiện tại máy chủ đã chạy mượt' },
+        { label: 'Subject', word: 'We', color: 'indigo', explanation: 'Chủ ngữ', roleHint: 'Chủ ngữ câu', detail: 'Chủ ngữ. Trong câu này, "We" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Auxiliary', word: 'have already', color: 'emerald', explanation: 'Trợ động từ + Trạng từ hoàn tất', roleHint: 'Trợ động từ', detail: 'Trợ động từ + Trạng từ hoàn tất. Trong câu này, "have already" là khối Auxiliary (Trợ động từ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Past Participle', word: 'resolved', color: 'rose', explanation: 'Động từ V3/ed', roleHint: 'Phân từ', detail: 'Động từ V3/ed. Trong câu này, "resolved" là khối Past Participle (Phân từ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Result Object', word: 'the critical memory leak', color: 'sky', explanation: 'Kết quả hiện tại máy chủ đã chạy mượt', roleHint: 'Tân ngữ', detail: 'Kết quả hiện tại máy chủ đã chạy mượt. Trong câu này, "the critical memory leak" là khối Result Object (Tân ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'We have already resolved the critical memory leak.',
       translation: 'Chúng tôi đã giải quyết xong sự cố rò rỉ bộ nhớ nghiêm trọng (và hiện tại hệ thống đã ổn).',
@@ -3506,10 +3506,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🔄',
     legoExample: {
       blocks: [
-        { label: 'Subject', word: 'I', color: 'indigo', explanation: 'Chủ ngữ' },
-        { label: 'Habit Marker', word: 'am used to', color: 'emerald', explanation: 'Đã quen thuộc (Be used to)' },
-        { label: 'Gerund Action', word: 'reviewing code', color: 'rose', explanation: 'Động từ V-ing' },
-        { label: 'Context', word: 'across multiple time zones', color: 'sky', explanation: 'Bối cảnh làm việc từ xa quốc tế' },
+        { label: 'Subject', word: 'I', color: 'indigo', explanation: 'Chủ ngữ', roleHint: 'Chủ ngữ câu', detail: 'Chủ ngữ. Trong câu này, "I" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Habit Marker', word: 'am used to', color: 'emerald', explanation: 'Đã quen thuộc (Be used to)', roleHint: 'Habit Marker', detail: 'Đã quen thuộc (Be used to). Trong câu này, "am used to" là khối Habit Marker (Habit Marker) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Gerund Action', word: 'reviewing code', color: 'rose', explanation: 'Động từ V-ing', roleHint: 'Hành động', detail: 'Động từ V-ing. Trong câu này, "reviewing code" là khối Gerund Action (Hành động) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Context', word: 'across multiple time zones', color: 'sky', explanation: 'Bối cảnh làm việc từ xa quốc tế', roleHint: 'Context', detail: 'Bối cảnh làm việc từ xa quốc tế. Trong câu này, "across multiple time zones" là khối Context (Context) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'I am used to reviewing code across multiple time zones.',
       translation: 'Tôi đã quen với việc thẩm định code xuyên các múi giờ khác nhau.',
@@ -3617,9 +3617,9 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '❓',
     legoExample: {
       blocks: [
-        { label: 'Statement (+)', word: 'The payment service', color: 'indigo', explanation: 'Chủ ngữ vế khẳng định' },
-        { label: 'Positive Verb', word: 'is running smoothly', color: 'emerald', explanation: 'Động từ khẳng định' },
-        { label: 'Comma', word: ',', color: 'amber', explanation: 'Dấu phẩy ngăn cách' },
+        { label: 'Statement (+)', word: 'The payment service', color: 'indigo', explanation: 'Chủ ngữ vế khẳng định', roleHint: 'Statement (+)', detail: 'Chủ ngữ vế khẳng định. Trong câu này, "The payment service" là khối Statement (+) (Statement (+)) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Positive Verb', word: 'is running smoothly', color: 'emerald', explanation: 'Động từ khẳng định', roleHint: 'Động từ chính', detail: 'Động từ khẳng định. Trong câu này, "is running smoothly" là khối Positive Verb (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Comma', word: ',', color: 'amber', explanation: 'Dấu phẩy ngăn cách', roleHint: 'Comma', detail: 'Dấu phẩy ngăn cách. Trong câu này, "" là khối Comma (Comma) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
         { label: 'Tag Question (-)', word: 'isn\'t it?', color: 'rose', explanation: 'Trợ động từ phủ định + Đại từ' },
       ],
       fullSentence: 'The payment service is running smoothly, isn\'t it?',
@@ -3746,11 +3746,11 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🤝',
     legoExample: {
       blocks: [
-        { label: 'Subject', word: 'The CTO', color: 'indigo', explanation: 'Người uỷ quyền' },
-        { label: 'Causative Verb', word: 'had', color: 'emerald', explanation: 'Động từ sai khiến (Have)' },
-        { label: 'Agent', word: 'the security auditor', color: 'amber', explanation: 'Người thực hiện' },
-        { label: 'Bare Verb', word: 'inspect', color: 'rose', explanation: 'Động từ nguyên mẫu không "to"' },
-        { label: 'Target', word: 'our cloud architecture', color: 'sky', explanation: 'Đối tượng được kiểm tra' },
+        { label: 'Subject', word: 'The CTO', color: 'indigo', explanation: 'Người uỷ quyền', roleHint: 'Chủ ngữ câu', detail: 'Người uỷ quyền. Trong câu này, "The CTO" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Causative Verb', word: 'had', color: 'emerald', explanation: 'Động từ sai khiến (Have)', roleHint: 'Động từ chính', detail: 'Động từ sai khiến (Have). Trong câu này, "had" là khối Causative Verb (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Agent', word: 'the security auditor', color: 'amber', explanation: 'Người thực hiện', roleHint: 'Agent', detail: 'Người thực hiện. Trong câu này, "the security auditor" là khối Agent (Agent) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Bare Verb', word: 'inspect', color: 'rose', explanation: 'Động từ nguyên mẫu không "to"', roleHint: 'Động từ chính', detail: 'Động từ nguyên mẫu không "to". Trong câu này, "inspect" là khối Bare Verb (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Target', word: 'our cloud architecture', color: 'sky', explanation: 'Đối tượng được kiểm tra', roleHint: 'Target', detail: 'Đối tượng được kiểm tra. Trong câu này, "our cloud architecture" là khối Target (Target) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'The CTO had the security auditor inspect our cloud architecture.',
       translation: 'Giám đốc Công nghệ đã yêu cầu chuyên gia kiểm toán bảo mật kiểm tra kiến trúc đám mây của chúng tôi.',
@@ -3858,10 +3858,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🔍',
     legoExample: {
       blocks: [
-        { label: 'Subject', word: 'The authentication server', color: 'indigo', explanation: 'Đối tượng được phỏng đoán' },
-        { label: 'Deduction Modal', word: 'must have run out of', color: 'rose', explanation: 'Khẳng định chắc chắn 99% trong quá khứ' },
-        { label: 'Resource', word: 'database connection pool slots', color: 'amber', explanation: 'Tài nguyên cạn kiệt' },
-        { label: 'Evidence', word: 'during the flash sale spike', color: 'sky', explanation: 'Bằng chứng thực tế' },
+        { label: 'Subject', word: 'The authentication server', color: 'indigo', explanation: 'Đối tượng được phỏng đoán', roleHint: 'Chủ ngữ câu', detail: 'Đối tượng được phỏng đoán. Trong câu này, "The authentication server" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Deduction Modal', word: 'must have run out of', color: 'rose', explanation: 'Khẳng định chắc chắn 99% trong quá khứ', roleHint: 'Động từ khuyết thiếu', detail: 'Khẳng định chắc chắn 99% trong quá khứ. Trong câu này, "must have run out of" là khối Deduction Modal (Động từ khuyết thiếu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Resource', word: 'database connection pool slots', color: 'amber', explanation: 'Tài nguyên cạn kiệt', roleHint: 'Resource', detail: 'Tài nguyên cạn kiệt. Trong câu này, "database connection pool slots" là khối Resource (Resource) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Evidence', word: 'during the flash sale spike', color: 'sky', explanation: 'Bằng chứng thực tế', roleHint: 'Evidence', detail: 'Bằng chứng thực tế. Trong câu này, "during the flash sale spike" là khối Evidence (Evidence) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'The authentication server must have run out of database connection pool slots during the flash sale spike.',
       translation: 'Máy chủ xác thực chắc chắn là đã cạn kiệt số lượng kết nối cơ sở dữ liệu trong đợt tăng đột biến flash sale.',
@@ -3969,10 +3969,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '🌪️',
     legoExample: {
       blocks: [
-        { label: 'Past Condition (Type 3)', word: 'If we had configured automated backups', color: 'indigo', explanation: 'Điều kiện giả định trái quá khứ (Had + V3)' },
-        { label: 'Comma', word: ',', color: 'amber', explanation: 'Dấu ngăn cách' },
-        { label: 'Present Result (Type 2)', word: 'we would not be manually restoring data', color: 'rose', explanation: 'Hệ quả trái hiện tại (Would be + V-ing)' },
-        { label: 'Context', word: 'right now', color: 'sky', explanation: 'Mốc thời gian ngay bây giờ' },
+        { label: 'Past Condition (Type 3)', word: 'If we had configured automated backups', color: 'indigo', explanation: 'Điều kiện giả định trái quá khứ (Had + V3)', roleHint: 'Mệnh đề điều kiện', detail: 'Điều kiện giả định trái quá khứ (Had + V3). Trong câu này, "If we had configured automated backups" là khối Past Condition (Type 3) (Mệnh đề điều kiện) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Comma', word: ',', color: 'amber', explanation: 'Dấu ngăn cách', roleHint: 'Comma', detail: 'Dấu ngăn cách. Trong câu này, "" là khối Comma (Comma) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Present Result (Type 2)', word: 'we would not be manually restoring data', color: 'rose', explanation: 'Hệ quả trái hiện tại (Would be + V-ing)', roleHint: 'Mệnh đề kết quả', detail: 'Hệ quả trái hiện tại (Would be + V-ing). Trong câu này, "we would not be manually restoring data" là khối Present Result (Type 2) (Mệnh đề kết quả) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Context', word: 'right now', color: 'sky', explanation: 'Mốc thời gian ngay bây giờ', roleHint: 'Context', detail: 'Mốc thời gian ngay bây giờ. Trong câu này, "right now" là khối Context (Context) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'If we had configured automated backups, we would not be manually restoring data right now.',
       translation: 'Nếu trước đây chúng ta cấu hình sao lưu tự động, thì ngay lúc này chúng ta đã không phải khôi phục dữ liệu bằng tay.',
@@ -4093,10 +4093,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '✂️',
     legoExample: {
       blocks: [
-        { label: 'Core Subject', word: 'The microservice', color: 'indigo', explanation: 'Danh từ chính' },
-        { label: 'Reduced Active Clause', word: 'handling user authentication', color: 'emerald', explanation: 'Rút gọn từ "which handles" -> V-ing' },
-        { label: 'Main Verb', word: 'scales', color: 'rose', explanation: 'Động từ chính của câu' },
-        { label: 'Adverbial Context', word: 'automatically on Kubernetes', color: 'sky', explanation: 'Trạng từ bổ nghĩa' },
+        { label: 'Core Subject', word: 'The microservice', color: 'indigo', explanation: 'Danh từ chính', roleHint: 'Chủ ngữ câu', detail: 'Danh từ chính. Trong câu này, "The microservice" là khối Core Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Reduced Active Clause', word: 'handling user authentication', color: 'emerald', explanation: 'Rút gọn từ "which handles" -> V-ing', roleHint: 'Reduced Active Clause', detail: 'Rút gọn từ "which handles" -> V-ing. Trong câu này, "handling user authentication" là khối Reduced Active Clause (Reduced Active Clause) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Main Verb', word: 'scales', color: 'rose', explanation: 'Động từ chính của câu', roleHint: 'Động từ chính', detail: 'Động từ chính của câu. Trong câu này, "scales" là khối Main Verb (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Adverbial Context', word: 'automatically on Kubernetes', color: 'sky', explanation: 'Trạng từ bổ nghĩa', roleHint: 'Động từ chính', detail: 'Trạng từ bổ nghĩa. Trong câu này, "automatically on Kubernetes" là khối Adverbial Context (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'The microservice handling user authentication scales automatically on Kubernetes.',
       translation: 'Dịch vụ vi mô xử lý xác thực người dùng tự động co giãn linh hoạt trên nền tảng Kubernetes.',
@@ -4204,10 +4204,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '📊',
     legoExample: {
       blocks: [
-        { label: 'Quantifier', word: 'A few', color: 'indigo', explanation: 'Một vài (mang ý nghĩa tích cực, có đủ dùng)' },
-        { label: 'Countable Noun', word: 'critical bugs', color: 'rose', explanation: 'Danh từ đếm được số nhiều' },
-        { label: 'Verb Phrase', word: 'were identified and resolved', color: 'emerald', explanation: 'Động từ bị động' },
-        { label: 'Milestone', word: 'before the staging freeze', color: 'sky', explanation: 'Mốc thời gian đóng băng code' },
+        { label: 'Quantifier', word: 'A few', color: 'indigo', explanation: 'Một vài (mang ý nghĩa tích cực, có đủ dùng)', roleHint: 'Quantifier', detail: 'Một vài (mang ý nghĩa tích cực, có đủ dùng). Trong câu này, "A few" là khối Quantifier (Quantifier) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Countable Noun', word: 'critical bugs', color: 'rose', explanation: 'Danh từ đếm được số nhiều', roleHint: 'Danh từ', detail: 'Danh từ đếm được số nhiều. Trong câu này, "critical bugs" là khối Countable Noun (Danh từ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Verb Phrase', word: 'were identified and resolved', color: 'emerald', explanation: 'Động từ bị động', roleHint: 'Động từ chính', detail: 'Động từ bị động. Trong câu này, "were identified and resolved" là khối Verb Phrase (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Milestone', word: 'before the staging freeze', color: 'sky', explanation: 'Mốc thời gian đóng băng code', roleHint: 'Milestone', detail: 'Mốc thời gian đóng băng code. Trong câu này, "before the staging freeze" là khối Milestone (Milestone) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'A few critical bugs were identified and resolved before the staging freeze.',
       translation: 'Một vài lỗi nghiêm trọng đã được phát hiện và xử lý xong trước khi đóng băng môi trường staging.',
@@ -4315,10 +4315,10 @@ export const GRAMMAR_LESSONS: GrammarLesson[] = [
     icon: '⚡',
     legoExample: {
       blocks: [
-        { label: 'Subject', word: 'I', color: 'indigo', explanation: 'Chủ ngữ' },
-        { label: 'Phrasal Verb', word: 'will look into', color: 'emerald', explanation: 'Cụm động từ: Điều tra / Tìm hiểu kỹ' },
-        { label: 'Object', word: 'the payment webhook failure', color: 'rose', explanation: 'Tân ngữ: Sự cố webhook thanh toán' },
-        { label: 'Action Promise', word: 'and report back by noon', color: 'sky', explanation: 'Cam kết hành động trước buổi trưa' },
+        { label: 'Subject', word: 'I', color: 'indigo', explanation: 'Chủ ngữ', roleHint: 'Chủ ngữ câu', detail: 'Chủ ngữ. Trong câu này, "I" là khối Subject (Chủ ngữ câu) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Phrasal Verb', word: 'will look into', color: 'emerald', explanation: 'Cụm động từ: Điều tra / Tìm hiểu kỹ', roleHint: 'Động từ chính', detail: 'Cụm động từ: Điều tra / Tìm hiểu kỹ. Trong câu này, "will look into" là khối Phrasal Verb (Động từ chính) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Object', word: 'the payment webhook failure', color: 'rose', explanation: 'Tân ngữ: Sự cố webhook thanh toán', roleHint: 'Tân ngữ', detail: 'Tân ngữ: Sự cố webhook thanh toán. Trong câu này, "the payment webhook failure" là khối Object (Tân ngữ) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
+        { label: 'Action Promise', word: 'and report back by noon', color: 'sky', explanation: 'Cam kết hành động trước buổi trưa', roleHint: 'Hành động', detail: 'Cam kết hành động trước buổi trưa. Trong câu này, "and report back by noon" là khối Action Promise (Hành động) — cần xác định đúng vai trò này trước khi chia động từ/chọn thì. Gợi ý: đối chiếu với công thức tổng của bài để xem khối này đứng ở vị trí nào và ảnh hưởng đến phần còn lại của câu.' },
       ],
       fullSentence: 'I will look into the payment webhook failure and report back by noon.',
       translation: 'Tôi sẽ tìm hiểu kỹ nguyên nhân lỗi webhook thanh toán và báo cáo lại trước buổi trưa.',
