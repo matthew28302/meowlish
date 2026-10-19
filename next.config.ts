@@ -108,6 +108,21 @@ const nextConfig: NextConfig = {
         source: '/api/:path*',
         headers: [{ key: 'Cache-Control', value: 'private, no-store, max-age=0' }],
       },
+      // Ảnh GIF trong email transactional. Hai file này KHÔNG chứa dữ liệu
+      // người dùng, nên khác với phần còn lại của site:
+      //  - CORP same-origin (rule toàn cục) làm trình duyệt chặn ảnh khi webmail
+      //    nhúng trực tiếp URL của mình (client không proxy ảnh). Đổi thành
+      //    cross-origin để email hiển thị được ở mọi client.
+      //  - Cache-Control private/no-store khiến mỗi lần mở email lại tải lại
+      //    446–686KB. URL ảnh đã có `?v=` (tăng khi đổi nội dung) nên cache
+      //    public dài hạn là an toàn.
+      ...['/Dance-cat.gif', '/cat-forgot.gif'].map((source) => ({
+        source,
+        headers: [
+          { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      })),
     ];
   },
 };
