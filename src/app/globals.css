@@ -180,6 +180,20 @@ body {
   box-shadow: none;
 }
 
+/* Brand glow animation - subtle pulse for the logo container */
+@keyframes brand-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.15), 0 0 40px rgba(16, 185, 129, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.25), 0 0 60px rgba(16, 185, 129, 0.1);
+  }
+}
+
+.brand-glow {
+  animation: brand-glow 3s ease-in-out infinite;
+}
+
 /* Playful Card Containers */
 .card-playful {
   background-color: #ffffff;

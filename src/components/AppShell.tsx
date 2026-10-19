@@ -364,9 +364,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className="fixed inset-0 z-50 bg-[#0f172a] flex flex-col items-center justify-center p-4 select-none">
         <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center animate-bounce mb-3 shadow-xl shadow-emerald-500/10">
           {/* Linh vật brand: GIF pixel của khách (avatar trống → mèo mặc định) */}
-          <UserAvatar avatar={null} format="gif" size={48} alt="Linh vật Meowlish" />
+          <UserAvatar avatar={null} format="gif" size={56} alt="Linh vật Meowlish" />
         </div>
-        <div className="text-white font-black text-lg tracking-wide flex items-center gap-2">
+        <div className="text-white font-black text-xl tracking-wide flex items-center gap-2">
           <span>Meowlish</span>
           <span className="text-emerald-400 text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 font-bold">English</span>
         </div>
@@ -498,13 +498,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         data-testid="desktop-sidebar"
         data-compact={sidebarCompact ? 'true' : 'false'}
         className={`hidden lg:flex flex-col fixed inset-y-0 left-0 z-40 bg-white dark:bg-slate-900 border-r-2 border-slate-100 dark:border-white/10 shadow-xs select-none transition-[width] duration-300 ease-in-out ${
-          sidebarCompact ? 'w-[76px]' : 'w-64'
+          sidebarCompact ? 'w-[88px]' : 'w-72'
         }`}
       >
         {/* Logo Brand — khung GIF pixel + wordmark "Meowlish" (trở lại theo yêu
             cầu: trước đây chỉ icon; khung gradient giữ nguyên, GIF trong suốt nổi trên nền).
             Khi GỌN: logo căn giữa, wordmark ẩn, nút toggle xuống dưới logo. */}
-        <div className={`border-b border-slate-100 dark:border-white/10 shrink-0 ${sidebarCompact ? 'px-3 py-4' : 'p-5'}`}>
+        <div className={`border-b border-slate-100 dark:border-white/10 shrink-0 ${sidebarCompact ? 'px-2 py-4' : 'p-5'}`}>
           <div className={sidebarCompact ? 'flex flex-col items-center gap-3' : 'flex items-center justify-between gap-2'}>
             <Link
               href="/"
@@ -512,13 +512,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               title="Về trang chủ Meowlish"
               className="flex items-center gap-2.5 group min-w-0"
             >
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform shrink-0">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-400/30 group-hover:scale-105 transition-transform shrink-0 brand-glow">
                 {/* GIF TƯƠNG ỨNG avatar user đã chọn (kèm chữ Meowlish bên cạnh).
                     Guest — chưa có avatar — hiện Linh Vật mặc định (cat). */}
-                <UserAvatar avatar={currentUser?.avatar} format="gif" size={32} alt="Linh vật Meowlish" />
+                <UserAvatar avatar={currentUser?.avatar} format="gif" size={48} alt="Linh vật Meowlish" />
               </div>
               {!sidebarCompact && (
-                <span className="text-base font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
+                <span className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
                   Meowlish
                 </span>
               )}
@@ -579,7 +579,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         }
                       }}
                       className={`flex items-center rounded-2xl text-xs font-bold transition-all cursor-pointer border-b-2 border-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${
-                        sidebarCompact ? 'justify-center px-0 py-3' : 'justify-between px-3.5 py-3'
+                        sidebarCompact ? 'justify-center px-0 py-3.5' : 'justify-between px-3.5 py-3.5'
                       } ${
                         isActive
                           ? 'nav-link-active font-black shadow-md shadow-emerald-500/25 border-b-4'
@@ -587,7 +587,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       }`}
                     >
                       <div className={`flex items-center ${sidebarCompact ? '' : 'gap-3'}`}>
-                        <Icon className={`w-4 h-4 nav-icon ${isActive ? 'text-white' : ''}`} />
+                        <Icon className={`w-[18px] h-[18px] nav-icon ${isActive ? 'text-white' : ''}`} />
                         {!sidebarCompact && <span>{item.label}</span>}
                       </div>
                       {!sidebarCompact && item.badge && (
@@ -622,8 +622,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             }`}
           >
             <div className={`flex items-center min-w-0 ${sidebarCompact ? '' : 'gap-2.5'}`}>
-              <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-lg shrink-0">
-                <UserAvatar avatar={currentUser?.avatar} size={36} />
+              <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-lg shrink-0">
+                <UserAvatar avatar={currentUser?.avatar} size={44} />
               </div>
               {!sidebarCompact && (
                 <div className="min-w-0">
@@ -647,7 +647,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* 2. MAIN CONTENT STAGE (Offset on desktop for the sidebar — đổi theo
           trạng thái gọn/mở với cùng nhịp transition 300ms để không giật). */}
       <div className={`flex-1 flex flex-col min-w-0 h-dvh overflow-hidden transition-[padding-left] duration-300 ease-in-out ${
-        sidebarCompact ? 'lg:pl-[76px]' : 'lg:pl-64'
+        sidebarCompact ? 'lg:pl-[88px]' : 'lg:pl-72'
       }`}>
         {/* Top Status Header (Single Minimal Row with Zero Clutter) */}
         <header className="shrink-0 z-30 bg-white dark:bg-slate-900 lg:bg-white/90 lg:dark:bg-slate-900/90 lg:backdrop-blur-md border-b border-slate-100 dark:border-white/10 shadow-xs">
@@ -681,7 +681,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   <div className="lg:hidden w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0">
                     {/* GIF tương ứng avatar user — khớp logo sidebar desktop, guest hiện cat */}
-                    <UserAvatar avatar={currentUser?.avatar} format="gif" size={24} alt="Linh vật Meowlish" />
+                    <UserAvatar avatar={currentUser?.avatar} format="gif" size={28} alt="Linh vật Meowlish" />
                   </div>
                   {/* `xs:` không phải breakpoint của Tailwind ⇒ class chết, đã gỡ.
                       Tiêu đề tự co nhờ `flex-1 min-w-0` bên trên. */}
@@ -774,9 +774,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         setShowAvatarMenu((v) => !v);
                       } else setShowAuth(true);
                     }}
-                    className="tap-target flex items-center gap-1.5 bg-slate-50 dark:bg-white/10 hover:bg-slate-100 dark:hover:bg-white/15 text-slate-800 dark:text-slate-100 p-1 sm:px-2.5 sm:py-1.5 rounded-2xl text-xs font-bold transition border border-slate-200 dark:border-white/10 cursor-pointer shadow-xs"
+                    className="tap-target flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3 sm:px-4 py-2 rounded-2xl text-xs font-bold transition cursor-pointer shadow-md shadow-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/30 hover:scale-105 active:scale-95"
                   >
-                    <UserAvatar avatar={currentUser?.avatar} size={22} className="text-sm" />
+                    <UserAvatar avatar={currentUser?.avatar} size={22} />
                     <span className="hidden sm:inline max-w-[140px] truncate">
                       {currentUser?.display_name || 'Đăng Nhập'}
                     </span>
@@ -955,8 +955,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center gap-2.5 font-black text-lg text-slate-900 dark:text-slate-100">
                   {/* Brand khớp logo sidebar: GIF TƯƠNG ỨNG avatar user đã chọn,
                       guest — chưa có avatar — hiện Linh Vật mặc định (cat). */}
-                  <UserAvatar avatar={currentUser?.avatar} format="gif" size={32} alt="Linh vật Meowlish" />
-                  <span>Meow<span className="text-emerald-600 dark:text-emerald-400">lish</span></span>
+                  <UserAvatar avatar={currentUser?.avatar} format="gif" size={40} alt="Linh vật Meowlish" />
+                  <span className="text-xl">Meow<span className="text-emerald-600 dark:text-emerald-400">lish</span></span>
                 </div>
                 <button
                   type="button"
@@ -1014,7 +1014,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                             }`}
                           >
                             <div className="flex items-center gap-2.5">
-                              <Icon className={`w-4 h-4 nav-icon ${isActive ? 'text-white' : ''}`} />
+                              <Icon className={`w-[18px] h-[18px] nav-icon ${isActive ? 'text-white' : ''}`} />
                               <span>{item.label}</span>
                             </div>
                             {item.badge && (
@@ -1082,10 +1082,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl text-center relative z-10 space-y-5">
             <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center shadow-xl">
               {/* Linh vật brand pixel — khớp style với splash/guest gate */}
-              <UserAvatar avatar={null} size={56} alt="Linh vật Meowlish" />
+              <UserAvatar avatar={null} size={64} alt="Linh vật Meowlish" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-white tracking-tight">Meowlish English</h1>
+              <h1 className="text-3xl font-black text-white tracking-tight">Meowlish English</h1>
               <p className="text-xs text-slate-400 mt-2 leading-relaxed">
                 Nền tảng luyện giao tiếp tiếng Anh phản xạ, luyện thi TOEIC/IELTS & tiếng Anh chuyên ngành IT cùng linh vật thú cưng.
               </p>
