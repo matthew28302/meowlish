@@ -7,6 +7,7 @@
 // Chạy: node scripts/verify-email-gifs.mjs [thư-mục chứa .gif]
 import fs from 'node:fs';
 import path from 'node:path';
+import sharp from 'sharp';
 
 const dir = path.resolve(process.argv[2] || 'public');
 
@@ -61,11 +62,50 @@ function parse(buf) {
   return { W, H, gctSize, frames, transparentFrames, transparentIndex, trailer, bytes: buf.length };
 }
 
+/**
+ * Kiểm tra MÀU của GIF — chốt chặn cho lỗi thật đã xảy ra: script render cũ
+ * tra palette bằng số thực nên mọi pixel màu bị ghi thành index 0 (trong suốt),
+ * kết quả chỉ còn 1 màu đen/trắng. Script verify cũ chỉ xem kích thước + cờ
+ * trong suốt nên vẫn báo "đạt", trong khi email hiển thị con mèo xám mất màu.
+ * Lấy mẫu đầu/giữa/cuối (bỏ qua khung fade trắng) và yêu cầu có đủ màu.
+ */
+async function colorStats(file) {
+  const meta = await sharp(file, { animated: true }).metadata();
+  const pages = meta.pages || 1;
+  const picks = [...new Set([0, Math.floor(pages / 2), Math.max(0, pages - 1)])];
+  let best = { unique: 0, saturationRatio: 0, frame: 0 };
+  for (const page of picks) {
+    const { data } = await sharp(file, { page }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    let opaque = 0;
+    let saturated = 0;
+    const colors = new Set();
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 10) continue; // bỏ pixel trong suốt
+      opaque++;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const mx = Math.max(r, g, b);
+      const mn = Math.min(r, g, b);
+      if (mx > 0 && (mx - mn) / mx > 0.15) saturated++;
+      if (colors.size < 4096) colors.add(`${r},${g},${b}`);
+    }
+    const saturationRatio = opaque ? saturated / opaque : 0;
+    if (colors.size > best.unique || saturationRatio > best.saturationRatio) {
+      best = { unique: colors.size, saturationRatio, frame: page };
+    }
+  }
+  const ok = best.unique >= 8 && best.saturationRatio >= 0.05;
+  return { ...best, ok };
+}
+
 let failed = false;
 for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.gif')).sort()) {
-  const info = parse(fs.readFileSync(path.join(dir, file)));
+  const full = path.join(dir, file);
+  const info = parse(fs.readFileSync(full));
   const transparent = info.transparentFrames === info.frames && info.frames > 0;
-  const ok = info.trailer && transparent;
+  const color = await colorStats(full);
+  const ok = info.trailer && transparent && color.ok;
   if (!ok) failed = true;
   console.log(`${ok ? '✔' : '✘'} ${file}`);
   console.log(`    ${info.W}x${info.H} · ${(info.bytes / 1024).toFixed(0)} KB · ${info.frames} khung · palette ${info.gctSize}`);
@@ -73,6 +113,11 @@ for (const file of fs.readdirSync(dir).filter((f) => f.endsWith('.gif')).sort())
     transparent
       ? `    nền trong suốt: ${info.transparentFrames}/${info.frames} khung (index ${info.transparentIndex}) — an toàn với dark mode`
       : `    nền trong suốt: ${info.transparentFrames}/${info.frames} — THIẾU! client dark mode có thể đảo thành nền đen`
+  );
+  console.log(
+    color.ok
+      ? `    màu: ${color.unique} màu (khung ${color.frame}) · ${(color.saturationRatio * 100).toFixed(0)}% pixel có màu — đạt`
+      : `    màu: CHỈ ${color.unique} màu · ${(color.saturationRatio * 100).toFixed(0)}% pixel có màu — GIF bị mất màu!`
   );
   if (!info.trailer) console.log('    thiếu block kết 0x3B — file có thể hỏng');
 }

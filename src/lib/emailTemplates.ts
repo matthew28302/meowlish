@@ -280,9 +280,16 @@ const M = {
  * Vì sao KHÔNG nhúng base64: Gmail và đa số client không render được ảnh
  * `data:` URI → hiện ô trắng. Xem docs ghi chú ở temp/email_*.html.
  * Ảnh nằm ở public/<file> nên được phục vụ tại `${APP_URL}/<file>` khi deploy.
+ *
+ * VÌ SAO PHẢI CÓ `?v=`: Gmail/Outlook proxy cache ảnh theo URL rất lâu. Khi
+ * thay nội dung GIF (vd sửa lỗi mất màu 2026-10-19) mà giữ nguyên URL, người
+ * nhận vẫn thấy đúng ảnh cũ đã cache — tưởng là chưa sửa. Tăng số version mỗi
+ * lần đổi nội dung ảnh để mọi client tải lại từ đầu.
  */
+const EMAIL_ASSET_VERSION = 2;
+
 function assetUrl(file: string): string {
-  return `${APP_URL}/${file}`;
+  return `${APP_URL}/${file}?v=${EMAIL_ASSET_VERSION}`;
 }
 
 /**

@@ -82,7 +82,11 @@ const OUT_DIR = process.argv[3] ? path.resolve(process.cwd(), process.argv[3]) :
 const CSS = OUT / 2; // vẽ ở N CSS px, deviceScaleFactor 2 ⇒ đúng OUT px
 const DSF = 2;
 const STEP = 2; // giữ mỗi frame thứ N, delay × N để giữ tốc độ gốc
-const DITHER_SPREAD = 26; // biên độ nhiễu dither (0 = không dither)
+// Biên độ nhiễu dither (0 = không dither). Tranh Lottie là màu phẳng, không
+// gradient mượt → dither chỉ thêm hạt nhiễu và làm file phình to (678KB→446KB
+// với Dance-cat, 1.1MB→686KB với cat-forgot khi đặt 0) mà mắt thường không
+// thấy khác biệt ở cỡ hiển thị 220px. Giữ 0 làm mặc định.
+const DITHER_SPREAD = 0;
 // Sai số màu tối đa vẫn coi là "vùng phẳng" (không dither): pixel đã khớp
 // palette ổn thì giữ nguyên để nền trắng phẳng không bị nhiễu.
 const FLAT_TOLERANCE = 12;
@@ -209,7 +213,11 @@ function buildGlobalPalette(frames) {
   const palette = quantize(buf, 256);
   // Dành index 0 cho "trong suốt". Đặt nó thành màu phổ biến nhất thay vì đen:
   // nếu client nào bỏ qua cờ trong suốt thì ảnh vẫn dễ chịu, không thành khối đen.
-  palette[0] = mostCommonOpaqueColor(buf);
+  // LƯU Ý: quantize() trả về mảng các bộ ba [r, g, b] — KHÔNG phải số packed.
+  const fallback = mostCommonOpaqueColor(buf);
+  palette[0] = [(fallback >> 16) & 255, (fallback >> 8) & 255, fallback & 255];
+  // Bảng tra dùng index 1..255 nên palette phải đủ 256 entry.
+  while (palette.length < 256) palette.push([0, 0, 0]);
   return palette;
 }
 
@@ -265,10 +273,11 @@ function buildLookup(palette) {
   const SIZE = 32;
   const lut = new Uint8Array(SIZE * SIZE * SIZE);
   for (let i = 0; i < 256; i++) {
-    const c = palette[i];
-    prArr[i] = (c >> 16) & 255;
-    pgArr[i] = (c >> 8) & 255;
-    pbArr[i] = c & 255;
+    // quantize() trả về bộ ba [r, g, b] — đọc đúng dạng mảng, không phải số packed.
+    const c = palette[i] || [0, 0, 0];
+    prArr[i] = c[0];
+    pgArr[i] = c[1];
+    pbArr[i] = c[2];
   }
   for (let r = 0; r < SIZE; r++) {
     const rr = (r * 255) / (SIZE - 1);
@@ -319,9 +328,12 @@ function ditherToIndex(rgba, lut, out) {
       const r = rgba[p] + d;
       const g = rgba[p + 1] + d;
       const b = rgba[p + 2] + d;
-      const ri = r < 0 ? 0 : r > 255 ? 31 : (r * 31) / 255;
-      const gi = g < 0 ? 0 : g > 255 ? 31 : (g * 31) / 255;
-      const bi = b < 0 ? 0 : b > 255 ? 31 : (b * 31) / 255;
+      // LƯU Ý: chỉ số bảng tra là SỐ NGUYÊN 0..31. Trước đây để số thực
+      // ((r * 31) / 255) nên lut[float] = undefined → pixel màu bị ghi thành
+      // index 0 (trong suốt) ⇒ GIF gần như biến mất, chỉ còn đen/trắng.
+      const ri = r < 0 ? 0 : r > 255 ? 31 : Math.min(31, Math.floor((r * 31) / 255));
+      const gi = g < 0 ? 0 : g > 255 ? 31 : Math.min(31, Math.floor((g * 31) / 255));
+      const bi = b < 0 ? 0 : b > 255 ? 31 : Math.min(31, Math.floor((b * 31) / 255));
       out[y * OUT + x] = lut[(ri * 32 + gi) * 32 + bi];
     }
   }
