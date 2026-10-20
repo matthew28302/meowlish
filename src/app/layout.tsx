@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono, Baloo_2 } from 'next/font/google';
 import './globals.css';
 import AppShell from '@/components/AppShell';
 import HighlightTooltip from '@/components/HighlightTooltip';
@@ -14,6 +14,16 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+});
+
+// Font display cho wordmark "Meowlish" + heading: Baloo 2 (bo tròn,
+// hỗ trợ tổ hợp tiếng Việt — subset vietnamese, khai báo rõ để next/font
+// không bị tree-shake khi build). Weight 700–800 dùng cho logo/heading.
+const balooDisplay = Baloo_2({
+  variable: '--font-baloo',
+  subsets: ['latin', 'vietnamese'],
+  weight: ['600', '700', '800'],
+  display: 'swap',
 });
 
 // L7b — viewport qua export chuẩn Next (chỉ hỗ trợ Server Component, root layout
@@ -94,7 +104,7 @@ export default function RootLayout({
     <html
       lang="vi"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-dvh antialiased overflow-hidden`}
+      className={`${geistSans.variable} ${geistMono.variable} ${balooDisplay.variable} h-dvh antialiased overflow-hidden`}
     >
       <head>
         <script

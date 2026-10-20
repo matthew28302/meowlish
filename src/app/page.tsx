@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { sound } from '@/lib/soundFx';
 import MascotCompanion from '@/components/MascotCompanion';
+import Reveal from '@/components/Reveal';
 import confetti from '@/lib/confetti';
 import { speakText } from '@/lib/speech';
 import { getStoredUser, AuthUser, setStoredUser } from '@/lib/auth';
@@ -271,31 +272,36 @@ export default function HomePage() {
 
   return (
     <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 pb-24 lg:pb-12 overflow-x-hidden">
-      {/* Hero Welcome Banner */}
+      {/* Hero Welcome Banner — nền aurora 2 lớp trôi chậm (transform-only) */}
       <section className="shrink-0 bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg shadow-emerald-500/10 relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-white/15 rounded-full blur-3xl pointer-events-none dark:bg-slate-900/15" />
-        <div className="absolute bottom-0 left-1/4 -mb-10 w-60 h-60 bg-amber-300/15 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="absolute -top-16 -right-10 w-72 h-72 bg-white/15 rounded-full blur-3xl dark:bg-slate-900/15" />
+          <div className="absolute -bottom-16 -left-16 w-60 h-60 bg-amber-300/20 rounded-full blur-2xl" />
+          {/* 2 khối màu trôi chậm tạo cảm giác sống động, không đụng layout */}
+          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-aurora" />
+          <div className="absolute bottom-0 left-1/4 -mb-10 w-60 h-60 bg-cyan-300/15 rounded-full blur-2xl animate-aurora" style={{ animationDelay: '-7s' }} />
+        </div>
 
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-black tracking-wide text-white border border-white/25">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-black tracking-wide text-white border border-white/25 anim-fade-up">
               <Compass className="w-3.5 h-3.5 text-amber-200" /> TIẾNG ANH GIAO TIẾP THỰC CHIẾN IT & ĐỜI SỐNG
             </div>
 
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight font-display anim-fade-up" style={{ animationDelay: '90ms' }}>
               Tự tin nói tiếng Anh{' '}
-              <span className="text-amber-200 drop-shadow-xs">chuẩn bản xứ mỗi ngày!</span>
+              <span className="bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 bg-clip-text text-transparent drop-shadow-xs">chuẩn bản xứ mỗi ngày!</span>
             </h1>
 
-            <p className="text-emerald-50 text-xs sm:text-sm leading-relaxed max-w-xl font-medium">
+            <p className="text-emerald-50 text-xs sm:text-sm leading-relaxed max-w-xl font-medium anim-fade-up" style={{ animationDelay: '180ms' }}>
               Chào mừng bạn trở lại, <b className="text-white font-black underline decoration-amber-300 underline-offset-4">{currentUser?.display_name || 'Học viên'}</b>! Chọn mục tiêu (TOEIC, VSTEP, IELTS, TOEFL, IT Work), học qua mốc lộ trình và thử sức với bài Thi Thử Thực Chiến.
             </p>
 
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center gap-3 pt-2 anim-fade-up" style={{ animationDelay: '270ms' }}>
               <Link
                 href="/practice/speaking"
                 onClick={() => sound.playClick()}
-                className="btn-arcade px-5 py-3 text-xs sm:text-sm shadow-md cursor-pointer"
+                className="btn-3d btn-arcade btn-sheen px-5 py-3 text-xs sm:text-sm shadow-md cursor-pointer"
               >
                 <Mic className="w-4 h-4" /> Luyện Nói Voice AI Ngay
               </Link>
@@ -309,7 +315,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="w-full lg:w-auto flex justify-center pt-2 lg:pt-0 shrink-0">
+          <div className="w-full lg:w-auto flex justify-center pt-2 lg:pt-0 shrink-0 anim-fade-up" style={{ animationDelay: '360ms' }}>
             <MascotCompanion
               mood="happy"
               size="lg"
@@ -324,12 +330,13 @@ export default function HomePage() {
       {/* ========================================================================= */}
       <section className="space-y-6">
         {/* Header & Goal Selector Bar */}
+        <Reveal className="w-full">
         <div className="bg-white rounded-3xl p-6 border-2 border-slate-200 shadow-sm space-y-5 dark:bg-slate-900 dark:border-white/10">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
                 <span className="p-2 bg-emerald-100 text-emerald-800 rounded-2xl text-xl dark:bg-emerald-950 dark:text-emerald-200">🎯</span>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight dark:text-slate-100">
+                <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900 tracking-tight dark:text-slate-100">
                   Lộ Trình Học Theo Mục Tiêu Chứng Chỉ & Công Việc
                 </h2>
               </div>
@@ -385,7 +392,7 @@ export default function HomePage() {
               <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/20 text-white text-xs font-black border border-white/30 uppercase tracking-wide">
                 <FlagText text={currentPath.icon} size={14} /> ĐANG CHỌN MỤC TIÊU: {currentPath.badge}
               </div>
-              <h3 className="text-lg sm:text-xl font-black">{currentPath.title}</h3>
+              <h3 className="font-display text-lg sm:text-xl font-black">{currentPath.title}</h3>
               <p className="text-xs text-white/90 font-medium leading-relaxed">
                 {currentPath.description}
               </p>
@@ -404,6 +411,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+        </Reveal>
 
         {/* Roadmap Path Nodes Display (Stacked 3D Cards Timeline) */}
         <div className="space-y-4 relative">
@@ -417,8 +425,8 @@ export default function HomePage() {
               (index === 0 || !!completedNodeIds[currentPath.nodes[index - 1].id]);
 
             return (
+              <Reveal key={node.id} delay={Math.min(index * 70, 350)} className="w-full">
               <div
-                key={node.id}
                 className={`relative z-10 card-playful p-6 rounded-3xl border-2 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-6 ${
                   isCompleted
                     ? 'bg-emerald-50/50 border-emerald-300 shadow-xs dark:bg-emerald-950/40 dark:border-emerald-800'
@@ -472,7 +480,7 @@ export default function HomePage() {
                       )}
                     </div>
 
-                    <h4 className="text-base sm:text-lg font-black text-slate-900 leading-snug dark:text-slate-100">
+                    <h4 className="font-display text-base sm:text-lg font-black text-slate-900 leading-snug dark:text-slate-100">
                       {node.stageTitle}
                     </h4>
 
@@ -541,6 +549,7 @@ export default function HomePage() {
                   )}
                 </div>
               </div>
+              </Reveal>
             );
           })}
         </div>
@@ -563,7 +572,7 @@ export default function HomePage() {
           <section className="space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2 dark:text-slate-100">
+                <h2 className="font-display text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2 dark:text-slate-100">
                   <Zap className="w-5 h-5 text-amber-500 fill-amber-400 animate-flame" />
                   Phòng Luyện Tập 4 Kỹ Năng Tương Tác
                 </h2>
@@ -581,7 +590,7 @@ export default function HomePage() {
               <Link
                 href="/practice/speaking"
                 onClick={() => sound.playClick()}
-                className="card-arcade card-arcade-emerald p-5 flex flex-col justify-between group"
+                className="card-arcade card-arcade-emerald card-lift p-5 flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -592,7 +601,7 @@ export default function HomePage() {
                       Speech AI
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-slate-900 group-hover:text-emerald-700 transition-colors dark:text-slate-100 group-hover:dark:text-emerald-300">
+                  <h3 className="font-display text-base font-black text-slate-900 group-hover:text-emerald-700 transition-colors dark:text-slate-100 group-hover:dark:text-emerald-300">
                     Luyện Nói Voice AI
                   </h3>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium dark:text-slate-400">
@@ -601,7 +610,7 @@ export default function HomePage() {
                 </div>
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-emerald-700 dark:border-white/10 dark:text-emerald-300">
                   <span>Vào phòng nói</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 text-emerald-600 dark:text-emerald-300 transition-colors" />
                 </div>
               </Link>
 
@@ -609,7 +618,7 @@ export default function HomePage() {
               <Link
                 href="/practice/writing"
                 onClick={() => sound.playClick()}
-                className="card-arcade card-arcade-teal p-5 flex flex-col justify-between group"
+                className="card-arcade card-arcade-teal card-lift p-5 flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -620,7 +629,7 @@ export default function HomePage() {
                       Lego Block
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-slate-900 group-hover:text-teal-700 transition-colors dark:text-slate-100 group-hover:dark:text-teal-300">
+                  <h3 className="font-display text-base font-black text-slate-900 group-hover:text-teal-700 transition-colors dark:text-slate-100 group-hover:dark:text-teal-300">
                     Luyện Viết Phản Xạ
                   </h3>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium dark:text-slate-400">
@@ -629,7 +638,7 @@ export default function HomePage() {
                 </div>
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-teal-700 dark:border-white/10 dark:text-teal-300">
                   <span>Lắp ghép câu</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 text-emerald-600 dark:text-emerald-300 transition-colors" />
                 </div>
               </Link>
 
@@ -637,7 +646,7 @@ export default function HomePage() {
               <Link
                 href="/practice/listening"
                 onClick={() => sound.playClick()}
-                className="card-arcade card-arcade-sky p-5 flex flex-col justify-between group"
+                className="card-arcade card-arcade-sky card-lift p-5 flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -648,7 +657,7 @@ export default function HomePage() {
                       0.75x & 1.0x
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-slate-900 group-hover:text-sky-700 transition-colors dark:text-slate-100 group-hover:dark:text-sky-300">
+                  <h3 className="font-display text-base font-black text-slate-900 group-hover:text-sky-700 transition-colors dark:text-slate-100 group-hover:dark:text-sky-300">
                     Luyện Nghe Tốc Độ
                   </h3>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium dark:text-slate-400">
@@ -657,7 +666,7 @@ export default function HomePage() {
                 </div>
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-sky-700 dark:border-white/10 dark:text-sky-300">
                   <span>Luyện nghe</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 text-emerald-600 dark:text-emerald-300 transition-colors" />
                 </div>
               </Link>
 
@@ -665,7 +674,7 @@ export default function HomePage() {
               <Link
                 href="/practice/roleplay"
                 onClick={() => sound.playClick()}
-                className="card-arcade card-arcade-purple p-5 flex flex-col justify-between group"
+                className="card-arcade card-arcade-purple card-lift p-5 flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -676,7 +685,7 @@ export default function HomePage() {
                       Daily Scrum
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-slate-900 group-hover:text-purple-700 transition-colors dark:text-slate-100 group-hover:dark:text-purple-300">
+                  <h3 className="font-display text-base font-black text-slate-900 group-hover:text-purple-700 transition-colors dark:text-slate-100 group-hover:dark:text-purple-300">
                     Đóng Vai Hội Thoại
                   </h3>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium dark:text-slate-400">
@@ -685,7 +694,7 @@ export default function HomePage() {
                 </div>
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-black text-purple-700 dark:border-white/10 dark:text-purple-300">
                   <span>Vào kịch bản</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 text-emerald-600 dark:text-emerald-300 transition-colors" />
                 </div>
               </Link>
             </div>
@@ -702,7 +711,7 @@ export default function HomePage() {
                     Trực quan & Dễ hiểu
                   </span>
                 </div>
-                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100">
+                <h3 className="font-display text-base sm:text-lg font-black text-slate-900 dark:text-slate-100">
                   Ngữ Pháp Lego & Công Tắc Chuyển Thì
                 </h3>
                 <p className="text-xs text-slate-600 mt-1.5 leading-relaxed font-medium dark:text-slate-400">
@@ -727,7 +736,7 @@ export default function HomePage() {
                     Lặp Lại Ngắt Quãng SRS
                   </span>
                 </div>
-                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100">
+                <h3 className="font-display text-base sm:text-lg font-black text-slate-900 dark:text-slate-100">
                   Thẻ Ghi Nhớ 3D Flashcard Deck
                 </h3>
                 <p className="text-xs text-slate-600 mt-1.5 leading-relaxed font-medium dark:text-slate-400">
@@ -988,7 +997,7 @@ export default function HomePage() {
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-black text-slate-900 dark:text-slate-100">collaborate</h3>
+                <h3 className="font-display text-xl font-black text-slate-900 dark:text-slate-100">collaborate</h3>
                 <button
                   onClick={() => {
                     sound.playClick();
@@ -1023,7 +1032,8 @@ export default function HomePage() {
       </div>
 
       {/* Database Status & Celebration Footer */}
-      <section className="shrink-0 card-arcade card-arcade-indigo p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+        <Reveal className="w-full" delay={600}>
+        <section className="shrink-0 card-arcade card-arcade-indigo p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl shadow-xs dark:bg-emerald-950 dark:text-emerald-200">
             💾
@@ -1045,6 +1055,7 @@ export default function HomePage() {
           <Sparkles className="w-4 h-4 text-amber-300" /> Bắn Pháo Hoa Ăn Mừng
         </button>
       </section>
+      </Reveal>
 
       {/* ========================================================================= */}
       {/* MODAL: LESSONS LIST FOR SELECTED PATH NODE */}
@@ -1064,7 +1075,7 @@ export default function HomePage() {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black dark:bg-emerald-950 dark:text-emerald-200">
                 <Target className="w-3.5 h-3.5" /> MỤC TIÊU: {selectedNodeModal.targetScore}
               </div>
-              <h3 className="text-xl font-black text-slate-900 dark:text-slate-100">{selectedNodeModal.stageTitle}</h3>
+              <h3 className="font-display text-xl font-black text-slate-900 dark:text-slate-100">{selectedNodeModal.stageTitle}</h3>
               <p className="text-xs text-slate-600 leading-relaxed font-medium dark:text-slate-400">
                 {selectedNodeModal.description}
               </p>
@@ -1127,7 +1138,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      )}
+      )}       
     </div>
   );
 }
