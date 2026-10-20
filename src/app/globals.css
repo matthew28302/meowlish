@@ -48,6 +48,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: "Baloo 2", var(--font-geist-sans), system-ui, sans-serif;
 }
 
 /* Dedicated International Phonetic Alphabet (IPA) Font Stack */
@@ -444,6 +445,182 @@ body {
   overscroll-behavior-y: contain;
   transform: translateZ(0);
   backface-visibility: hidden;
+}
+
+/* ========================================================================= */
+/* PREMIUM PLAYFUL — hệ token & motion nâng cấp (2026-10-20)                   */
+/* Giữ nguyên toàn bộ class cũ (btn-3d/card-arcade/nav-*) để không phá test   */
+/* và không đổi hành vi; chỈ THÊM token mới bên dưới.                          */
+/* ========================================================================= */
+
+/* Font display cho wordmark + heading (Baloo 2 hỗ trợ tiếng Việt).           */
+/* Dùng qua utility `font-display` sinh từ @theme inline ở đầu file.          */
+
+/* Entrance dùng lại nhiều nơi: fade + rise 16ms–18ms, cubic-bezier(.22,1,.36,1)
+   (easeOutExpo giả cảm — đây là easing tạo cảm giác "đắt tiền" cho UI chuyển
+   động nhẹ; lưu ý giữ gốc tùy biến bên ngoài nhưng đây là mặc định mới).      */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger delay dùng qua inline style: <div class="anim-fade-up" style={{animationDelay:'90ms'}}> */
+.anim-fade-up {
+  animation: fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.anim-fade-in {
+  animation: fade-in 0.5s ease-out both;
+}
+
+/* Pop-in cho modal/toast: scale 0.96→1 kèm fade, cùng easing fade-up. */
+@keyframes pop-in-soft {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.anim-pop {
+  animation: pop-in-soft 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Aurora layer cho hero: 2 khối blur trôi chậm, transform-only (GPU). */
+@keyframes aurora-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(4%, -3%, 0) scale(1.08);
+  }
+  66% {
+    transform: translate3d(-3%, 4%, 0) scale(0.96);
+  }
+}
+.animate-aurora {
+  animation: aurora-drift 14s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Text gradient emerald→teal dùng cho wordmark + heading nhấn. */
+.text-gradient {
+  background-image: linear-gradient(92deg, #059669 0%, #14b8a6 55%, #0d9488 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.dark .text-gradient {
+  background-image: linear-gradient(92deg, #34d399 0%, #2dd4bf 55%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Card lift: nhấc thẻ lên khi hover — phần dữ liệu vẫn đứng yên (chỉ transform). */
+.card-lift {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Scroll-reveal: bật qua IntersectionObserver (xem components/Reveal.tsx).
+   Trạng thái mặc định ẩn, JS thêm .is-visible khi vào viewport. Không JS /
+   reduced-music vẫn thấy nội bản đầy đủ nhờ media query ở cuối file. */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Vệt sáng chạy ngang trên primary CTA (shimmer) — tắt khi reduced-motion. */
+@keyframes sheen-sweep {
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(230%) skewX(-18deg);
+  }
+}
+.btn-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.btn-sheen::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: sheen-sweep 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Nút outline nhẹ: hover đổi viền + nền mờ, KHÔNG dịch chuyển. */
+.btn-ghost {
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+/* Skeleton shimmer cho trạng thái loading dữ liệu. */
+@keyframes shimmer-slide {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.12) 25%, rgba(148, 163, 184, 0.28) 37%, rgba(148, 163, 184, 0.12) 63%);
+  background-size: 800px 100%;
+  animation: shimmer-slide 1.4s ease infinite;
+}
+.dark .skeleton {
+  background: linear-gradient(90deg, rgba(71, 85, 105, 0.25) 25%, rgba(100, 116, 139, 0.4) 37%, rgba(71, 85, 105, 0.25) 63%);
+  background-size: 800px 100%;
+}
+
+/* Reduced-motion: tắt mọi entrance/loop animation, giữ nguyên nội bản tĩnh. */
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade-up,
+  .anim-fade-in,
+  .anim-pop,
+  .reveal {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .card-lift:hover {
+    transform: none;
+  }
+  .btn-sheen::after {
+    animation: none;
+    display: none;
+  }
 }
 
 /* Custom scrollbar */

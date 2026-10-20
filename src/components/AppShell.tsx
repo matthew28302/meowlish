@@ -366,11 +366,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {/* Linh vật brand: GIF pixel của khách (avatar trống → mèo mặc định) */}
           <UserAvatar avatar={null} format="gif" size={56} alt="Linh vật Meowlish" />
         </div>
-        <div className="text-white font-black text-xl tracking-wide flex items-center gap-2">
+        <div className="text-white font-black text-xl tracking-wide flex items-center gap-2 anim-fade-up font-display" style={{ animationDelay: '120ms' }}>
           <span>Meowlish</span>
           <span className="text-emerald-400 text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 font-bold">English</span>
         </div>
-        <div className="text-xs text-slate-400 mt-2 flex items-center gap-2">
+        <div className="text-xs text-slate-400 mt-2 flex items-center gap-2 anim-fade-up" style={{ animationDelay: '240ms' }}>
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
           <span>Đang tải không gian học tập...</span>
         </div>
@@ -512,13 +512,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               title="Về trang chủ Meowlish"
               className="flex items-center gap-2.5 group min-w-0"
             >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-400/30 group-hover:scale-105 transition-transform shrink-0 brand-glow">
-                {/* GIF TƯƠNG ỨNG avatar user đã chọn (kèm chữ Meowlish bên cạnh).
-                    Guest — chưa có avatar — hiện Linh Vật mặc định (cat). */}
-                <UserAvatar avatar={currentUser?.avatar} format="gif" size={48} alt="Linh vật Meowlish" />
+              <div className="relative shrink-0">
+                {/* Halo mềm phía sau khung GIF — giúp logo "nổi" trên nền */}
+                <div className="absolute -inset-1.5 rounded-[1.4rem] bg-gradient-to-tr from-emerald-400/50 to-teal-300/40 blur-md" aria-hidden="true" />
+                <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-400/40 group-hover:scale-105 transition-transform">
+                  {/* GIF TƯƠNG ỨNG avatar user đã chọn (kèm chữ Meowlish bên cạnh).
+                      Guest — chưa có avatar — hiện Linh Vật mặc định (cat). */}
+                  <UserAvatar avatar={currentUser?.avatar} format="gif" size={48} alt="Linh vật Meowlish" />
+                </div>
               </div>
               {!sidebarCompact && (
-                <span className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight truncate">
+                <span className="font-display text-2xl font-bold tracking-tight truncate text-gradient">
                   Meowlish
                 </span>
               )}
@@ -583,7 +587,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       } ${
                         isActive
                           ? 'nav-link-active font-black shadow-md shadow-emerald-500/25 border-b-4'
-                          : 'nav-link hover:bg-slate-50 dark:hover:bg-white/5 active:scale-[0.97]'
+                          : 'nav-link hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-700 dark:hover:text-emerald-300 active:scale-[0.97]'
                       }`}
                     >
                       <div className={`flex items-center ${sidebarCompact ? '' : 'gap-3'}`}>
@@ -1079,13 +1083,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl text-center relative z-10 space-y-5">
+          <div className="w-full max-w-md rounded-[2rem] p-6 sm:p-8 text-center relative z-10 space-y-5 anim-pop bg-slate-900/85 backdrop-blur-xl border border-white/10 shadow-2xl shadow-emerald-950/40">
             <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/20 border-2 border-emerald-500/40 flex items-center justify-center shadow-xl">
               {/* Linh vật brand pixel — khớp style với splash/guest gate */}
               <UserAvatar avatar={null} size={64} alt="Linh vật Meowlish" />
             </div>
             <div>
-              <h1 className="text-3xl font-black text-white tracking-tight">Meowlish English</h1>
+              <h1 className="text-3xl font-black text-white tracking-tight font-display">Meowlish English</h1>
               <p className="text-xs text-slate-400 mt-2 leading-relaxed">
                 Nền tảng luyện giao tiếp tiếng Anh phản xạ, luyện thi TOEIC/IELTS & tiếng Anh chuyên ngành IT cùng linh vật thú cưng.
               </p>
